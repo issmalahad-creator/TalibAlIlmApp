@@ -35,7 +35,7 @@ git init && git add -A && git commit -m "Baseline before Quran Companion rebuild
 **المشكلة**: التطبيق الحالي (ولا حتى DawahReportApp الشقيق) لا يحتوي نص قرآن أو تفسير على الإطلاق — فقط أسماء السور وعدد آياتها (`quran_surahs.dart`). كمان، ذاكرة المشروع الشقيق توثّق قرارًا صريحًا سابقًا: **عدم بناء أي خط أنابيب يسحب محتوى من مكتبة الشاملة/الوقفية مباشرة داخل هذه التطبيقات البسيطة** — بسبب عدم وضوح الترخيص، وهذا محجوز لمفهوم مستقبلي منفصل اسمه IKOS.
 
 **الحل المعتمد (بعد تأكيد إسماعيل 2026-08-15)**:
-- **نص القرآن**: نص "تنزيل" (Tanzil.net) — النسخة العثمانية المعتمدة، مفتوحة ومجانية، تُجمَّع مرة واحدة كـ asset/SQLite محلي (بدون إنترنت، بدون سحب حي من أي موقع).
+- **نص القرآن**: نص "تنزيل" (Tanzil.net) — النسخة العثمانية المعتمدة. **الترخيص تأكّد فعليًا (2026-08-15): Creative Commons Attribution 3.0** — نسخ حرفي مسموح ومجاني، **بشرط**: (1) عدم أي تعديل على النص، (2) ذكر المصدر "Tanzil.net" ورابطه بمكان ظاهر بالتطبيق (يكفي شاشة "عن المصادر" واحدة تجمع كل الاعتمادات — Tanzil + كل الشروح المذكورة بهذه الخطة). تُجمَّع النسخة العثمانية بصيغة XML/SQL مرة واحدة كـ asset/SQLite محلي (بدون إنترنت، بدون سحب حي من أي موقع) عند تنفيذ Phase 0 فعليًا.
 - **التفسير: تفسير ابن كثير — مُعتمَد. القرار النهائي (2026-08-15): الثلاثة مختصرات معًا، لا واحد فقط** — طلب إسماعيل صراحة "اعملهم كلهم وخلي الطالب يختار من يحب":
   1. **المصباح المنير في تهذيب تفسير ابن كثير** — إشراف الشيخ صفي الرحمن المباركفوري، **مكتمل بالكامل** لكل القرآن.
   2. **مختصر تفسير ابن كثير** — الشيخ محمد علي الصابوني، **مكتمل بالكامل**.
@@ -456,6 +456,8 @@ CREATE TABLE visual_aids (             -- الشروحات البصرية الم
 - [Best Personal Goal Setting Apps for 2026](https://goalsandprogress.com/best-goal-setting-apps/)
 - [12 Best Goal Setting Apps in 2026](https://beyondtime.ai/blog/best-goal-setting-apps-2026)
 - [Strides: Goal & Habit Tracker + SMART Goal Setting App](https://www.stridesapp.com/)
+- [Tanzil Quran Text — License terms (CC-BY 3.0, verbatim + attribution)](https://tanzil.net/docs/text_license)
+- [Tanzil — Download Quran Text (format options)](https://tanzil.net/download/)
 - [شرح كتاب (تفسير ابن كثير) — الشيخ عبدالرحمن بن عبدالله العجلان — EmaanLibrary](https://www.emaanlibrary.com/video/series-%D8%B4%D8%B1%D8%AD-%D9%83%D8%AA%D8%A7%D8%A8-%D8%AA%D9%81%D8%B3%D9%8A%D8%B1-%D8%A7%D8%A8%D9%86-%D9%83%D8%AB%D9%8A%D8%B1-%D9%84%D9%81%D8%B6%D9%8A%D9%84%D8%A9-%D8%A7%D9%84%D8%B4%D9%8A%D8%AE/)
 - [مختصر تفسير ابن كثير للعلامة أحمد شاكر (عمدة التفسير)](https://ar.islamway.net/book/25167/)
 - [ما أفضل مختصر لتفسير الإمام ابن كثير؟ — ملتقى أهل التفسير (يقارن عمدة التفسير والمصباح المنير)](https://mtafsir.net/threads/%D9%85%D8%A7-%D8%A3%D9%81%D8%B6%D9%84-%D9%85%D8%AE%D8%AA%D8%B5%D8%B1-%D9%84%D8%AA%D9%81%D8%B3%D9%8A%D8%B1-%D8%A7%D9%84%D8%A5%D9%85%D8%A7%D9%85-%D8%A7%D8%A8%D9%86-%D9%83%D8%AB%D9%8A%D8%B1%D8%9F.34107/)
