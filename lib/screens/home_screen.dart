@@ -31,6 +31,7 @@ import 'profile_screen.dart';
 import 'qibla_screen.dart';
 import 'quran_browse_screen.dart';
 import 'salah_tracker_screen.dart';
+import 'audio_library_screen.dart';
 import 'quran_reading_screen.dart';
 import 'quran_search_screen.dart';
 import 'review_screen.dart';
@@ -190,6 +191,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
                     icon: const Icon(Icons.mosque_outlined, size: 18),
                     label: const Text('إقامة الصلاة'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
+                    icon: const Icon(Icons.podcasts_outlined, size: 18),
+                    label: const Text('كتب صوتية من اليوتيوب'),
                   ),
                   if (_banner != null) ...[
                     const SizedBox(height: 16),

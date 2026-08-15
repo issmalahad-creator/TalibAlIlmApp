@@ -58,6 +58,7 @@ dependencies:
   adhan_dart: ^2.0.1
   geolocator: ^14.0.2
   flutter_compass: ^0.8.1
+  youtube_player_iframe: ^5.2.0
 
 dev_dependencies:
   flutter_test:

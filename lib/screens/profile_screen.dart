@@ -14,6 +14,7 @@ import 'new_muslim_guide_screen.dart';
 import 'prayer_times_screen.dart';
 import 'qibla_screen.dart';
 import 'salah_tracker_screen.dart';
+import 'audio_library_screen.dart';
 import 'tajweed_screen.dart';
 import 'wird_screen.dart';
 import 'hifz_teacher_screen.dart';
@@ -244,6 +245,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
                   icon: const Icon(Icons.mosque_outlined),
                   label: const Text('إقامة الصلاة'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
+                  icon: const Icon(Icons.podcasts_outlined),
+                  label: const Text('كتب صوتية من اليوتيوب'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(

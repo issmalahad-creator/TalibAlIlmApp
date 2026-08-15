@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 21,
+      version: 22,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -40,6 +40,7 @@ class DatabaseHelper {
         await _createV19Tables(db);
         await _createV20Tables(db);
         await _createV21Tables(db);
+        await _createV22Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -62,6 +63,7 @@ class DatabaseHelper {
         if (oldVersion < 19) await _createV19Tables(db);
         if (oldVersion < 20) await _createV20Tables(db);
         if (oldVersion < 21) await _createV21Tables(db);
+        if (oldVersion < 22) await _createV22Tables(db);
       },
     );
   }
@@ -658,6 +660,43 @@ class DatabaseHelper {
       CREATE TABLE salah_library_progress (
         lesson_key TEXT PRIMARY KEY,
         read_date TEXT
+      )
+    ''');
+  }
+
+  /// "كتب صوتية من اليوتيوب" (Phase 13, Ismail's request 2026-08-16) —
+  /// audio-lecture series streamed via YouTube's own official embedded
+  /// player (youtube_player_iframe), never downloaded/rehosted. This app
+  /// only stores metadata (series/video/playlist IDs) and the user's own
+  /// resume position + written reflections — never the audio/video itself.
+  Future<void> _createV22Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE audio_progress (
+        series_id TEXT PRIMARY KEY,
+        video_id TEXT NOT NULL,
+        position_seconds INTEGER NOT NULL,
+        updated_date TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE audio_reflection_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        series_id TEXT NOT NULL,
+        video_id TEXT,
+        reflection_text TEXT NOT NULL,
+        created_date TEXT NOT NULL
+      )
+    ''');
+    // User's own added series — self-service, unlike the curated
+    // `audioSeries` const list. Same "مكتبتي" pattern as personal PDFs:
+    // clearly separated from app-curated content, no review/approval flow.
+    await db.execute('''
+      CREATE TABLE custom_audio_series (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title_ar TEXT NOT NULL,
+        playlist_id TEXT,
+        video_id TEXT,
+        created_date TEXT NOT NULL
       )
     ''');
   }

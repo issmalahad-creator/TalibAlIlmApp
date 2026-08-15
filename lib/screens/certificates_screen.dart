@@ -75,6 +75,11 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
           _section('الأجزاء', byType['juz'] ?? []),
           _section('السور', byType['surah'] ?? []),
           _section('منهج تعلم العربية', byType['stage_alphabet'] ?? []),
+          _section('دفتر فوائد الصوتيات', [
+            ...byType['audio_reflections_1'] ?? [],
+            ...byType['audio_reflections_10'] ?? [],
+            ...byType['audio_reflections_50'] ?? [],
+          ]),
         ],
       ),
     );

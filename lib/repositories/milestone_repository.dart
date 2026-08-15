@@ -45,6 +45,7 @@ class MilestoneRepository {
   static const _hadithBatchSizes = [10, 20, 30, 40];
   static const _totalHadiths = 42;
   static const _adhkarStreakThresholds = [7, 30, 100];
+  static const _audioReflectionThresholds = {1: 'أول فائدة', 10: '10 فوائد', 50: '50 فائدة'};
   static const _tajweedTierTitles = {
     'basic': 'المستوى الأساسي',
     'intermediate': 'المستوى المتوسط',
@@ -113,6 +114,14 @@ class MilestoneRepository {
         'milestone_type': 'tajweed_${tier.key}',
         'reference_id': null,
         'title': 'شهادة إتمام ${tier.value} في التجويد',
+      });
+    }
+    for (final entry in _audioReflectionThresholds.entries) {
+      batch.insert('achievement_milestones', {
+        'pillar': 'audio',
+        'milestone_type': 'audio_reflections_${entry.key}',
+        'reference_id': null,
+        'title': 'شهادة تسجيل ${entry.value} من الصوتيات في دفتر الفوائد',
       });
     }
     await batch.commit(noResult: true);
@@ -256,6 +265,29 @@ class MilestoneRepository {
     final row = rows.first;
     await db.update('achievement_milestones', {'achieved_date': today}, where: 'id = ?', whereArgs: [row['id']]);
     return [_toMilestone({...row, 'achieved_date': today})];
+  }
+
+  /// Detects newly-reached "دفتر الفوائد" reflection-count certificates —
+  /// call after `AudioLibraryRepository.addReflection` with the new total.
+  Future<List<Milestone>> checkAudioReflectionMilestones(int totalReflections) async {
+    final db = await DatabaseHelper.instance.database;
+    final newlyEarned = <Milestone>[];
+    final today = todayDate();
+
+    for (final threshold in _audioReflectionThresholds.keys) {
+      if (totalReflections < threshold) continue;
+      final rows = await db.query(
+        'achievement_milestones',
+        where: 'pillar = ? AND milestone_type = ?',
+        whereArgs: ['audio', 'audio_reflections_$threshold'],
+      );
+      if (rows.isEmpty || rows.first['achieved_date'] != null) continue;
+      final row = rows.first;
+      await db.update('achievement_milestones', {'achieved_date': today}, where: 'id = ?', whereArgs: [row['id']]);
+      newlyEarned.add(_toMilestone({...row, 'achieved_date': today}));
+    }
+
+    return newlyEarned;
   }
 
   Future<void> markShared(int milestoneId) async {
