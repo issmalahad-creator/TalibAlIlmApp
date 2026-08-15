@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 19,
+      version: 20,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -38,6 +38,7 @@ class DatabaseHelper {
         await _createV17Tables(db);
         await _createV18Tables(db);
         await _createV19Tables(db);
+        await _createV20Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -58,6 +59,7 @@ class DatabaseHelper {
         if (oldVersion < 17) await _createV17Tables(db);
         if (oldVersion < 18) await _createV18Tables(db);
         if (oldVersion < 19) await _createV19Tables(db);
+        if (oldVersion < 20) await _createV20Tables(db);
       },
     );
   }
@@ -605,6 +607,21 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE arabic_curriculum_progress (
         lesson_key TEXT PRIMARY KEY,
+        learned_date TEXT
+      )
+    ''');
+  }
+
+  /// Tajweed curriculum, 3 tiers — QURAN_COMPANION_ROADMAP.md Phase 11
+  /// (Ismail's request 2026-08-15). Rule content is a fixed const list
+  /// (`data/tajweed_curriculum.dart`), same pattern as the Arabic
+  /// curriculum — this migration only tracks per-rule "learned" marks,
+  /// needed for the per-tier completion certificates Ismail explicitly
+  /// asked every pillar to have.
+  Future<void> _createV20Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE tajweed_progress (
+        rule_key TEXT PRIMARY KEY,
         learned_date TEXT
       )
     ''');

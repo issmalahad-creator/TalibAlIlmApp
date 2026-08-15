@@ -45,6 +45,11 @@ class MilestoneRepository {
   static const _hadithBatchSizes = [10, 20, 30, 40];
   static const _totalHadiths = 42;
   static const _adhkarStreakThresholds = [7, 30, 100];
+  static const _tajweedTierTitles = {
+    'basic': 'المستوى الأساسي',
+    'intermediate': 'المستوى المتوسط',
+    'advanced': 'المستوى المتقدم',
+  };
 
   Future<void> seedIfNeeded() async {
     final db = await DatabaseHelper.instance.database;
@@ -102,6 +107,14 @@ class MilestoneRepository {
       'reference_id': null,
       'title': 'شهادة إتمام المرحلة ١: الحروف والنطق',
     });
+    for (final tier in _tajweedTierTitles.entries) {
+      batch.insert('achievement_milestones', {
+        'pillar': 'tajweed',
+        'milestone_type': 'tajweed_${tier.key}',
+        'reference_id': null,
+        'title': 'شهادة إتمام ${tier.value} في التجويد',
+      });
+    }
     await batch.commit(noResult: true);
   }
 
@@ -209,6 +222,22 @@ class MilestoneRepository {
     }
 
     return newlyEarned;
+  }
+
+  /// Detects a newly-completed Tajweed tier certificate — call after
+  /// `TajweedRepository.markLearned` once every rule in a tier is learned.
+  Future<List<Milestone>> checkTajweedMilestones(String tierKey) async {
+    final db = await DatabaseHelper.instance.database;
+    final today = todayDate();
+    final rows = await db.query(
+      'achievement_milestones',
+      where: 'pillar = ? AND milestone_type = ?',
+      whereArgs: ['tajweed', 'tajweed_$tierKey'],
+    );
+    if (rows.isEmpty || rows.first['achieved_date'] != null) return [];
+    final row = rows.first;
+    await db.update('achievement_milestones', {'achieved_date': today}, where: 'id = ?', whereArgs: [row['id']]);
+    return [_toMilestone({...row, 'achieved_date': today})];
   }
 
   /// Detects the alphabet-stage certificate — call after
