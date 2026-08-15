@@ -64,6 +64,16 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] "شهاداتي" gallery screen — shows EVERY possible certificate (Quran ones first, since Phase 4 ships before 5أ/5هـ), locked/greyed for not-yet-earned with "complete X to unlock" text, full-color + share button once earned. Design this to be pillar-agnostic from the start so hadith/adhkar rows slot in later without a rebuild.
 - [ ] Commit
 
+## Phase 4.15 — خطة الختم: generalized completion planner (roadmap §4.15) — ✅ FULLY DONE 2026-08-15 (commits 2d0ae59, 91632cd, 2cdec51, c4ad0df)
+
+- [x] Design: one `completion_goals` table (content_type/book_ref discriminator) instead of per-content duplicate schemas; position always read live from the real progress table, never cached — commit 2d0ae59
+- [x] Quran reading khatm: `quran_reading_progress` + قراءة القرآن screen, auto-saves position on screen close (`didChangeAppLifecycleState`/`dispose`, screen-scoped `WidgetsBindingObserver`) — commit 91632cd
+- [x] `CompletionGoalRepository`: create/activeGoals/abandon/reschedule/statusFor with remaining/daysLeft/recalculated daily pace/ahead-onTrack-behind (15% tolerance band, non-punitive framing) — commit 2cdec51
+- [x] Extended to Zad al-Ma'ad, Madarij, Wasitiyyah, Nawawi hadith, AND any personal-library PDF from "مكتبتي" (page count read live from existing `book_bookmarks`, no new input needed from the student) — commit c4ad0df
+- [x] "خطط ختمي" screen: create/view/reschedule plans, wired into ProfileScreen — commit c4ad0df
+- [x] Per-goal daily reminder notifications ("لم تكمل نصيبك اليوم") carrying a per-unit KPI (e.g. "15 صفحة اليوم"), auto-generalizes to any future book added to the fixed options or personal library, cancels itself the moment `hasProgressedToday()` is true — commit c4ad0df
+- [x] `book_bookmarks.last_updated_date` (DB v13→v14) so personal-library PDFs can answer "touched today" like every other content type — commit c4ad0df
+
 ## Phase 5 — Extended Islamic text library (roadmap §4.9, sub-phases 5أ–5د)
 
 - [x] 5أ: Al-Arba'in Al-Nawawiyyah — ✅ DONE 2026-08-15 (commit e3940cb). Real text+commentary (osamayy/40-hadith-nawawi-db, verified), browse+mark-memorized, generalized quiz ("أكمل الحديث"). NOTE: commentary source ended up being the bundled dataset's own scholarly commentary, not confirmed as specifically Ibn Uthaymeen's — should verify/relabel later if that distinction matters. `achievement_milestones` rows not added yet (Phase 4 not started).
