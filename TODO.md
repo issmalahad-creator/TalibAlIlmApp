@@ -22,20 +22,22 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] `flutter pub get` clean, `flutter analyze` clean (2 pre-existing unrelated deprecation infos in quiz_screen.dart)
 - [x] Committed
 
-## Phase 0 — Quran + tafsir data foundation (roadmap §2, §4.9 pending)
+## Phase 0 — Quran + tafsir data foundation — ✅ Quran text DONE 2026-08-15 (commit d7a3fb5)
 
-- [ ] Source Tanzil Uthmani Quran text, confirm license terms
-- [ ] Source/prepare the three tafsir mukhtasars (Al-Misbah Al-Munir, Sabuni, Ahmad Shakir's Umdat — note incomplete)
-- [ ] Build `quran_ayat`, `tafsir_entries` (with `asbab_nuzul_excerpt`), `text_normalized` column + index
-- [ ] DB migration to version 2 (additive only)
-- [ ] Commit: "Phase 0: Quran + tafsir data foundation"
+- [x] Source Tanzil Uthmani Quran text (6236 ayat, verified against real Mushaf facts), confirm license terms (CC-BY 3.0)
+- [x] Source Tanzil's Juz/Page boundary metadata (quran-data.js) — unblocks memorization_units generation
+- [x] Build `quran_ayat` (with `text_normalized` + index), `tafsir_entries` (with `asbab_nuzul_excerpt`) — DB migration v1→v2, additive
+- [x] One-time import service wired into app startup (`quran_import_service.dart`)
+- [ ] Source/prepare the three tafsir mukhtasars (Al-Misbah Al-Munir, Sabuni, Ahmad Shakir's Umdat — note incomplete) — NOT done yet, bigger sourcing task than the Quran text itself
+- [x] Commit
 
 ## Phase 1 — Ayah search + memorization engine
 
-- [ ] "Search an ayah" screen (number/text search, tashkeel-insensitive)
-- [ ] `memorization_units` (604 pages, auto-generated) + `memorization_progress`
+- [x] "Search an ayah" screen — full-word/phrase search across the whole Quran (tashkeel-insensitive) + direct "surah number" reference lookup, both return surah name + ayah text (commit 8cc3da5)
+- [ ] `memorization_units` (604 pages, auto-generated from the now-available page boundaries) + `memorization_progress`
 - [ ] "القرآن" browse tab
 - [ ] Commit
+- [ ] Known follow-up, not a blocker: bundle a proper Uthmani-script font (e.g. Amiri, SIL license) — ayah text currently renders in the system font
 
 ## Phase 2 — Review engine + daily session
 
