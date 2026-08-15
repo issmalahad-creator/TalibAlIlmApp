@@ -6,6 +6,7 @@ import '../repositories/completion_goal_repository.dart';
 import '../repositories/personal_book_repository.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/date_display.dart';
 import '../utils/hijri_date.dart';
 
 /// "خطط ختمي" — QURAN_COMPANION_ROADMAP.md section 4.15. Create and track
@@ -138,7 +139,7 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 icon: const Icon(Icons.calendar_today_outlined, size: 18),
-                label: Text('الموعد المستهدف: ${hijriDateStringForDate(targetDate)}'),
+                label: Text('الموعد المستهدف: ${formatDateForDisplay(hijriDateStringForDate(targetDate))}'),
                 onPressed: () async {
                   final picked = await showDatePicker(
                     context: context,

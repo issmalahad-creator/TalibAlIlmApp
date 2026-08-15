@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../utils/date_display.dart';
 
 /// The shareable certificate design — QURAN_COMPANION_ROADMAP.md §4.14.
 /// Deliberately fixed-size (not responsive) since it's captured as an image
@@ -8,6 +9,9 @@ import '../theme/app_theme.dart';
 class CertificateCard extends StatelessWidget {
   final String studentName;
   final String title;
+
+  /// Stored-format Hijri date string ("1447-01-15") — rendered honoring the
+  /// student's Hijri/Gregorian display preference, see `formatDateForDisplay`.
   final String hijriDate;
   final bool grand; // true only for the "ختم القرآن كاملًا" certificate
 
@@ -54,7 +58,7 @@ class CertificateCard extends StatelessWidget {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: accent),
           ),
           const SizedBox(height: 18),
-          Text(hijriDate, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+          Text(formatDateForDisplay(hijriDate), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
           const SizedBox(height: 6),
           const Text('تطبيق طالب العلم', style: TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
         ],

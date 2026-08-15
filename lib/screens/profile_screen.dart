@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
+import '../services/calendar_preference_service.dart';
+import '../theme/app_theme.dart';
 import 'hadith_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
@@ -26,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _studySourceCtrl = TextEditingController();
   String _studyTrack = StudentProfile.studyTracks.first;
   bool _loading = true;
+  bool _useGregorian = CalendarPreferenceService.useGregorian;
 
   @override
   void initState() {
@@ -104,6 +107,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: _save,
                   icon: const Icon(Icons.save),
                   label: const Text('حفظ'),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('عرض التواريخ بالتقويم الميلادي', style: TextStyle(fontSize: 13.5)),
+                    subtitle: const Text('التخزين الداخلي يبقى هجريًا دائمًا — هذا يغيّر طريقة العرض فقط', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    value: _useGregorian,
+                    onChanged: (v) async {
+                      await CalendarPreferenceService.setUseGregorian(v);
+                      setState(() => _useGregorian = v);
+                    },
+                  ),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(

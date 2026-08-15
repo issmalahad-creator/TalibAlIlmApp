@@ -7,14 +7,17 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'repositories/milestone_repository.dart';
 import 'screens/startup_gate.dart';
 import 'services/book_content_service.dart';
+import 'services/calendar_preference_service.dart';
 import 'services/content_badge_service.dart';
 import 'services/notification_service.dart';
 import 'services/quran_import_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/hijri_date.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   initHijriLocale();
+  await CalendarPreferenceService.load();
   runApp(const TalibAlIlmApp());
 }
 
