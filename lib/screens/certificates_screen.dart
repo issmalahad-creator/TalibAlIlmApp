@@ -80,6 +80,11 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
             ...byType['audio_reflections_10'] ?? [],
             ...byType['audio_reflections_50'] ?? [],
           ]),
+          _section('التجويد', [
+            ...byType['tajweed_basic'] ?? [],
+            ...byType['tajweed_intermediate'] ?? [],
+            ...byType['tajweed_advanced'] ?? [],
+          ]),
         ],
       ),
     );
