@@ -6,6 +6,7 @@ import '../services/calendar_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'adhkar_screen.dart';
 import 'hadith_screen.dart';
+import 'new_muslim_guide_screen.dart';
 import 'wird_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
@@ -202,6 +203,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WirdScreen())),
                   icon: const Icon(Icons.checklist_rtl_outlined),
                   label: const Text('ورد اليوم'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewMuslimGuideScreen())),
+                  icon: const Icon(Icons.diversity_3_outlined),
+                  label: const Text('دليل المسلم الجديد'),
                 ),
               ],
             ),

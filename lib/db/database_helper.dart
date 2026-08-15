@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 17,
+      version: 18,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -36,6 +36,7 @@ class DatabaseHelper {
         await _createV15Tables(db);
         await _createV16Tables(db);
         await _createV17Tables(db);
+        await _createV18Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -54,6 +55,7 @@ class DatabaseHelper {
         if (oldVersion < 15) await _createV15Tables(db);
         if (oldVersion < 16) await _createV16Tables(db);
         if (oldVersion < 17) await _createV17Tables(db);
+        if (oldVersion < 18) await _createV18Tables(db);
       },
     );
   }
@@ -567,6 +569,22 @@ class DatabaseHelper {
       CREATE TABLE istighfar_log (
         log_date TEXT PRIMARY KEY,
         count INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+  }
+
+  /// "دليل المسلم الجديد" — QURAN_COMPANION_ROADMAP.md §4.9 (5د, expanded
+  /// 2026-08-15). Content (Wudu/Ghusl/Istinja/Salah steps, ar/en/am) is a
+  /// fixed const list in `data/new_muslim_guide.dart`, same pattern as the
+  /// wird templates — this migration only creates the "has this topic been
+  /// opened" tracker, kept separate from the rest of the app's
+  /// `*_progress` tables since this content isn't memorized/reviewed, just
+  /// read once as onboarding.
+  Future<void> _createV18Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE guide_progress (
+        topic_key TEXT PRIMARY KEY,
+        first_read_date TEXT
       )
     ''');
   }
