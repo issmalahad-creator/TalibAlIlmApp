@@ -66,8 +66,8 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 
 ## Phase 5 — Extended Islamic text library (roadmap §4.9, sub-phases 5أ–5د)
 
-- [ ] 5أ: Al-Arba'in Al-Nawawiyyah + Ibn Uthaymeen's commentary (+ add its `achievement_milestones` rows: full-completion certificate + one every 10 hadiths, per §4.14)
-- [ ] 5ب: Al-Aqidah Al-Wasitiyyah + Ibn Uthaymeen's commentary
+- [x] 5أ: Al-Arba'in Al-Nawawiyyah — ✅ DONE 2026-08-15 (commit e3940cb). Real text+commentary (osamayy/40-hadith-nawawi-db, verified), browse+mark-memorized, generalized quiz ("أكمل الحديث"). NOTE: commentary source ended up being the bundled dataset's own scholarly commentary, not confirmed as specifically Ibn Uthaymeen's — should verify/relabel later if that distinction matters. `achievement_milestones` rows not added yet (Phase 4 not started).
+- [x] 5ب: Al-Aqidah Al-Wasitiyyah — ✅ DONE 2026-08-15 (commit c5f4f37). Original Ibn Taymiyyah text only (82 sections, verified verbatim via ar.wikisource.org raw wikitext), browse+mark-memorized, "ما المقطع التالي؟" quiz. Ibn Uthaymeen's commentary layer NOT sourced yet — original roadmap plan, still open.
 - [ ] 5ج: Zad al-Ma'ad selected chapters + Ibn Uthaymeen's commentary (mark which chapters only) — study-order breakdown designed in roadmap section 5ج (7 topic units, level-tagged), evaluate "مختصر زاد المعاد" (Dr. Ahmad, alukah.net PDF) as a simpler entry point
 - [ ] 5ح: Madarij As-Salikin (Ibn al-Qayyim) — advanced tier ONLY, no confirmed mukhtasar found yet, source for madarij_sections.text_excerpt still unresolved
 - [ ] 5د: Fiqh al-Taharah (Ash-Sharh Al-Mumti') + Salah method (Al-Shuwaie'r) + visual aid SVGs
