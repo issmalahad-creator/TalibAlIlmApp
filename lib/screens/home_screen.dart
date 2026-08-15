@@ -19,6 +19,7 @@ import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import '../widgets/animated_banner.dart';
 import '../widgets/category_pill.dart';
+import '../widgets/daily_companion_card.dart';
 import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
@@ -144,6 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         context, MaterialPageRoute(builder: (_) => const OnboardingScreen(reviewMode: true))),
                   ),
                   const SizedBox(height: 16),
+                  DailyCompanionCard(
+                    onOpenPrayerTimes: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
+                    onOpenQibla: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
+                  ),
                   FilledButton.icon(
                     onPressed: () async {
                       await Navigator.push(context, MaterialPageRoute(builder: (_) => const DailySessionScreen()));
