@@ -63,7 +63,8 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] 5ب: Al-Aqidah Al-Wasitiyyah + Ibn Uthaymeen's commentary
 - [ ] 5ج: Zad al-Ma'ad selected chapters + Ibn Uthaymeen's commentary (mark which chapters only)
 - [ ] 5د: Fiqh al-Taharah (Ash-Sharh Al-Mumti') + Salah method (Al-Shuwaie'r) + visual aid SVGs
-- [ ] 5هـ: Hisn al-Muslim daily adhkar — tap-to-count-down UI, smart after-Fajr/after-Asr reminders, streak, home-screen quick-access button (not buried in a tab)
+- [ ] 5هـ: Hisn al-Muslim daily adhkar — tap-to-count-down UI, smart after-Fajr/after-Asr reminders, streak, home-screen quick-access button (not buried in a tab); reference "عمل اليوم والليلة" (Ibn al-Sunni/An-Nasa'i) as the classical root source
+- [ ] 5و: Noorani Qaida for children — letters → harakat → madd → tanween → sukoon → words, `child_profiles` (multiple kids per device), display text ALWAYS fully vocalized (no tashkeel-stripped display, unlike the adult search feature), mandatory audio pronunciation per letter/word — audio source licensing/recording unresolved, must confirm before building
 - [ ] `cross_references` linking ayah↔hadith↔aqeedah with mandatory real-life example
 - [ ] Sharh Ibn Kathir audio layer (Al-'Ajlan) — pending transcript-vs-audio-link decision
 
