@@ -80,13 +80,20 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] Applied to CompletionGoalsScreen's target-date button and CertificateCard's date line — the two spots a raw Hijri string was actually shown to the student before this
 - [ ] NOT retrofitted yet: any other screen that happens to display a raw date string to the user (most current screens only use dates as storage/grouping keys, not visible text, so there was nothing to fix there at audit time — but recheck when adding new date-visible UI)
 
+## Phase 4.17 — ورد اليوم daily wird templates (Ismail's request 2026-08-15) — ✅ DONE 2026-08-15 (commit 877a1b6)
+
+- [x] 5 fixed templates (data/wird_templates.dart): generic "الورد المقترح" + 4 scholar-flavored (Ibn Kathir, Ibn Uthaymeen, Ibn al-Qayyim, Ibn Taymiyyah) — each explicitly labeled as app-assembled content, NOT a wird attributed to that scholar himself. Al-'Ajlan requested too but has no sourced content in-app yet, so no track was built for him.
+- [x] Every checklist item reuses an existing *_progress table's "touched today" signal (`WirdRepository`) — no duplicated state
+- [x] New istighfar tally (istighfar_log, DB v16→v17, 100/day target, tap-to-increment)
+- [x] WirdScreen: template picker + daily checklist, wired into ProfileScreen
+
 ## Phase 5 — Extended Islamic text library (roadmap §4.9, sub-phases 5أ–5د)
 
 - [x] 5أ: Al-Arba'in Al-Nawawiyyah — ✅ DONE 2026-08-15 (commit e3940cb). Real text+commentary (osamayy/40-hadith-nawawi-db, verified), browse+mark-memorized, generalized quiz ("أكمل الحديث"). NOTE: commentary source ended up being the bundled dataset's own scholarly commentary, not confirmed as specifically Ibn Uthaymeen's — should verify/relabel later if that distinction matters. `achievement_milestones` rows not added yet (Phase 4 not started).
 - [x] 5ب: Al-Aqidah Al-Wasitiyyah — ✅ DONE 2026-08-15 (commit c5f4f37). Original Ibn Taymiyyah text only (82 sections, verified verbatim via ar.wikisource.org raw wikitext), browse+mark-memorized, "ما المقطع التالي؟" quiz. Ibn Uthaymeen's commentary layer NOT sourced yet — original roadmap plan, still open.
 - [x] 5ج: Zad al-Ma'ad Volume 1 (Seerah intro) — ✅ DONE 2026-08-15 (commit 2786c88). 65 chapters, verified verbatim via ar.wikisource.org. No quiz (reading/study material, not memorized verbatim). Remaining 4 volumes + Ibn Uthaymeen's specific commentary text still open, added incrementally.
 - [x] 5ح: Madarij As-Salikin Part 1 — ✅ DONE 2026-08-15 (commit abcb44d). 71 sections, verified verbatim via ar.wikisource.org. Advanced-tier warning banner in the screen itself (no technical level-lock exists yet). No quiz (deep reading/reflection material). Remaining 2 parts still open, added incrementally.
-- [ ] 5د: Fiqh al-Taharah (Ash-Sharh Al-Mumti') + Salah method (Al-Shuwaie'r) + visual aid SVGs
+- [ ] 5د: "دليل المسلم الجديد" — Fiqh al-Taharah (Ash-Sharh Al-Mumti') + Salah method (Al-Shuwaie'r) + visual aid SVGs for wudu steps, ghusl from janabah, istinja, and salah positions — Ismail explicitly asked (2026-08-15) that this become a full new-Muslim onboarding pillar, multi-language, image-led. NOT scoped/started yet — needs the same scoping pass given to Nabulsi (image/diagram sourcing+licensing, which languages, whether this replaces or sits alongside 5د's original fiqh-text plan) before building. Sequenced per Ismail's 2026-08-15 confirmation: after the current queue, before the Qibla/prayer engine.
 - [x] 5هـ: Hisn al-Muslim daily adhkar — ✅ DONE 2026-08-15 (commits ee222be, 53727c6). Whole book (134 chapters/298 duas, source rn0x/hisn_almuslim_json, verified verbatim), tap-to-count-down UI, ~17 daily-core chapters pinned to top, fixed-time morning/evening notifications (honestly NOT true prayer-time-based yet — no prayer-time engine exists), 🔥 streak tracking, `achievement_milestones` 7/30/100-day streak certs. NOTE: streak is for the ONE merged "أذكار الصباح والمساء" chapter, not separate morning/evening certs as originally planned — the source book doesn't split them. "عمل اليوم والليلة" (Ibn al-Sunni/An-Nasa'i) citation NOT added to the UI yet — still open if wanted.
 - [ ] 5و: Noorani Qaida for children — letters → harakat → madd → tanween → sukoon → words, `child_profiles` (multiple kids per device), display text ALWAYS fully vocalized (no tashkeel-stripped display, unlike the adult search feature), mandatory audio pronunciation per letter/word — audio source licensing/recording unresolved, must confirm before building
 - [ ] 5ز: Names of Allah (Al-Nabulsi) — 99-names data + Quran cross-refs OK now; official-link-only for lessons; actual bundled audio/text download requires written permission from nabulsi.com's "الهدى للخدمات التقنية" first — do NOT bundle without it
@@ -112,3 +119,13 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] If yes: explicit opt-in consent screen before first use (audio leaves the device)
 - [ ] `recitation_sessions` table, integrate `flutter_quran_tajwid` or equivalent
 - [ ] Research actual Gemini Live API pricing before committing — not done yet
+
+## Phase 9 — Qibla direction + prayer-times engine (Ismail's request 2026-08-15) — queued LAST per his explicit sequencing confirmation
+
+Architecture Ismail specified and Claude agreed to (2026-08-15): `Location Service → Astronomical Calculation Engine → Prayer Jurisprudence Configuration → Validation Engine → Prayer Schedule → Notifications`, fully offline after an initial GPS fix. Agreed approach: use the `adhan` package (open-source, published/audited astronomical formulas — same standard math every serious prayer-time app uses) as the verified calculation core, NOT hand-derived formulas — and build Ismail's real ask (independent validation against known cities/dates, Qibla sensor fusion with magnetic-declination correction + calibration detection + confidence display, graceful degradation when GPS/sensors are weak, full offline operation) around it. NOT scoped or started yet.
+
+- [ ] Location service (GPS + manual-entry fallback for weak signal)
+- [ ] Prayer Calculation Engine wrapping `adhan` (calculation method, madhhab, high-latitude rule all configurable)
+- [ ] Independent Validation Engine — test suite across many cities/dates/methods, flag any non-sensible deviation
+- [ ] Qibla compass: great-circle bearing to the Kaaba's fixed coordinates, magnetic sensor + accelerometer/gyroscope fusion, magnetic declination correction, un-calibrated-device detection, confidence indicator — never silently claims accuracy when sensors are unstable
+- [ ] Home screen integration (Ismail's sketch): "رفيقك اليوم" card showing next prayer time + Qibla + today's Quran/adhkar status together
