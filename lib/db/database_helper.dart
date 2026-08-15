@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 9,
+      version: 10,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -28,6 +28,7 @@ class DatabaseHelper {
         await _createV7Tables(db);
         await _createV8Tables(db);
         await _createV9Tables(db);
+        await _createV10Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -38,6 +39,7 @@ class DatabaseHelper {
         if (oldVersion < 7) await _createV7Tables(db);
         if (oldVersion < 8) await _createV8Tables(db);
         if (oldVersion < 9) await _createV9Tables(db);
+        if (oldVersion < 10) await _createV10Tables(db);
       },
     );
   }
@@ -341,6 +343,28 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE hadith_progress (
         hadith_id INTEGER PRIMARY KEY REFERENCES nawawi_hadiths(id),
+        memorized INTEGER NOT NULL DEFAULT 0,
+        memorized_date TEXT
+      )
+    ''');
+  }
+
+  /// Phase 5ب — Al-Aqidah Al-Wasitiyyah (Ibn Taymiyyah), source: ar.wikisource.org
+  /// (verified verbatim via its raw wikitext export, not a summarized
+  /// fetch). A continuous treatise like the Quran, so it reuses the same
+  /// "reviewing" concept as memorization_progress but — like the hadith
+  /// table — kept to memorized/not-memorized only, no 6-station engine.
+  Future<void> _createV10Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE wasitiyyah_sections (
+        id INTEGER PRIMARY KEY,
+        section_order INTEGER NOT NULL,
+        original_text TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE wasitiyyah_progress (
+        section_id INTEGER PRIMARY KEY REFERENCES wasitiyyah_sections(id),
         memorized INTEGER NOT NULL DEFAULT 0,
         memorized_date TEXT
       )

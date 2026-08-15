@@ -6,6 +6,7 @@ import 'hadith_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
 import 'support_screen.dart';
+import 'wasitiyyah_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -127,6 +128,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const HadithScreen())),
                   icon: const Icon(Icons.format_quote_rounded),
                   label: const Text('الأربعين النووية'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const WasitiyyahScreen())),
+                  icon: const Icon(Icons.menu_book_outlined),
+                  label: const Text('العقيدة الواسطية'),
                 ),
               ],
             ),

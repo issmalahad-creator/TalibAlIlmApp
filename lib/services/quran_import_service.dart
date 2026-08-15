@@ -77,6 +77,30 @@ class QuranImportService {
     if (existingHadiths == null || existingHadiths == 0) {
       await _importNawawiHadiths(db);
     }
+
+    final existingWasitiyyah = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM wasitiyyah_sections'));
+    if (existingWasitiyyah == null || existingWasitiyyah == 0) {
+      await _importWasitiyyah(db);
+    }
+  }
+
+  /// Al-Aqidah Al-Wasitiyyah, 82 paragraph sections — source: ar.wikisource.org,
+  /// fetched as raw wikitext (not summarized), MediaWiki markup already
+  /// stripped ({{ص}} -> ﷺ, header template and category link removed)
+  /// before being saved to the bundled asset.
+  Future<void> _importWasitiyyah(Database db) async {
+    final raw = await rootBundle.loadString('assets/aqeedah/wasitiyyah.json');
+    final list = jsonDecode(raw) as List<dynamic>;
+    final batch = db.batch();
+    for (final entry in list) {
+      final map = entry as Map<String, dynamic>;
+      batch.insert('wasitiyyah_sections', {
+        'id': map['order'] as int,
+        'section_order': map['order'] as int,
+        'original_text': map['text'] as String,
+      });
+    }
+    await batch.commit(noResult: true);
   }
 
   /// Al-Arba'in Al-Nawawiyyah, 42 hadith with commentary — source:
