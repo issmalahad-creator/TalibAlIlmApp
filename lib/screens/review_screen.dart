@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
 import '../db/database_helper.dart';
+import '../models/personal_accountability.dart';
 import '../repositories/memorization_repository.dart';
+import '../repositories/personal_accountability_repository.dart';
 import '../theme/app_theme.dart';
 
 /// "المراجعة" — Phase 2 of QURAN_COMPANION_ROADMAP.md. Today's due reviews,
@@ -17,6 +19,7 @@ class ReviewScreen extends StatefulWidget {
 
 class _ReviewScreenState extends State<ReviewScreen> {
   final _repo = MemorizationRepository();
+  final _accountabilityRepo = PersonalAccountabilityRepository();
   static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
   List<MemorizationUnit> _queue = [];
@@ -24,6 +27,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   bool _loading = true;
   bool _rating = false;
   int _completedToday = 0;
+  PersonalAccountability? _accountability;
 
   @override
   void initState() {
@@ -34,9 +38,11 @@ class _ReviewScreenState extends State<ReviewScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final due = await _repo.dueToday();
+    final accountability = await _accountabilityRepo.get();
     if (!mounted) return;
     setState(() {
       _queue = due;
+      _accountability = accountability;
       _loading = false;
     });
     await _loadPreviewForCurrent();
@@ -119,6 +125,18 @@ class _ReviewScreenState extends State<ReviewScreen> {
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark),
                 textAlign: TextAlign.center,
               ),
+              if (_completedToday > 0 && (_accountability?.rewardEnabled ?? false) && _accountability!.rewardText.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
+                  child: Text(
+                    'قلت لنفسك: "${_accountability!.rewardText}" — اذهب ونفّذها 🎉',
+                    style: const TextStyle(fontSize: 13, color: AppColors.primaryDark),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
             ],
           ),
         ),

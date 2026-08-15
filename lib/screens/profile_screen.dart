@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
 import 'hifz_teacher_screen.dart';
+import 'personal_accountability_screen.dart';
 import 'support_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -111,6 +112,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzTeacherScreen())),
                   icon: const Icon(Icons.school_rounded),
                   label: const Text('أستاذ التحفيظ'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => const PersonalAccountabilityScreen())),
+                  icon: const Icon(Icons.self_improvement_rounded),
+                  label: const Text('التزامي الشخصي'),
                 ),
               ],
             ),

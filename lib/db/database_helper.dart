@@ -17,15 +17,17 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
         await _createV3Tables(db);
+        await _createV4Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
         if (oldVersion < 3) await _createV3Tables(db);
+        if (oldVersion < 4) await _createV4Tables(db);
       },
     );
   }
@@ -215,6 +217,25 @@ class DatabaseHelper {
         review_id INTEGER REFERENCES review_log(id),
         note TEXT,
         logged_date TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// Personal, self-declared, non-monetary accountability — QURAN_COMPANION_
+  /// ROADMAP.md section 4.7's "الالتزام الشخصي" idea, expanded (2026-08-15)
+  /// into a full reward + punishment pair per Ismail's explicit request.
+  /// The app only ever *reminds* the student of what they themselves wrote
+  /// here — it never enforces, deletes, blocks, or notifies anyone else.
+  /// Single row (id=1); `punishment_enabled = 0` is the explicit
+  /// "بدون عقاب" choice, not an unset/default state.
+  Future<void> _createV4Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE personal_accountability (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        reward_enabled INTEGER NOT NULL DEFAULT 0,
+        reward_text TEXT,
+        punishment_enabled INTEGER NOT NULL DEFAULT 0,
+        punishment_text TEXT
       )
     ''');
   }
