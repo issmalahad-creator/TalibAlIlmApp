@@ -72,6 +72,30 @@ class QuranImportService {
       }
       await batch.commit(noResult: true);
     }
+
+    final existingHadiths = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM nawawi_hadiths'));
+    if (existingHadiths == null || existingHadiths == 0) {
+      await _importNawawiHadiths(db);
+    }
+  }
+
+  /// Al-Arba'in Al-Nawawiyyah, 42 hadith with commentary — source:
+  /// osamayy/40-hadith-nawawi-db (GitHub), verified real (hadith 1 checked
+  /// against well-known "إنما الأعمال بالنيات"). List order in the JSON is
+  /// the canonical hadith order, so index+1 = hadith number.
+  Future<void> _importNawawiHadiths(Database db) async {
+    final raw = await rootBundle.loadString('assets/hadith/nawawi40.json');
+    final list = jsonDecode(raw) as List<dynamic>;
+    final batch = db.batch();
+    for (var i = 0; i < list.length; i++) {
+      final entry = list[i] as Map<String, dynamic>;
+      batch.insert('nawawi_hadiths', {
+        'id': i + 1,
+        'hadith_text': entry['hadith'] as String,
+        'commentary_text': entry['description'] as String?,
+      });
+    }
+    await batch.commit(noResult: true);
   }
 
   /// Four Arabic tafsir editions, all sourced the same way (spa5k/tafsir_api

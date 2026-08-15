@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
+import 'hadith_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
 import 'support_screen.dart';
@@ -119,6 +120,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       context, MaterialPageRoute(builder: (_) => const PersonalAccountabilityScreen())),
                   icon: const Icon(Icons.self_improvement_rounded),
                   label: const Text('التزامي الشخصي'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const HadithScreen())),
+                  icon: const Icon(Icons.format_quote_rounded),
+                  label: const Text('الأربعين النووية'),
                 ),
               ],
             ),
