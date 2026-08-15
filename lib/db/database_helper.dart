@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 24,
+      version: 25,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -44,6 +44,7 @@ class DatabaseHelper {
         await _createV21Tables(db);
         await _createV22Tables(db);
         await _createV23Tables(db);
+        await _createV25Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -69,6 +70,7 @@ class DatabaseHelper {
         if (oldVersion < 22) await _createV22Tables(db);
         if (oldVersion < 23) await _createV23Tables(db);
         if (oldVersion < 24) await _fixQuranNormalizedTextV24(db);
+        if (oldVersion < 25) await _createV25Tables(db);
       },
     );
   }
@@ -742,5 +744,21 @@ class DatabaseHelper {
       );
     }
     await batch.commit(noResult: true);
+  }
+
+  /// "أضف للمفضلة" on the per-ayah context menu (Ismail's request
+  /// 2026-08-16, matching the reference app's tap-an-ayah popup) — a
+  /// simple personal bookmark list, independent of `book_bookmarks`
+  /// (that's for PDF reading position, this is specific ayat the student
+  /// wants to find again quickly).
+  Future<void> _createV25Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE quran_favorites (
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        added_date TEXT NOT NULL,
+        PRIMARY KEY (surah, ayah)
+      )
+    ''');
   }
 }

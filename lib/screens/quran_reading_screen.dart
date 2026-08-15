@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../data/quran_surahs.dart';
 import '../repositories/quran_reading_repository.dart';
@@ -7,20 +8,29 @@ import '../theme/app_theme.dart';
 import 'quran_browse_screen.dart';
 import 'quran_search_screen.dart';
 
+const _themeColors = {
+  'brown': (Color(0xFF8B5E34), 'بنّي'),
+  'teal': (AppColors.primary, 'أخضر'),
+  'blue': (Color(0xFF2F80ED), 'أزرق'),
+  'red': (Color(0xFFB33951), 'أحمر'),
+  'purple': (Color(0xFF6A4C93), 'بنفسجي'),
+};
+
 /// "القرآن" hub — QURAN_COMPANION_ROADMAP.md section 4.15, expanded
 /// 2026-08-16 per Ismail's explicit request ("اجعل كل متعلقات القرآن في
 /// مكان وداخل ايقونة واحدة" — gather everything Quran-related into one
-/// place behind one icon, instead of scattered separate screens/buttons).
-/// Page-by-page reading is still the core (separate from memorization —
-/// position auto-saves on leaving this screen or backgrounding the app
-/// while on it, per Ismail's "الخروج من الشاشة يكفي"), with search and
-/// tafsir now reachable from right here instead of requiring a trip
-/// through the home screen. Translation display and per-ayah recitation
-/// audio ("الترجمة"/"الاستماع" from the reference app Ismail described)
-/// are NOT included yet — neither has real data sourced in this app yet
-/// (translation text, and a licensed per-ayah audio source), and faking
-/// either would violate this project's sourcing discipline; both are
-/// flagged as real follow-up work, not silently dropped.
+/// place behind one icon) and a reference app's tap-an-ayah context menu
+/// + "طريقة عرض المصحف" options sheet he asked to be matched. Page-by-page
+/// reading is still the core (position auto-saves on leaving this screen
+/// or backgrounding the app while on it, per Ismail's "الخروج من الشاشة
+/// يكفي"). Tapping any ayah opens a floating menu right there (تفسير /
+/// مفضلة / نشر — real features) alongside الترجمة/الاستماع/المعاني, which
+/// stay visibly present but disabled with an honest "لا يوجد مصدر بيانات
+/// بعد" — neither translation text nor a licensed per-ayah audio source
+/// nor a word-by-word gloss corpus has been sourced into this app yet,
+/// and faking any of them would violate this project's sourcing
+/// discipline; they're flagged as real follow-up work, not silently
+/// dropped or invented.
 class QuranReadingScreen extends StatefulWidget {
   const QuranReadingScreen({super.key});
 
@@ -38,6 +48,8 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   bool _showTafsir = false;
   String _tafsirSource = QuranSearchRepository.defaultTafsirSource;
   Map<String, String> _tafsirByAyah = {};
+  bool _nightMode = false;
+  String _themeKey = 'brown';
 
   @override
   void initState() {
@@ -97,11 +109,6 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     setState(() => _tafsirByAyah = tafsir);
   }
 
-  void _toggleTafsir() {
-    setState(() => _showTafsir = !_showTafsir);
-    if (_showTafsir) _loadTafsir();
-  }
-
   Future<void> _openSearch() async {
     final page = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => const QuranSearchScreen()));
     if (page != null) _goToPage(page);
@@ -111,23 +118,228 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     Navigator.push(context, MaterialPageRoute(builder: (_) => QuranBrowseScreen(highlightUnitId: _page)));
   }
 
+  void _notAvailable(String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('"$feature" لا يوجد لها مصدر بيانات موثوق بعد — لم تُضَف حتى لا نخترعها')),
+    );
+  }
+
+  Future<void> _openIndex() async {
+    final surah = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.7,
+        builder: (context, scrollController) => Column(
+          children: [
+            const Padding(padding: EdgeInsets.all(14), child: Text('الفهرس', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: quranSurahs.length,
+                itemBuilder: (context, i) {
+                  final s = quranSurahs[i];
+                  return ListTile(
+                    dense: true,
+                    leading: CircleAvatar(radius: 14, backgroundColor: AppColors.primaryLight, child: Text('${s.number}', style: const TextStyle(fontSize: 10, color: AppColors.primaryDark))),
+                    title: Text(s.name),
+                    onTap: () => Navigator.pop(context, s.number),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (surah == null) return;
+    final page = await _repo.firstPageOfSurah(surah);
+    if (page != null) _goToPage(page);
+  }
+
+  Future<void> _openFavorites() async {
+    final favorites = await _repo.favoriteAyahs();
+    if (!mounted) return;
+    final page = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        builder: (context, scrollController) => Column(
+          children: [
+            const Padding(padding: EdgeInsets.all(14), child: Text('المفضلة', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
+            if (favorites.isEmpty) const Expanded(child: Center(child: Text('لم تُضِف أي آية للمفضلة بعد', style: TextStyle(color: AppColors.textMuted))))
+            else Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: favorites.length,
+                itemBuilder: (context, i) {
+                  final f = favorites[i];
+                  return ListTile(
+                    title: Text(f.text, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 16)),
+                    subtitle: Text('سورة ${_surahNames[f.surah] ?? f.surah} — آية ${f.ayah}', textAlign: TextAlign.right),
+                    onTap: () => Navigator.pop(context, f.pageNumber),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (page != null) _goToPage(page);
+  }
+
+  Future<void> _openDisplayOptionsSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.75,
+          builder: (context, scrollController) => ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(16),
+            children: [
+              const Text('طريقة عرض المصحف', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 14),
+              ListTile(leading: const Icon(Icons.list_alt_outlined), title: const Text('الفهرس'), onTap: () { Navigator.pop(context); _openIndex(); }),
+              ListTile(leading: const Icon(Icons.search_rounded), title: const Text('البحث'), onTap: () { Navigator.pop(context); _openSearch(); }),
+              ListTile(leading: const Icon(Icons.check_circle_outline), title: const Text('حدّد ما حفظته من هذه الصفحة'), onTap: () { Navigator.pop(context); _openBrowseForCurrentPage(); }),
+              const Divider(),
+              SwitchListTile(
+                secondary: const Icon(Icons.menu_book_outlined),
+                title: const Text('التفسير'),
+                value: _showTafsir,
+                onChanged: (v) {
+                  setSheetState(() {});
+                  setState(() => _showTafsir = v);
+                  if (v) _loadTafsir();
+                },
+              ),
+              ListTile(leading: const Icon(Icons.list, color: AppColors.textMuted), title: const Text('المعاني', style: TextStyle(color: AppColors.textMuted)), onTap: () => _notAvailable('المعاني')),
+              ListTile(leading: const Icon(Icons.headphones_outlined, color: AppColors.textMuted), title: const Text('الصوتيات', style: TextStyle(color: AppColors.textMuted)), onTap: () => _notAvailable('الاستماع للآيات')),
+              ListTile(leading: const Icon(Icons.translate_outlined, color: AppColors.textMuted), title: const Text('الترجمة', style: TextStyle(color: AppColors.textMuted)), onTap: () => _notAvailable('الترجمة')),
+              const Divider(),
+              SwitchListTile(
+                secondary: const Icon(Icons.nightlight_outlined),
+                title: const Text('الوضع الليلي'),
+                value: _nightMode,
+                onChanged: (v) {
+                  setSheetState(() {});
+                  setState(() => _nightMode = v);
+                },
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Align(alignment: Alignment.centerRight, child: Text('لون مصحفك', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: _themeColors.entries.map((e) {
+                  final selected = _themeKey == e.key;
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: InkWell(
+                      onTap: () {
+                        setSheetState(() {});
+                        setState(() => _themeKey = e.key);
+                      },
+                      child: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: e.value.$1,
+                        child: selected ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const Divider(),
+              ListTile(leading: const Icon(Icons.bookmark_outline), title: const Text('المفضلة'), onTap: () { Navigator.pop(context); _openFavorites(); }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onAyahTap(QuranAyahText a, TapDownDetails details) async {
+    final isFav = await _repo.isFavorite(a.surah, a.ayah);
+    if (!mounted) return;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(details.globalPosition, details.globalPosition),
+      Offset.zero & overlay.size,
+    );
+    final selected = await showMenu<String>(
+      context: context,
+      position: position,
+      items: [
+        const PopupMenuItem(value: 'tafsir', child: ListTile(leading: Icon(Icons.menu_book_outlined), title: Text('التفسير'), dense: true)),
+        const PopupMenuItem(value: 'translation', child: ListTile(leading: Icon(Icons.translate_outlined, color: AppColors.textMuted), title: Text('الترجمة', style: TextStyle(color: AppColors.textMuted)), dense: true)),
+        const PopupMenuItem(value: 'listen', child: ListTile(leading: Icon(Icons.headphones_outlined, color: AppColors.textMuted), title: Text('الاستماع للآية', style: TextStyle(color: AppColors.textMuted)), dense: true)),
+        PopupMenuItem(value: 'favorite', child: ListTile(leading: Icon(isFav ? Icons.bookmark : Icons.bookmark_outline), title: Text(isFav ? 'إزالة من المفضلة' : 'أضف للمفضلة'), dense: true)),
+        const PopupMenuItem(value: 'share', child: ListTile(leading: Icon(Icons.share_outlined), title: Text('نشر'), dense: true)),
+      ],
+    );
+    if (!mounted || selected == null) return;
+    switch (selected) {
+      case 'tafsir':
+        final tafsir = await _repo.tafsirForAyah(a.surah, a.ayah, _tafsirSource);
+        if (!mounted) return;
+        await showModalBottomSheet(
+          context: context,
+          builder: (context) => Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('سورة ${_surahNames[a.surah] ?? a.surah} — آية ${a.ayah}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 10),
+                Text(tafsir ?? 'لا يوجد تفسير محفوظ لهذه الآية من هذا المصدر', textAlign: TextAlign.right, style: const TextStyle(fontSize: 14, height: 1.7)),
+              ],
+            ),
+          ),
+        );
+        break;
+      case 'translation':
+        _notAvailable('الترجمة');
+        break;
+      case 'listen':
+        _notAvailable('الاستماع للآية');
+        break;
+      case 'favorite':
+        if (isFav) {
+          await _repo.removeFavorite(a.surah, a.ayah);
+        } else {
+          await _repo.addFavorite(a.surah, a.ayah);
+        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isFav ? 'أُزيلت من المفضلة' : 'أُضيفت للمفضلة')));
+        break;
+      case 'share':
+        await Share.share('${a.text} (${_surahNames[a.surah] ?? a.surah}: ${a.ayah})');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeColor = _themeColors[_themeKey]!.$1;
+    final bgColor = _nightMode ? const Color(0xFF121212) : const Color(0xFFFBF6EE);
+    final textColor = _nightMode ? Colors.white : AppColors.textDark;
+
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
         title: Text('صفحة $_page'),
         actions: [
           IconButton(icon: const Icon(Icons.search_rounded), tooltip: 'البحث في القرآن', onPressed: _openSearch),
-          PopupMenuButton<String>(
-            onSelected: (v) {
-              if (v == 'tafsir') _toggleTafsir();
-              if (v == 'mark') _openBrowseForCurrentPage();
-            },
-            itemBuilder: (context) => [
-              CheckedPopupMenuItem(value: 'tafsir', checked: _showTafsir, child: const Text('التفسير')),
-              const PopupMenuItem(value: 'mark', child: Text('حدّد ما حفظته من هذه الصفحة')),
-            ],
-          ),
+          IconButton(icon: const Icon(Icons.menu_rounded), tooltip: 'طريقة عرض المصحف', onPressed: _openDisplayOptionsSheet),
         ],
       ),
       body: _loading
@@ -160,41 +372,49 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                     ),
                   ),
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _ayat.length,
-                    itemBuilder: (context, i) {
-                      final a = _ayat[i];
-                      final isFirstOfSurah = a.ayah == 1;
-                      final tafsir = _tafsirByAyah['${a.surah}:${a.ayah}'];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (isFirstOfSurah)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Text(
-                                  'سورة ${_surahNames[a.surah] ?? a.surah}',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                  child: Container(
+                    margin: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(border: Border.all(color: themeColor, width: 2), borderRadius: BorderRadius.circular(14)),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _ayat.length,
+                      itemBuilder: (context, i) {
+                        final a = _ayat[i];
+                        final isFirstOfSurah = a.ayah == 1;
+                        final tafsir = _tafsirByAyah['${a.surah}:${a.ayah}'];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (isFirstOfSurah)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  child: Text(
+                                    'سورة ${_surahNames[a.surah] ?? a.surah}',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontWeight: FontWeight.w800, color: themeColor),
+                                  ),
                                 ),
+                              GestureDetector(
+                                onTapDown: (details) => _onAyahTap(a, details),
+                                child: Text('${a.text} ﴿${a.ayah}﴾', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.1, color: textColor)),
                               ),
-                            Text('${a.text} ﴿${a.ayah}﴾', textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.1)),
-                            if (_showTafsir && tafsir != null && tafsir.trim().isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 4, bottom: 10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)),
-                                  child: Text(tafsir, textAlign: TextAlign.right, style: const TextStyle(fontSize: 13, height: 1.7, color: AppColors.textDark)),
+                              if (_showTafsir && tafsir != null && tafsir.trim().isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4, bottom: 10),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(color: _nightMode ? const Color(0xFF1E1E1E) : AppColors.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)),
+                                    child: Text(tafsir, textAlign: TextAlign.right, style: TextStyle(fontSize: 13, height: 1.7, color: textColor)),
+                                  ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 SafeArea(

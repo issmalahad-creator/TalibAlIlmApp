@@ -76,4 +76,73 @@ class QuranReadingRepository {
       for (final r in rows) '${r['surah']}:${r['ayah']}': (r['tafsir'] as String?) ?? '',
     };
   }
+
+  /// Single-ayah tafsir lookup — backs the per-ayah context menu's
+  /// "التفسير" action, independent of whether the page-level tafsir
+  /// toggle is on.
+  Future<String?> tafsirForAyah(int surah, int ayah, String source) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT text FROM tafsir_entries WHERE surah = ? AND ? BETWEEN ayah_from AND ayah_to AND source = ? LIMIT 1',
+      [surah, ayah, source],
+    );
+    if (rows.isEmpty) return null;
+    return rows.first['text'] as String?;
+  }
+
+  Future<bool> isFavorite(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('quran_favorites', where: 'surah = ? AND ayah = ?', whereArgs: [surah, ayah], limit: 1);
+    return rows.isNotEmpty;
+  }
+
+  Future<void> addFavorite(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.insert(
+      'quran_favorites',
+      {'surah': surah, 'ayah': ayah, 'added_date': todayDate()},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> removeFavorite(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.delete('quran_favorites', where: 'surah = ? AND ayah = ?', whereArgs: [surah, ayah]);
+  }
+
+  /// Backs "الفهرس" (surah index) — the page each surah starts on, for a
+  /// tap-to-jump list.
+  Future<int?> firstPageOfSurah(int surah) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('SELECT MIN(page_number) AS p FROM quran_ayat WHERE surah = ?', [surah]);
+    return rows.isEmpty ? null : rows.first['p'] as int?;
+  }
+
+  /// Backs "المفضلة" (favorites/bookmarks list) — every saved ayah with
+  /// enough context (surah name resolved by the caller) to jump to its page.
+  Future<List<FavoriteAyah>> favoriteAyahs() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('''
+      SELECT f.surah, f.ayah, q.text_uthmani, q.page_number
+      FROM quran_favorites f
+      JOIN quran_ayat q ON q.surah = f.surah AND q.ayah = f.ayah
+      ORDER BY f.added_date DESC
+    ''');
+    return rows
+        .map((r) => FavoriteAyah(
+              surah: r['surah'] as int,
+              ayah: r['ayah'] as int,
+              text: r['text_uthmani'] as String,
+              pageNumber: r['page_number'] as int?,
+            ))
+        .toList();
+  }
+}
+
+class FavoriteAyah {
+  final int surah;
+  final int ayah;
+  final String text;
+  final int? pageNumber;
+  FavoriteAyah({required this.surah, required this.ayah, required this.text, required this.pageNumber});
 }
