@@ -72,6 +72,22 @@ const salahLibrary = [
   ]),
 ];
 
+/// All lessons flattened across categories, in a stable order — backs
+/// "مهمة اليوم" (today's rotating micro-lesson) on the tracker screen.
+final List<SalahLesson> allSalahLessons = [
+  for (final category in salahLibrary) ...category.lessons,
+];
+
+/// Deterministic "today's lesson" pick — same lesson all day, changes the
+/// next day, cycles back to the start once every lesson's been shown.
+/// No repetition-avoidance/randomness needed: a short, fixed, well-curated
+/// list cycling predictably is easier to trust than an opaque "smart" pick.
+SalahLesson todaysSalahMission() {
+  final now = DateTime.now();
+  final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+  return allSalahLessons[dayOfYear % allSalahLessons.length];
+}
+
 class SalafStory {
   final String titleAr;
   final String bodyAr;

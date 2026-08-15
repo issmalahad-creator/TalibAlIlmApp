@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/salah_content.dart';
 import '../repositories/salah_repository.dart';
 import '../theme/app_theme.dart';
 import 'salah_assessment_screen.dart';
@@ -98,6 +99,8 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                _TodaysMissionCard(onOpenLibrary: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahLibraryScreen()))),
+                const SizedBox(height: 16),
                 const Text('صلواتي اليوم', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 6),
                 const Text('سجّل بصدق — هذا لك أنت، لا حكم عليك من أحد', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
@@ -147,6 +150,46 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+/// "مهمة اليوم" — a small rotating lesson from the library shown right on
+/// the tracker screen, so building understanding happens naturally
+/// alongside the daily habit rather than requiring a separate trip to the
+/// library. Same lesson content as `SalahLibraryScreen`, just surfaced
+/// contextually — no new content, no separate completion tracking.
+class _TodaysMissionCard extends StatelessWidget {
+  final VoidCallback onOpenLibrary;
+  const _TodaysMissionCard({required this.onOpenLibrary});
+
+  @override
+  Widget build(BuildContext context) {
+    final lesson = todaysSalahMission();
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.today_outlined, size: 16, color: AppColors.primaryDark),
+              SizedBox(width: 6),
+              Text('مهمة اليوم', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(lesson.titleAr, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          Text(lesson.bodyAr, style: const TextStyle(fontSize: 12.5, height: 1.7)),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(onPressed: onOpenLibrary, child: const Text('عرض المكتبة كاملة', style: TextStyle(fontSize: 12))),
+          ),
+        ],
+      ),
     );
   }
 }

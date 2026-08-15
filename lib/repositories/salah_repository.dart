@@ -107,6 +107,16 @@ class SalahRepository {
     return (count ?? 0, dates.length * salahPrayerKeys.length);
   }
 
+  /// Per-day, per-prayer status for the current week — the "weekly report"
+  /// grid Ismail's original design asked for, showing the tracker's own
+  /// daily data at a glance instead of only a single aggregate number.
+  /// Days are ordered Saturday→Friday to match `currentWeekStart`.
+  Future<List<(String date, Map<String, PrayerStatus?> statuses)>> weeklyGrid(String weekStart) async {
+    final startGregorian = gregorianFromHijriDateTime(weekStart, null);
+    final dates = List.generate(7, (i) => hijriDateStringForDate(startGregorian.add(Duration(days: i))));
+    return [for (final d in dates) (d, await statusesForDate(d))];
+  }
+
   Future<Set<String>> readLessonKeys() async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query('salah_library_progress');
