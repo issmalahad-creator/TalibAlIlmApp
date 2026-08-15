@@ -13,6 +13,24 @@ import '../services/location_service.dart';
 class PrayerTimesRepository {
   static const _methodKey = 'prayer_calculation_method';
   static const _madhabKey = 'prayer_madhab';
+  static const _highLatitudeRuleKey = 'prayer_high_latitude_rule';
+
+  /// 'auto' uses adhan_dart's own `HighLatitudeRule.recommended(coordinates)`
+  /// — the library picks the right rule based on the student's actual
+  /// latitude, since a fixed default would be wrong for most locations
+  /// (this only matters at all above ~48° latitude, where twilight never
+  /// gets dark enough for normal Fajr/Isha angle calculations).
+  static const highLatitudeRuleNames = ['auto', 'middleOfTheNight', 'seventhOfTheNight', 'twilightAngle'];
+
+  Future<String> selectedHighLatitudeRule() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_highLatitudeRuleKey) ?? 'auto';
+  }
+
+  Future<void> setHighLatitudeRule(String rule) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_highLatitudeRuleKey, rule);
+  }
 
   static const methodNames = [
     'muslimWorldLeague',
@@ -50,7 +68,7 @@ class PrayerTimesRepository {
     await prefs.setString(_madhabKey, madhab == Madhab.hanafi ? 'hanafi' : 'shafi');
   }
 
-  CalculationParameters _paramsFor(String method, Madhab madhab) {
+  CalculationParameters _paramsFor(String method, Madhab madhab, String highLatitudeRule, Coordinates coordinates) {
     final params = switch (method) {
       'egyptian' => CalculationMethodParameters.egyptian(),
       'karachi' => CalculationMethodParameters.karachi(),
@@ -67,17 +85,25 @@ class PrayerTimesRepository {
       _ => CalculationMethodParameters.muslimWorldLeague(),
     };
     params.madhab = madhab;
+    params.highLatitudeRule = switch (highLatitudeRule) {
+      'middleOfTheNight' => HighLatitudeRule.middleOfTheNight,
+      'seventhOfTheNight' => HighLatitudeRule.seventhOfTheNight,
+      'twilightAngle' => HighLatitudeRule.twilightAngle,
+      _ => HighLatitudeRule.recommended(coordinates),
+    };
     return params;
   }
 
   /// Computes today's (or [date]'s) prayer times for [coordinates] using
-  /// the student's saved method/madhab preference.
+  /// the student's saved method/madhab/high-latitude-rule preference.
   Future<PrayerTimes> prayerTimesFor(AppCoordinates coordinates, {DateTime? date}) async {
     final method = await selectedMethod();
     final madhab = await selectedMadhab();
-    final params = _paramsFor(method, madhab);
+    final highLatitudeRule = await selectedHighLatitudeRule();
+    final coords = Coordinates(coordinates.latitude, coordinates.longitude);
+    final params = _paramsFor(method, madhab, highLatitudeRule, coords);
     return PrayerTimes(
-      coordinates: Coordinates(coordinates.latitude, coordinates.longitude),
+      coordinates: coords,
       date: date ?? DateTime.now(),
       calculationParameters: params,
       precision: true,

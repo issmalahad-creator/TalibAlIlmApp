@@ -26,6 +26,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   PrayerTimes? _times;
   String _method = 'muslimWorldLeague';
   Madhab _madhab = Madhab.shafi;
+  String _highLatitudeRule = 'auto';
   bool _loading = true;
   bool _noLocation = false;
 
@@ -48,6 +49,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     }
     final method = await _prayerRepo.selectedMethod();
     final madhab = await _prayerRepo.selectedMadhab();
+    final highLatitudeRule = await _prayerRepo.selectedHighLatitudeRule();
     final times = await _prayerRepo.prayerTimesFor(coords);
     if (!mounted) return;
     setState(() {
@@ -55,6 +57,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       _times = times;
       _method = method;
       _madhab = madhab;
+      _highLatitudeRule = highLatitudeRule;
       _noLocation = false;
       _loading = false;
     });
@@ -114,6 +117,18 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     await _prayerRepo.setMadhab(madhab);
     _load();
   }
+
+  Future<void> _changeHighLatitudeRule(String rule) async {
+    await _prayerRepo.setHighLatitudeRule(rule);
+    _load();
+  }
+
+  static const _highLatitudeRuleLabels = {
+    'auto': 'تلقائي (موصى به)',
+    'middleOfTheNight': 'منتصف الليل',
+    'seventhOfTheNight': 'سُبع الليل',
+    'twilightAngle': 'زاوية الشفق',
+  };
 
   static const _methodLabels = {
     'muslimWorldLeague': 'رابطة العالم الإسلامي',
@@ -255,6 +270,25 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   if (v == null) return;
                   setSheetState(() => _madhab = v);
                   _changeMadhab(v);
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text('قاعدة خطوط العرض العالية', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              const Text(
+                'يظهر تأثيرها فقط في المناطق البعيدة عن خط الاستواء (فوق ٤٨° تقريبًا) حيث لا يُظلم الشفق كفاية لحساب الفجر/العشاء عاديًا',
+                style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+              ),
+              const SizedBox(height: 6),
+              DropdownButton<String>(
+                isExpanded: true,
+                value: _highLatitudeRule,
+                items: PrayerTimesRepository.highLatitudeRuleNames
+                    .map((r) => DropdownMenuItem(value: r, child: Text(_highLatitudeRuleLabels[r] ?? r)))
+                    .toList(),
+                onChanged: (v) {
+                  if (v == null) return;
+                  setSheetState(() => _highLatitudeRule = v);
+                  _changeHighLatitudeRule(v);
                 },
               ),
               const SizedBox(height: 8),
