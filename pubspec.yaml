@@ -91,6 +91,7 @@ flutter:
   assets:
     - assets/quran/quran-uthmani.txt
     - assets/quran/quran-data.js
+    - assets/quran/tafsir-ibn-kathir-full.jsonl.gz
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

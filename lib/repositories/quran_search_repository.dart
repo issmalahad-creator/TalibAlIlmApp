@@ -9,6 +9,7 @@ class QuranSearchResult {
   final String textUthmani;
   final int? pageNumber;
   final int? juzNumber;
+  final String? tafsir;
   QuranSearchResult({
     required this.surah,
     required this.ayah,
@@ -16,6 +17,7 @@ class QuranSearchResult {
     required this.textUthmani,
     this.pageNumber,
     this.juzNumber,
+    this.tafsir,
   });
 }
 
@@ -47,26 +49,24 @@ class QuranSearchRepository {
     return _byText(trimmed);
   }
 
+  static const _selectWithTafsir = '''
+    SELECT q.surah, q.ayah, q.text_uthmani, q.page_number, q.juz_number, t.text AS tafsir
+    FROM quran_ayat q
+    LEFT JOIN tafsir_entries t ON t.surah = q.surah AND q.ayah BETWEEN t.ayah_from AND t.ayah_to
+  ''';
+
   Future<List<QuranSearchResult>> _byReference(int surah, int ayah) async {
     final db = await DatabaseHelper.instance.database;
-    final rows = await db.query(
-      'quran_ayat',
-      where: 'surah = ? AND ayah = ?',
-      whereArgs: [surah, ayah],
-      limit: 1,
-    );
+    final rows = await db.rawQuery('$_selectWithTafsir WHERE q.surah = ? AND q.ayah = ? LIMIT 1', [surah, ayah]);
     return rows.map(_toResult).toList();
   }
 
   Future<List<QuranSearchResult>> _byText(String query) async {
     final normalized = normalizeArabicForSearch(query);
     final db = await DatabaseHelper.instance.database;
-    final rows = await db.query(
-      'quran_ayat',
-      where: 'text_normalized LIKE ?',
-      whereArgs: ['%$normalized%'],
-      orderBy: 'surah, ayah',
-      limit: 300,
+    final rows = await db.rawQuery(
+      '$_selectWithTafsir WHERE q.text_normalized LIKE ? ORDER BY q.surah, q.ayah LIMIT 300',
+      ['%$normalized%'],
     );
     return rows.map(_toResult).toList();
   }
@@ -80,6 +80,7 @@ class QuranSearchRepository {
       textUthmani: row['text_uthmani'] as String,
       pageNumber: row['page_number'] as int?,
       juzNumber: row['juz_number'] as int?,
+      tafsir: row['tafsir'] as String?,
     );
   }
 }

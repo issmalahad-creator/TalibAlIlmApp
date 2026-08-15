@@ -154,6 +154,26 @@ class _ResultCard extends StatelessWidget {
             textAlign: TextAlign.right,
             style: const TextStyle(fontSize: 17, height: 1.9),
           ),
+          if (result.tafsir != null && result.tafsir!.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                title: const Text('التفسير (ابن كثير)', style: TextStyle(fontSize: 12.5, color: AppColors.primaryDark)),
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      result.tafsir!,
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(fontSize: 14, height: 1.7, color: AppColors.textDark),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
@@ -13,23 +16,61 @@ import '../utils/arabic_normalize.dart';
 class QuranImportService {
   Future<void> importIfNeeded() async {
     final db = await DatabaseHelper.instance.database;
-    final existing = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM quran_ayat'));
-    if (existing != null && existing > 0) return;
 
-    final ayat = await _parseAyat();
-    final boundaries = await _parseBoundaries();
+    final existingAyat = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM quran_ayat'));
+    if (existingAyat == null || existingAyat == 0) {
+      final ayat = await _parseAyat();
+      final boundaries = await _parseBoundaries();
+
+      final batch = db.batch();
+      for (final a in ayat) {
+        final juz = _boundaryIndexFor(boundaries.juz, a.surah, a.ayah);
+        final page = _boundaryIndexFor(boundaries.page, a.surah, a.ayah);
+        batch.insert('quran_ayat', {
+          'surah': a.surah,
+          'ayah': a.ayah,
+          'text_uthmani': a.text,
+          'text_normalized': normalizeArabicForSearch(a.text),
+          'juz_number': juz,
+          'page_number': page,
+        });
+      }
+      await batch.commit(noResult: true);
+    }
+
+    final existingTafsir = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries'));
+    if (existingTafsir == null || existingTafsir == 0) {
+      await _importTafsir(db);
+    }
+  }
+
+  /// Full (unabridged) Arabic Tafsir Ibn Kathir — see QURAN_COMPANION_ROADMAP.md
+  /// section "التفسير" for why this is the full text rather than one of the
+  /// three planned mukhtasars (no comparable structured source was found for
+  /// those). Source: spa5k/tafsir_api (`ar-tafsir-ibn-kathir` edition),
+  /// gzip-compressed in assets/ (89.7MB -> 9.6MB) to keep the app bundle
+  /// reasonable. One row per ayah, `source` fixed to 'ibn_kathir_full' so
+  /// abridged editions can be added later as additional rows without
+  /// conflicting.
+  Future<void> _importTafsir(Database db) async {
+    final byteData = await rootBundle.load('assets/quran/tafsir-ibn-kathir-full.jsonl.gz');
+    final compressed = byteData.buffer.asUint8List();
+    final decompressed = gzip.decode(compressed);
+    final jsonlText = utf8.decode(decompressed);
 
     final batch = db.batch();
-    for (final a in ayat) {
-      final juz = _boundaryIndexFor(boundaries.juz, a.surah, a.ayah);
-      final page = _boundaryIndexFor(boundaries.page, a.surah, a.ayah);
-      batch.insert('quran_ayat', {
-        'surah': a.surah,
-        'ayah': a.ayah,
-        'text_uthmani': a.text,
-        'text_normalized': normalizeArabicForSearch(a.text),
-        'juz_number': juz,
-        'page_number': page,
+    for (final line in const LineSplitter().convert(jsonlText)) {
+      if (line.trim().isEmpty) continue;
+      final obj = jsonDecode(line) as Map<String, dynamic>;
+      batch.insert('tafsir_entries', {
+        'surah': obj['surah'] as int,
+        'ayah_from': obj['ayah'] as int,
+        'ayah_to': obj['ayah'] as int,
+        'source': 'ibn_kathir_full',
+        'text': obj['text'] as String,
+        // Not extracted yet — deliberately left null rather than guessed
+        // via an unvalidated text-search heuristic. See roadmap section 2.
+        'asbab_nuzul_excerpt': null,
       });
     }
     await batch.commit(noResult: true);
