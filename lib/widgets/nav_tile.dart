@@ -1,0 +1,85 @@
+import 'package:flutter/material.dart';
+
+/// Colorful icon-grid navigation tile, replacing the plain outlined
+/// buttons that used to fill "الملف الشخصي" — Ismail's request 2026-08-16
+/// ("أريد أيقونات جذابة نفس هذا"), matching the solid-color-circle +
+/// white-icon style of the reference app screenshot he sent. Purely
+/// visual: every tile still just calls the same `onTap` navigation that
+/// existed before.
+class NavTileData {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const NavTileData({required this.icon, required this.label, required this.color, required this.onTap});
+}
+
+class NavTile extends StatelessWidget {
+  final NavTileData data;
+  const NavTile({super.key, required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: data.onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(color: data.color, shape: BoxShape.circle),
+              child: Icon(data.icon, color: Colors.white, size: 25),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              data.label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fixed 4-per-row grid of [NavTile]s, sized to its content (embeds inside
+/// a scrolling `ListView` rather than scrolling itself).
+class NavGrid extends StatelessWidget {
+  final List<NavTileData> items;
+  const NavGrid({super.key, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      crossAxisCount: 4,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 0.78,
+      children: items.map((d) => NavTile(data: d)).toList(),
+    );
+  }
+}
+
+/// A shared color palette so the same feature always gets the same color
+/// wherever it appears (home quick-access row vs. the full profile grid).
+class NavColors {
+  static const teal = Color(0xFF0FA3B1);
+  static const blue = Color(0xFF2F80ED);
+  static const purple = Color(0xFF7C4DFF);
+  static const orange = Color(0xFFFF8A3D);
+  static const pink = Color(0xFFE85D9E);
+  static const green = Color(0xFF2FAE60);
+  static const gold = Color(0xFFD9A441);
+  static const indigo = Color(0xFF5C6BC0);
+  static const coral = Color(0xFFEF6461);
+  static const brown = Color(0xFFB5651D);
+  static const cyan = Color(0xFF17A2B8);
+  static const deepPurple = Color(0xFF6A4C93);
+}

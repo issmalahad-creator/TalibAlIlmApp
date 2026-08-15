@@ -20,6 +20,7 @@ import '../utils/month.dart';
 import '../widgets/animated_banner.dart';
 import '../widgets/category_pill.dart';
 import '../widgets/daily_companion_card.dart';
+import '../widgets/nav_tile.dart';
 import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
@@ -160,44 +161,39 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: Text(basicText('daily_session', _lang)),
                     style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
-                          icon: const Icon(Icons.access_time_outlined, size: 18),
-                          label: Text(basicText('prayer_times', _lang)),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
-                          icon: const Icon(Icons.explore_outlined, size: 18),
-                          label: Text(basicText('qibla', _lang)),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
-                    icon: const Icon(Icons.nights_stay_outlined, size: 18),
-                    label: Text(basicText('adhkar', _lang)),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
-                    icon: const Icon(Icons.mosque_outlined, size: 18),
-                    label: const Text('إقامة الصلاة'),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
-                    icon: const Icon(Icons.podcasts_outlined, size: 18),
-                    label: const Text('كتب صوتية من اليوتيوب'),
-                  ),
+                  const SizedBox(height: 6),
+                  NavGrid(items: [
+                    NavTileData(
+                      icon: Icons.access_time_outlined,
+                      label: basicText('prayer_times', _lang),
+                      color: NavColors.blue,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
+                    ),
+                    NavTileData(
+                      icon: Icons.explore_outlined,
+                      label: basicText('qibla', _lang),
+                      color: NavColors.purple,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
+                    ),
+                    NavTileData(
+                      icon: Icons.nights_stay_outlined,
+                      label: basicText('adhkar', _lang),
+                      color: NavColors.indigo,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
+                    ),
+                    NavTileData(
+                      icon: Icons.mosque_outlined,
+                      label: 'إقامة الصلاة',
+                      color: NavColors.teal,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
+                    ),
+                    NavTileData(
+                      icon: Icons.podcasts_outlined,
+                      label: 'كتب صوتية',
+                      color: NavColors.orange,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
+                    ),
+                  ]),
                   if (_banner != null) ...[
                     const SizedBox(height: 16),
                     AnimatedBanner(imageUrl: _banner!.url, caption: _banner!.caption),

@@ -6,6 +6,7 @@ import '../repositories/profile_repository.dart';
 import '../services/calendar_preference_service.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/nav_tile.dart';
 import 'adab_screen.dart';
 import 'adhkar_screen.dart';
 import 'arabic_curriculum_screen.dart';
@@ -173,128 +174,123 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportScreen())),
-                  icon: const Icon(Icons.support_agent_rounded),
-                  label: Text(basicText('support_faq', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzTeacherScreen())),
-                  icon: const Icon(Icons.school_rounded),
-                  label: const Text('أستاذ التحفيظ'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => const PersonalAccountabilityScreen())),
-                  icon: const Icon(Icons.self_improvement_rounded),
-                  label: Text(basicText('personal_commitment', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const HadithScreen())),
-                  icon: const Icon(Icons.format_quote_rounded),
-                  label: const Text('الأربعين النووية'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const WasitiyyahScreen())),
-                  icon: const Icon(Icons.menu_book_outlined),
-                  label: const Text('العقيدة الواسطية'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ZadAlMaadScreen())),
-                  icon: const Icon(Icons.history_edu_rounded),
-                  label: const Text('زاد المعاد'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const MadarijScreen())),
-                  icon: const Icon(Icons.terrain_rounded),
-                  label: const Text('مدارج السالكين (متقدم)'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdabScreen())),
-                  icon: const Icon(Icons.volunteer_activism_outlined),
-                  label: Text(basicText('adab', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArabicCurriculumScreen())),
-                  icon: const Icon(Icons.school_outlined),
-                  label: const Text('منهج تعلم العربية'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TajweedScreen())),
-                  icon: const Icon(Icons.record_voice_over_outlined),
-                  label: const Text('التجويد'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
-                  icon: const Icon(Icons.mosque_outlined),
-                  label: const Text('إقامة الصلاة'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
-                  icon: const Icon(Icons.podcasts_outlined),
-                  label: const Text('كتب صوتية من اليوتيوب'),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
-                  icon: const Icon(Icons.access_time_outlined),
-                  label: Text(basicText('prayer_times', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
-                  icon: const Icon(Icons.explore_outlined),
-                  label: Text(basicText('qibla', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CompletionGoalsScreen())),
-                  icon: const Icon(Icons.flag_circle_outlined),
-                  label: Text(basicText('completion_plans', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JourneyScreen())),
-                  icon: const Icon(Icons.route_outlined),
-                  label: Text(basicText('my_journey', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
-                  icon: const Icon(Icons.nights_stay_outlined),
-                  label: Text(basicText('adhkar', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WirdScreen())),
-                  icon: const Icon(Icons.checklist_rtl_outlined),
-                  label: Text(basicText('wird', _lang)),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewMuslimGuideScreen())),
-                  icon: const Icon(Icons.diversity_3_outlined),
-                  label: Text(basicText('new_muslim_guide', _lang)),
-                ),
+                const SizedBox(height: 16),
+                NavGrid(items: [
+                  NavTileData(
+                    icon: Icons.route_outlined,
+                    label: basicText('my_journey', _lang),
+                    color: NavColors.purple,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JourneyScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.flag_circle_outlined,
+                    label: basicText('completion_plans', _lang),
+                    color: NavColors.blue,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompletionGoalsScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.school_rounded,
+                    label: 'أستاذ التحفيظ',
+                    color: NavColors.teal,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzTeacherScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.self_improvement_rounded,
+                    label: basicText('personal_commitment', _lang),
+                    color: NavColors.indigo,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PersonalAccountabilityScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.format_quote_rounded,
+                    label: 'الأربعين النووية',
+                    color: NavColors.brown,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HadithScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.menu_book_outlined,
+                    label: 'العقيدة الواسطية',
+                    color: NavColors.deepPurple,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WasitiyyahScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.history_edu_rounded,
+                    label: 'زاد المعاد',
+                    color: NavColors.gold,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZadAlMaadScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.terrain_rounded,
+                    label: 'مدارج السالكين',
+                    color: NavColors.coral,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MadarijScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.volunteer_activism_outlined,
+                    label: basicText('adab', _lang),
+                    color: NavColors.pink,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdabScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.school_outlined,
+                    label: 'منهج تعلم العربية',
+                    color: NavColors.cyan,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArabicCurriculumScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.record_voice_over_outlined,
+                    label: 'التجويد',
+                    color: NavColors.green,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TajweedScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.mosque_outlined,
+                    label: 'إقامة الصلاة',
+                    color: NavColors.teal,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.podcasts_outlined,
+                    label: 'كتب صوتية',
+                    color: NavColors.orange,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.access_time_outlined,
+                    label: basicText('prayer_times', _lang),
+                    color: NavColors.blue,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.explore_outlined,
+                    label: basicText('qibla', _lang),
+                    color: NavColors.purple,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.nights_stay_outlined,
+                    label: basicText('adhkar', _lang),
+                    color: NavColors.indigo,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.checklist_rtl_outlined,
+                    label: basicText('wird', _lang),
+                    color: NavColors.gold,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WirdScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.diversity_3_outlined,
+                    label: basicText('new_muslim_guide', _lang),
+                    color: NavColors.pink,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewMuslimGuideScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.support_agent_rounded,
+                    label: basicText('support_faq', _lang),
+                    color: NavColors.teal,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportScreen())),
+                  ),
+                ]),
               ],
             ),
     );
