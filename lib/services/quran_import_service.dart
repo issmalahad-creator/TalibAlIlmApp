@@ -87,6 +87,29 @@ class QuranImportService {
     if (existingZad == null || existingZad == 0) {
       await _importZadAlMaad(db);
     }
+
+    final existingMadarij = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM madarij_sections'));
+    if (existingMadarij == null || existingMadarij == 0) {
+      await _importMadarij(db);
+    }
+  }
+
+  /// Madarij As-Salikin Part 1 — see the v12 migration's doc comment for
+  /// scope (advanced tier only, part 1 of typically 3).
+  Future<void> _importMadarij(Database db) async {
+    final raw = await rootBundle.loadString('assets/aqeedah/madarij_part1.json');
+    final list = jsonDecode(raw) as List<dynamic>;
+    final batch = db.batch();
+    for (var i = 0; i < list.length; i++) {
+      final entry = list[i] as Map<String, dynamic>;
+      batch.insert('madarij_sections', {
+        'part': 1,
+        'section_order': i + 1,
+        'section_title': entry['title'] as String,
+        'text_excerpt': entry['text'] as String,
+      });
+    }
+    await batch.commit(noResult: true);
   }
 
   /// Zad al-Ma'ad Volume 1 (Seerah introduction) — see the v11 migration's

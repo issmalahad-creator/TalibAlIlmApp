@@ -6,6 +6,7 @@ import 'hadith_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
 import 'support_screen.dart';
+import 'madarij_screen.dart';
 import 'wasitiyyah_screen.dart';
 import 'zad_almaad_screen.dart';
 
@@ -143,6 +144,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const ZadAlMaadScreen())),
                   icon: const Icon(Icons.history_edu_rounded),
                   label: const Text('زاد المعاد'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const MadarijScreen())),
+                  icon: const Icon(Icons.terrain_rounded),
+                  label: const Text('مدارج السالكين (متقدم)'),
                 ),
               ],
             ),

@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 11,
+      version: 12,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -30,6 +30,7 @@ class DatabaseHelper {
         await _createV9Tables(db);
         await _createV10Tables(db);
         await _createV11Tables(db);
+        await _createV12Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -42,6 +43,7 @@ class DatabaseHelper {
         if (oldVersion < 9) await _createV9Tables(db);
         if (oldVersion < 10) await _createV10Tables(db);
         if (oldVersion < 11) await _createV11Tables(db);
+        if (oldVersion < 12) await _createV12Tables(db);
       },
     );
   }
@@ -394,6 +396,32 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE zad_almaad_progress (
         chapter_id INTEGER PRIMARY KEY REFERENCES zad_almaad_chapters(id),
+        read_done INTEGER NOT NULL DEFAULT 0,
+        read_date TEXT
+      )
+    ''');
+  }
+
+  /// Phase 5ح — Madarij As-Salikin (Ibn al-Qayyim), source: ar.wikisource.org
+  /// raw wikitext, same verbatim-fetch discipline as every other classical
+  /// text here. **Advanced tier ONLY** per the roadmap's explicit scoping —
+  /// this is the deepest, hardest text in the whole app; the UI must always
+  /// carry that warning (no level-lock system exists yet to enforce it
+  /// technically, so the warning is the only safeguard for now). Part 1 of
+  /// (typically 3 printed parts) only, for now.
+  Future<void> _createV12Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE madarij_sections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        part INTEGER NOT NULL,
+        section_order INTEGER NOT NULL,
+        section_title TEXT NOT NULL,
+        text_excerpt TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE madarij_progress (
+        section_id INTEGER PRIMARY KEY REFERENCES madarij_sections(id),
         read_done INTEGER NOT NULL DEFAULT 0,
         read_date TEXT
       )
