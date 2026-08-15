@@ -133,6 +133,16 @@ Ismail sent a reference screenshot from another app (a grid of solid-color circu
 - [x] **Quran search missed words containing madd marks** (commit 1852857) — e.g. searching "الفقراء" returned nothing despite the word existing. Root-caused by directly inspecting every non-base-letter character actually present in the bundled Tanzil Uthmani text (not guessed): the word is spelled with a combining MADDA ABOVE (U+0653) before the hamza, and `arabic_normalize.dart`'s search-stripping regex only covered basic tashkeel (U+064B-0652), missing U+0653-0655 (madda/hamza-above/hamza-below) and the entire Quranic small-mark/waqf-annotation block (U+06D6-06ED) — both used thousands of times across the real text. Fixed the regex, **plus** a DB v23→v24 data migration recomputing `quran_ayat.text_normalized` for all 6236 ayat, since that column is computed once at import time (not live per search) — existing installs (including Ismail's phone) had the stale under-stripped values baked in and needed the recompute, not just the regex fix.
 - [ ] Not yet re-tested on-device by Ismail after either fix.
 
+## Phase 17 — Visual redesign push: hero card + Quran reading UI (Ismail's request 2026-08-16) — ✅ DONE (commit 62164c9)
+
+Ismail sent screenshots of a reference app and asked explicitly for a much richer visual language ("ليس صفحة بيضاء وكتابات سود" — not a white page with black text), including the exact "طريقة عرض المصحف" options-menu structure and a tap-an-ayah contextual popup. Explicit boundary stated to Ismail: match the *style* with original design work, not literally clone the reference app's specific artwork/branding.
+
+- [x] `daily_companion_card.dart` — gradient hero card, a live-ticking (1s) countdown to the next prayer, and an original CustomPainter dome-and-minarets silhouette (simple geometric shapes, not traced from any reference app).
+- [x] `quran_reading_screen.dart` — full "طريقة عرض المصحف" options sheet matching the reference's structure: الفهرس (surah index, tap to jump), البحث, حدّد ما حفظته, التفسير (real, working), المعاني/الصوتيات/الترجمة (visibly present but honestly disabled — tapping explains no trustworthy data source exists yet, not invented), الوضع الليلي (dark reading mode), لون مصحفك (5 color themes affecting the page border), المفضلة (bookmarks list).
+- [x] Tap-an-ayah contextual popup menu (opens at the exact tap position, matching the reference): التفسير (shows that ayah's tafsir in a sheet), الترجمة/الاستماع (disabled, same honesty), أضف للمفضلة (real — new `quran_favorites` table, DB v24→v25), نشر (real — shares the ayah text via `share_plus`, already a dependency).
+- [ ] **Not yet visually verified by Ismail** — a fresh APK was built and sent specifically for this, since a design-quality change can't be confirmed by `flutter analyze` passing.
+- [ ] Home screen icon grid (Phase 15) and other screens beyond home-hero/Quran-reading were NOT touched in this pass — if Ismail wants the same visual treatment (gradients, decorative framing) applied elsewhere, that's an explicit follow-up, not assumed.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
