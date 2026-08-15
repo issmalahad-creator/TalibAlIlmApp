@@ -8,6 +8,7 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'adab_screen.dart';
 import 'adhkar_screen.dart';
+import 'arabic_curriculum_screen.dart';
 import 'hadith_screen.dart';
 import 'new_muslim_guide_screen.dart';
 import 'prayer_times_screen.dart';
@@ -223,6 +224,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdabScreen())),
                   icon: const Icon(Icons.volunteer_activism_outlined),
                   label: Text(basicText('adab', _lang)),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArabicCurriculumScreen())),
+                  icon: const Icon(Icons.school_outlined),
+                  label: const Text('منهج تعلم العربية'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(

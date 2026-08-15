@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 18,
+      version: 19,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -37,6 +37,7 @@ class DatabaseHelper {
         await _createV16Tables(db);
         await _createV17Tables(db);
         await _createV18Tables(db);
+        await _createV19Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -56,6 +57,7 @@ class DatabaseHelper {
         if (oldVersion < 16) await _createV16Tables(db);
         if (oldVersion < 17) await _createV17Tables(db);
         if (oldVersion < 18) await _createV18Tables(db);
+        if (oldVersion < 19) await _createV19Tables(db);
       },
     );
   }
@@ -585,6 +587,25 @@ class DatabaseHelper {
       CREATE TABLE guide_progress (
         topic_key TEXT PRIMARY KEY,
         first_read_date TEXT
+      )
+    ''');
+  }
+
+  /// Arabic-learning curriculum for non-native speakers — QURAN_COMPANION_ROADMAP.md
+  /// Phase 10b (Ismail's request 2026-08-15: "منهج وكل شيء متكامل لتعلم
+  /// العربية لغير الألسنة العربية"). A DIFFERENT audience from 5و's planned
+  /// Noorani Qaida (children learning to read) — this is staged for adult
+  /// non-native learners (alphabet → vocabulary → grammar → Quranic-Arabic
+  /// comprehension). Lesson content is a fixed const list
+  /// (`data/arabic_curriculum.dart`), same pattern as the wird templates
+  /// and new-Muslim guide — this migration only tracks per-lesson
+  /// completion, needed for the stage-completion certificates Ismail
+  /// explicitly asked every pillar to have.
+  Future<void> _createV19Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE arabic_curriculum_progress (
+        lesson_key TEXT PRIMARY KEY,
+        learned_date TEXT
       )
     ''');
   }

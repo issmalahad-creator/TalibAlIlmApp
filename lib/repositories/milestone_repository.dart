@@ -96,6 +96,12 @@ class MilestoneRepository {
         'title': 'شهادة الاستمرار $days يومًا في أذكار الصباح والمساء',
       });
     }
+    batch.insert('achievement_milestones', {
+      'pillar': 'arabic_curriculum',
+      'milestone_type': 'stage_alphabet',
+      'reference_id': null,
+      'title': 'شهادة إتمام المرحلة ١: الحروف والنطق',
+    });
     await batch.commit(noResult: true);
   }
 
@@ -203,6 +209,24 @@ class MilestoneRepository {
     }
 
     return newlyEarned;
+  }
+
+  /// Detects the alphabet-stage certificate — call after
+  /// `ArabicCurriculumRepository.markLearned` once every letter in the
+  /// alphabet has been marked learned.
+  Future<List<Milestone>> checkArabicCurriculumMilestones({required bool alphabetComplete}) async {
+    if (!alphabetComplete) return [];
+    final db = await DatabaseHelper.instance.database;
+    final today = todayDate();
+    final rows = await db.query(
+      'achievement_milestones',
+      where: 'pillar = ? AND milestone_type = ?',
+      whereArgs: ['arabic_curriculum', 'stage_alphabet'],
+    );
+    if (rows.isEmpty || rows.first['achieved_date'] != null) return [];
+    final row = rows.first;
+    await db.update('achievement_milestones', {'achieved_date': today}, where: 'id = ?', whereArgs: [row['id']]);
+    return [_toMilestone({...row, 'achieved_date': today})];
   }
 
   Future<void> markShared(int milestoneId) async {
