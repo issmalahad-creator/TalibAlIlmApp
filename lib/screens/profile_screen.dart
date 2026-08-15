@@ -4,6 +4,7 @@ import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
 import '../services/calendar_preference_service.dart';
 import '../theme/app_theme.dart';
+import 'adab_screen.dart';
 import 'adhkar_screen.dart';
 import 'hadith_screen.dart';
 import 'new_muslim_guide_screen.dart';
@@ -178,6 +179,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const MadarijScreen())),
                   icon: const Icon(Icons.terrain_rounded),
                   label: const Text('مدارج السالكين (متقدم)'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdabScreen())),
+                  icon: const Icon(Icons.volunteer_activism_outlined),
+                  label: const Text('باب الأدب'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
