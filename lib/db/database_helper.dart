@@ -1,6 +1,8 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../utils/arabic_normalize.dart';
+
 class DatabaseHelper {
   DatabaseHelper._internal();
   static final DatabaseHelper instance = DatabaseHelper._internal();
@@ -17,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 23,
+      version: 24,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -66,6 +68,7 @@ class DatabaseHelper {
         if (oldVersion < 21) await _createV21Tables(db);
         if (oldVersion < 22) await _createV22Tables(db);
         if (oldVersion < 23) await _createV23Tables(db);
+        if (oldVersion < 24) await _fixQuranNormalizedTextV24(db);
       },
     );
   }
@@ -712,5 +715,32 @@ class DatabaseHelper {
     await db.execute('ALTER TABLE daily_session_log ADD COLUMN session_minutes_planned INTEGER');
     await db.execute('ALTER TABLE daily_session_log ADD COLUMN session_difficulty TEXT');
     await db.execute('ALTER TABLE daily_session_log ADD COLUMN session_note TEXT');
+  }
+
+  /// Data-only migration, no schema change: `arabic_normalize.dart`'s
+  /// search-normalization regex was missing a whole family of Quranic
+  /// combining marks (madda above, hamza above/below, and the Quranic
+  /// small-mark/waqf-annotation block) — confirmed against the real
+  /// Tanzil Uthmani text, e.g. "فقراء" is spelled with a combining madda
+  /// (U+0653) that was never stripped, so a plain-typed "الفقراء" query
+  /// could never match it (Ismail's report 2026-08-16). `quran_ayat.
+  /// text_normalized` is computed once at import time, not live per
+  /// search — existing installs already have the stale, under-stripped
+  /// values baked in, so the regex fix alone doesn't help them. This
+  /// recomputes every row with the corrected function. Not needed in
+  /// `onCreate`: a fresh install populates `quran_ayat` afterward via
+  /// `QuranImportService`, already using the fixed function.
+  Future<void> _fixQuranNormalizedTextV24(Database db) async {
+    final rows = await db.query('quran_ayat', columns: ['surah', 'ayah', 'text_uthmani']);
+    final batch = db.batch();
+    for (final row in rows) {
+      batch.update(
+        'quran_ayat',
+        {'text_normalized': normalizeArabicForSearch(row['text_uthmani'] as String)},
+        where: 'surah = ? AND ayah = ?',
+        whereArgs: [row['surah'], row['ayah']],
+      );
+    }
+    await batch.commit(noResult: true);
   }
 }
