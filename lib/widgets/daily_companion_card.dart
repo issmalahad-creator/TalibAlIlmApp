@@ -61,10 +61,13 @@ class _DailyCompanionCardState extends State<DailyCompanionCard> {
     });
   }
 
+  /// Same UTC→local fix as `prayer_times_screen.dart` — `adhan_dart`
+  /// builds prayer times as UTC `DateTime`s internally.
   String _formatTime(DateTime t) {
-    final hour = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    final minute = t.minute.toString().padLeft(2, '0');
-    final period = t.hour < 12 ? 'ص' : 'م';
+    final local = t.toLocal();
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final period = local.hour < 12 ? 'ص' : 'م';
     return '$hour:$minute $period';
   }
 

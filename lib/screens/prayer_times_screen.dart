@@ -218,10 +218,14 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         _ => 'الصلاة القادمة',
       };
 
+  /// `adhan_dart` builds every prayer time as a UTC `DateTime` internally
+  /// — reading `.hour`/`.minute` straight off it (as this used to) shows
+  /// the UTC clock time, not the phone's local time. `.toLocal()` first.
   String _formatTime(DateTime t) {
-    final hour = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    final minute = t.minute.toString().padLeft(2, '0');
-    final period = t.hour < 12 ? 'ص' : 'م';
+    final local = t.toLocal();
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final period = local.hour < 12 ? 'ص' : 'م';
     return '$hour:$minute $period';
   }
 
@@ -315,9 +319,10 @@ class _PrayerRow extends StatelessWidget {
   const _PrayerRow({required this.label, required this.time, required this.active});
 
   String _formatTime(DateTime t) {
-    final hour = t.hour % 12 == 0 ? 12 : t.hour % 12;
-    final minute = t.minute.toString().padLeft(2, '0');
-    final period = t.hour < 12 ? 'ص' : 'م';
+    final local = t.toLocal();
+    final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+    final minute = local.minute.toString().padLeft(2, '0');
+    final period = local.hour < 12 ? 'ص' : 'م';
     return '$hour:$minute $period';
   }
 
