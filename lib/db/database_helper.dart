@@ -17,9 +17,19 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
-        await db.execute('''
+        await _createV1Tables(db);
+        await _createV2Tables(db);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) await _createV2Tables(db);
+      },
+    );
+  }
+
+  Future<void> _createV1Tables(Database db) async {
+    await db.execute('''
           CREATE TABLE profile (
             id INTEGER PRIMARY KEY CHECK (id = 1),
             full_name TEXT DEFAULT '',
@@ -123,11 +133,38 @@ class DatabaseHelper {
             value TEXT DEFAULT ''
           )
         ''');
-      },
-      // No onUpgrade yet -- this is a brand-new app with no prior installed
-      // schema to migrate from. When a future change adds/changes a table,
-      // add it here AND bump `version` AND add the matching onCreate change,
-      // per this project's own established convention.
-    );
+  }
+
+  /// Phase 0 of QURAN_COMPANION_ROADMAP.md — Quran text + tafsir reference
+  /// data. Additive only; every v1 table/row is untouched by this migration.
+  Future<void> _createV2Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE quran_ayat (
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        text_uthmani TEXT NOT NULL,
+        text_normalized TEXT NOT NULL,
+        page_number INTEGER,
+        juz_number INTEGER,
+        PRIMARY KEY (surah, ayah)
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX idx_quran_ayat_normalized ON quran_ayat(text_normalized)
+    ''');
+    await db.execute('''
+      CREATE TABLE tafsir_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        surah INTEGER NOT NULL,
+        ayah_from INTEGER NOT NULL,
+        ayah_to INTEGER NOT NULL,
+        source TEXT NOT NULL DEFAULT 'ibn_kathir',
+        text TEXT NOT NULL,
+        asbab_nuzul_excerpt TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX idx_tafsir_surah_ayah ON tafsir_entries(surah, ayah_from, ayah_to)
+    ''');
   }
 }

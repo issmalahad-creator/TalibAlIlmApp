@@ -8,6 +8,7 @@ import 'screens/startup_gate.dart';
 import 'services/book_content_service.dart';
 import 'services/content_badge_service.dart';
 import 'services/notification_service.dart';
+import 'services/quran_import_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/hijri_date.dart';
 
@@ -27,10 +28,12 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   StreamSubscription<List<ConnectivityResult>>? _connSub;
   final _notificationService = NotificationService();
   final _bookContentService = BookContentService();
+  final _quranImportService = QuranImportService();
 
   @override
   void initState() {
     super.initState();
+    _quranImportService.importIfNeeded();
     _checkBookContent();
     _connSub = Connectivity().onConnectivityChanged.listen((results) {
       if (results.any((r) => r != ConnectivityResult.none)) {
