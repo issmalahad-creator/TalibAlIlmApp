@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../repositories/application_repository.dart';
 import '../repositories/daily_session_repository.dart';
 import '../repositories/memorization_repository.dart';
+import '../repositories/understanding_repository.dart';
 import '../theme/app_theme.dart';
+import 'application_screen.dart';
 import 'quran_browse_screen.dart';
 import 'review_screen.dart';
+import 'understanding_screen.dart';
 
 /// "اليوم" — QURAN_COMPANION_ROADMAP.md section 6. Only 3 of the 6 designed
 /// steps have real data behind them (قراءة/حفظ جديد/مراجعة); the other 3
@@ -20,6 +24,8 @@ class DailySessionScreen extends StatefulWidget {
 class _DailySessionScreenState extends State<DailySessionScreen> {
   final _sessionRepo = DailySessionRepository();
   final _memorizationRepo = MemorizationRepository();
+  final _understandingRepo = UnderstandingRepository();
+  final _applicationRepo = ApplicationRepository();
 
   DailySessionStatus _status = const DailySessionStatus();
   bool _loading = true;
@@ -34,7 +40,14 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
     setState(() => _loading = true);
     final memorizedToday = await _memorizationRepo.hasMemorizedToday();
     final reviewedToday = await _memorizationRepo.hasReviewedToday();
-    await _sessionRepo.markStep(newMemorization: memorizedToday, review: reviewedToday);
+    final understoodToday = await _understandingRepo.hasUnderstoodToday();
+    final appliedToday = await _applicationRepo.hasAppliedToday();
+    await _sessionRepo.markStep(
+      newMemorization: memorizedToday,
+      review: reviewedToday,
+      understanding: understoodToday,
+      application: appliedToday,
+    );
     final status = await _sessionRepo.today();
     if (!mounted) return;
     setState(() {
@@ -55,6 +68,16 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
 
   Future<void> _openReview() async {
     await Navigator.push(context, MaterialPageRoute(builder: (_) => const ReviewScreen()));
+    _load();
+  }
+
+  Future<void> _openUnderstanding() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const UnderstandingScreen()));
+    _load();
+  }
+
+  Future<void> _openApplication() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const ApplicationScreen()));
     _load();
   }
 
@@ -98,13 +121,27 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
                   onTap: _openReview,
                   actionLabel: 'ابدأ المراجعة',
                 ),
+                _StepCard(
+                  title: 'الفهم',
+                  subtitle: 'تفسير ما حفظته',
+                  icon: Icons.auto_stories_rounded,
+                  done: _status.didUnderstanding,
+                  onTap: _openUnderstanding,
+                  actionLabel: 'ابدأ الفهم',
+                ),
+                _StepCard(
+                  title: 'التطبيق 🌱',
+                  subtitle: 'درس تطبيقي من محفوظك',
+                  icon: Icons.favorite_border_rounded,
+                  done: _status.didApplication,
+                  onTap: _openApplication,
+                  actionLabel: 'درس اليوم',
+                ),
                 const SizedBox(height: 8),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
                   child: Text('قريبًا', style: TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w700)),
                 ),
-                const _StepCard(title: 'الفهم', subtitle: 'تفسير ما حفظته', icon: Icons.auto_stories_rounded, comingSoon: true),
-                const _StepCard(title: 'التطبيق 🌱', subtitle: 'درس تطبيقي من محفوظك', icon: Icons.favorite_border_rounded, comingSoon: true),
                 const _StepCard(title: 'اختبر نفسك', subtitle: 'أسئلة قصيرة', icon: Icons.quiz_outlined, comingSoon: true),
               ],
             ),

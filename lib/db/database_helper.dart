@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -25,6 +25,7 @@ class DatabaseHelper {
         await _createV4Tables(db);
         await _createV5Tables(db);
         await _createV6Tables(db);
+        await _createV7Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -32,6 +33,7 @@ class DatabaseHelper {
         if (oldVersion < 4) await _createV4Tables(db);
         if (oldVersion < 5) await _createV5Tables(db);
         if (oldVersion < 6) await _createV6Tables(db);
+        if (oldVersion < 7) await _createV7Tables(db);
       },
     );
   }
@@ -296,5 +298,14 @@ class DatabaseHelper {
         user_reflection TEXT
       )
     ''');
+  }
+
+  /// Adds the فهم/تطبيق columns to `daily_session_log` now that Phase 3 data
+  /// exists to back them — simple additive `ALTER TABLE`, same path for
+  /// fresh installs (right after `_createV5Tables` in `onCreate`) and
+  /// upgrades.
+  Future<void> _createV7Tables(Database db) async {
+    await db.execute('ALTER TABLE daily_session_log ADD COLUMN did_understanding INTEGER NOT NULL DEFAULT 0');
+    await db.execute('ALTER TABLE daily_session_log ADD COLUMN did_application INTEGER NOT NULL DEFAULT 0');
   }
 }
