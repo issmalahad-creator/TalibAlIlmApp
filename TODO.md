@@ -48,11 +48,12 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] Personal accountability (roadmap §4.7 expansion, Ismail's explicit request): self-chosen reward + optional self-chosen punishment, app only ever reminds, never enforces — `personal_accountability_screen.dart`, reward reminder wired into review completion
 - [x] Commit
 
-## Phase 3 — Understanding + Application pillars
+## Phase 3 — Understanding + Application pillars — ✅ DONE 2026-08-15 (commits 9222fbe, 40daf95, d6a8fe8)
 
-- [ ] Tafsir/benefits display per unit, `understanding_progress`
-- [ ] `practical_lessons` + `application_log` ("مطبّق" pillar, roadmap §4.8) — start with short/juz-amma surahs only
-- [ ] Commit
+- [x] Tafsir/benefits display per unit, `understanding_progress` — separate from memorization, uses the real Al-Mukhtasar tafsir already imported
+- [x] `practical_lessons` + `application_log` ("مطبّق" pillar, roadmap §4.8) — 8 hand-curated lessons for short/juz-amma surahs (الفاتحة، الإخلاص، الفلق، الناس، العصر، الكوثر، الماعون، النصر), grows surah by surah later
+- [x] Wired into جلسة اليوم — 5 of 6 steps now real (only اختبر نفسك remains "قريبًا")
+- [x] Commit
 
 ## Phase 4 — Journey plan
 
