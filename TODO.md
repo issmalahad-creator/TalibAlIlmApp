@@ -111,12 +111,12 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] `translation_am`/`translation_en` columns on `quran_ayat` sourced from Tanzil (Amharic: Sadiq/Habib; English: Saheeh International or similar)
 - [ ] Explicitly NOT promised: full translation of tafsir/hadith-commentary/fiqh content — no ready-made trusted source exists
 
-## Phase 7 — Level map: "zero to scholar" (roadmap §4.11)
+## Phase 7 — Level map: "zero to scholar" (roadmap §4.11) — ✅ DONE 2026-08-16 (commit 456d26c)
 
-- [ ] `curriculum_levels` (1=beginner, 2=intermediate, 3=advanced), `curriculum_items`, `user_level_progress`
-- [ ] Recommendation-only, never a hard lock — matches the "companion not manager" principle
-- [ ] Fill `curriculum_items` incrementally as each content pillar ships (start with 5و/Qaida → level 1 as soon as it exists), don't wait for everything
-- [ ] Expand "رحلتي" (Phase 4) into this level-map screen rather than building a second separate screen
+- [x] Deviated from the roadmap's literal SQL slightly for simplicity: no `curriculum_levels`/`curriculum_items`/`user_level_progress` DB tables. The 3 levels + their items are a fixed const list (`data/curriculum_levels.dart`, same pattern as `wird_templates.dart`), and `CurriculumRepository` computes each item's status LIVE by querying the *existing* progress table it points at (memorization_progress, hadith_progress, wasitiyyah_progress, guide_progress, zad_almaad_progress, madarij_progress, adhkar_completion, application_log, audio_reflection_log) — nothing is duplicated or cached, so it can never drift, same principle as the §4.15 completion planner
+- [x] Recommendation-only, never a hard lock — `CurriculumMapScreen` just navigates to the real screen for whatever's tapped, any level openable in any order
+- [x] Items with no content yet (القاعدة النورانية, still blocked on 5و) show an honest "قريبًا" state rather than disappearing or erroring
+- [x] Expanded "رحلتي" (Phase 4) with a "خريطتي التعليمية" button opening the level map, rather than building a second fully separate/undiscoverable screen — matches the roadmap's explicit intent to grow this same screen, short of a full structural merge (kept as its own screen for now, reachable in one tap from رحلتي)
 
 ## Phase 8 — AI recitation listener (roadmap §4.13) — ⏸ POSTPONED 2026-08-15 by Ismail, no work until explicitly revisited
 
