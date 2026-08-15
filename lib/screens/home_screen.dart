@@ -30,6 +30,7 @@ import 'prayer_times_screen.dart';
 import 'profile_screen.dart';
 import 'qibla_screen.dart';
 import 'quran_browse_screen.dart';
+import 'salah_tracker_screen.dart';
 import 'quran_reading_screen.dart';
 import 'quran_search_screen.dart';
 import 'review_screen.dart';
@@ -183,6 +184,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
                     icon: const Icon(Icons.nights_stay_outlined, size: 18),
                     label: Text(basicText('adhkar', _lang)),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
+                    icon: const Icon(Icons.mosque_outlined, size: 18),
+                    label: const Text('إقامة الصلاة'),
                   ),
                   if (_banner != null) ...[
                     const SizedBox(height: 16),

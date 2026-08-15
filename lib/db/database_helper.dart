@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 20,
+      version: 21,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -39,6 +39,7 @@ class DatabaseHelper {
         await _createV18Tables(db);
         await _createV19Tables(db);
         await _createV20Tables(db);
+        await _createV21Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -60,6 +61,7 @@ class DatabaseHelper {
         if (oldVersion < 18) await _createV18Tables(db);
         if (oldVersion < 19) await _createV19Tables(db);
         if (oldVersion < 20) await _createV20Tables(db);
+        if (oldVersion < 21) await _createV21Tables(db);
       },
     );
   }
@@ -623,6 +625,39 @@ class DatabaseHelper {
       CREATE TABLE tajweed_progress (
         rule_key TEXT PRIMARY KEY,
         learned_date TEXT
+      )
+    ''');
+  }
+
+  /// "إقامة الصلاة" — a full Salah-establishment companion, Ismail's request
+  /// 2026-08-16: not just prayer times, but daily non-judgmental tracking,
+  /// a weekly self-assessment (7 dimensions — critically, khushu is always
+  /// SELF-rated; the app never claims to measure a worshipper's inward
+  /// state), a curated lesson library, and well-known Salaf khushu stories.
+  /// `salah_log` deliberately has no "streak breaking" concept — a missed
+  /// prayer is just a missed row, never a shamed/reset counter, matching
+  /// this app's non-punitive principle throughout.
+  Future<void> _createV21Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE salah_log (
+        log_date TEXT NOT NULL,
+        prayer TEXT NOT NULL,
+        status TEXT NOT NULL,
+        PRIMARY KEY (log_date, prayer)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE salah_self_assessment (
+        week_start TEXT NOT NULL,
+        dimension TEXT NOT NULL,
+        rating INTEGER NOT NULL,
+        PRIMARY KEY (week_start, dimension)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE salah_library_progress (
+        lesson_key TEXT PRIMARY KEY,
+        read_date TEXT
       )
     ''');
   }
