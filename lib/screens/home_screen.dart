@@ -9,6 +9,7 @@ import '../repositories/activity_repository.dart';
 import '../repositories/daily_task_repository.dart';
 import '../repositories/goal_repository.dart';
 import '../repositories/hifz_repository.dart';
+import '../repositories/memorization_repository.dart';
 import '../repositories/profile_repository.dart';
 import '../services/book_content_service.dart';
 import '../services/notification_service.dart';
@@ -22,6 +23,7 @@ import 'hifz_screen.dart';
 import 'onboarding_screen.dart';
 import 'profile_screen.dart';
 import 'quran_search_screen.dart';
+import 'review_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _notificationService = NotificationService();
   final _bookContentService = BookContentService();
   final _hifzRepo = HifzRepository();
+  final _memorizationRepo = MemorizationRepository();
 
   List<ActivityEntry> _recentActivities = [];
   List<Goal> _goals = [];
@@ -45,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _fullName = '';
   bool _loading = true;
   int _hifzMemorizedCount = 0;
+  int _reviewDueCount = 0;
   BannerInfo? _banner;
 
   @override
@@ -59,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final profile = await _profileRepo.get();
     final todayTasks = await _taskRepo.forDate(todayDate());
     final hifzMemorized = await _hifzRepo.memorizedSurahNumbers();
+    final reviewDue = await _memorizationRepo.dueToday();
     if (!mounted) return;
     setState(() {
       _recentActivities = entries.take(5).toList();
@@ -66,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _todayTasks = todayTasks;
       _fullName = profile.fullName;
       _hifzMemorizedCount = hifzMemorized.length;
+      _reviewDueCount = reviewDue.length;
       _loading = false;
     });
     // Best-effort, non-blocking: the banner is a nice-to-have and must never
@@ -193,6 +199,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     memorizedCount: _hifzMemorizedCount,
                     onTap: () async {
                       await Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzScreen()));
+                      _load();
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _ReviewCard(
+                    dueCount: _reviewDueCount,
+                    onTap: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const ReviewScreen()));
                       _load();
                     },
                   ),
@@ -401,6 +415,49 @@ class _HifzCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text('$memorizedCount من ${quranSurahs.length} سورة ($percent%)',
                       style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReviewCard extends StatelessWidget {
+  final int dueCount;
+  final VoidCallback onTap;
+  const _ReviewCard({required this.dueCount, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.divider)),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+              child: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('المراجعة', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                  const SizedBox(height: 2),
+                  Text(
+                    dueCount > 0 ? '$dueCount صفحة مستحقة اليوم' : 'لا مراجعات مستحقة اليوم 🌱',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                  ),
                 ],
               ),
             ),
