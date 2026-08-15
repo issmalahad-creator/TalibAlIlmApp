@@ -22,13 +22,13 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] `flutter pub get` clean, `flutter analyze` clean (2 pre-existing unrelated deprecation infos in quiz_screen.dart)
 - [x] Committed
 
-## Phase 0 — Quran + tafsir data foundation — ✅ Quran text DONE 2026-08-15 (commit d7a3fb5)
+## Phase 0 — Quran + tafsir data foundation — ✅ FULLY DONE 2026-08-15 (commits d7a3fb5, ccd4f5c)
 
 - [x] Source Tanzil Uthmani Quran text (6236 ayat, verified against real Mushaf facts), confirm license terms (CC-BY 3.0)
 - [x] Source Tanzil's Juz/Page boundary metadata (quran-data.js) — unblocks memorization_units generation
 - [x] Build `quran_ayat` (with `text_normalized` + index), `tafsir_entries` (with `asbab_nuzul_excerpt`) — DB migration v1→v2, additive
 - [x] One-time import service wired into app startup (`quran_import_service.dart`)
-- [ ] Source/prepare the three tafsir mukhtasars (Al-Misbah Al-Munir, Sabuni, Ahmad Shakir's Umdat — note incomplete) — NOT done yet, bigger sourcing task than the Quran text itself
+- [x] Tafsir: imported the FULL unabridged Ibn Kathir (6236/6236 ayat, zero errors), gzip-compressed 89.7MB->9.6MB, wired into search results. The three specific mukhtasars (Al-Misbah Al-Munir, Sabuni, Ahmad Shakir's Umdat) remain unsourced — no comparable structured source found; add as additional `tafsir_entries.source` rows later if/when found
 - [x] Commit
 
 ## Phase 1 — Ayah search + memorization engine
