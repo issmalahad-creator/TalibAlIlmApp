@@ -4,6 +4,9 @@ import '../data/arabic_curriculum.dart';
 import '../repositories/arabic_curriculum_repository.dart';
 import '../theme/app_theme.dart';
 import 'arabic_alphabet_lesson_screen.dart';
+import 'arabic_reading_lesson_screen.dart';
+import 'arabic_vocabulary_lesson_screen.dart';
+import 'arabic_resources_screen.dart';
 
 /// "منهج تعلم العربية لغير الناطقين بها" — QURAN_COMPANION_ROADMAP.md
 /// Phase 10b. Shows all 5 planned stages; only Stage 1 (alphabet) is
@@ -37,10 +40,26 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
     });
   }
 
-  int _learnedCountFor(CurriculumStage stage) {
-    if (stage.key != 'alphabet') return 0;
-    return arabicAlphabet.where((l) => _learned.contains('alphabet_${l.letter}')).length;
-  }
+  int _learnedCountFor(CurriculumStage stage) => switch (stage.key) {
+        'alphabet' => arabicAlphabet.where((l) => _learned.contains('alphabet_${l.letter}')).length,
+        'reading_basics' => harakatLessons.where((h) => _learned.contains('reading_${h.nameAr}')).length,
+        'vocabulary' => quranicVocabulary.where((w) => _learned.contains('vocab_${w.wordAr}')).length,
+        _ => 0,
+      };
+
+  int _totalCountFor(CurriculumStage stage) => switch (stage.key) {
+        'alphabet' => arabicAlphabet.length,
+        'reading_basics' => harakatLessons.length,
+        'vocabulary' => quranicVocabulary.length,
+        _ => 0,
+      };
+
+  Widget? _screenFor(String stageKey) => switch (stageKey) {
+        'alphabet' => const ArabicAlphabetLessonScreen(),
+        'reading_basics' => const ArabicReadingLessonScreen(),
+        'vocabulary' => const ArabicVocabularyLessonScreen(),
+        _ => null,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -59,14 +78,22 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
                 ...curriculumStages.map((s) => _StageCard(
                       stage: s,
                       learnedCount: _learnedCountFor(s),
-                      totalCount: s.key == 'alphabet' ? arabicAlphabet.length : 0,
+                      totalCount: _totalCountFor(s),
                       onTap: s.isBuilt
                           ? () async {
-                              await Navigator.push(context, MaterialPageRoute(builder: (_) => const ArabicAlphabetLessonScreen()));
+                              final screen = _screenFor(s.key);
+                              if (screen == null) return;
+                              await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
                               _load();
                             }
                           : null,
                     )),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArabicResourcesScreen())),
+                  icon: const Icon(Icons.menu_book_outlined),
+                  label: const Text('مصادر موصى بها للدراسة الأعمق'),
+                ),
               ],
             ),
     );
