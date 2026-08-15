@@ -2,6 +2,10 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Phase 9 (Qibla + prayer times) — coarse is enough for prayer-time
+         calculation accuracy; fine improves Qibla bearing precision. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <application
         android:label="طالب العلم"
         android:name="${applicationName}"
