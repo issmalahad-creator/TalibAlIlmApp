@@ -19,10 +19,19 @@ const _reflectionPrompts = [
 /// Streams audio/video through YouTube's own official embedded player
 /// (youtube_player_iframe) — this screen never downloads or caches the
 /// media itself, only the user's own resume position and written
-/// reflections ("دفتر الفوائد"). On reopening a series with prior
-/// progress, resumes the exact video + timestamp the user left off at;
-/// otherwise cues the full playlist from the start so YouTube's own
-/// native controls handle in-order episode navigation.
+/// reflections ("دفتر الفوائد"), scoped per episode not per whole series.
+///
+/// "قسم ← حلقات" structure (Ismail's request 2026-08-16, after the flat
+/// single-player screen proved confusing and a broken episode left him
+/// stuck with no way to pick another one): when the series is a playlist,
+/// the actual ordered episode-video-ID list is read directly from
+/// YouTube's own embedded player via `controller.playlist` after cueing —
+/// no YouTube Data API key needed, no scraping. Each episode gets its own
+/// "دفتر الفوائد" (filtered by video_id, already supported by the schema),
+/// and a broken episode (some videos block third-party embedding — outside
+/// this app's control, same boundary as always: never worked around by
+/// extracting the stream) is just one tap away from a working one instead
+/// of a dead end.
 class AudioPlayerScreen extends StatefulWidget {
   final String seriesId;
   final String titleAr;
@@ -56,6 +65,8 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   Duration _lastPosition = Duration.zero;
   String? _currentVideoId;
   String _currentVideoTitle = '';
+  List<String> _episodeIds = [];
+  bool _loadingEpisodes = false;
   List<AudioReflection> _reflections = [];
   bool _loadingReflections = true;
   bool _resumedFromSaved = false;
@@ -79,24 +90,59 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     _stateSub = _controller.videoStateStream.listen((state) => _lastPosition = state.position);
     _cueContent();
     _saveTimer = Timer.periodic(const Duration(seconds: 15), (_) => _persistProgress());
-    _loadReflections();
   }
 
   Future<void> _cueContent() async {
+    if (widget.playlistId != null) {
+      setState(() => _loadingEpisodes = true);
+      await _controller.cuePlaylist(list: [widget.playlistId!]);
+      await _loadEpisodeList();
+    }
     final resume = await _repo.resumePointFor(widget.seriesId);
     if (resume != null) {
       _resumedFromSaved = true;
       await _controller.cueVideoById(videoId: resume.videoId, startSeconds: resume.positionSeconds.toDouble());
-    } else if (widget.playlistId != null) {
-      await _controller.cuePlaylist(list: [widget.playlistId!]);
-    } else if (widget.videoId != null) {
+    } else if (widget.playlistId == null && widget.videoId != null) {
       await _controller.cueVideoById(videoId: widget.videoId!);
     }
   }
 
+  /// YouTube's own embedded player exposes the cued playlist's video IDs
+  /// via `getPlaylist()`, but it can take a moment after `cuePlaylist` to
+  /// populate — short retry loop rather than a fixed guessed delay.
+  Future<void> _loadEpisodeList() async {
+    for (var attempt = 0; attempt < 10; attempt++) {
+      final list = await _controller.playlist;
+      if (list.isNotEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _episodeIds = list;
+          _loadingEpisodes = false;
+        });
+        return;
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    if (!mounted) return;
+    setState(() => _loadingEpisodes = false);
+  }
+
+  Future<void> _playEpisode(String videoId) async {
+    await _controller.cueVideoById(videoId: videoId);
+  }
+
+  void _playRelativeEpisode(int delta) {
+    if (_episodeIds.isEmpty || _currentVideoId == null) return;
+    final idx = _episodeIds.indexOf(_currentVideoId!);
+    if (idx == -1) return;
+    final newIdx = idx + delta;
+    if (newIdx < 0 || newIdx >= _episodeIds.length) return;
+    _playEpisode(_episodeIds[newIdx]);
+  }
+
   Future<void> _restartFromBeginning() async {
-    if (widget.playlistId != null) {
-      await _controller.cuePlaylist(list: [widget.playlistId!]);
+    if (_episodeIds.isNotEmpty) {
+      await _playEpisode(_episodeIds.first);
     } else if (widget.videoId != null) {
       await _controller.cueVideoById(videoId: widget.videoId!);
     }
@@ -109,7 +155,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
 
   Future<void> _loadReflections() async {
     setState(() => _loadingReflections = true);
-    final reflections = await _repo.reflectionsFor(widget.seriesId);
+    final reflections = await _repo.reflectionsFor(widget.seriesId, videoId: _currentVideoId);
     if (!mounted) return;
     setState(() {
       _reflections = reflections;
@@ -134,9 +180,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     }
   }
 
-  Future<void> _openInYoutube() async {
-    final uri = Uri.parse(widget.youtubeUrl);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  Future<void> _openPlaylistInYoutube() async {
+    await launchUrl(Uri.parse(widget.youtubeUrl), mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _openEpisodeInYoutube() async {
+    if (_currentVideoId == null) return;
+    await launchUrl(Uri.parse('https://www.youtube.com/watch?v=$_currentVideoId'), mode: LaunchMode.externalApplication);
   }
 
   @override
@@ -152,6 +202,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final episodeNumber = _currentVideoId == null ? -1 : _episodeIds.indexOf(_currentVideoId!);
     return Scaffold(
       appBar: AppBar(title: Text(widget.titleAr, overflow: TextOverflow.ellipsis)),
       body: ListView(
@@ -161,6 +212,10 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           const SizedBox(height: 10),
           if (widget.authorAr != null)
             Text(widget.authorAr!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+          if (episodeNumber >= 0) ...[
+            const SizedBox(height: 4),
+            Text('الحلقة ${episodeNumber + 1} من ${_episodeIds.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+          ],
           if (_currentVideoTitle.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(_currentVideoTitle, style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
@@ -170,13 +225,34 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
             const Text('استؤنف من حيث توقفت آخر مرة', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
           ],
           const SizedBox(height: 10),
+          if (_episodeIds.length > 1)
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: episodeNumber > 0 ? () => _playRelativeEpisode(-1) : null,
+                    icon: const Icon(Icons.skip_previous_outlined, size: 18),
+                    label: const Text('السابقة'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: episodeNumber >= 0 && episodeNumber < _episodeIds.length - 1 ? () => _playRelativeEpisode(1) : null,
+                    icon: const Icon(Icons.skip_next_outlined, size: 18),
+                    label: const Text('التالية'),
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _openInYoutube,
+                  onPressed: _openEpisodeInYoutube,
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('افتح في يوتيوب'),
+                  label: const Text('افتح هذه الحلقة في يوتيوب'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -189,10 +265,46 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
               ),
             ],
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(onPressed: _openPlaylistInYoutube, child: const Text('افتح القائمة كاملة في يوتيوب', style: TextStyle(fontSize: 11.5))),
+          ),
+          if (_loadingEpisodes) ...[
+            const SizedBox(height: 10),
+            const Center(child: CircularProgressIndicator()),
+          ] else if (_episodeIds.length > 1) ...[
+            const SizedBox(height: 12),
+            const Text('الحلقات', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            ...List.generate(_episodeIds.length, (i) {
+              final id = _episodeIds[i];
+              final isCurrent = id == _currentVideoId;
+              return InkWell(
+                onTap: () => _playEpisode(id),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isCurrent ? AppColors.primaryLight : AppColors.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isCurrent ? AppColors.primary : AppColors.divider),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(isCurrent ? Icons.play_circle_fill : Icons.play_circle_outline, size: 20, color: isCurrent ? AppColors.primaryDark : AppColors.textMuted),
+                      const SizedBox(width: 10),
+                      Text('الحلقة ${i + 1}', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: isCurrent ? AppColors.primaryDark : AppColors.textDark)),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
           const SizedBox(height: 20),
           const Text('دفتر الفوائد', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          const Text('اكتب ملخصًا أو فائدة استفدتها من هذا المقطع — لنفسك، لا أحد غيرك سيراها', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+          const Text('اكتب ملخصًا أو فائدة استفدتها من هذه الحلقة — لنفسك، لا أحد غيرك سيراها', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 6,
@@ -229,7 +341,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           if (_loadingReflections)
             const Center(child: CircularProgressIndicator())
           else if (_reflections.isNotEmpty) ...[
-            const Text('ملاحظاتك السابقة', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+            const Text('ملاحظاتك على هذه الحلقة', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             ..._reflections.map((r) => Container(
                   margin: const EdgeInsets.only(bottom: 8),

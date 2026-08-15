@@ -95,12 +95,16 @@ class AudioLibraryRepository {
     );
   }
 
-  Future<List<AudioReflection>> reflectionsFor(String seriesId) async {
+  /// All reflections for a series. Pass [videoId] to scope to one specific
+  /// episode instead — used so "دفتر الفوائد" shows notes for the episode
+  /// actually playing, not every note ever written across the whole
+  /// series mixed together.
+  Future<List<AudioReflection>> reflectionsFor(String seriesId, {String? videoId}) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query(
       'audio_reflection_log',
-      where: 'series_id = ?',
-      whereArgs: [seriesId],
+      where: videoId == null ? 'series_id = ?' : 'series_id = ? AND video_id = ?',
+      whereArgs: videoId == null ? [seriesId] : [seriesId, videoId],
       orderBy: 'id DESC',
     );
     return rows
