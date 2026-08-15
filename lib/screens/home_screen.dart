@@ -21,6 +21,7 @@ import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
 import 'onboarding_screen.dart';
+import 'adhkar_screen.dart';
 import 'daily_session_screen.dart';
 import 'profile_screen.dart';
 import 'quran_browse_screen.dart';
@@ -146,6 +147,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: const Icon(Icons.wb_sunny_outlined, size: 18),
                     label: const Text('جلسة اليوم'),
                     style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
+                    icon: const Icon(Icons.nights_stay_outlined, size: 18),
+                    label: const Text('حصن المسلم'),
                   ),
                   if (_banner != null) ...[
                     const SizedBox(height: 16),
