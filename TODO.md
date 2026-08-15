@@ -58,15 +58,16 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] Optional non-monetary "personal commitment" reminder
 - [ ] "رحلتي" dashboard
 - [ ] `achievement_milestones` (roadmap §4.14) — confetti/celebration scaling with milestone size (page < surah < juz < full Quran), shareable certificate image via existing `share_plus` dependency, triggered from `memorization_progress` reaching station 6 across a whole unit
+- [ ] "شهاداتي" gallery screen — shows EVERY possible certificate (Quran ones first, since Phase 4 ships before 5أ/5هـ), locked/greyed for not-yet-earned with "complete X to unlock" text, full-color + share button once earned. Design this to be pillar-agnostic from the start so hadith/adhkar rows slot in later without a rebuild.
 - [ ] Commit
 
 ## Phase 5 — Extended Islamic text library (roadmap §4.9, sub-phases 5أ–5د)
 
-- [ ] 5أ: Al-Arba'in Al-Nawawiyyah + Ibn Uthaymeen's commentary
+- [ ] 5أ: Al-Arba'in Al-Nawawiyyah + Ibn Uthaymeen's commentary (+ add its `achievement_milestones` rows: full-completion certificate + one every 10 hadiths, per §4.14)
 - [ ] 5ب: Al-Aqidah Al-Wasitiyyah + Ibn Uthaymeen's commentary
 - [ ] 5ج: Zad al-Ma'ad selected chapters + Ibn Uthaymeen's commentary (mark which chapters only)
 - [ ] 5د: Fiqh al-Taharah (Ash-Sharh Al-Mumti') + Salah method (Al-Shuwaie'r) + visual aid SVGs
-- [ ] 5هـ: Hisn al-Muslim daily adhkar — tap-to-count-down UI, smart after-Fajr/after-Asr reminders, streak, home-screen quick-access button (not buried in a tab); reference "عمل اليوم والليلة" (Ibn al-Sunni/An-Nasa'i) as the classical root source
+- [ ] 5هـ: Hisn al-Muslim daily adhkar — tap-to-count-down UI, smart after-Fajr/after-Asr reminders, streak, home-screen quick-access button (not buried in a tab); reference "عمل اليوم والليلة" (Ibn al-Sunni/An-Nasa'i) as the classical root source (+ add its `achievement_milestones` rows: 7/30/100-day streak certificates per §4.14, for morning and evening adhkar separately)
 - [ ] 5و: Noorani Qaida for children — letters → harakat → madd → tanween → sukoon → words, `child_profiles` (multiple kids per device), display text ALWAYS fully vocalized (no tashkeel-stripped display, unlike the adult search feature), mandatory audio pronunciation per letter/word — audio source licensing/recording unresolved, must confirm before building
 - [ ] 5ز: Names of Allah (Al-Nabulsi) — 99-names data + Quran cross-refs OK now; official-link-only for lessons; actual bundled audio/text download requires written permission from nabulsi.com's "الهدى للخدمات التقنية" first — do NOT bundle without it
 - [ ] `cross_references` linking ayah↔hadith↔aqeedah with mandatory real-life example
@@ -85,7 +86,7 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] Fill `curriculum_items` incrementally as each content pillar ships (start with 5و/Qaida → level 1 as soon as it exists), don't wait for everything
 - [ ] Expand "رحلتي" (Phase 4) into this level-map screen rather than building a second separate screen
 
-## Phase 8 — AI recitation listener (roadmap §4.13) — hardest phase, needs a separate go/no-go decision first
+## Phase 8 — AI recitation listener (roadmap §4.13) — ⏸ POSTPONED 2026-08-15 by Ismail, no work until explicitly revisited
 
 - [ ] BLOCKING DECISION from Ismail before any code: accept a cloud dependency (Gemini Live API) and its real per-use cost, given every other feature in this app is local/offline-first?
 - [ ] If yes: explicit opt-in consent screen before first use (audio leaves the device)
