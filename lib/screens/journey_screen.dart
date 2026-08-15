@@ -266,6 +266,21 @@ class _DashboardView extends StatelessWidget {
           const SizedBox(height: 10),
           OutlinedButton(onPressed: () => _showReplanChoices(context), child: const Text('أعِد التخطيط')),
         ],
+        if (status.difficultyAdvisory != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
+            child: Row(
+              children: [
+                const Icon(Icons.lightbulb_outline, size: 18, color: AppColors.textMuted),
+                const SizedBox(width: 8),
+                Expanded(child: Text(status.difficultyAdvisory!, style: const TextStyle(fontSize: 12, color: AppColors.textMuted))),
+                TextButton(onPressed: () => _showReplanChoices(context), child: const Text('أعِد التخطيط', style: TextStyle(fontSize: 12))),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         if (nextUnit != null)
           Container(

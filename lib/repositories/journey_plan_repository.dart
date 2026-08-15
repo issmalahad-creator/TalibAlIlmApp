@@ -4,6 +4,7 @@ import '../db/database_helper.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 import 'completion_goal_repository.dart';
+import 'daily_session_repository.dart';
 import 'memorization_repository.dart';
 
 class JourneyPlan {
@@ -21,6 +22,7 @@ class JourneyStatus {
   final int totalPages;
   final double masteryPercent;
   final MemorizationUnit? nextRecommendedUnit;
+  final String? difficultyAdvisory;
   JourneyStatus({
     required this.plan,
     required this.goal,
@@ -30,6 +32,7 @@ class JourneyStatus {
     required this.totalPages,
     required this.masteryPercent,
     required this.nextRecommendedUnit,
+    required this.difficultyAdvisory,
   });
 }
 
@@ -44,8 +47,10 @@ class JourneyStatus {
 /// personal-commitment text; the pace itself lives entirely in the goal.
 class JourneyPlanRepository {
   static const _totalPages = 604;
+  static const _advisoryTrendLength = 3;
   final _goalRepo = CompletionGoalRepository();
   final _memoRepo = MemorizationRepository();
+  final _sessionRepo = DailySessionRepository();
 
   Future<CompletionGoal?> _activeGoal() async {
     final db = await DatabaseHelper.instance.database;
@@ -133,6 +138,15 @@ class JourneyPlanRepository {
         ) ??
         0;
     final nextUnit = await _memoRepo.nextRecommendedUnit();
+    final recentDifficulties = await _sessionRepo.recentDifficulties(limit: _advisoryTrendLength);
+    String? advisory;
+    if (recentDifficulties.length == _advisoryTrendLength) {
+      if (recentDifficulties.every((d) => d == 'hard')) {
+        advisory = 'آخر $_advisoryTrendLength جلسات كانت صعبة عليك — قد يفيدك تخفيف الوتيرة قليلًا.';
+      } else if (recentDifficulties.every((d) => d == 'easy')) {
+        advisory = 'آخر $_advisoryTrendLength جلسات كانت سهلة عليك — لو أردت، يمكنك تكثيف الوتيرة.';
+      }
+    }
 
     return JourneyStatus(
       plan: plan,
@@ -143,6 +157,7 @@ class JourneyPlanRepository {
       totalPages: _totalPages,
       masteryPercent: mastered / _totalPages * 100,
       nextRecommendedUnit: nextUnit,
+      difficultyAdvisory: advisory,
     );
   }
 

@@ -6,15 +6,17 @@ import '../repositories/memorization_repository.dart';
 import '../repositories/understanding_repository.dart';
 import '../theme/app_theme.dart';
 import 'application_screen.dart';
+import 'guided_session_screen.dart';
 import 'memorization_quiz_screen.dart';
 import 'quran_browse_screen.dart';
 import 'review_screen.dart';
 import 'understanding_screen.dart';
 
-/// "اليوم" — QURAN_COMPANION_ROADMAP.md section 6. Only 3 of the 6 designed
-/// steps have real data behind them (قراءة/حفظ جديد/مراجعة); the other 3
-/// (فهم/تطبيق/اختبار) wait on Phase 3 and are shown honestly as "قريبًا"
-/// rather than faked.
+/// "اليوم" — QURAN_COMPANION_ROADMAP.md section 6. All 6 designed steps
+/// (قراءة/حفظ جديد/مراجعة/فهم/تطبيق/اختبار) have real data behind them.
+/// Free-order checklist for whoever prefers that; "جلسة موجّهة" above it
+/// (Phase 14 Sub-phase B) offers the same steps as a single time-budgeted
+/// guided walkthrough instead, for whoever wants that structure.
 class DailySessionScreen extends StatefulWidget {
   const DailySessionScreen({super.key});
 
@@ -96,6 +98,15 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const GuidedSessionScreen()));
+                    _load();
+                  },
+                  icon: const Icon(Icons.timer_outlined),
+                  label: const Text('جلسة موجّهة بالوقت'),
+                ),
+                const SizedBox(height: 16),
                 if (_status.allDone)
                   Container(
                     padding: const EdgeInsets.all(16),

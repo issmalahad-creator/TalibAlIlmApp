@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 22,
+      version: 23,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -41,6 +41,7 @@ class DatabaseHelper {
         await _createV20Tables(db);
         await _createV21Tables(db);
         await _createV22Tables(db);
+        await _createV23Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -64,6 +65,7 @@ class DatabaseHelper {
         if (oldVersion < 20) await _createV20Tables(db);
         if (oldVersion < 21) await _createV21Tables(db);
         if (oldVersion < 22) await _createV22Tables(db);
+        if (oldVersion < 23) await _createV23Tables(db);
       },
     );
   }
@@ -699,5 +701,16 @@ class DatabaseHelper {
         created_date TEXT NOT NULL
       )
     ''');
+  }
+
+  /// Phase 14 Sub-phase B — the time-budgeted guided session
+  /// (`guided_session_screen.dart`). Extends `daily_session_log` (not a
+  /// new table) since this is still "today's session" data, just with an
+  /// optional end-of-session self-reflection when the student uses the
+  /// guided flow specifically (plain checklist use leaves these null).
+  Future<void> _createV23Tables(Database db) async {
+    await db.execute('ALTER TABLE daily_session_log ADD COLUMN session_minutes_planned INTEGER');
+    await db.execute('ALTER TABLE daily_session_log ADD COLUMN session_difficulty TEXT');
+    await db.execute('ALTER TABLE daily_session_log ADD COLUMN session_note TEXT');
   }
 }
