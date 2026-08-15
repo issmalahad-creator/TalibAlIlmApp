@@ -63,5 +63,12 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] 5ب: Al-Aqidah Al-Wasitiyyah + Ibn Uthaymeen's commentary
 - [ ] 5ج: Zad al-Ma'ad selected chapters + Ibn Uthaymeen's commentary (mark which chapters only)
 - [ ] 5د: Fiqh al-Taharah (Ash-Sharh Al-Mumti') + Salah method (Al-Shuwaie'r) + visual aid SVGs
+- [ ] 5هـ: Hisn al-Muslim daily adhkar — tap-to-count-down UI, smart after-Fajr/after-Asr reminders, streak, home-screen quick-access button (not buried in a tab)
 - [ ] `cross_references` linking ayah↔hadith↔aqeedah with mandatory real-life example
 - [ ] Sharh Ibn Kathir audio layer (Al-'Ajlan) — pending transcript-vs-audio-link decision
+
+## Phase 6 — Additional languages (roadmap §4.10)
+
+- [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
+- [ ] `translation_am`/`translation_en` columns on `quran_ayat` sourced from Tanzil (Amharic: Sadiq/Habib; English: Saheeh International or similar)
+- [ ] Explicitly NOT promised: full translation of tafsir/hadith-commentary/fiqh content — no ready-made trusted source exists
