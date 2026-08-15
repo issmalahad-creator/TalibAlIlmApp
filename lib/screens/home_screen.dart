@@ -24,6 +24,7 @@ import 'onboarding_screen.dart';
 import 'daily_session_screen.dart';
 import 'profile_screen.dart';
 import 'quran_browse_screen.dart';
+import 'quran_reading_screen.dart';
 import 'quran_search_screen.dart';
 import 'review_screen.dart';
 
@@ -230,6 +231,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     icon: const Icon(Icons.menu_book_outlined, size: 18),
                     label: const Text('تصفّح القرآن وحدّد ما حفظته'),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranReadingScreen())),
+                    icon: const Icon(Icons.import_contacts_outlined, size: 18),
+                    label: const Text('قراءة القرآن (ختمة)'),
                   ),
                 ],
               ),

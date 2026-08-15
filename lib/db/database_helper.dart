@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 12,
+      version: 13,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -31,6 +31,7 @@ class DatabaseHelper {
         await _createV10Tables(db);
         await _createV11Tables(db);
         await _createV12Tables(db);
+        await _createV13Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -44,6 +45,7 @@ class DatabaseHelper {
         if (oldVersion < 10) await _createV10Tables(db);
         if (oldVersion < 11) await _createV11Tables(db);
         if (oldVersion < 12) await _createV12Tables(db);
+        if (oldVersion < 13) await _createV13Tables(db);
       },
     );
   }
@@ -424,6 +426,34 @@ class DatabaseHelper {
         section_id INTEGER PRIMARY KEY REFERENCES madarij_sections(id),
         read_done INTEGER NOT NULL DEFAULT 0,
         read_date TEXT
+      )
+    ''');
+  }
+
+  /// Phase 4.15 of QURAN_COMPANION_ROADMAP.md — "خطة الختم": a single
+  /// generalized completion-planner shared by Quran reading, Quran
+  /// memorization, and every book, plus the genuinely new "قراءة القرآن"
+  /// concept (periodic full read-through, distinct from memorization —
+  /// `quran_reading_progress` didn't exist before this).
+  Future<void> _createV13Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE completion_goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content_type TEXT NOT NULL,
+        book_ref TEXT,
+        total_units INTEGER NOT NULL,
+        start_date TEXT NOT NULL,
+        target_date TEXT NOT NULL,
+        daily_target REAL NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active'
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE quran_reading_progress (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        last_page INTEGER NOT NULL DEFAULT 0,
+        last_read_date TEXT,
+        khatm_count INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }
