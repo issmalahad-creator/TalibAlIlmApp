@@ -58,4 +58,22 @@ class QuranReadingRepository {
     final rows = await db.query('quran_ayat', where: 'page_number = ?', whereArgs: [page], orderBy: 'surah, ayah');
     return rows.map((r) => QuranAyahText(surah: r['surah'] as int, ayah: r['ayah'] as int, text: r['text_uthmani'] as String)).toList();
   }
+
+  /// Tafsir for every ayah on [page] in one query, keyed `"surah:ayah"` —
+  /// backs the reading screen's inline "التفسير" toggle (Ismail's request
+  /// 2026-08-16 to gather everything Quran-related into one screen instead
+  /// of a separate search-only view).
+  Future<Map<String, String>> tafsirForPage(int page, String source) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('''
+      SELECT q.surah, q.ayah, t.text AS tafsir
+      FROM quran_ayat q
+      LEFT JOIN tafsir_entries t ON t.surah = q.surah AND q.ayah BETWEEN t.ayah_from AND t.ayah_to AND t.source = ?
+      WHERE q.page_number = ?
+      ORDER BY q.surah, q.ayah
+    ''', [source, page]);
+    return {
+      for (final r in rows) '${r['surah']}:${r['ayah']}': (r['tafsir'] as String?) ?? '',
+    };
+  }
 }

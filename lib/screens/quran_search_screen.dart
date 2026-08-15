@@ -8,7 +8,11 @@ import '../theme/app_theme.dart';
 /// "البحث عن آية" — Phase 1 of QURAN_COMPANION_ROADMAP.md. Search a word or
 /// phrase (no tashkeel needed) and get every matching ayah in the Quran with
 /// its surah name, or search "السورة رقم" (e.g. "البقرة 255") to jump
-/// straight to one ayah.
+/// straight to one ayah. Reached from inside "قراءة القرآن" (Ismail's
+/// request 2026-08-16 — search should live inside the Mushaf page, not be
+/// a dead-end separate screen): tapping a result pops this screen back
+/// with that ayah's page number, so the reading screen can jump straight
+/// to it.
 class QuranSearchScreen extends StatefulWidget {
   const QuranSearchScreen({super.key});
 
@@ -133,7 +137,11 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
           );
         }
         final r = _results[i - 1];
-        return _ResultCard(result: r, tafsirLabel: _tafsirSourceLabel);
+        return _ResultCard(
+          result: r,
+          tafsirLabel: _tafsirSourceLabel,
+          onTap: r.pageNumber == null ? null : () => Navigator.pop(context, r.pageNumber),
+        );
       },
     );
   }
@@ -145,11 +153,12 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
 class _ResultCard extends StatelessWidget {
   final QuranSearchResult result;
   final String tafsirLabel;
-  const _ResultCard({required this.result, required this.tafsirLabel});
+  final VoidCallback? onTap;
+  const _ResultCard({required this.result, required this.tafsirLabel, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -170,8 +179,13 @@ class _ResultCard extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (result.pageNumber != null)
+              if (result.pageNumber != null) ...[
                 Text('صفحة ${result.pageNumber}', style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                if (onTap != null) ...[
+                  const SizedBox(width: 4),
+                  const Icon(Icons.chevron_left, size: 14, color: AppColors.primary),
+                ],
+              ],
             ],
           ),
           const SizedBox(height: 10),
@@ -203,5 +217,7 @@ class _ResultCard extends StatelessWidget {
         ],
       ),
     );
+    if (onTap == null) return card;
+    return InkWell(onTap: onTap, borderRadius: BorderRadius.circular(14), child: card);
   }
 }

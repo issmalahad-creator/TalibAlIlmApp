@@ -30,11 +30,9 @@ import 'daily_session_screen.dart';
 import 'prayer_times_screen.dart';
 import 'profile_screen.dart';
 import 'qibla_screen.dart';
-import 'quran_browse_screen.dart';
 import 'salah_tracker_screen.dart';
 import 'audio_library_screen.dart';
 import 'quran_reading_screen.dart';
-import 'quran_search_screen.dart';
 import 'review_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -124,12 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final percent = (_overallProgress * 100).round();
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'quran_search_fab',
-        tooltip: 'البحث في القرآن',
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranSearchScreen())),
-        child: const Icon(Icons.search_rounded),
-      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -273,17 +265,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 10),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranBrowseScreen()));
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranReadingScreen()));
                       _load();
                     },
-                    icon: const Icon(Icons.menu_book_outlined, size: 18),
-                    label: const Text('تصفّح القرآن وحدّد ما حفظته'),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranReadingScreen())),
                     icon: const Icon(Icons.import_contacts_outlined, size: 18),
-                    label: const Text('قراءة القرآن (ختمة)'),
+                    label: const Text('القرآن (قراءة، بحث، تفسير، وتحديد المحفوظ)'),
                   ),
                 ],
               ),
