@@ -19,7 +19,12 @@ class BookBookmark {
   final int lastPage;
   final int totalPages;
 
-  BookBookmark({required this.bookKey, required this.lastPage, required this.totalPages});
+  /// Hijri date string — when this bookmark was last touched. Nullable
+  /// only because rows saved before this column existed have none; every
+  /// new save always sets it (see `BookRepository.saveBookmark`'s default).
+  final String? lastUpdatedDate;
+
+  BookBookmark({required this.bookKey, required this.lastPage, required this.totalPages, this.lastUpdatedDate});
 
   double get progressFraction => totalPages <= 0 ? 0 : (lastPage / totalPages).clamp(0, 1).toDouble();
 
@@ -27,11 +32,13 @@ class BookBookmark {
         'book_key': bookKey,
         'last_page': lastPage,
         'total_pages': totalPages,
+        'last_updated_date': lastUpdatedDate,
       };
 
   factory BookBookmark.fromMap(Map<String, Object?> map) => BookBookmark(
         bookKey: map['book_key'] as String,
         lastPage: map['last_page'] as int,
+        lastUpdatedDate: map['last_updated_date'] as String?,
         totalPages: map['total_pages'] as int,
       );
 }

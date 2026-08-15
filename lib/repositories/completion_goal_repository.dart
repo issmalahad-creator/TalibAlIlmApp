@@ -24,6 +24,10 @@ class CompletionGoal {
     required this.status,
   });
 
+  /// For 'personal_book' goals, `bookRef` is the personal_books.id — the
+  /// title itself isn't stored here (it can change/be deleted), so callers
+  /// needing a friendly personal-book label should look it up themselves;
+  /// this getter covers every *other* content type directly.
   String get displayLabel => switch ((contentType, bookRef)) {
         ('quran_reading', _) => 'ختمة قراءة القرآن',
         ('quran_memorization', _) => 'ختم حفظ القرآن',
@@ -31,7 +35,22 @@ class CompletionGoal {
         (_, 'madarij') => 'مدارج السالكين',
         (_, 'wasitiyyah') => 'العقيدة الواسطية',
         (_, 'nawawi_hadith') => 'الأربعين النووية',
+        ('personal_book', _) => 'كتاب من مكتبتي',
         _ => bookRef ?? contentType,
+      };
+
+  /// The unit this goal's daily target is counted in — used to render the
+  /// "15 صفحة اليوم"-style KPI on both the goal card and its reminder
+  /// notification (section 4.15's per-page/per-unit KPI requirement).
+  String get unitLabel => switch ((contentType, bookRef)) {
+        ('quran_reading', _) => 'صفحة',
+        ('personal_book', _) => 'صفحة',
+        ('quran_memorization', _) => 'آية',
+        (_, 'zad_almaad') => 'فصلًا',
+        (_, 'madarij') => 'قسمًا',
+        (_, 'wasitiyyah') => 'فقرة',
+        (_, 'nawawi_hadith') => 'حديثًا',
+        _ => 'وحدة',
       };
 }
 
@@ -156,6 +175,41 @@ class CompletionGoalRepository {
     );
   }
 
+  /// Whether the student has touched this goal's content today — powers
+  /// the daily reminder notification (section 4.15's "لم تقرأ اليوم"):
+  /// only fires/stays scheduled if this is false.
+  Future<bool> hasProgressedToday(CompletionGoal goal) async {
+    final db = await DatabaseHelper.instance.database;
+    final today = todayDate();
+    switch (goal.contentType) {
+      case 'quran_reading':
+        final rows = await db.query('quran_reading_progress', where: 'id = 1', limit: 1);
+        return rows.isNotEmpty && rows.first['last_read_date'] == today;
+      case 'quran_memorization':
+        final count = Sqflite.firstIntValue(await db.rawQuery(
+          "SELECT COUNT(*) FROM memorization_progress WHERE memorized_date = ? OR last_review_date = ?",
+          [today, today],
+        ));
+        return (count ?? 0) > 0;
+      case 'personal_book':
+        final rows = await db.query('book_bookmarks', where: 'book_key = ?', whereArgs: ['personal_${goal.bookRef}'], limit: 1);
+        return rows.isNotEmpty && rows.first['last_updated_date'] == today;
+      case 'book':
+        final table = switch (goal.bookRef) {
+          'zad_almaad' => ('zad_almaad_progress', 'read_date'),
+          'madarij' => ('madarij_progress', 'read_date'),
+          'wasitiyyah' => ('wasitiyyah_progress', 'memorized_date'),
+          'nawawi_hadith' => ('hadith_progress', 'memorized_date'),
+          _ => null,
+        };
+        if (table == null) return false;
+        final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM ${table.$1} WHERE ${table.$2} = ?', [today]));
+        return (count ?? 0) > 0;
+      default:
+        return false;
+    }
+  }
+
   Future<int> _currentPosition(CompletionGoal goal) async {
     final db = await DatabaseHelper.instance.database;
     switch (goal.contentType) {
@@ -167,6 +221,12 @@ class CompletionGoalRepository {
               await db.rawQuery("SELECT COUNT(*) FROM memorization_progress WHERE status != 'not_started'"),
             ) ??
             0;
+      case 'personal_book':
+        // Reuses the existing book_bookmarks tracking already maintained by
+        // BookViewerScreen (flutter_pdfview's own page callbacks) — no new
+        // position-tracking needed for this content type at all.
+        final rows = await db.query('book_bookmarks', where: 'book_key = ?', whereArgs: ['personal_${goal.bookRef}'], limit: 1);
+        return rows.isEmpty ? 0 : (rows.first['last_page'] as int? ?? 0);
       case 'book':
         final table = switch (goal.bookRef) {
           'zad_almaad' => ('zad_almaad_progress', 'read_done'),

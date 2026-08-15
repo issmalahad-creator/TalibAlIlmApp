@@ -4,6 +4,7 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import '../models/reading_record.dart';
 import '../repositories/book_repository.dart';
 import '../services/notification_service.dart';
+import '../utils/month.dart';
 
 class BookViewerScreen extends StatefulWidget {
   final String filePath;
@@ -49,7 +50,9 @@ class _BookViewerScreenState extends State<BookViewerScreen> {
   }
 
   Future<void> _saveBookmark(int page, int total) async {
-    await _bookRepo.saveBookmark(BookBookmark(bookKey: widget.bookKey, lastPage: page, totalPages: total));
+    await _bookRepo.saveBookmark(
+      BookBookmark(bookKey: widget.bookKey, lastPage: page, totalPages: total, lastUpdatedDate: todayDate()),
+    );
   }
 
   @override

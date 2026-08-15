@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 13,
+      version: 14,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -32,6 +32,7 @@ class DatabaseHelper {
         await _createV11Tables(db);
         await _createV12Tables(db);
         await _createV13Tables(db);
+        await _createV14Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -46,6 +47,7 @@ class DatabaseHelper {
         if (oldVersion < 11) await _createV11Tables(db);
         if (oldVersion < 12) await _createV12Tables(db);
         if (oldVersion < 13) await _createV13Tables(db);
+        if (oldVersion < 14) await _createV14Tables(db);
       },
     );
   }
@@ -456,5 +458,15 @@ class DatabaseHelper {
         khatm_count INTEGER NOT NULL DEFAULT 0
       )
     ''');
+  }
+
+  /// Adds a "did they touch this book today" signal to the existing
+  /// `book_bookmarks` table (shared by admin books, other Telegram content,
+  /// and personal-library books) — needed so per-goal daily reminders
+  /// (section 4.15's "لم تقرأ اليوم" notifications) can detect today's
+  /// personal-book progress the same way the other content types already
+  /// can via their own *_progress tables' date columns.
+  Future<void> _createV14Tables(Database db) async {
+    await db.execute('ALTER TABLE book_bookmarks ADD COLUMN last_updated_date TEXT');
   }
 }

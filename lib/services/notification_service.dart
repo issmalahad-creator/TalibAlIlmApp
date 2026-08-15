@@ -45,6 +45,16 @@ class NotificationService {
   static const _hifzChannelName = 'تذكير حفظ القرآن';
   static const _hifzReminderInactiveDays = 1;
 
+  // "خطة الختم" per-goal daily reminders — one id per goal, offset clear of
+  // every range above (1001, 2000+taskId, 3000, 4000, 5000). Fires every
+  // evening; CompletionGoalsScreen cancels/reschedules based on
+  // CompletionGoalRepository.hasProgressedToday so it only actually nags
+  // when today's target genuinely wasn't touched.
+  static const _goalReminderNotificationIdBase = 6000;
+  static const _goalChannelId = 'goal_reminders';
+  static const _goalChannelName = 'تذكير خطط الختم';
+  static const _goalReminderHour = 20;
+
   final _plugin = FlutterLocalNotificationsPlugin();
 
   static Future<void>? _initFuture;
@@ -162,6 +172,48 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     );
+  }
+
+  /// Schedules today's reminder for one "خطة ختم" goal, showing its
+  /// per-page/per-unit KPI (`dailyTargetLabel`, e.g. "15 صفحة اليوم") — fires
+  /// at [_goalReminderHour] today if that time hasn't passed yet, else
+  /// tomorrow. Callers (`CompletionGoalsScreen`) should call this once per
+  /// active goal on load/refresh, and [cancelGoalReminder] the moment
+  /// `hasProgressedToday` becomes true or the goal completes, so a student
+  /// who already read today never gets nagged.
+  Future<void> scheduleGoalReminder({
+    required int goalId,
+    required String goalTitle,
+    required String dailyTargetLabel,
+  }) async {
+    await _ensureInitialized();
+    final id = _goalReminderNotificationIdBase + goalId;
+    await _plugin.cancel(id: id);
+
+    var fireAt = DateTime.now().copyWith(hour: _goalReminderHour, minute: 0, second: 0, millisecond: 0);
+    if (fireAt.isBefore(DateTime.now())) fireAt = fireAt.add(const Duration(days: 1));
+
+    await _plugin.zonedSchedule(
+      id: id,
+      title: 'لم تكمل نصيبك اليوم 🎯',
+      body: '$goalTitle — $dailyTargetLabel',
+      scheduledDate: tz.TZDateTime.from(fireAt, tz.local),
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _goalChannelId,
+          _goalChannelName,
+          channelDescription: 'تذكير يومي بنصيبك من خطة ختم لم تُنجَز بعد',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
+  Future<void> cancelGoalReminder(int goalId) async {
+    await _ensureInitialized();
+    await _plugin.cancel(id: _goalReminderNotificationIdBase + goalId);
   }
 
   /// Fires immediately (not scheduled) when [ContentBadgeService] detects
