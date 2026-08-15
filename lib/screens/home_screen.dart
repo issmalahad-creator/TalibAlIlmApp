@@ -12,7 +12,6 @@ import '../repositories/hifz_repository.dart';
 import '../repositories/profile_repository.dart';
 import '../services/book_content_service.dart';
 import '../services/notification_service.dart';
-import '../services/sync_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import '../widgets/animated_banner.dart';
@@ -24,8 +23,7 @@ import 'onboarding_screen.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  final VoidCallback? onSubmitReportTap;
-  const HomeScreen({super.key, this.onSubmitReportTap});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -37,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _profileRepo = ProfileRepository();
   final _taskRepo = DailyTaskRepository();
   final _notificationService = NotificationService();
-  final _syncService = SyncService();
   final _bookContentService = BookContentService();
   final _hifzRepo = HifzRepository();
 
@@ -45,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Goal> _goals = [];
   List<DailyTask> _todayTasks = [];
   String _fullName = '';
-  bool _submittedThisMonth = false;
   bool _loading = true;
   int _hifzMemorizedCount = 0;
   BannerInfo? _banner;
@@ -60,7 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final entries = await _activityRepo.forMonth(currentMonth());
     final goals = await _goalRepo.forMonth(currentMonth());
     final profile = await _profileRepo.get();
-    final submitted = await _syncService.hasSubmittedForMonth(currentMonth());
     final todayTasks = await _taskRepo.forDate(todayDate());
     final hifzMemorized = await _hifzRepo.memorizedSurahNumbers();
     if (!mounted) return;
@@ -69,7 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _goals = goals;
       _todayTasks = todayTasks;
       _fullName = profile.fullName;
-      _submittedThisMonth = submitted;
       _hifzMemorizedCount = hifzMemorized.length;
       _loading = false;
     });
@@ -194,11 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       await Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzScreen()));
                       _load();
                     },
-                  ),
-                  const SizedBox(height: 24),
-                  _SubmitReportCard(
-                    submitted: _submittedThisMonth,
-                    onTap: widget.onSubmitReportTap,
                   ),
                 ],
               ),
@@ -411,62 +400,6 @@ class _HifzCard extends StatelessWidget {
             const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _SubmitReportCard extends StatelessWidget {
-  final bool submitted;
-  final VoidCallback? onTap;
-  const _SubmitReportCard({required this.submitted, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.primaryLight,
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('إرسال التقرير الشهري',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                const SizedBox(height: 6),
-                const Text('أرسل إنجازاتك لهذا الشهر عند توفر الإنترنت',
-                    style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
-                const SizedBox(height: 14),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: onTap,
-                    icon: const Icon(Icons.send_rounded, size: 18),
-                    label: const Text('إرسال الآن'),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Icon(submitted ? Icons.check_circle : Icons.circle_outlined,
-                        size: 14, color: submitted ? AppColors.primary : AppColors.textMuted),
-                    const SizedBox(width: 6),
-                    Text(
-                      submitted ? 'تم إرسال تقرير هذا الشهر' : 'لم يُرسل تقرير هذا الشهر بعد',
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Icon(Icons.cloud_upload_rounded, size: 44, color: AppColors.primary.withValues(alpha: 0.5)),
-        ],
       ),
     );
   }

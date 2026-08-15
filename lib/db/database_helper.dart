@@ -61,26 +61,6 @@ class DatabaseHelper {
           )
         ''');
         await db.execute('''
-          CREATE TABLE report_drafts (
-            month TEXT PRIMARY KEY,
-            books_read TEXT DEFAULT '',
-            current_level TEXT DEFAULT '',
-            tests_and_scores TEXT DEFAULT '',
-            topics_to_review TEXT DEFAULT '',
-            study_notes TEXT DEFAULT ''
-          )
-        ''');
-        await db.execute('''
-          CREATE TABLE submission_queue (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            month TEXT NOT NULL,
-            payload_json TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            telegram_sent INTEGER NOT NULL DEFAULT 0,
-            sheets_sent INTEGER NOT NULL DEFAULT 0
-          )
-        ''');
-        await db.execute('''
           CREATE TABLE book_bookmarks (
             book_key TEXT PRIMARY KEY,
             last_page INTEGER NOT NULL DEFAULT 0,

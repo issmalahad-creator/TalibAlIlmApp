@@ -5,7 +5,6 @@ import 'activities_screen.dart';
 import 'book_screen.dart';
 import 'goals_screen.dart';
 import 'home_screen.dart';
-import 'report_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -20,11 +19,10 @@ class _MainShellState extends State<MainShell> {
   void _goToTab(int i) => setState(() => _index = i);
 
   late final _tabs = [
-    HomeScreen(onSubmitReportTap: () => _goToTab(4)),
+    const HomeScreen(),
     const ActivitiesScreen(),
     const GoalsScreen(),
     const BookScreen(),
-    const ReportScreen(),
   ];
 
   @override
@@ -48,7 +46,6 @@ class _MainShellState extends State<MainShell> {
             ),
             label: 'الكتاب',
           ),
-          const BottomNavigationBarItem(icon: Icon(Icons.send_rounded), label: 'التقرير'),
         ],
       ),
     );

@@ -8,7 +8,6 @@ import 'screens/startup_gate.dart';
 import 'services/book_content_service.dart';
 import 'services/content_badge_service.dart';
 import 'services/notification_service.dart';
-import 'services/sync_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/hijri_date.dart';
 
@@ -26,20 +25,15 @@ class TalibAlIlmApp extends StatefulWidget {
 
 class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   StreamSubscription<List<ConnectivityResult>>? _connSub;
-  final _syncService = SyncService();
   final _notificationService = NotificationService();
   final _bookContentService = BookContentService();
 
   @override
   void initState() {
     super.initState();
-    // Retry any queued (offline) reports right away, then again whenever
-    // connectivity is restored.
-    _syncService.retryPending();
     _checkBookContent();
     _connSub = Connectivity().onConnectivityChanged.listen((results) {
       if (results.any((r) => r != ConnectivityResult.none)) {
-        _syncService.retryPending();
         _checkBookContent();
       }
     });

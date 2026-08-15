@@ -3,21 +3,19 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import '../utils/hijri_date.dart';
-import '../utils/month.dart';
-import 'sync_service.dart';
-
-/// Schedules local notifications: (1) a single reminder 3 days before the
-/// end of the current Hijri month for the report deadline, and (2) one
-/// optional reminder per daily task. `FlutterLocalNotificationsPlugin`'s
+/// Schedules local notifications: one optional reminder per daily task, plus
+/// reading/hifz inactivity nudges. `FlutterLocalNotificationsPlugin`'s
 /// platform channel is effectively shared across every Dart-side instance,
 /// so initialization is tracked with a `static` future — every
 /// `NotificationService()` instance (several exist, one per screen that
-/// needs it) awaits the *same* init, matching the pattern already needed
-/// for `SyncService`'s in-flight guard.
+/// needs it) awaits the *same* init.
+///
+/// Notification id 1001 / the 'report_reminders' channel are reserved but
+/// currently unused — they held the monthly-report-deadline reminder before
+/// the Report feature was removed (Phase -1 of QURAN_COMPANION_ROADMAP.md).
+/// Phase 2 of that roadmap defines the real replacement: a daily
+/// "جلسة اليوم" reminder. Don't reuse id 1001 for anything unrelated to that.
 class NotificationService {
-  static const _channelId = 'report_reminders';
-  static const _channelName = 'تذكيرات التقرير الشهري';
   static const _reminderNotificationId = 1001;
 
   // Daily task reminder ids are offset well clear of the report reminder id.
@@ -48,7 +46,6 @@ class NotificationService {
   static const _hifzReminderInactiveDays = 1;
 
   final _plugin = FlutterLocalNotificationsPlugin();
-  final _syncService = SyncService();
 
   static Future<void>? _initFuture;
 
@@ -75,41 +72,9 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
 
-    await _scheduleReminderForCurrentMonth();
-  }
-
-  Future<void> _scheduleReminderForCurrentMonth() async {
-    await _plugin.cancel(id: _reminderNotificationId);
-
-    final month = currentMonth();
-    final alreadySubmitted = await _syncService.hasSubmittedForMonth(month);
-    if (alreadySubmitted) return;
-
-    final reminderTime = hijriMonthEndReminderDateTime(daysBefore: 3);
-    if (reminderTime.isBefore(DateTime.now())) return;
-
-    await _plugin.zonedSchedule(
-      id: _reminderNotificationId,
-      title: 'اقترب موعد إرسال التقرير الشهري',
-      body: 'باقي 3 أيام على نهاية الشهر — لا تنسَ إرسال تقريرك الشهري.',
-      scheduledDate: tz.TZDateTime.from(reminderTime, tz.local),
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          _channelId,
-          _channelName,
-          channelDescription: 'تنبيه قبل 3 أيام من نهاية الشهر الهجري بإرسال التقرير',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-    );
-  }
-
-  /// Call after a successful monthly submission so the reminder for this
-  /// month is cancelled (nothing left to remind about).
-  Future<void> cancelCurrentMonthReminder() async {
-    await _ensureInitialized();
+    // Report-deadline reminder removed with the Report feature (Phase -1).
+    // Cancel any reminder a previous app version may have already scheduled
+    // on this device so it doesn't keep firing with stale copy.
     await _plugin.cancel(id: _reminderNotificationId);
   }
 
