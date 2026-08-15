@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../theme/app_theme.dart';
 import 'certificates_screen.dart';
+import 'curriculum_map_screen.dart';
 
 /// "رحلتي" — QURAN_COMPANION_ROADMAP.md §4.7. First run shows a SMART-style
 /// setup wizard (goal duration + current level -> computed daily pace,
@@ -230,6 +231,12 @@ class _DashboardView extends StatelessWidget {
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CertificatesScreen())),
           icon: const Icon(Icons.emoji_events_outlined),
           label: const Text('شهاداتي'),
+        ),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CurriculumMapScreen())),
+          icon: const Icon(Icons.map_outlined),
+          label: const Text('خريطتي التعليمية'),
         ),
         const SizedBox(height: 12),
         Container(
