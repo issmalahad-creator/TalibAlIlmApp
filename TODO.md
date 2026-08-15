@@ -74,6 +74,12 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] Per-goal daily reminder notifications ("لم تكمل نصيبك اليوم") carrying a per-unit KPI (e.g. "15 صفحة اليوم"), auto-generalizes to any future book added to the fixed options or personal library, cancels itself the moment `hasProgressedToday()` is true — commit c4ad0df
 - [x] `book_bookmarks.last_updated_date` (DB v13→v14) so personal-library PDFs can answer "touched today" like every other content type — commit c4ad0df
 
+## Phase 4.16 — Optional Hijri/Gregorian display toggle (Ismail's request 2026-08-15) — ✅ DONE 2026-08-15 (commit 35471a3)
+
+- [x] `CalendarPreferenceService` (shared_preferences-backed, display-only — every table stays Hijri-keyed storage regardless) + `formatDateForDisplay()` + toggle in ProfileScreen
+- [x] Applied to CompletionGoalsScreen's target-date button and CertificateCard's date line — the two spots a raw Hijri string was actually shown to the student before this
+- [ ] NOT retrofitted yet: any other screen that happens to display a raw date string to the user (most current screens only use dates as storage/grouping keys, not visible text, so there was nothing to fix there at audit time — but recheck when adding new date-visible UI)
+
 ## Phase 5 — Extended Islamic text library (roadmap §4.9, sub-phases 5أ–5د)
 
 - [x] 5أ: Al-Arba'in Al-Nawawiyyah — ✅ DONE 2026-08-15 (commit e3940cb). Real text+commentary (osamayy/40-hadith-nawawi-db, verified), browse+mark-memorized, generalized quiz ("أكمل الحديث"). NOTE: commentary source ended up being the bundled dataset's own scholarly commentary, not confirmed as specifically Ibn Uthaymeen's — should verify/relabel later if that distinction matters. `achievement_milestones` rows not added yet (Phase 4 not started).
