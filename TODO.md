@@ -31,20 +31,21 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] Tafsir: imported the FULL unabridged Ibn Kathir (6236/6236 ayat, zero errors), gzip-compressed 89.7MB->9.6MB, wired into search results. The three specific mukhtasars (Al-Misbah Al-Munir, Sabuni, Ahmad Shakir's Umdat) remain unsourced — no comparable structured source found; add as additional `tafsir_entries.source` rows later if/when found
 - [x] Commit
 
-## Phase 1 — Ayah search + memorization engine
+## Phase 1 — Ayah search + memorization engine — ✅ DONE 2026-08-15 (commits 8cc3da5, 5b8f271, 5aa0ff5)
 
-- [x] "Search an ayah" screen — full-word/phrase search across the whole Quran (tashkeel-insensitive) + direct "surah number" reference lookup, both return surah name + ayah text (commit 8cc3da5)
-- [ ] `memorization_units` (604 pages, auto-generated from the now-available page boundaries) + `memorization_progress`
-- [ ] "القرآن" browse tab
-- [ ] Commit
+- [x] "Search an ayah" screen — full-word/phrase search across the whole Quran (tashkeel-insensitive) + direct "surah number" reference lookup, both return surah name + ayah text
+- [x] `memorization_units` (604 pages, auto-generated from the now-available page boundaries) + `memorization_progress`
+- [x] "القرآن" browse screen (not yet a bottom-nav tab — reachable from Home, matching this app's existing pattern; nav restructure to 5 tabs is Phase 7 territory) — grouped by Juz, mark-memorized action
+- [x] Commit
 - [ ] Known follow-up, not a blocker: bundle a proper Uthmani-script font (e.g. Amiri, SIL license) — ayah text currently renders in the system font
 
-## Phase 2 — Review engine + daily session
+## Phase 2 — Review engine + daily session — algorithm + screen DONE 2026-08-15 (commits 9107fa6, 022ad19); session flow still open
 
-- [ ] 6-station Ebbinghaus review algorithm (roadmap §4)
-- [ ] "المراجعة" tab, "اليوم" session flow (6 steps incl. "طبّق")
-- [ ] Non-punitive catch-up/return logic
-- [ ] Commit
+- [x] 6-station Ebbinghaus review algorithm (roadmap §4) — `memorization_repository.dart`
+- [x] "المراجعة" screen (reachable from Home) — due-today queue, rate ممتاز/جيد/يحتاج مراجعة
+- [x] Non-punitive catch-up/return logic — dueToday() caps overdue backlog (default 5 extra), never dumps it all at once
+- [ ] Full "اليوم" 6-step session flow (قراءة → حفظ جديد → مراجعة → فهم → تطبيق → اختبار) — only the مراجعة step exists as its own screen so far, not yet assembled into the single daily-session flow described in roadmap §6
+- [ ] Commit (for the session-flow piece specifically)
 
 ## Phase 3 — Understanding + Application pillars
 
