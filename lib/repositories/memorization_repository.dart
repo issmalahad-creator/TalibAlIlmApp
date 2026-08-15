@@ -174,6 +174,26 @@ class MemorizationRepository {
     return selected.map(_toUnit).toList();
   }
 
+  /// Whether at least one page was newly marked memorized today — powers
+  /// the "حفظ جديد" step of "جلسة اليوم" without a separate tracking table.
+  Future<bool> hasMemorizedToday() async {
+    final db = await DatabaseHelper.instance.database;
+    final count = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM memorization_progress WHERE memorized_date = ?', [todayDate()]),
+    );
+    return (count ?? 0) > 0;
+  }
+
+  /// Whether at least one review was recorded today — powers the "مراجعة"
+  /// step of "جلسة اليوم".
+  Future<bool> hasReviewedToday() async {
+    final db = await DatabaseHelper.instance.database;
+    final count = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM review_log WHERE review_date = ?', [todayDate()]),
+    );
+    return (count ?? 0) > 0;
+  }
+
   /// All 604 units with their progress (or the implicit 'not_started'
   /// status for units with no `memorization_progress` row yet) — powers the
   /// "القرآن" browse screen. Ordered by id (= Mushaf page order).

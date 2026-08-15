@@ -21,6 +21,7 @@ import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
 import 'onboarding_screen.dart';
+import 'daily_session_screen.dart';
 import 'profile_screen.dart';
 import 'quran_browse_screen.dart';
 import 'quran_search_screen.dart';
@@ -134,6 +135,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     onHelpTap: () => Navigator.push(
                         context, MaterialPageRoute(builder: (_) => const OnboardingScreen(reviewMode: true))),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const DailySessionScreen()));
+                      _load();
+                    },
+                    icon: const Icon(Icons.wb_sunny_outlined, size: 18),
+                    label: const Text('جلسة اليوم'),
+                    style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
                   ),
                   if (_banner != null) ...[
                     const SizedBox(height: 16),

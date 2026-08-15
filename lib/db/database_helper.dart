@@ -17,17 +17,19 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
         await _createV3Tables(db);
         await _createV4Tables(db);
+        await _createV5Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
         if (oldVersion < 3) await _createV3Tables(db);
         if (oldVersion < 4) await _createV4Tables(db);
+        if (oldVersion < 5) await _createV5Tables(db);
       },
     );
   }
@@ -236,6 +238,22 @@ class DatabaseHelper {
         reward_text TEXT,
         punishment_enabled INTEGER NOT NULL DEFAULT 0,
         punishment_text TEXT
+      )
+    ''');
+  }
+
+  /// "جلسة اليوم" — QURAN_COMPANION_ROADMAP.md section 6. Only 3 of the 6
+  /// designed steps (قراءة/حفظ جديد/مراجعة) have real data behind them yet;
+  /// فهم/تطبيق/اختبار wait on Phase 3 (`understanding_progress`,
+  /// `practical_lessons`) and are shown as "قريبًا" in the UI rather than
+  /// faked with empty tables here.
+  Future<void> _createV5Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE daily_session_log (
+        date TEXT PRIMARY KEY,
+        did_reading INTEGER NOT NULL DEFAULT 0,
+        did_new_memorization INTEGER NOT NULL DEFAULT 0,
+        did_review INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }
