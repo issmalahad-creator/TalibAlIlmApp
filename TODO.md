@@ -37,7 +37,7 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] `memorization_units` (604 pages, auto-generated from the now-available page boundaries) + `memorization_progress`
 - [x] "القرآن" browse screen (not yet a bottom-nav tab — reachable from Home, matching this app's existing pattern; nav restructure to 5 tabs is Phase 7 territory) — grouped by Juz, mark-memorized action
 - [x] Commit
-- [ ] Known follow-up, not a blocker: bundle a proper Uthmani-script font (e.g. Amiri, SIL license) — ayah text currently renders in the system font
+- [x] Uthmani-script font — ✅ DONE 2026-08-16 (commit c264640). Amiri Quran + Amiri Regular/Bold bundled (SIL OFL 1.1, official alif-type/amiri project via Google Fonts' mirror), applied to the 3 screens that render ayah text directly (search, review, reading).
 
 ## Phase 2 — Review engine + daily session — ✅ DONE 2026-08-15 (commits 9107fa6, 022ad19, 5e3e833)
 
