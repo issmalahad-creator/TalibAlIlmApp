@@ -21,6 +21,7 @@ import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
 import 'onboarding_screen.dart';
 import 'profile_screen.dart';
+import 'quran_search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -104,6 +105,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final percent = (_overallProgress * 100).round();
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'quran_search_fab',
+        tooltip: 'البحث في القرآن',
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranSearchScreen())),
+        child: const Icon(Icons.search_rounded),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(

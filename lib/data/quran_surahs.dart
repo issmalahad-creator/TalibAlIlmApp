@@ -1,7 +1,8 @@
 /// Standard reference list of the 114 Surahs (number, name, ayah count) —
-/// used only to build the Hifz checklist (`hifz_screen.dart`). Deliberately
-/// just names/numbers/counts, nothing else — no verse text, translation, or
-/// tafsir is stored or displayed anywhere in this app.
+/// originally built only for the Hifz checklist (`hifz_screen.dart`), now
+/// also used to resolve surah names for search results
+/// (`quran_search_repository.dart`). Verse text itself lives in the
+/// `quran_ayat` table (Phase 0 of QURAN_COMPANION_ROADMAP.md), not here.
 class QuranSurah {
   final int number;
   final String name;
