@@ -118,6 +118,15 @@ Ismail strongly criticized the memorization system as "رص صفحات لا ات
 - [ ] Structured تسميع (recitation-test) UX improvement (progressive text-hiding before self-rating) — still deferred, lower priority, still just a blind self-rate today.
 - [ ] **Not yet tested on-device**: neither Sub-phase A (plan creation → behind/ahead/on-track over real days) nor Sub-phase B (the guided session flow end-to-end) has been exercised on a real phone yet — `flutter analyze` is clean and the arithmetic was reviewed carefully, but this needs Ismail's manual confirmation.
 
+## Phase 15 — Colorful icon-grid navigation redesign (Ismail's request 2026-08-16) — ✅ DONE (commit 9e56cc5)
+
+Ismail sent a reference screenshot from another app (a grid of solid-color circular icons with white glyphs, 4 per row, label below each) and asked for the same treatment. Purely visual — no logic, data, or navigation destinations changed.
+
+- [x] `widgets/nav_tile.dart` — reusable `NavTile`/`NavGrid` + a shared `NavColors` 12-color palette so the same feature always gets the same color everywhere it appears (e.g. إقامة الصلاة is teal on both the home quick-access row and the profile grid).
+- [x] `profile_screen.dart` — all ~19 vertical `OutlinedButton.icon` entries replaced by one `NavGrid`, same destinations/i18n labels (`basicText`) unchanged.
+- [x] `home_screen.dart` — same treatment for the 5-item quick-access row (مواقيت الصلاة/القبلة/الأذكار/إقامة الصلاة/كتب صوتية). The larger data-driven cards (الحفظ، المراجعة، رفيقك اليوم، progress ring) were deliberately left alone — they're not simple nav shortcuts and don't fit the icon-tile pattern.
+- [ ] **Not visually verified yet** — a fresh debug APK was built and sent to Ismail after this change so he can actually look at it; this is a pure UI change that benefits more than most from an on-device look rather than just `flutter analyze` passing.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
