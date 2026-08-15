@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
 import '../services/calendar_preference_service.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'adab_screen.dart';
 import 'adhkar_screen.dart';
@@ -35,6 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _studyTrack = StudentProfile.studyTracks.first;
   bool _loading = true;
   bool _useGregorian = CalendarPreferenceService.useGregorian;
+  String _lang = LanguagePreferenceService.currentLanguage;
 
   @override
   void initState() {
@@ -134,11 +137,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('لغة العناوين الأساسية', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'يبقى المحتوى الإسلامي العميق (القرآن، الأذكار، الفقه) بالعربية دائمًا — هذا يترجم فقط عناوين التنقل الأساسية',
+                        style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButton<String>(
+                        isExpanded: true,
+                        value: _lang,
+                        items: supportedLanguages.entries
+                            .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                            .toList(),
+                        onChanged: (v) async {
+                          if (v == null) return;
+                          await LanguagePreferenceService.setLanguage(v);
+                          setState(() => _lang = v);
+                        },
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () =>
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportScreen())),
                   icon: const Icon(Icons.support_agent_rounded),
-                  label: const Text('الدعم والأسئلة الشائعة'),
+                  label: Text(basicText('support_faq', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
@@ -152,7 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () => Navigator.push(
                       context, MaterialPageRoute(builder: (_) => const PersonalAccountabilityScreen())),
                   icon: const Icon(Icons.self_improvement_rounded),
-                  label: const Text('التزامي الشخصي'),
+                  label: Text(basicText('personal_commitment', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
@@ -186,50 +222,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdabScreen())),
                   icon: const Icon(Icons.volunteer_activism_outlined),
-                  label: const Text('باب الأدب'),
+                  label: Text(basicText('adab', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
                   icon: const Icon(Icons.access_time_outlined),
-                  label: const Text('أوقات الصلاة'),
+                  label: Text(basicText('prayer_times', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
                   icon: const Icon(Icons.explore_outlined),
-                  label: const Text('اتجاه القبلة'),
+                  label: Text(basicText('qibla', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () =>
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CompletionGoalsScreen())),
                   icon: const Icon(Icons.flag_circle_outlined),
-                  label: const Text('خطط ختمي'),
+                  label: Text(basicText('completion_plans', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JourneyScreen())),
                   icon: const Icon(Icons.route_outlined),
-                  label: const Text('رحلتي'),
+                  label: Text(basicText('my_journey', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
                   icon: const Icon(Icons.nights_stay_outlined),
-                  label: const Text('حصن المسلم'),
+                  label: Text(basicText('adhkar', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WirdScreen())),
                   icon: const Icon(Icons.checklist_rtl_outlined),
-                  label: const Text('ورد اليوم'),
+                  label: Text(basicText('wird', _lang)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewMuslimGuideScreen())),
                   icon: const Icon(Icons.diversity_3_outlined),
-                  label: const Text('دليل المسلم الجديد'),
+                  label: Text(basicText('new_muslim_guide', _lang)),
                 ),
               ],
             ),

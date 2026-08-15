@@ -10,8 +10,10 @@ import '../repositories/daily_task_repository.dart';
 import '../repositories/goal_repository.dart';
 import '../repositories/hifz_repository.dart';
 import '../repositories/memorization_repository.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/profile_repository.dart';
 import '../services/book_content_service.dart';
+import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
@@ -47,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _bookContentService = BookContentService();
   final _hifzRepo = HifzRepository();
   final _memorizationRepo = MemorizationRepository();
+  final _lang = LanguagePreferenceService.currentLanguage;
 
   List<ActivityEntry> _recentActivities = [];
   List<Goal> _goals = [];
@@ -147,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       _load();
                     },
                     icon: const Icon(Icons.wb_sunny_outlined, size: 18),
-                    label: const Text('جلسة اليوم'),
+                    label: Text(basicText('daily_session', _lang)),
                     style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
                   ),
                   const SizedBox(height: 10),
@@ -157,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
                           icon: const Icon(Icons.access_time_outlined, size: 18),
-                          label: const Text('أوقات الصلاة'),
+                          label: Text(basicText('prayer_times', _lang)),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -165,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: OutlinedButton.icon(
                           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
                           icon: const Icon(Icons.explore_outlined, size: 18),
-                          label: const Text('القبلة'),
+                          label: Text(basicText('qibla', _lang)),
                         ),
                       ),
                     ],
@@ -174,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   OutlinedButton.icon(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
                     icon: const Icon(Icons.nights_stay_outlined, size: 18),
-                    label: const Text('حصن المسلم'),
+                    label: Text(basicText('adhkar', _lang)),
                   ),
                   if (_banner != null) ...[
                     const SizedBox(height: 16),
