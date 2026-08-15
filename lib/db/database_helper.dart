@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 10,
+      version: 11,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -29,6 +29,7 @@ class DatabaseHelper {
         await _createV8Tables(db);
         await _createV9Tables(db);
         await _createV10Tables(db);
+        await _createV11Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -40,6 +41,7 @@ class DatabaseHelper {
         if (oldVersion < 8) await _createV8Tables(db);
         if (oldVersion < 9) await _createV9Tables(db);
         if (oldVersion < 10) await _createV10Tables(db);
+        if (oldVersion < 11) await _createV11Tables(db);
       },
     );
   }
@@ -367,6 +369,33 @@ class DatabaseHelper {
         section_id INTEGER PRIMARY KEY REFERENCES wasitiyyah_sections(id),
         memorized INTEGER NOT NULL DEFAULT 0,
         memorized_date TEXT
+      )
+    ''');
+  }
+
+  /// Phase 5ج — Zad al-Ma'ad (Ibn al-Qayyim), source: ar.wikisource.org raw
+  /// wikitext, same verbatim-fetch discipline as Al-Wasitiyyah. Volume 1
+  /// only for now (the Seerah-introduction volume, matching roadmap 5ج's
+  /// study-unit 1) — 4 more volumes exist and are added incrementally
+  /// later, not all 5 at once. `has_uthaymeen_commentary` stays 0 for every
+  /// row here — his "التعليق على فصول من زاد المعاد" text itself hasn't
+  /// been sourced yet, this is Ibn al-Qayyim's original only.
+  Future<void> _createV11Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE zad_almaad_chapters (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        volume INTEGER NOT NULL,
+        chapter_order INTEGER NOT NULL,
+        chapter_title TEXT NOT NULL,
+        chapter_text TEXT NOT NULL,
+        has_uthaymeen_commentary INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE zad_almaad_progress (
+        chapter_id INTEGER PRIMARY KEY REFERENCES zad_almaad_chapters(id),
+        read_done INTEGER NOT NULL DEFAULT 0,
+        read_date TEXT
       )
     ''');
   }

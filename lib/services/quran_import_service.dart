@@ -82,6 +82,30 @@ class QuranImportService {
     if (existingWasitiyyah == null || existingWasitiyyah == 0) {
       await _importWasitiyyah(db);
     }
+
+    final existingZad = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM zad_almaad_chapters'));
+    if (existingZad == null || existingZad == 0) {
+      await _importZadAlMaad(db);
+    }
+  }
+
+  /// Zad al-Ma'ad Volume 1 (Seerah introduction) — see the v11 migration's
+  /// doc comment for scope (volume 1 of 5 only, for now).
+  Future<void> _importZadAlMaad(Database db) async {
+    final raw = await rootBundle.loadString('assets/fiqh_seerah/zad_almaad_vol1.json');
+    final list = jsonDecode(raw) as List<dynamic>;
+    final batch = db.batch();
+    for (var i = 0; i < list.length; i++) {
+      final entry = list[i] as Map<String, dynamic>;
+      batch.insert('zad_almaad_chapters', {
+        'volume': 1,
+        'chapter_order': i + 1,
+        'chapter_title': entry['title'] as String,
+        'chapter_text': entry['text'] as String,
+        'has_uthaymeen_commentary': 0,
+      });
+    }
+    await batch.commit(noResult: true);
   }
 
   /// Al-Aqidah Al-Wasitiyyah, 82 paragraph sections — source: ar.wikisource.org,

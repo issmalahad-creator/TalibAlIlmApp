@@ -97,6 +97,7 @@ flutter:
     - assets/quran/tafsir-saadi.jsonl.gz
     - assets/hadith/nawawi40.json
     - assets/aqeedah/wasitiyyah.json
+    - assets/fiqh_seerah/zad_almaad_vol1.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
