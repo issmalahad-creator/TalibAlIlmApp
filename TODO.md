@@ -52,7 +52,7 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 
 - [x] Tafsir/benefits display per unit, `understanding_progress` — separate from memorization, uses the real Al-Mukhtasar tafsir already imported
 - [x] `practical_lessons` + `application_log` ("مطبّق" pillar, roadmap §4.8) — 8 hand-curated lessons for short/juz-amma surahs (الفاتحة، الإخلاص، الفلق، الناس، العصر، الكوثر، الماعون، النصر), grows surah by surah later
-- [x] Wired into جلسة اليوم — 5 of 6 steps now real (only اختبر نفسك remains "قريبًا")
+- [x] Wired into جلسة اليوم — all 6 of 6 steps now real (اختبر نفسك added same day, generated from quran_ayat, no external bank needed — commit 26cc08d)
 - [x] Commit
 
 ## Phase 4 — Journey plan
