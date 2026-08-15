@@ -203,6 +203,197 @@ const arabicAlphabet = [
   ArabicLetter(letter: 'ي', nameAr: 'ياء', nameEn: 'Ya', pronunciationEn: 'Like English "y", or a long "ee" as a vowel', exampleWordAr: 'يَد', exampleWordEn: 'hand'),
 ];
 
+class GrammarConcept {
+  final String titleAr;
+  final String titleEn;
+  final String explanationEn;
+  final String exampleAr;
+  final String exampleEn;
+  const GrammarConcept({
+    required this.titleAr,
+    required this.titleEn,
+    required this.explanationEn,
+    required this.exampleAr,
+    required this.exampleEn,
+  });
+}
+
+/// Sequenced the way Madinah Arabic Course / Bayna Yadayk introduce basic
+/// grammar (parts of speech → gender/number → pronouns → sentence
+/// structure → possession → prepositions → verb tenses) — standard
+/// pedagogical order, written here in original explanations.
+const grammarConcepts = [
+  GrammarConcept(
+    titleAr: 'الاسم والفعل والحرف',
+    titleEn: 'Noun, Verb, and Particle',
+    explanationEn: 'Every Arabic word is one of three types: اسم (noun — a person/thing/place, e.g. كِتَاب "book"), فِعل (verb — an action, e.g. كَتَبَ "he wrote"), or حَرْف (particle — a small connecting word like فِي "in" that never changes form).',
+    exampleAr: 'كِتَاب (اسم) — كَتَبَ (فعل) — فِي (حرف)',
+    exampleEn: 'book (noun) — he wrote (verb) — in (particle)',
+  ),
+  GrammarConcept(
+    titleAr: 'المذكر والمؤنث',
+    titleEn: 'Masculine and Feminine',
+    explanationEn: 'Every Arabic noun is either masculine (مذكر) or feminine (مؤنث). Most feminine nouns end in ة (taa marbuta). This affects the form of adjectives and verbs that go with the noun.',
+    exampleAr: 'مُسْلِم (مذكر) — مُسْلِمَة (مؤنث)',
+    exampleEn: 'a Muslim man (masculine) — a Muslim woman (feminine)',
+  ),
+  GrammarConcept(
+    titleAr: 'المفرد والمثنى والجمع',
+    titleEn: 'Singular, Dual, and Plural',
+    explanationEn: 'Arabic has THREE number forms, not just two: مفرد (singular, one), مثنى (dual, exactly two — ends in ـَان), and جمع (plural, three or more).',
+    exampleAr: 'كِتَاب (مفرد) — كِتَابَان (مثنى) — كُتُب (جمع)',
+    exampleEn: 'one book (singular) — two books (dual) — books (plural)',
+  ),
+  GrammarConcept(
+    titleAr: 'الضمائر المنفصلة',
+    titleEn: 'Detached Pronouns',
+    explanationEn: 'These stand alone as the subject of a sentence, similar to "I / you / he" in English — but Arabic distinguishes gender and dual number too.',
+    exampleAr: 'أَنَا، أَنْتَ، أَنْتِ، هُوَ، هِيَ، نَحْنُ، أَنْتُمْ، هُم',
+    exampleEn: 'I, you (m.), you (f.), he, she, we, you (pl.), they',
+  ),
+  GrammarConcept(
+    titleAr: 'اسم الإشارة',
+    titleEn: 'Demonstratives ("this/that")',
+    explanationEn: 'Words that point to something, matching its gender.',
+    exampleAr: 'هَذَا كِتَاب — هَذِهِ سَاعَة',
+    exampleEn: 'This is a book — This is a watch (feminine noun)',
+  ),
+  GrammarConcept(
+    titleAr: 'الجملة الاسمية',
+    titleEn: 'The Nominal Sentence',
+    explanationEn: 'Arabic\'s most basic sentence type has no verb "to be" — you simply place a subject (مبتدأ) next to its description (خبر), and "is/are" is understood.',
+    exampleAr: 'الْبَيْتُ كَبِيرٌ',
+    exampleEn: 'The house [is] big',
+  ),
+  GrammarConcept(
+    titleAr: 'الإضافة',
+    titleEn: 'The Possessive Construct (Idafa)',
+    explanationEn: 'To show possession ("the X of Y"), two nouns are placed directly next to each other — no separate word for "of".',
+    exampleAr: 'كِتَابُ الطَّالِبِ',
+    exampleEn: 'the student\'s book (literally: book-of the-student)',
+  ),
+  GrammarConcept(
+    titleAr: 'حروف الجر',
+    titleEn: 'Prepositions',
+    explanationEn: 'Small particles that come before a noun and never change form. Already familiar from Stage 3\'s vocabulary: مِن، فِي، عَلَى، إِلَى.',
+    exampleAr: 'فِي الْبَيْتِ — عَلَى الْأَرْضِ',
+    exampleEn: 'in the house — on the earth',
+  ),
+  GrammarConcept(
+    titleAr: 'الفعل الماضي',
+    titleEn: 'The Past Tense Verb',
+    explanationEn: 'Describes a completed action. The verb\'s ending changes depending on who did the action (a suffix is added, unlike English which mostly doesn\'t change).',
+    exampleAr: 'كَتَبَ (هو) — كَتَبَتْ (هي) — كَتَبْتُ (أنا)',
+    exampleEn: 'he wrote — she wrote — I wrote',
+  ),
+  GrammarConcept(
+    titleAr: 'الفعل المضارع',
+    titleEn: 'The Present Tense Verb',
+    explanationEn: 'Describes an ongoing or habitual action. Unlike the past tense, the CHANGE happens at the beginning of the verb (a prefix), not just the end.',
+    exampleAr: 'يَكْتُبُ (هو) — تَكْتُبُ (هي) — أَكْتُبُ (أنا)',
+    exampleEn: 'he writes — she writes — I write',
+  ),
+];
+
+class WordGloss {
+  final String wordAr;
+  final String meaningEn;
+  const WordGloss({required this.wordAr, required this.meaningEn});
+}
+
+class QuranicAyahLesson {
+  final int ayahNumber;
+  final String textAr;
+  final List<WordGloss> words;
+  const QuranicAyahLesson({required this.ayahNumber, required this.textAr, required this.words});
+}
+
+class QuranicTextLesson {
+  final String surahNameAr;
+  final String surahNameEn;
+  final int surahNumber;
+  final List<QuranicAyahLesson> ayat;
+  const QuranicTextLesson({required this.surahNameAr, required this.surahNameEn, required this.surahNumber, required this.ayat});
+}
+
+/// Stage 5: direct application on two of the shortest, most widely known
+/// surahs — word-by-word breakdowns written originally for this app,
+/// reusing Stage 3's vocabulary wherever the same word appears. The ayah
+/// text itself is the same verbatim Tanzil Uthmani text (CC-BY 3.0)
+/// already bundled and imported into this app's `quran_ayat` table
+/// earlier in this project — not new/separately-sourced content.
+const quranicTextLessons = [
+  QuranicTextLesson(
+    surahNameAr: 'سورة الفاتحة',
+    surahNameEn: 'Al-Fatihah (The Opening)',
+    surahNumber: 1,
+    ayat: [
+      QuranicAyahLesson(ayahNumber: 1, textAr: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ', words: [
+        WordGloss(wordAr: 'بِسْمِ', meaningEn: 'in the name of'),
+        WordGloss(wordAr: 'اللَّهِ', meaningEn: 'Allah'),
+        WordGloss(wordAr: 'الرَّحْمَٰنِ', meaningEn: 'the Most Merciful'),
+        WordGloss(wordAr: 'الرَّحِيمِ', meaningEn: 'the Especially Merciful'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 2, textAr: 'الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ', words: [
+        WordGloss(wordAr: 'الْحَمْدُ', meaningEn: 'all praise'),
+        WordGloss(wordAr: 'لِلَّهِ', meaningEn: 'is for Allah'),
+        WordGloss(wordAr: 'رَبِّ', meaningEn: 'Lord of'),
+        WordGloss(wordAr: 'الْعَالَمِينَ', meaningEn: 'all the worlds'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 3, textAr: 'الرَّحْمَٰنِ الرَّحِيمِ', words: [
+        WordGloss(wordAr: 'الرَّحْمَٰنِ', meaningEn: 'the Most Merciful'),
+        WordGloss(wordAr: 'الرَّحِيمِ', meaningEn: 'the Especially Merciful'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 4, textAr: 'مَالِكِ يَوْمِ الدِّينِ', words: [
+        WordGloss(wordAr: 'مَالِكِ', meaningEn: 'Master/Owner of'),
+        WordGloss(wordAr: 'يَوْمِ', meaningEn: 'the Day of'),
+        WordGloss(wordAr: 'الدِّينِ', meaningEn: 'Judgment/Recompense'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 5, textAr: 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', words: [
+        WordGloss(wordAr: 'إِيَّاكَ', meaningEn: 'You alone'),
+        WordGloss(wordAr: 'نَعْبُدُ', meaningEn: 'we worship'),
+        WordGloss(wordAr: 'وَإِيَّاكَ', meaningEn: 'and You alone'),
+        WordGloss(wordAr: 'نَسْتَعِينُ', meaningEn: 'we ask for help'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 6, textAr: 'اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ', words: [
+        WordGloss(wordAr: 'اهْدِنَا', meaningEn: 'guide us'),
+        WordGloss(wordAr: 'الصِّرَاطَ', meaningEn: 'the path'),
+        WordGloss(wordAr: 'الْمُسْتَقِيمَ', meaningEn: 'the straight'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 7, textAr: 'صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ', words: [
+        WordGloss(wordAr: 'صِرَاطَ الَّذِينَ', meaningEn: 'the path of those'),
+        WordGloss(wordAr: 'أَنْعَمْتَ عَلَيْهِمْ', meaningEn: 'You have favored'),
+        WordGloss(wordAr: 'غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ', meaningEn: 'not of those who have earned [Your] anger'),
+        WordGloss(wordAr: 'وَلَا الضَّالِّينَ', meaningEn: 'nor of those who are astray'),
+      ]),
+    ],
+  ),
+  QuranicTextLesson(
+    surahNameAr: 'سورة الإخلاص',
+    surahNameEn: 'Al-Ikhlas (Sincerity)',
+    surahNumber: 112,
+    ayat: [
+      QuranicAyahLesson(ayahNumber: 1, textAr: 'قُلْ هُوَ اللَّهُ أَحَدٌ', words: [
+        WordGloss(wordAr: 'قُلْ', meaningEn: 'say'),
+        WordGloss(wordAr: 'هُوَ اللَّهُ', meaningEn: 'He is Allah'),
+        WordGloss(wordAr: 'أَحَدٌ', meaningEn: 'One'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 2, textAr: 'اللَّهُ الصَّمَدُ', words: [
+        WordGloss(wordAr: 'اللَّهُ', meaningEn: 'Allah'),
+        WordGloss(wordAr: 'الصَّمَدُ', meaningEn: 'the Eternal Refuge (depended upon by all, dependent on none)'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 3, textAr: 'لَمْ يَلِدْ وَلَمْ يُولَدْ', words: [
+        WordGloss(wordAr: 'لَمْ يَلِدْ', meaningEn: 'He does not beget'),
+        WordGloss(wordAr: 'وَلَمْ يُولَدْ', meaningEn: 'nor is He begotten'),
+      ]),
+      QuranicAyahLesson(ayahNumber: 4, textAr: 'وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ', words: [
+        WordGloss(wordAr: 'وَلَمْ يَكُن لَّهُ', meaningEn: 'and there is not for Him'),
+        WordGloss(wordAr: 'كُفُوًا أَحَدٌ', meaningEn: 'any equivalent/equal'),
+      ]),
+    ],
+  ),
+];
+
 class CurriculumStage {
   final String key;
   final String titleAr;
@@ -245,13 +436,13 @@ const curriculumStages = [
     titleAr: 'المرحلة ٤: القواعد الأساسية',
     titleEn: 'Stage 4: Basic Grammar',
     descriptionAr: 'الاسم والفعل، المذكر والمؤنث، الضمائر، وتركيب الجملة البسيطة.',
-    isBuilt: false,
+    isBuilt: true,
   ),
   CurriculumStage(
     key: 'quranic_comprehension',
     titleAr: 'المرحلة ٥: فهم لغة القرآن',
     titleEn: 'Stage 5: Quranic-Arabic Comprehension',
-    descriptionAr: 'تطبيق ما سبق على مفردات وتراكيب قرآنية شائعة، بدءًا بقراءة آيات قصيرة وفهمها مباشرة.',
-    isBuilt: false,
+    descriptionAr: 'تطبيق ما سبق على سورتين قصيرتين معروفتين، كلمة بكلمة: الفاتحة والإخلاص.',
+    isBuilt: true,
   ),
 ];

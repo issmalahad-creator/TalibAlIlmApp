@@ -4,9 +4,11 @@ import '../data/arabic_curriculum.dart';
 import '../repositories/arabic_curriculum_repository.dart';
 import '../theme/app_theme.dart';
 import 'arabic_alphabet_lesson_screen.dart';
+import 'arabic_grammar_lesson_screen.dart';
+import 'arabic_quranic_text_lesson_screen.dart';
 import 'arabic_reading_lesson_screen.dart';
-import 'arabic_vocabulary_lesson_screen.dart';
 import 'arabic_resources_screen.dart';
+import 'arabic_vocabulary_lesson_screen.dart';
 
 /// "منهج تعلم العربية لغير الناطقين بها" — QURAN_COMPANION_ROADMAP.md
 /// Phase 10b. Shows all 5 planned stages; only Stage 1 (alphabet) is
@@ -40,10 +42,19 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
     });
   }
 
+  int _quranicTextTotal() => quranicTextLessons.fold(0, (sum, l) => sum + l.ayat.length);
+
+  int _quranicTextLearned() => quranicTextLessons
+      .expand((l) => l.ayat)
+      .where((a) => _learned.contains('quranic_text_${a.ayahNumber}_${a.textAr}'))
+      .length;
+
   int _learnedCountFor(CurriculumStage stage) => switch (stage.key) {
         'alphabet' => arabicAlphabet.where((l) => _learned.contains('alphabet_${l.letter}')).length,
         'reading_basics' => harakatLessons.where((h) => _learned.contains('reading_${h.nameAr}')).length,
         'vocabulary' => quranicVocabulary.where((w) => _learned.contains('vocab_${w.wordAr}')).length,
+        'grammar' => grammarConcepts.where((c) => _learned.contains('grammar_${c.titleAr}')).length,
+        'quranic_comprehension' => _quranicTextLearned(),
         _ => 0,
       };
 
@@ -51,6 +62,8 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
         'alphabet' => arabicAlphabet.length,
         'reading_basics' => harakatLessons.length,
         'vocabulary' => quranicVocabulary.length,
+        'grammar' => grammarConcepts.length,
+        'quranic_comprehension' => _quranicTextTotal(),
         _ => 0,
       };
 
@@ -58,6 +71,8 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
         'alphabet' => const ArabicAlphabetLessonScreen(),
         'reading_basics' => const ArabicReadingLessonScreen(),
         'vocabulary' => const ArabicVocabularyLessonScreen(),
+        'grammar' => const ArabicGrammarLessonScreen(),
+        'quranic_comprehension' => const ArabicQuranicTextLessonScreen(),
         _ => null,
       };
 
