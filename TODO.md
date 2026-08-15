@@ -151,3 +151,14 @@ Basic/intermediate/advanced Tajweed (Quran recitation rules) tracks. Researched 
 - [x] Intermediate tier: 3 meem sakinah rules, qalqalah, laam/ra tafkheem-tarqeeq
 - [x] Advanced tier: 5 madd types, waqf symbols
 - [x] Per-tier completion certificates wired into `achievement_milestones`/شهاداتي from the start, per Ismail's standing request that every pillar get one — not a follow-up add-on this time
+
+## Phase 12 — إقامة الصلاة: Salah companion (Ismail's request 2026-08-16) — ✅ DONE 2026-08-16 (commit 4d0276e)
+
+Ismail relayed a detailed design (apparently from a separate planning conversation) for a non-judgmental daily Salah tracker with self-assessment, then explicitly asked for it as its own distinct module ("خانه مودل جديد اقامة الصلاة") rather than folded into the existing PrayerTimesScreen, plus stories of the Salaf's stillness/khushu in prayer. Core stated principle carried over from that design and applied throughout: AI must never invent or assert a fiqh ruling, and khushu specifically can never be measured/inferred by the app — only self-rated by the user.
+
+- [x] DB schema v21: `salah_log` (per-day/per-prayer status: on-time/jamaah/late/missed), `salah_self_assessment` (weekly, 7 dimensions, star ratings, 100% user-entered), `salah_library_progress` (mark-read tracking) — `lib/db/database_helper.dart`
+- [x] `lib/repositories/salah_repository.dart` — status tracking, hijri-week-start computation, weekly completion count (out of 35 possible slots), assessment CRUD, no scoring/inference logic anywhere
+- [x] `lib/data/salah_content.dart` — 11 original lesson categories (arkan/wajibat/sunan/mubtilat/khushu/adhkar_salah/tafsir_fatiha/rawatib/qiyam/jamaah) grounded in well-established, non-controversial fiqh, hand-written (not translated book excerpts, same sourcing discipline as باب الأدب); 3 well-known Salaf stories about khushu, explicitly framed as widely-circulated accounts rather than chain-verified hadith; 6 real book citations (title/author/neutral note only, no reproduced text) — صفة صلاة النبي (Albani & Ibn Baz), شرح صفة صلاة النبي (Ibn Uthaymeen), الخشوع في الصلاة (Ibn Rajab), الوابل الصيب and مدارج السالكين (Ibn al-Qayyim)
+- [x] 5 screens: `salah_tracker_screen.dart` (main entry, per-prayer status picker), `salah_assessment_screen.dart` (weekly star ratings, "لا أحد سيراها سواك" framing), `salah_library_screen.dart`, `salah_stories_screen.dart`, `salah_resources_screen.dart`
+- [x] Wired as a standalone entry point (not merged into PrayerTimesScreen) in both HomeScreen and ProfileScreen, per Ismail's explicit instruction
+- [ ] Still open, not yet built (part of the original design pitch but not explicitly re-requested yet): daily per-prayer "مهمة اليوم" micro-lesson surfaced contextually, and a weekly aggregate report screen summarizing the tracker + self-assessment together. Flag to Ismail next time this area comes up rather than assuming it's wanted.
