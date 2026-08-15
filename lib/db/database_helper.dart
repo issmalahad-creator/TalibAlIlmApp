@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 14,
+      version: 15,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -33,6 +33,7 @@ class DatabaseHelper {
         await _createV12Tables(db);
         await _createV13Tables(db);
         await _createV14Tables(db);
+        await _createV15Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -48,6 +49,7 @@ class DatabaseHelper {
         if (oldVersion < 12) await _createV12Tables(db);
         if (oldVersion < 13) await _createV13Tables(db);
         if (oldVersion < 14) await _createV14Tables(db);
+        if (oldVersion < 15) await _createV15Tables(db);
       },
     );
   }
@@ -468,5 +470,40 @@ class DatabaseHelper {
   /// can via their own *_progress tables' date columns.
   Future<void> _createV14Tables(Database db) async {
     await db.execute('ALTER TABLE book_bookmarks ADD COLUMN last_updated_date TEXT');
+  }
+
+  /// Phase 4 of QURAN_COMPANION_ROADMAP.md (roadmap §4.7/§4.14) — "رحلتي"
+  /// journey dashboard + the certificate/celebration system. `journey_plan`
+  /// is a single settings row (SMART-wizard output: target pace + an
+  /// optional trial week at a lighter pace before the full computed pace
+  /// kicks in) and an optional non-enforced `personal_commitment_text`
+  /// (roadmap §4.7 — shown only as a self-reminder, the app never acts on
+  /// it). `achievement_milestones` is seeded up front with EVERY possible
+  /// certificate (locked, achieved_date NULL) by `MilestoneRepository` so
+  /// the "شهاداتي" gallery can show the full unlock map from day one —
+  /// this migration only creates the empty table.
+  Future<void> _createV15Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE journey_plan (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        start_date TEXT,
+        target_years REAL,
+        level TEXT,
+        daily_new_pages REAL,
+        trial_week_active INTEGER NOT NULL DEFAULT 1,
+        personal_commitment_text TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE achievement_milestones (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        pillar TEXT NOT NULL,
+        milestone_type TEXT NOT NULL,
+        reference_id INTEGER,
+        title TEXT NOT NULL,
+        achieved_date TEXT,
+        certificate_shared INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
   }
 }

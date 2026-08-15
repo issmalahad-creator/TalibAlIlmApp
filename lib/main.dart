@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'repositories/milestone_repository.dart';
 import 'screens/startup_gate.dart';
 import 'services/book_content_service.dart';
 import 'services/content_badge_service.dart';
@@ -29,11 +30,13 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   final _notificationService = NotificationService();
   final _bookContentService = BookContentService();
   final _quranImportService = QuranImportService();
+  final _milestoneRepository = MilestoneRepository();
 
   @override
   void initState() {
     super.initState();
     _quranImportService.importIfNeeded();
+    _milestoneRepository.seedIfNeeded();
     _checkBookContent();
     _connSub = Connectivity().onConnectivityChanged.listen((results) {
       if (results.any((r) => r != ConnectivityResult.none)) {

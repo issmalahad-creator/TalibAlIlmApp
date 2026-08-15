@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../repositories/hadith_repository.dart';
+import '../repositories/milestone_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/celebration_overlay.dart';
 import 'hadith_quiz_screen.dart';
 
 /// "الأربعين النووية" — Phase 5أ of QURAN_COMPANION_ROADMAP.md. Browse all
@@ -16,6 +18,7 @@ class HadithScreen extends StatefulWidget {
 
 class _HadithScreenState extends State<HadithScreen> {
   final _repo = HadithRepository();
+  final _milestoneRepo = MilestoneRepository();
   List<NawawiHadith> _hadiths = [];
   bool _loading = true;
 
@@ -38,6 +41,11 @@ class _HadithScreenState extends State<HadithScreen> {
   Future<void> _markMemorized(NawawiHadith h) async {
     await _repo.markMemorized(h.id);
     _load();
+    final newlyEarned = await _milestoneRepo.checkHadithMilestones();
+    for (final milestone in newlyEarned) {
+      if (!mounted) return;
+      await showCelebration(context, milestone);
+    }
   }
 
   @override

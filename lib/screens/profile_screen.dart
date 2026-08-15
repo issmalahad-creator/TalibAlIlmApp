@@ -7,6 +7,7 @@ import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
 import 'support_screen.dart';
 import 'completion_goals_screen.dart';
+import 'journey_screen.dart';
 import 'madarij_screen.dart';
 import 'wasitiyyah_screen.dart';
 import 'zad_almaad_screen.dart';
@@ -159,6 +160,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => const CompletionGoalsScreen())),
                   icon: const Icon(Icons.flag_circle_outlined),
                   label: const Text('خطط ختمي'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JourneyScreen())),
+                  icon: const Icon(Icons.route_outlined),
+                  label: const Text('رحلتي'),
                 ),
               ],
             ),

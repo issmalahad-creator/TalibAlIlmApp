@@ -4,8 +4,10 @@ import '../data/quran_surahs.dart';
 import '../db/database_helper.dart';
 import '../models/personal_accountability.dart';
 import '../repositories/memorization_repository.dart';
+import '../repositories/milestone_repository.dart';
 import '../repositories/personal_accountability_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/celebration_overlay.dart';
 
 /// "المراجعة" — Phase 2 of QURAN_COMPANION_ROADMAP.md. Today's due reviews,
 /// one page at a time, rated ممتاز/جيد/يحتاج مراجعة against the 6-station
@@ -20,6 +22,7 @@ class ReviewScreen extends StatefulWidget {
 class _ReviewScreenState extends State<ReviewScreen> {
   final _repo = MemorizationRepository();
   final _accountabilityRepo = PersonalAccountabilityRepository();
+  final _milestoneRepo = MilestoneRepository();
   static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
   List<MemorizationUnit> _queue = [];
@@ -82,6 +85,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
       _rating = false;
     });
     await _loadPreviewForCurrent();
+
+    // Only 'excellent' can advance a page past station 6 -> checking every
+    // time would be wasted work for the other two ratings.
+    if (quality == ReviewQuality.excellent) {
+      final newlyEarned = await _milestoneRepo.checkQuranMilestones();
+      for (final milestone in newlyEarned) {
+        if (!mounted) return;
+        await showCelebration(context, milestone);
+      }
+    }
   }
 
   Future<String?> _askForNote() async {
