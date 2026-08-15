@@ -57,6 +57,7 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] SMART-wizard goal setup + "trial first week" pacing
 - [ ] Optional non-monetary "personal commitment" reminder
 - [ ] "رحلتي" dashboard
+- [ ] `achievement_milestones` (roadmap §4.14) — confetti/celebration scaling with milestone size (page < surah < juz < full Quran), shareable certificate image via existing `share_plus` dependency, triggered from `memorization_progress` reaching station 6 across a whole unit
 - [ ] Commit
 
 ## Phase 5 — Extended Islamic text library (roadmap §4.9, sub-phases 5أ–5د)
@@ -83,3 +84,10 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] Recommendation-only, never a hard lock — matches the "companion not manager" principle
 - [ ] Fill `curriculum_items` incrementally as each content pillar ships (start with 5و/Qaida → level 1 as soon as it exists), don't wait for everything
 - [ ] Expand "رحلتي" (Phase 4) into this level-map screen rather than building a second separate screen
+
+## Phase 8 — AI recitation listener (roadmap §4.13) — hardest phase, needs a separate go/no-go decision first
+
+- [ ] BLOCKING DECISION from Ismail before any code: accept a cloud dependency (Gemini Live API) and its real per-use cost, given every other feature in this app is local/offline-first?
+- [ ] If yes: explicit opt-in consent screen before first use (audio leaves the device)
+- [ ] `recitation_sessions` table, integrate `flutter_quran_tajwid` or equivalent
+- [ ] Research actual Gemini Live API pricing before committing — not done yet
