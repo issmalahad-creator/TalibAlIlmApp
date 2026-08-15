@@ -17,19 +17,21 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
         await _createV3Tables(db);
         await _createV4Tables(db);
         await _createV5Tables(db);
+        await _createV6Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
         if (oldVersion < 3) await _createV3Tables(db);
         if (oldVersion < 4) await _createV4Tables(db);
         if (oldVersion < 5) await _createV5Tables(db);
+        if (oldVersion < 6) await _createV6Tables(db);
       },
     );
   }
@@ -254,6 +256,44 @@ class DatabaseHelper {
         did_reading INTEGER NOT NULL DEFAULT 0,
         did_new_memorization INTEGER NOT NULL DEFAULT 0,
         did_review INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+  }
+
+  /// Phase 3 of QURAN_COMPANION_ROADMAP.md — the "فهم" and "مطبّق" pillars.
+  /// `understanding_progress` is keyed by `unit_id` (one row per Mushaf
+  /// page, same granularity as `memorization_progress`) rather than the
+  /// ayah-range key sketched in the roadmap's early draft — simpler and
+  /// consistent with every other unit-scoped table, and "فهمت هذه الصفحة"
+  /// is how the daily session actually asks the question.
+  Future<void> _createV6Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE understanding_progress (
+        unit_id INTEGER PRIMARY KEY REFERENCES memorization_units(id),
+        understood INTEGER NOT NULL DEFAULT 0,
+        user_notes TEXT,
+        marked_date TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE practical_lessons (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        surah INTEGER NOT NULL,
+        ayah_from INTEGER NOT NULL,
+        ayah_to INTEGER NOT NULL,
+        lesson_text TEXT NOT NULL,
+        value_tag TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX idx_practical_lessons_surah ON practical_lessons(surah)
+    ''');
+    await db.execute('''
+      CREATE TABLE application_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lesson_id INTEGER NOT NULL REFERENCES practical_lessons(id),
+        applied_date TEXT NOT NULL,
+        user_reflection TEXT
       )
     ''');
   }
