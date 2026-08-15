@@ -8,19 +8,19 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] Git baseline commit (`a10664d`)
 - [x] `CLAUDE.md` + this `TODO.md` created
 
-## Phase –1 — Delete the Report feature (roadmap §4.5)
+## Phase –1 — Delete the Report feature (roadmap §4.5) — ✅ DONE 2026-08-15 (commit d1de6ab)
 
-- [ ] Delete `lib/screens/report_screen.dart`
-- [ ] Delete `lib/services/report_builder.dart`, `lib/services/sync_service.dart`, `lib/services/sheets_service.dart`
-- [ ] Delete `lib/models/report_draft.dart`, `lib/repositories/report_draft_repository.dart`, `lib/repositories/submission_repository.dart`
-- [ ] Remove `report_drafts`/`submission_queue` tables from `lib/db/database_helper.dart`
-- [ ] Remove tab 4 (`ReportScreen`) + bottom nav item from `lib/screens/main_shell.dart`
-- [ ] Remove `onSubmitReportTap` + "إرسال التقرير الشهري" card from `lib/screens/home_screen.dart`
-- [ ] Remove `SyncService`/`retryPending()` call from `lib/main.dart`'s connectivity listener
-- [ ] Repurpose (not delete) the report-deadline reminders in `lib/services/notification_service.dart` into a placeholder for the future daily-session reminder (Phase 2)
-- [ ] Confirm `TelegramService` still compiles/works standalone (used by `support_screen.dart`, must survive this deletion)
-- [ ] `flutter analyze` clean, `flutter pub get` clean
-- [ ] Commit: "Phase -1: remove Report feature"
+- [x] Delete `lib/screens/report_screen.dart`
+- [x] Delete `lib/services/report_builder.dart`, `lib/services/sync_service.dart`, `lib/services/sheets_service.dart`
+- [x] Delete `lib/models/report_draft.dart`, `lib/repositories/report_draft_repository.dart`, `lib/repositories/submission_repository.dart`
+- [x] Remove `report_drafts`/`submission_queue` tables from `lib/db/database_helper.dart`
+- [x] Remove tab 4 (`ReportScreen`) + bottom nav item from `lib/screens/main_shell.dart` (app is now 4 tabs; Phase 1+ will bring it back to 5 with the new Quran-first tabs)
+- [x] Remove `onSubmitReportTap` + "إرسال التقرير الشهري" card from `lib/screens/home_screen.dart`
+- [x] Remove `SyncService`/`retryPending()` call from `lib/main.dart`'s connectivity listener (book-content polling kept)
+- [x] Report-deadline reminder in `lib/services/notification_service.dart`: removed the scheduling call, cancels any already-scheduled one on old installs, id 1001 reserved + documented for Phase 2's real daily-session reminder
+- [x] Confirmed `TelegramService` untouched/still used by `support_screen.dart`
+- [x] `flutter pub get` clean, `flutter analyze` clean (2 pre-existing unrelated deprecation infos in quiz_screen.dart)
+- [x] Committed
 
 ## Phase 0 — Quran + tafsir data foundation (roadmap §2, §4.9 pending)
 
