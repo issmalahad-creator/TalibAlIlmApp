@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../data/quran_surahs.dart';
+import '../repositories/completion_goal_repository.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../theme/app_theme.dart';
 import 'certificates_screen.dart';
 import 'curriculum_map_screen.dart';
+import 'quran_browse_screen.dart';
 
-/// "رحلتي" — QURAN_COMPANION_ROADMAP.md §4.7. First run shows a SMART-style
-/// setup wizard (goal duration + current level -> computed daily pace,
-/// starting with a lighter trial week); afterwards it's a dashboard showing
-/// "أنت اليوم في اليوم X" + mastery progress, with the certificate gallery
-/// one tap away.
+final _surahNames = {for (final s in quranSurahs) s.number: s.name};
+
+const _scheduleLabels = {
+  ScheduleStatus.ahead: ('متقدّم على الخطة', Icons.trending_up, AppColors.primary),
+  ScheduleStatus.onTrack: ('في الموعد', Icons.check_circle_outline, AppColors.primaryDark),
+  ScheduleStatus.behind: ('متأخر عن الخطة', Icons.schedule_outlined, Color(0xFFD9A441)),
+};
+
+/// "رحلتي" — QURAN_COMPANION_ROADMAP.md §4.7, rebuilt 2026-08-16. First run
+/// shows a SMART-style setup wizard (goal duration + current level);
+/// afterwards it's a live dashboard — the pace/schedule status comes from
+/// `CompletionGoalRepository`'s already-adaptive engine (never a frozen
+/// number), and "تكليف اليوم" gives a concrete next page instead of
+/// leaving the student to browse the Mushaf and pick one themselves.
 class JourneyScreen extends StatefulWidget {
   const JourneyScreen({super.key});
 
@@ -55,7 +67,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _status == null
               ? _WizardView(repo: _repo, onCreated: _load)
-              : _DashboardView(status: _status!, repo: _repo, onCommitmentChanged: _load),
+              : _DashboardView(status: _status!, repo: _repo, onChanged: _load),
     );
   }
 }
@@ -80,8 +92,7 @@ class _WizardViewState extends State<_WizardView> {
     ('advanced', 'متقدم'),
   ];
 
-  double get _fullDailyPages => 604 / (_years * 365);
-  double get _trialDailyPages => _fullDailyPages / 2;
+  double get _dailyPages => 604 / (_years * 365);
 
   @override
   void dispose() {
@@ -106,7 +117,7 @@ class _WizardViewState extends State<_WizardView> {
         const Text('ابدأ رحلتك', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
         const Text(
-          'حدّد هدفك ومستواك الحالي، وسنحسب لك وتيرة يومية مناسبة — تبدأ بأسبوع تجريبي أخف قبل الوتيرة الكاملة.',
+          'حدّد هدفك ومستواك الحالي، وسنحسب لك وتيرة يومية مناسبة — وستتكيّف هذه الوتيرة تلقائيًا مع أدائك الفعلي لاحقًا، لا تبقى رقمًا ثابتًا.',
           style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
         ),
         const SizedBox(height: 24),
@@ -137,16 +148,8 @@ class _WizardViewState extends State<_WizardView> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('الوتيرة الكاملة المحسوبة: ${_fullDailyPages.toStringAsFixed(2)} صفحة يوميًا',
-                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text('أول أسبوع تجريبي بوتيرة أخف: ${_trialDailyPages.toStringAsFixed(2)} صفحة يوميًا',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-            ],
-          ),
+          child: Text('الوتيرة المحسوبة: ${_dailyPages.toStringAsFixed(2)} صفحة يوميًا',
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
         ),
         const SizedBox(height: 20),
         const Text('التزام شخصي (اختياري)', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
@@ -174,8 +177,8 @@ class _WizardViewState extends State<_WizardView> {
 class _DashboardView extends StatelessWidget {
   final JourneyStatus status;
   final JourneyPlanRepository repo;
-  final VoidCallback onCommitmentChanged;
-  const _DashboardView({required this.status, required this.repo, required this.onCommitmentChanged});
+  final VoidCallback onChanged;
+  const _DashboardView({required this.status, required this.repo, required this.onChanged});
 
   Future<void> _editCommitment(BuildContext context) async {
     final controller = TextEditingController(text: status.plan.personalCommitmentText ?? '');
@@ -192,24 +195,99 @@ class _DashboardView extends StatelessWidget {
     );
     if (result == null) return;
     await repo.updateCommitment(result.isEmpty ? null : result);
-    onCommitmentChanged();
+    onChanged();
+  }
+
+  Future<void> _showReplanChoices(BuildContext context) async {
+    final gs = status.goalStatus;
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('أنت متأخر قليلًا عن الخطة — لا بأس'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('اختر ما يناسبك، بلا أي ضغط:', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+            const SizedBox(height: 14),
+            _ChoiceCard(
+              title: 'أكمل بوتيرتي الحالية',
+              subtitle: 'سيتأخر تاريخ الختم قليلًا، وهذا طبيعي',
+              onTap: () => Navigator.pop(context, 'extend'),
+            ),
+            const SizedBox(height: 8),
+            _ChoiceCard(
+              title: 'كثّف للوصول للهدف الأصلي',
+              subtitle: 'وتيرتك المطلوبة الآن: ${gs.recalculatedDailyTarget.toStringAsFixed(2)} ${status.goal.unitLabel} يوميًا',
+              onTap: () => Navigator.pop(context, 'intensify'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == 'extend') {
+      await repo.extendAtCurrentPace(status.goal, gs.remaining);
+      onChanged();
+    }
+    // 'intensify' needs no write — the dashboard already shows the live
+    // recalculated pace; the choice is just informational.
   }
 
   @override
   Widget build(BuildContext context) {
+    final gs = status.goalStatus;
+    final scheduleLabel = _scheduleLabels[gs.scheduleStatus]!;
+    final nextUnit = status.nextRecommendedUnit;
+    final surahName = nextUnit == null ? null : (_surahNames[nextUnit.surahStart] ?? '${nextUnit.surahStart}');
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Text('أنت اليوم في اليوم ${status.dayNumber}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-        if (status.onTrialWeek) ...[
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(8)),
-            child: const Text('أسبوعك التجريبي الأول — وتيرة أخف قبل الانتقال للوتيرة الكاملة',
-                style: TextStyle(fontSize: 11.5, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(color: scheduleLabel.$3.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(scheduleLabel.$2, size: 15, color: scheduleLabel.$3),
+              const SizedBox(width: 6),
+              Text(scheduleLabel.$1, style: TextStyle(fontSize: 12, color: scheduleLabel.$3, fontWeight: FontWeight.w700)),
+            ],
           ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'الوتيرة الحالية: ${gs.recalculatedDailyTarget.toStringAsFixed(2)} ${status.goal.unitLabel} يوميًا — بقي ${gs.remaining} من ${gs.daysLeft} يومًا',
+          style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+        ),
+        if (gs.scheduleStatus == ScheduleStatus.behind) ...[
+          const SizedBox(height: 10),
+          OutlinedButton(onPressed: () => _showReplanChoices(context), child: const Text('أعِد التخطيط')),
         ],
+        const SizedBox(height: 20),
+        if (nextUnit != null)
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('تكليف اليوم', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                const SizedBox(height: 6),
+                Text('صفحة ${nextUnit.id} — سورة $surahName، من آية ${nextUnit.ayahStart}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 10),
+                FilledButton.icon(
+                  onPressed: () => Navigator.push(
+                      context, MaterialPageRoute(builder: (_) => QuranBrowseScreen(highlightUnitId: nextUnit.id))),
+                  icon: const Icon(Icons.play_arrow, size: 18),
+                  label: const Text('ابدأ الحفظ'),
+                ),
+              ],
+            ),
+          ),
         const SizedBox(height: 20),
         Text('${status.masteryPercent.toStringAsFixed(1)}% إتقان', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
@@ -218,14 +296,8 @@ class _DashboardView extends StatelessWidget {
           child: LinearProgressIndicator(value: status.masteryPercent / 100, minHeight: 10, backgroundColor: AppColors.divider),
         ),
         const SizedBox(height: 6),
-        Text('${status.masteredPages} من ${status.totalPages} صفحة متقنة تمامًا', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
-        const SizedBox(height: 20),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-          child: Text('الوتيرة الحالية: ${status.currentDailyPace.toStringAsFixed(2)} صفحة جديدة يوميًا',
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-        ),
+        Text('${status.masteredPages} من ${status.totalPages} صفحة متقنة تمامًا (بعد مراجعات متكررة، لا بمجرد "حفظتها")',
+            style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
         const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CertificatesScreen())),
@@ -260,6 +332,33 @@ class _DashboardView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ChoiceCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  const _ChoiceCard({required this.title, required this.subtitle, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text(subtitle, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+          ],
+        ),
+      ),
     );
   }
 }

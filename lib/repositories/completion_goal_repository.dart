@@ -45,7 +45,7 @@ class CompletionGoal {
   String get unitLabel => switch ((contentType, bookRef)) {
         ('quran_reading', _) => 'صفحة',
         ('personal_book', _) => 'صفحة',
-        ('quran_memorization', _) => 'آية',
+        ('quran_memorization', _) => 'صفحة',
         (_, 'zad_almaad') => 'فصلًا',
         (_, 'madarij') => 'قسمًا',
         (_, 'wasitiyyah') => 'فقرة',

@@ -9,7 +9,12 @@ import '../theme/app_theme.dart';
 /// the review engine — without this, `dueToday()` in the review screen has
 /// nothing to show).
 class QuranBrowseScreen extends StatefulWidget {
-  const QuranBrowseScreen({super.key});
+  /// When set (e.g. arriving from رحلتي's "تكليف اليوم" card), that page
+  /// gets a featured call-out above the Juz list with a one-tap "حفظتها" —
+  /// so the student lands directly on their assigned page instead of
+  /// having to find it themselves in the full Mushaf browse below.
+  final int? highlightUnitId;
+  const QuranBrowseScreen({super.key, this.highlightUnitId});
 
   @override
   State<QuranBrowseScreen> createState() => _QuranBrowseScreenState();
@@ -57,11 +62,47 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     }
     final juzNumbers = byJuz.keys.toList()..sort();
     final memorizedCount = _units.where((u) => u.status != 'not_started').length;
+    MemorizationUnit? highlighted;
+    if (widget.highlightUnitId != null) {
+      for (final u in _units) {
+        if (u.id == widget.highlightUnitId) {
+          highlighted = u;
+          break;
+        }
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('القرآن')),
       body: Column(
         children: [
+          if (highlighted != null && highlighted.status == 'not_started')
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.flag_outlined, color: AppColors.primaryDark),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('تكليف اليوم', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                          Text(
+                            'صفحة ${highlighted.id} — من سورة ${_surahNames[highlighted.surahStart] ?? highlighted.surahStart} آية ${highlighted.ayahStart}',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                          ),
+                        ],
+                      ),
+                    ),
+                    FilledButton(onPressed: () => _markMemorized(highlighted!), child: const Text('حفظتها')),
+                  ],
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
             child: Text('$memorizedCount من ${_units.length} صفحة ضمن الحفظ', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),

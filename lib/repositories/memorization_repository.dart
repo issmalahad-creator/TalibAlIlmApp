@@ -174,6 +174,27 @@ class MemorizationRepository {
     return selected.map(_toUnit).toList();
   }
 
+  /// The next page to memorize, in plain Mushaf order — the first unit
+  /// with no `memorization_progress` row at all (never started). Powers
+  /// "تكليف اليوم" so the student gets a concrete assignment instead of
+  /// having to browse the whole Mushaf and pick a page themselves.
+  /// Deterministic on purpose (no "smart" reordering) — same predictability
+  /// principle as `dueToday()`.
+  Future<MemorizationUnit?> nextRecommendedUnit() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('''
+      SELECT u.id, u.surah_start, u.ayah_start, u.surah_end, u.ayah_end, u.juz_number,
+             p.status, p.station, p.next_review_date
+      FROM memorization_units u
+      LEFT JOIN memorization_progress p ON p.unit_id = u.id
+      WHERE p.unit_id IS NULL
+      ORDER BY u.id
+      LIMIT 1
+    ''');
+    if (rows.isEmpty) return null;
+    return _toUnit({...rows.first, 'status': 'not_started'});
+  }
+
   /// Whether at least one page was newly marked memorized today — powers
   /// the "حفظ جديد" step of "جلسة اليوم" without a separate tracking table.
   Future<bool> hasMemorizedToday() async {
