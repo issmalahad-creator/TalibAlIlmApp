@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
+import '../data/practical_lessons_seed.dart';
 import '../db/database_helper.dart';
 import '../utils/arabic_normalize.dart';
 
@@ -55,6 +56,21 @@ class QuranImportService {
       for (final edition in _tafsirEditions) {
         await _importTafsirEdition(db, edition);
       }
+    }
+
+    final existingLessons = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM practical_lessons'));
+    if (existingLessons == null || existingLessons == 0) {
+      final batch = db.batch();
+      for (final l in practicalLessonsSeed) {
+        batch.insert('practical_lessons', {
+          'surah': l.surah,
+          'ayah_from': l.ayahFrom,
+          'ayah_to': l.ayahTo,
+          'lesson_text': l.lessonText,
+          'value_tag': l.valueTag,
+        });
+      }
+      await batch.commit(noResult: true);
     }
   }
 
