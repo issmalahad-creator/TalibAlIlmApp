@@ -74,3 +74,10 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
 - [ ] `translation_am`/`translation_en` columns on `quran_ayat` sourced from Tanzil (Amharic: Sadiq/Habib; English: Saheeh International or similar)
 - [ ] Explicitly NOT promised: full translation of tafsir/hadith-commentary/fiqh content — no ready-made trusted source exists
+
+## Phase 7 — Level map: "zero to scholar" (roadmap §4.11)
+
+- [ ] `curriculum_levels` (1=beginner, 2=intermediate, 3=advanced), `curriculum_items`, `user_level_progress`
+- [ ] Recommendation-only, never a hard lock — matches the "companion not manager" principle
+- [ ] Fill `curriculum_items` incrementally as each content pillar ships (start with 5و/Qaida → level 1 as soon as it exists), don't wait for everything
+- [ ] Expand "رحلتي" (Phase 4) into this level-map screen rather than building a second separate screen
