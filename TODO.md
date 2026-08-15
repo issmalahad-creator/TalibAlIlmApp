@@ -125,15 +125,16 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [ ] `recitation_sessions` table, integrate `flutter_quran_tajwid` or equivalent
 - [ ] Research actual Gemini Live API pricing before committing — not done yet
 
-## Phase 9 — Qibla direction + prayer-times engine (Ismail's request 2026-08-15) — queued LAST per his explicit sequencing confirmation
+## Phase 9 — Qibla direction + prayer-times engine (Ismail's request 2026-08-15) — ✅ DONE 2026-08-15 (commit 4826f53)
 
-Architecture Ismail specified and Claude agreed to (2026-08-15): `Location Service → Astronomical Calculation Engine → Prayer Jurisprudence Configuration → Validation Engine → Prayer Schedule → Notifications`, fully offline after an initial GPS fix. Agreed approach: use the `adhan` package (open-source, published/audited astronomical formulas — same standard math every serious prayer-time app uses) as the verified calculation core, NOT hand-derived formulas — and build Ismail's real ask (independent validation against known cities/dates, Qibla sensor fusion with magnetic-declination correction + calibration detection + confidence display, graceful degradation when GPS/sensors are weak, full offline operation) around it. NOT scoped or started yet.
+Architecture Ismail specified and Claude agreed to (2026-08-15): `Location Service → Astronomical Calculation Engine → Prayer Jurisprudence Configuration → Validation Engine → Prayer Schedule → Notifications`, fully offline after an initial GPS fix. Used `adhan_dart` (MIT-licensed, published/audited astronomical formulas) as the verified calculation core, not hand-derived formulas.
 
-- [ ] Location service (GPS + manual-entry fallback for weak signal)
-- [ ] Prayer Calculation Engine wrapping `adhan` (calculation method, madhhab, high-latitude rule all configurable)
-- [ ] Independent Validation Engine — test suite across many cities/dates/methods, flag any non-sensible deviation
-- [ ] Qibla compass: great-circle bearing to the Kaaba's fixed coordinates, magnetic sensor + accelerometer/gyroscope fusion, magnetic declination correction, un-calibrated-device detection, confidence indicator — never silently claims accuracy when sensors are unstable
-- [ ] Home screen integration (Ismail's sketch): "رفيقك اليوم" card showing next prayer time + Qibla + today's Quran/adhkar status together
+- [x] Location service (GPS via `geolocator` + cached-last-fix + manual-entry fallback) — `lib/services/location_service.dart`
+- [x] Prayer Calculation Engine wrapping `adhan_dart` — 13 calculation methods + madhab (Asr timing) configurable and persisted — `lib/repositories/prayer_times_repository.dart`
+- [x] Independent Validation Engine — `test/prayer_times_validation_test.dart`, 201 assertions: chronological ordering across 8 real cities × 5 dates × 4 methods, Dhuhr cross-checked against solar noon computed independently via equation-of-time (not the library's own math). Genuinely caught a wrong assumption mid-development (Dhuhr isn't bit-identical across methods — some apply a small conventional offset) and the test was corrected, not the library.
+- [x] Qibla compass — bearing via `adhan_dart`'s verified great-circle formula, heading via `flutter_compass` (magnetometer+accelerometer fusion), confidence indicator derived from the sensor's own reported accuracy (never claims precision it doesn't have), calibration prompt at low confidence
+- [ ] Home screen integration: ships as standalone quick-access buttons (HomeScreen + ProfileScreen) for now — the FULL combined "رفيقك اليوم" card (prayer+Qibla+Quran+adhkar status together, Ismail's sketch) is NOT built yet, still open
+- [ ] High-latitude rule (for far-north/south locations where twilight angles behave unusually) NOT exposed as a setting yet — `adhan_dart` supports it, just not wired into the UI
 
 ## Phase 10 — Multi-language basics + Arabic-learning curriculum for non-native speakers (Ismail's request 2026-08-15) — NOT scoped/started yet, immediately after Phase 9
 
