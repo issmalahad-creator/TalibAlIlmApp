@@ -175,13 +175,10 @@ class _ResultCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          // TODO(Phase 0 follow-up): no Uthmani-script font is bundled yet
-          // (e.g. Amiri, SIL-licensed) — falls back to the system font for
-          // now, which doesn't render Quranic glyphs/marks as cleanly.
           Text(
             result.textUthmani,
             textAlign: TextAlign.right,
-            style: const TextStyle(fontSize: 17, height: 1.9),
+            style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 20, height: 2.0),
           ),
           if (result.tafsir != null && result.tafsir!.trim().isNotEmpty) ...[
             const SizedBox(height: 8),

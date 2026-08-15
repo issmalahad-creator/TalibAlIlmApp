@@ -181,7 +181,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   ),
                   if (_startAyahPreview != null) ...[
                     const SizedBox(height: 16),
-                    Text(_startAyahPreview!, textAlign: TextAlign.right, style: const TextStyle(fontSize: 18, height: 1.9)),
+                    Text(_startAyahPreview!, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.0)),
                   ],
                 ],
               ),

@@ -103,7 +103,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                                   style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark),
                                 ),
                               ),
-                            Text('${a.text} ﴿${a.ayah}﴾', textAlign: TextAlign.right, style: const TextStyle(fontSize: 18, height: 2)),
+                            Text('${a.text} ﴿${a.ayah}﴾', textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.1)),
                           ],
                         ),
                       );
