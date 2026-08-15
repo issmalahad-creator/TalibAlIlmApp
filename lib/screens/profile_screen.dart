@@ -4,6 +4,7 @@ import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
 import '../services/calendar_preference_service.dart';
 import '../theme/app_theme.dart';
+import 'adhkar_screen.dart';
 import 'hadith_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
@@ -188,6 +189,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const JourneyScreen())),
                   icon: const Icon(Icons.route_outlined),
                   label: const Text('رحلتي'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
+                  icon: const Icon(Icons.nights_stay_outlined),
+                  label: const Text('حصن المسلم'),
                 ),
               ],
             ),

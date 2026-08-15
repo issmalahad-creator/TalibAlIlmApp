@@ -40,6 +40,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
     super.initState();
     _quranImportService.importIfNeeded();
     _milestoneRepository.seedIfNeeded();
+    _notificationService.scheduleAdhkarReminders();
     _checkBookContent();
     _connSub = Connectivity().onConnectivityChanged.listen((results) {
       if (results.any((r) => r != ConnectivityResult.none)) {

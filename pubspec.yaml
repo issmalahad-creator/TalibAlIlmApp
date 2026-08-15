@@ -100,6 +100,7 @@ flutter:
     - assets/aqeedah/wasitiyyah.json
     - assets/fiqh_seerah/zad_almaad_vol1.json
     - assets/aqeedah/madarij_part1.json
+    - assets/adhkar/hisn_almuslim.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

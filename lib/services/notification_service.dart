@@ -55,6 +55,19 @@ class NotificationService {
   static const _goalChannelName = 'تذكير خطط الختم';
   static const _goalReminderHour = 20;
 
+  // Adhkar morning/evening reminders — fixed daily times (honest
+  // approximation: this app has no real prayer-time calculation yet, so
+  // these are NOT actually "after Fajr"/"after Asr" as the roadmap's
+  // original wording aspired to, just reasonable fixed clock times).
+  // Offset clear of every range above (1001, 2000+taskId, 3000, 4000,
+  // 5000, 6000+goalId).
+  static const _adhkarMorningNotificationId = 7000;
+  static const _adhkarEveningNotificationId = 7001;
+  static const _adhkarChannelId = 'adhkar_reminders';
+  static const _adhkarChannelName = 'تذكير أذكار الصباح والمساء';
+  static const _adhkarMorningHour = 6;
+  static const _adhkarEveningHour = 17;
+
   final _plugin = FlutterLocalNotificationsPlugin();
 
   static Future<void>? _initFuture;
@@ -214,6 +227,42 @@ class NotificationService {
   Future<void> cancelGoalReminder(int goalId) async {
     await _ensureInitialized();
     await _plugin.cancel(id: _goalReminderNotificationIdBase + goalId);
+  }
+
+  /// Fixed daily adhkar reminders (morning ~$_adhkarMorningHour:00, evening
+  /// ~$_adhkarEveningHour:00) — true recurring alarms via
+  /// `matchDateTimeComponents: DateTimeComponents.time`, unlike every other
+  /// reminder in this file which reschedules itself on each check-in.
+  /// Idempotent to call repeatedly (cancels then reschedules).
+  Future<void> scheduleAdhkarReminders() async {
+    await _ensureInitialized();
+    await _scheduleDailyAt(_adhkarMorningNotificationId, _adhkarMorningHour, 'أذكار الصباح 🌅', 'وقت أذكار الصباح — لا تنسَ نصيبك اليوم.');
+    await _scheduleDailyAt(_adhkarEveningNotificationId, _adhkarEveningHour, 'أذكار المساء 🌇', 'وقت أذكار المساء — لا تنسَ نصيبك اليوم.');
+  }
+
+  Future<void> _scheduleDailyAt(int id, int hour, String title, String body) async {
+    await _plugin.cancel(id: id);
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
+    if (scheduled.isBefore(now)) scheduled = scheduled.add(const Duration(days: 1));
+
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: scheduled,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _adhkarChannelId,
+          _adhkarChannelName,
+          channelDescription: 'تذكير يومي ثابت بأذكار الصباح والمساء (وقت تقريبي، لا يعتمد على أوقات الصلاة الفعلية بعد)',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
   }
 
   /// Fires immediately (not scheduled) when [ContentBadgeService] detects

@@ -92,6 +92,45 @@ class QuranImportService {
     if (existingMadarij == null || existingMadarij == 0) {
       await _importMadarij(db);
     }
+
+    final existingAdhkar = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM adhkar_categories'));
+    if (existingAdhkar == null || existingAdhkar == 0) {
+      await _importAdhkar(db);
+    }
+  }
+
+  /// Hisn al-Muslim (Sa'id Al-Qahtani) — Phase 5هـ of
+  /// QURAN_COMPANION_ROADMAP.md. Source: `rn0x/hisn_almuslim_json` on
+  /// GitHub, fetched as raw JSON (not summarized) and verified against the
+  /// well-known text (restroom dua's Bukhari/Muslim citation, the Ayat
+  /// al-Kursi/Mu'awwidhat opening of the morning adhkar). 134 chapters,
+  /// 298 duas, imported whole — `is_daily_core` (computed at bundling time
+  /// in the scratchpad transform script, not here) flags the routine
+  /// everyday-life chapters pinned to the top of the adhkar screen.
+  Future<void> _importAdhkar(Database db) async {
+    final raw = await rootBundle.loadString('assets/adhkar/hisn_almuslim.json');
+    final categories = jsonDecode(raw) as List<dynamic>;
+    final batch = db.batch();
+    for (final entry in categories) {
+      final map = entry as Map<String, dynamic>;
+      final categoryId = await db.insert('adhkar_categories', {
+        'category_order': map['order'] as int,
+        'title': map['title'] as String,
+        'is_daily_core': (map['is_daily_core'] as bool) ? 1 : 0,
+      });
+      final items = map['items'] as List<dynamic>;
+      for (var i = 0; i < items.length; i++) {
+        final item = items[i] as Map<String, dynamic>;
+        batch.insert('adhkar_items', {
+          'category_id': categoryId,
+          'item_order': i + 1,
+          'text': item['text'] as String,
+          'footnote': item['footnote'] as String?,
+          'repeat_count': item['repeat'] as int,
+        });
+      }
+    }
+    await batch.commit(noResult: true);
   }
 
   /// Madarij As-Salikin Part 1 — see the v12 migration's doc comment for

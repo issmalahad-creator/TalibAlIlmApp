@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 15,
+      version: 16,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -34,6 +34,7 @@ class DatabaseHelper {
         await _createV13Tables(db);
         await _createV14Tables(db);
         await _createV15Tables(db);
+        await _createV16Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -50,6 +51,7 @@ class DatabaseHelper {
         if (oldVersion < 13) await _createV13Tables(db);
         if (oldVersion < 14) await _createV14Tables(db);
         if (oldVersion < 15) await _createV15Tables(db);
+        if (oldVersion < 16) await _createV16Tables(db);
       },
     );
   }
@@ -503,6 +505,45 @@ class DatabaseHelper {
         title TEXT NOT NULL,
         achieved_date TEXT,
         certificate_shared INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+  }
+
+  /// Phase 5هـ of QURAN_COMPANION_ROADMAP.md — Hisn al-Muslim daily adhkar
+  /// (Sa'id Al-Qahtani; the whole book, 134 chapters/298 duas, verified
+  /// verbatim against `rn0x/hisn_almuslim_json` — see the import service's
+  /// doc comment). `adhkar_categories.is_daily_core` flags the ~17 routine
+  /// everyday-life chapters (waking up, wudu, mosque, morning/evening,
+  /// sleep, istighfar, etc.) pinned to the top of the adhkar screen; the
+  /// rest of the book (funerals, hajj, travel, ...) stays browsable below.
+  /// `adhkar_completion` is deliberately category+date only (not per-item) —
+  /// a category counts as done for the day once every item in it has been
+  /// tapped through, which is all a streak needs to know.
+  Future<void> _createV16Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE adhkar_categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_order INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        is_daily_core INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE adhkar_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category_id INTEGER NOT NULL REFERENCES adhkar_categories(id),
+        item_order INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        footnote TEXT,
+        repeat_count INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_adhkar_items_category ON adhkar_items(category_id)');
+    await db.execute('''
+      CREATE TABLE adhkar_completion (
+        category_id INTEGER NOT NULL REFERENCES adhkar_categories(id),
+        completed_date TEXT NOT NULL,
+        PRIMARY KEY (category_id, completed_date)
       )
     ''');
   }
