@@ -174,6 +174,21 @@ class MemorizationRepository {
     return selected.map(_toUnit).toList();
   }
 
+  /// All 604 units with their progress (or the implicit 'not_started'
+  /// status for units with no `memorization_progress` row yet) — powers the
+  /// "القرآن" browse screen. Ordered by id (= Mushaf page order).
+  Future<List<MemorizationUnit>> allUnitsWithProgress() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('''
+      SELECT u.id, u.surah_start, u.ayah_start, u.surah_end, u.ayah_end, u.juz_number,
+             COALESCE(p.status, 'not_started') AS status, p.station, p.next_review_date
+      FROM memorization_units u
+      LEFT JOIN memorization_progress p ON p.unit_id = u.id
+      ORDER BY u.id
+    ''');
+    return rows.map(_toUnit).toList();
+  }
+
   MemorizationUnit _toUnit(Map<String, Object?> row) => MemorizationUnit(
         id: row['id'] as int,
         surahStart: row['surah_start'] as int,

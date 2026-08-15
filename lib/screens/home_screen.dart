@@ -22,6 +22,7 @@ import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
 import 'onboarding_screen.dart';
 import 'profile_screen.dart';
+import 'quran_browse_screen.dart';
 import 'quran_search_screen.dart';
 import 'review_screen.dart';
 
@@ -209,6 +210,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       await Navigator.push(context, MaterialPageRoute(builder: (_) => const ReviewScreen()));
                       _load();
                     },
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranBrowseScreen()));
+                      _load();
+                    },
+                    icon: const Icon(Icons.menu_book_outlined, size: 18),
+                    label: const Text('تصفّح القرآن وحدّد ما حفظته'),
                   ),
                 ],
               ),
