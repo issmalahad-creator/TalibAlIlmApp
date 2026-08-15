@@ -39,13 +39,14 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] Commit
 - [ ] Known follow-up, not a blocker: bundle a proper Uthmani-script font (e.g. Amiri, SIL license) — ayah text currently renders in the system font
 
-## Phase 2 — Review engine + daily session — algorithm + screen DONE 2026-08-15 (commits 9107fa6, 022ad19); session flow still open
+## Phase 2 — Review engine + daily session — ✅ DONE 2026-08-15 (commits 9107fa6, 022ad19, 5e3e833)
 
 - [x] 6-station Ebbinghaus review algorithm (roadmap §4) — `memorization_repository.dart`
 - [x] "المراجعة" screen (reachable from Home) — due-today queue, rate ممتاز/جيد/يحتاج مراجعة
 - [x] Non-punitive catch-up/return logic — dueToday() caps overdue backlog (default 5 extra), never dumps it all at once
-- [ ] Full "اليوم" 6-step session flow (قراءة → حفظ جديد → مراجعة → فهم → تطبيق → اختبار) — only the مراجعة step exists as its own screen so far, not yet assembled into the single daily-session flow described in roadmap §6
-- [ ] Commit (for the session-flow piece specifically)
+- [x] "جلسة اليوم" shell — قراءة/حفظ جديد/مراجعة real and auto-tracked, فهم/تطبيق/اختبار honestly shown as "قريبًا" (blocked on Phase 3 data, not faked)
+- [x] Personal accountability (roadmap §4.7 expansion, Ismail's explicit request): self-chosen reward + optional self-chosen punishment, app only ever reminds, never enforces — `personal_accountability_screen.dart`, reward reminder wired into review completion
+- [x] Commit
 
 ## Phase 3 — Understanding + Application pillars
 
