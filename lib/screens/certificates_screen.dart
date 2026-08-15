@@ -67,6 +67,11 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
           _section('ختم القرآن الكريم كاملًا', byType['full_quran'] ?? []),
           _section('الأربعون النووية كاملة', byType['full_arbain'] ?? []),
           _section('دفعات الأحاديث', byType['ten_hadiths'] ?? []),
+          _section('استمرارية أذكار الصباح والمساء', [
+            ...byType['adhkar_streak_7'] ?? [],
+            ...byType['adhkar_streak_30'] ?? [],
+            ...byType['adhkar_streak_100'] ?? [],
+          ]),
           _section('الأجزاء', byType['juz'] ?? []),
           _section('السور', byType['surah'] ?? []),
         ],

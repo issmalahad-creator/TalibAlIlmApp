@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../repositories/adhkar_repository.dart';
+import '../repositories/milestone_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/celebration_overlay.dart';
+
+/// The book's title for the merged morning+evening chapter — only this
+/// category's completions count toward the streak certificates (see
+/// `MilestoneRepository.checkAdhkarMilestones`'s doc comment for why it's
+/// one combined habit rather than two separate morning/evening ones).
+const _streakTrackedCategoryTitle = 'أذكار الصباح والمساء';
 
 /// Tap-to-count-down UI for one adhkar category — QURAN_COMPANION_ROADMAP.md
 /// Phase 5هـ. Each dhikr starts at its book-specified repeat count; tapping
@@ -17,6 +25,7 @@ class AdhkarCategoryScreen extends StatefulWidget {
 
 class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
   final _repo = AdhkarRepository();
+  final _milestoneRepo = MilestoneRepository();
   List<AdhkarItem> _items = [];
   Map<int, int> _remaining = {};
   bool _loading = true;
@@ -40,15 +49,24 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     });
   }
 
-  void _tap(AdhkarItem item) {
+  Future<void> _tap(AdhkarItem item) async {
     final current = _remaining[item.id] ?? 0;
     if (current <= 0) return;
     setState(() => _remaining[item.id] = current - 1);
-    if (_remaining.values.every((v) => v <= 0)) {
-      _repo.markCompletedToday(widget.category.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('أحسنت — أتممت هذا الذكر 🌿')),
-      );
+    if (!_remaining.values.every((v) => v <= 0)) return;
+
+    await _repo.markCompletedToday(widget.category.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('أحسنت — أتممت هذا الذكر 🌿')),
+    );
+
+    if (widget.category.title != _streakTrackedCategoryTitle) return;
+    final streak = await _repo.currentStreak(widget.category.id);
+    final newlyEarned = await _milestoneRepo.checkAdhkarMilestones(streak);
+    for (final milestone in newlyEarned) {
+      if (!mounted) return;
+      await showCelebration(context, milestone);
     }
   }
 

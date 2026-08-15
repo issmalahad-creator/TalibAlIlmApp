@@ -6,8 +6,8 @@ import '../utils/month.dart';
 
 class Milestone {
   final int id;
-  final String pillar; // 'quran' | 'hadith'
-  final String milestoneType; // 'surah' | 'juz' | 'full_quran' | 'ten_hadiths' | 'full_arbain'
+  final String pillar; // 'quran' | 'hadith' | 'adhkar'
+  final String milestoneType; // 'surah' | 'juz' | 'full_quran' | 'ten_hadiths' | 'full_arbain' | 'adhkar_streak_7' | 'adhkar_streak_30' | 'adhkar_streak_100'
   final int? referenceId;
   final String title;
   final String? achievedDate;
@@ -29,7 +29,7 @@ class Milestone {
   /// celebration): page < surah/10-hadiths < juz/full-Arbain < full Quran.
   int get celebrationTier => switch (milestoneType) {
         'full_quran' => 3,
-        'juz' || 'full_arbain' => 2,
+        'juz' || 'full_arbain' || 'adhkar_streak_100' => 2,
         _ => 1,
       };
 }
@@ -44,6 +44,7 @@ class Milestone {
 class MilestoneRepository {
   static const _hadithBatchSizes = [10, 20, 30, 40];
   static const _totalHadiths = 42;
+  static const _adhkarStreakThresholds = [7, 30, 100];
 
   Future<void> seedIfNeeded() async {
     final db = await DatabaseHelper.instance.database;
@@ -87,6 +88,14 @@ class MilestoneRepository {
       'reference_id': null,
       'title': 'شهادة إتمام حفظ الأربعين النووية كاملة',
     });
+    for (final days in _adhkarStreakThresholds) {
+      batch.insert('achievement_milestones', {
+        'pillar': 'adhkar',
+        'milestone_type': 'adhkar_streak_$days',
+        'reference_id': null,
+        'title': 'شهادة الاستمرار $days يومًا في أذكار الصباح والمساء',
+      });
+    }
     await batch.commit(noResult: true);
   }
 
@@ -166,6 +175,32 @@ class MilestoneRepository {
       if (count >= n) await tryAward('ten_hadiths', n);
     }
     if (count >= _totalHadiths) await tryAward('full_arbain', null);
+
+    return newlyEarned;
+  }
+
+  /// Detects newly-reached adhkar streak certificates — call after
+  /// `AdhkarRepository.markCompletedToday` for the merged morning+evening
+  /// category (see `_adhkarStreakCategoryTitle`'s doc comment for why it's
+  /// just the one category rather than two).
+  Future<List<Milestone>> checkAdhkarMilestones(int streakDays) async {
+    final db = await DatabaseHelper.instance.database;
+    final newlyEarned = <Milestone>[];
+    final today = todayDate();
+
+    for (final threshold in _adhkarStreakThresholds) {
+      if (streakDays < threshold) continue;
+      final type = 'adhkar_streak_$threshold';
+      final rows = await db.query(
+        'achievement_milestones',
+        where: 'pillar = ? AND milestone_type = ? AND reference_id IS NULL',
+        whereArgs: ['adhkar', type],
+      );
+      if (rows.isEmpty || rows.first['achieved_date'] != null) continue;
+      final row = rows.first;
+      await db.update('achievement_milestones', {'achieved_date': today}, where: 'id = ?', whereArgs: [row['id']]);
+      newlyEarned.add(_toMilestone({...row, 'achieved_date': today}));
+    }
 
     return newlyEarned;
   }
