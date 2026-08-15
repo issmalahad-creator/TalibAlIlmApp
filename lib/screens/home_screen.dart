@@ -23,7 +23,9 @@ import 'hifz_screen.dart';
 import 'onboarding_screen.dart';
 import 'adhkar_screen.dart';
 import 'daily_session_screen.dart';
+import 'prayer_times_screen.dart';
 import 'profile_screen.dart';
+import 'qibla_screen.dart';
 import 'quran_browse_screen.dart';
 import 'quran_reading_screen.dart';
 import 'quran_search_screen.dart';
@@ -147,6 +149,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     icon: const Icon(Icons.wb_sunny_outlined, size: 18),
                     label: const Text('جلسة اليوم'),
                     style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
+                          icon: const Icon(Icons.access_time_outlined, size: 18),
+                          label: const Text('أوقات الصلاة'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
+                          icon: const Icon(Icons.explore_outlined, size: 18),
+                          label: const Text('القبلة'),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 10),
                   OutlinedButton.icon(

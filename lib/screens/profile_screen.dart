@@ -8,6 +8,8 @@ import 'adab_screen.dart';
 import 'adhkar_screen.dart';
 import 'hadith_screen.dart';
 import 'new_muslim_guide_screen.dart';
+import 'prayer_times_screen.dart';
+import 'qibla_screen.dart';
 import 'wird_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
@@ -185,6 +187,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdabScreen())),
                   icon: const Icon(Icons.volunteer_activism_outlined),
                   label: const Text('باب الأدب'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
+                  icon: const Icon(Icons.access_time_outlined),
+                  label: const Text('أوقات الصلاة'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
+                  icon: const Icon(Icons.explore_outlined),
+                  label: const Text('اتجاه القبلة'),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
