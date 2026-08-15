@@ -65,7 +65,8 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 
 - [ ] 5أ: Al-Arba'in Al-Nawawiyyah + Ibn Uthaymeen's commentary (+ add its `achievement_milestones` rows: full-completion certificate + one every 10 hadiths, per §4.14)
 - [ ] 5ب: Al-Aqidah Al-Wasitiyyah + Ibn Uthaymeen's commentary
-- [ ] 5ج: Zad al-Ma'ad selected chapters + Ibn Uthaymeen's commentary (mark which chapters only)
+- [ ] 5ج: Zad al-Ma'ad selected chapters + Ibn Uthaymeen's commentary (mark which chapters only) — study-order breakdown designed in roadmap section 5ج (7 topic units, level-tagged), evaluate "مختصر زاد المعاد" (Dr. Ahmad, alukah.net PDF) as a simpler entry point
+- [ ] 5ح: Madarij As-Salikin (Ibn al-Qayyim) — advanced tier ONLY, no confirmed mukhtasar found yet, source for madarij_sections.text_excerpt still unresolved
 - [ ] 5د: Fiqh al-Taharah (Ash-Sharh Al-Mumti') + Salah method (Al-Shuwaie'r) + visual aid SVGs
 - [ ] 5هـ: Hisn al-Muslim daily adhkar — tap-to-count-down UI, smart after-Fajr/after-Asr reminders, streak, home-screen quick-access button (not buried in a tab); reference "عمل اليوم والليلة" (Ibn al-Sunni/An-Nasa'i) as the classical root source (+ add its `achievement_milestones` rows: 7/30/100-day streak certificates per §4.14, for morning and evening adhkar separately)
 - [ ] 5و: Noorani Qaida for children — letters → harakat → madd → tanween → sukoon → words, `child_profiles` (multiple kids per device), display text ALWAYS fully vocalized (no tashkeel-stripped display, unlike the adult search feature), mandatory audio pronunciation per letter/word — audio source licensing/recording unresolved, must confirm before building
