@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -26,6 +26,7 @@ class DatabaseHelper {
         await _createV5Tables(db);
         await _createV6Tables(db);
         await _createV7Tables(db);
+        await _createV8Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -34,6 +35,7 @@ class DatabaseHelper {
         if (oldVersion < 5) await _createV5Tables(db);
         if (oldVersion < 6) await _createV6Tables(db);
         if (oldVersion < 7) await _createV7Tables(db);
+        if (oldVersion < 8) await _createV8Tables(db);
       },
     );
   }
@@ -307,5 +309,15 @@ class DatabaseHelper {
   Future<void> _createV7Tables(Database db) async {
     await db.execute('ALTER TABLE daily_session_log ADD COLUMN did_understanding INTEGER NOT NULL DEFAULT 0');
     await db.execute('ALTER TABLE daily_session_log ADD COLUMN did_application INTEGER NOT NULL DEFAULT 0');
+  }
+
+  /// "اختبر نفسك" — the last of جلسة اليوم's 6 steps. No external question
+  /// bank was found for this (searched, nothing structured exists) — the
+  /// quiz is instead generated entirely from `quran_ayat` already imported:
+  /// "ما الآية التالية؟" within the student's own memorized range, the same
+  /// mechanic real Hifz teachers use to test memorization. No new reference
+  /// table needed, just this one tracking column.
+  Future<void> _createV8Tables(Database db) async {
+    await db.execute('ALTER TABLE daily_session_log ADD COLUMN did_quiz INTEGER NOT NULL DEFAULT 0');
   }
 }

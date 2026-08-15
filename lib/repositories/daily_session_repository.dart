@@ -9,12 +9,14 @@ class DailySessionStatus {
   final bool didReview;
   final bool didUnderstanding;
   final bool didApplication;
+  final bool didQuiz;
   const DailySessionStatus({
     this.didReading = false,
     this.didNewMemorization = false,
     this.didReview = false,
     this.didUnderstanding = false,
     this.didApplication = false,
+    this.didQuiz = false,
   });
 
   factory DailySessionStatus.fromMap(Map<String, Object?> map) => DailySessionStatus(
@@ -23,9 +25,10 @@ class DailySessionStatus {
         didReview: (map['did_review'] as int? ?? 0) == 1,
         didUnderstanding: (map['did_understanding'] as int? ?? 0) == 1,
         didApplication: (map['did_application'] as int? ?? 0) == 1,
+        didQuiz: (map['did_quiz'] as int? ?? 0) == 1,
       );
 
-  bool get allDone => didReading && didNewMemorization && didReview && didUnderstanding && didApplication;
+  bool get allDone => didReading && didNewMemorization && didReview && didUnderstanding && didApplication && didQuiz;
 }
 
 /// "جلسة اليوم" tracking for the 3 steps that currently have real data
@@ -38,7 +41,14 @@ class DailySessionRepository {
     return DailySessionStatus.fromMap(rows.first);
   }
 
-  Future<void> markStep({bool? reading, bool? newMemorization, bool? review, bool? understanding, bool? application}) async {
+  Future<void> markStep({
+    bool? reading,
+    bool? newMemorization,
+    bool? review,
+    bool? understanding,
+    bool? application,
+    bool? quiz,
+  }) async {
     final db = await DatabaseHelper.instance.database;
     final today = todayDate();
     final existing = await db.query('daily_session_log', where: 'date = ?', whereArgs: [today], limit: 1);
@@ -52,6 +62,7 @@ class DailySessionRepository {
         'did_review': (review ?? current.didReview) ? 1 : 0,
         'did_understanding': (understanding ?? current.didUnderstanding) ? 1 : 0,
         'did_application': (application ?? current.didApplication) ? 1 : 0,
+        'did_quiz': (quiz ?? current.didQuiz) ? 1 : 0,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );

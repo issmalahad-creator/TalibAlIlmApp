@@ -6,6 +6,7 @@ import '../repositories/memorization_repository.dart';
 import '../repositories/understanding_repository.dart';
 import '../theme/app_theme.dart';
 import 'application_screen.dart';
+import 'memorization_quiz_screen.dart';
 import 'quran_browse_screen.dart';
 import 'review_screen.dart';
 import 'understanding_screen.dart';
@@ -81,6 +82,11 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
     _load();
   }
 
+  Future<void> _openQuiz() async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => const MemorizationQuizScreen()));
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,12 +143,14 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
                   onTap: _openApplication,
                   actionLabel: 'درس اليوم',
                 ),
-                const SizedBox(height: 8),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text('قريبًا', style: TextStyle(fontSize: 12, color: AppColors.textMuted, fontWeight: FontWeight.w700)),
+                _StepCard(
+                  title: 'اختبر نفسك',
+                  subtitle: 'ما الآية التالية؟',
+                  icon: Icons.quiz_outlined,
+                  done: _status.didQuiz,
+                  onTap: _openQuiz,
+                  actionLabel: 'ابدأ',
                 ),
-                const _StepCard(title: 'اختبر نفسك', subtitle: 'أسئلة قصيرة', icon: Icons.quiz_outlined, comingSoon: true),
               ],
             ),
     );
@@ -154,7 +162,6 @@ class _StepCard extends StatelessWidget {
   final String subtitle;
   final IconData icon;
   final bool done;
-  final bool comingSoon;
   final VoidCallback? onTap;
   final String actionLabel;
   const _StepCard({
@@ -162,40 +169,34 @@ class _StepCard extends StatelessWidget {
     required this.subtitle,
     required this.icon,
     this.done = false,
-    this.comingSoon = false,
     this.onTap,
     this.actionLabel = '',
   });
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: comingSoon ? 0.5 : 1,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
-        child: Row(
-          children: [
-            Icon(icon, color: done ? AppColors.primary : AppColors.textMuted),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                  Text(subtitle, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-                ],
-              ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
+      child: Row(
+        children: [
+          Icon(icon, color: done ? AppColors.primary : AppColors.textMuted),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                Text(subtitle, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+              ],
             ),
-            if (comingSoon)
-              const SizedBox.shrink()
-            else if (done)
-              const Icon(Icons.check_circle, color: AppColors.primary)
-            else
-              TextButton(onPressed: onTap, child: Text(actionLabel, style: const TextStyle(fontSize: 12))),
-          ],
-        ),
+          ),
+          if (done)
+            const Icon(Icons.check_circle, color: AppColors.primary)
+          else
+            TextButton(onPressed: onTap, child: Text(actionLabel, style: const TextStyle(fontSize: 12))),
+        ],
       ),
     );
   }
