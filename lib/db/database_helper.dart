@@ -17,7 +17,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 16,
+      version: 17,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -35,6 +35,7 @@ class DatabaseHelper {
         await _createV14Tables(db);
         await _createV15Tables(db);
         await _createV16Tables(db);
+        await _createV17Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -52,6 +53,7 @@ class DatabaseHelper {
         if (oldVersion < 14) await _createV14Tables(db);
         if (oldVersion < 15) await _createV15Tables(db);
         if (oldVersion < 16) await _createV16Tables(db);
+        if (oldVersion < 17) await _createV17Tables(db);
       },
     );
   }
@@ -544,6 +546,27 @@ class DatabaseHelper {
         category_id INTEGER NOT NULL REFERENCES adhkar_categories(id),
         completed_date TEXT NOT NULL,
         PRIMARY KEY (category_id, completed_date)
+      )
+    ''');
+  }
+
+  /// "الورد اليومي" — QURAN_COMPANION_ROADMAP.md §4.17. The templates
+  /// themselves are a fixed curated list in `data/wird_templates.dart`
+  /// (not DB-driven); only the student's current selection and the new
+  /// istighfar tally need storage — every other item in a wird template
+  /// (Quran, adhkar, scholar-content reading) reuses a *_progress table
+  /// that already exists.
+  Future<void> _createV17Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE wird_selection (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        template_key TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE istighfar_log (
+        log_date TEXT PRIMARY KEY,
+        count INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }
