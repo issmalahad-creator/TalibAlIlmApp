@@ -55,14 +55,14 @@ Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** 
 - [x] Wired into جلسة اليوم — all 6 of 6 steps now real (اختبر نفسك added same day, generated from quran_ayat, no external bank needed — commit 26cc08d)
 - [x] Commit
 
-## Phase 4 — Journey plan
+## Phase 4 — Journey plan — ✅ FULLY DONE 2026-08-15 (commit b68ff25)
 
-- [ ] SMART-wizard goal setup + "trial first week" pacing
-- [ ] Optional non-monetary "personal commitment" reminder
-- [ ] "رحلتي" dashboard
-- [ ] `achievement_milestones` (roadmap §4.14) — confetti/celebration scaling with milestone size (page < surah < juz < full Quran), shareable certificate image via existing `share_plus` dependency, triggered from `memorization_progress` reaching station 6 across a whole unit
-- [ ] "شهاداتي" gallery screen — shows EVERY possible certificate (Quran ones first, since Phase 4 ships before 5أ/5هـ), locked/greyed for not-yet-earned with "complete X to unlock" text, full-color + share button once earned. Design this to be pillar-agnostic from the start so hadith/adhkar rows slot in later without a rebuild.
-- [ ] Commit
+- [x] SMART-wizard goal setup + "trial first week" pacing — `JourneyPlanRepository`, target years + level -> computed daily pace, first 7 days at half pace
+- [x] Optional non-monetary "personal commitment" reminder — `journey_plan.personal_commitment_text`, purely self-displayed, app never acts on it
+- [x] "رحلتي" dashboard — "أنت اليوم في اليوم X" + mastery % + current pace
+- [x] `achievement_milestones` (roadmap §4.14) — confetti/celebration scaling with milestone size (surah/10-hadiths < juz/full-Arba'in < full Quran — page-level tier intentionally dropped, no page-level certificate exists), shareable certificate image via existing `share_plus` dependency, triggered from `memorization_progress` reaching station 6 across a whole unit
+- [x] "شهاداتي" gallery screen — shows EVERY possible certificate (Quran + hadith; adhkar rows will slot in once 5هـ ships, pillar-agnostic design already supports it), locked/greyed for not-yet-earned with "complete X to unlock" text (tap shows the unlock hint), full-color + share button once earned
+- [x] Commit
 
 ## Phase 4.15 — خطة الختم: generalized completion planner (roadmap §4.15) — ✅ FULLY DONE 2026-08-15 (commits 2d0ae59, 91632cd, 2cdec51, c4ad0df)
 
