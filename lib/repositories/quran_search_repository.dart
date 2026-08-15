@@ -29,10 +29,22 @@ class QuranSearchResult {
 class QuranSearchRepository {
   static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
+  /// The four available tafsir sources (slug, display label) — see
+  /// QURAN_COMPANION_ROADMAP.md's "التفسير" section. Default is the concise
+  /// modern mukhtasar, not the full Ibn Kathir text, since search results
+  /// are meant to be scannable.
+  static const tafsirSources = [
+    ('almukhtasar', 'التفسير المختصر'),
+    ('muyassar', 'التفسير الميسر'),
+    ('saadi', 'تفسير السعدي'),
+    ('ibn_kathir_full', 'تفسير ابن كثير (الكامل)'),
+  ];
+  static const defaultTafsirSource = 'almukhtasar';
+
   /// Also accepts a direct `"سورة آية"` / `"سورة:آية"` reference (e.g.
   /// "البقرة 255") and resolves it to that single ayah instead of a text
   /// search, when the query matches a known surah name followed by a number.
-  Future<List<QuranSearchResult>> search(String query) async {
+  Future<List<QuranSearchResult>> search(String query, {String tafsirSource = defaultTafsirSource}) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
 
@@ -42,31 +54,34 @@ class QuranSearchRepository {
       final ayahNum = int.tryParse(refMatch.group(2)!);
       final surahEntry = quranSurahs.where((s) => normalizeArabicForSearch(s.name) == surahQuery).toList();
       if (surahEntry.isNotEmpty && ayahNum != null) {
-        return _byReference(surahEntry.first.number, ayahNum);
+        return _byReference(surahEntry.first.number, ayahNum, tafsirSource);
       }
     }
 
-    return _byText(trimmed);
+    return _byText(trimmed, tafsirSource);
   }
 
   static const _selectWithTafsir = '''
     SELECT q.surah, q.ayah, q.text_uthmani, q.page_number, q.juz_number, t.text AS tafsir
     FROM quran_ayat q
-    LEFT JOIN tafsir_entries t ON t.surah = q.surah AND q.ayah BETWEEN t.ayah_from AND t.ayah_to
+    LEFT JOIN tafsir_entries t ON t.surah = q.surah AND q.ayah BETWEEN t.ayah_from AND t.ayah_to AND t.source = ?
   ''';
 
-  Future<List<QuranSearchResult>> _byReference(int surah, int ayah) async {
+  Future<List<QuranSearchResult>> _byReference(int surah, int ayah, String tafsirSource) async {
     final db = await DatabaseHelper.instance.database;
-    final rows = await db.rawQuery('$_selectWithTafsir WHERE q.surah = ? AND q.ayah = ? LIMIT 1', [surah, ayah]);
+    final rows = await db.rawQuery(
+      '$_selectWithTafsir WHERE q.surah = ? AND q.ayah = ? LIMIT 1',
+      [tafsirSource, surah, ayah],
+    );
     return rows.map(_toResult).toList();
   }
 
-  Future<List<QuranSearchResult>> _byText(String query) async {
+  Future<List<QuranSearchResult>> _byText(String query, String tafsirSource) async {
     final normalized = normalizeArabicForSearch(query);
     final db = await DatabaseHelper.instance.database;
     final rows = await db.rawQuery(
       '$_selectWithTafsir WHERE q.text_normalized LIKE ? ORDER BY q.surah, q.ayah LIMIT 300',
-      ['%$normalized%'],
+      [tafsirSource, '%$normalized%'],
     );
     return rows.map(_toResult).toList();
   }

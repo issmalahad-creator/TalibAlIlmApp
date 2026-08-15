@@ -17,13 +17,15 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
+        await _createV3Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
+        if (oldVersion < 3) await _createV3Tables(db);
       },
     );
   }
@@ -165,6 +167,55 @@ class DatabaseHelper {
     ''');
     await db.execute('''
       CREATE INDEX idx_tafsir_surah_ayah ON tafsir_entries(surah, ayah_from, ayah_to)
+    ''');
+  }
+
+  /// Phase 1/2 of QURAN_COMPANION_ROADMAP.md — the memorization + 6-station
+  /// review engine (roadmap section 4). `memorization_units` rows (604,
+  /// one per Mushaf page) are generated from `quran_ayat.page_number` by
+  /// `QuranImportService`, not here — this migration only creates the empty
+  /// tables. Additive only, every earlier table/row is untouched.
+  Future<void> _createV3Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE memorization_units (
+        id INTEGER PRIMARY KEY,
+        surah_start INTEGER NOT NULL,
+        ayah_start INTEGER NOT NULL,
+        surah_end INTEGER NOT NULL,
+        ayah_end INTEGER NOT NULL,
+        juz_number INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE memorization_progress (
+        unit_id INTEGER PRIMARY KEY REFERENCES memorization_units(id),
+        status TEXT NOT NULL DEFAULT 'not_started',
+        memorized_date TEXT,
+        last_review_date TEXT,
+        next_review_date TEXT,
+        station INTEGER,
+        consecutive_good_count INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX idx_memorization_progress_next_review ON memorization_progress(next_review_date)
+    ''');
+    await db.execute('''
+      CREATE TABLE review_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id INTEGER NOT NULL REFERENCES memorization_units(id),
+        review_date TEXT NOT NULL,
+        quality TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE mistake_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        unit_id INTEGER NOT NULL REFERENCES memorization_units(id),
+        review_id INTEGER REFERENCES review_log(id),
+        note TEXT,
+        logged_date TEXT NOT NULL
+      )
     ''');
   }
 }

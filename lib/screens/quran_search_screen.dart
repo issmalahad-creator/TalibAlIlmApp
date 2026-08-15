@@ -24,6 +24,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
   List<QuranSearchResult> _results = [];
   bool _searching = false;
   bool _hasSearched = false;
+  String _tafsirSource = QuranSearchRepository.defaultTafsirSource;
 
   @override
   void dispose() {
@@ -44,9 +45,15 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
     _debounce = Timer(const Duration(milliseconds: 350), () => _runSearch(value));
   }
 
+  void _onTafsirSourceChanged(String? source) {
+    if (source == null) return;
+    setState(() => _tafsirSource = source);
+    if (_controller.text.trim().isNotEmpty) _runSearch(_controller.text);
+  }
+
   Future<void> _runSearch(String value) async {
     setState(() => _searching = true);
-    final results = await _repo.search(value);
+    final results = await _repo.search(value, tafsirSource: _tafsirSource);
     if (!mounted) return;
     setState(() {
       _results = results;
@@ -79,7 +86,25 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
               'لا حاجة للتشكيل — البحث يعمل بالحروف العادية',
               style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Text('التفسير: ', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                Expanded(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    isDense: true,
+                    value: _tafsirSource,
+                    underline: const SizedBox.shrink(),
+                    items: QuranSearchRepository.tafsirSources
+                        .map((s) => DropdownMenuItem(value: s.$1, child: Text(s.$2, style: const TextStyle(fontSize: 13))))
+                        .toList(),
+                    onChanged: _onTafsirSourceChanged,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Expanded(child: _buildResults()),
           ],
         ),
@@ -108,15 +133,19 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
           );
         }
         final r = _results[i - 1];
-        return _ResultCard(result: r);
+        return _ResultCard(result: r, tafsirLabel: _tafsirSourceLabel);
       },
     );
   }
+
+  String get _tafsirSourceLabel =>
+      QuranSearchRepository.tafsirSources.firstWhere((s) => s.$1 == _tafsirSource).$2;
 }
 
 class _ResultCard extends StatelessWidget {
   final QuranSearchResult result;
-  const _ResultCard({required this.result});
+  final String tafsirLabel;
+  const _ResultCard({required this.result, required this.tafsirLabel});
 
   @override
   Widget build(BuildContext context) {
@@ -160,7 +189,7 @@ class _ResultCard extends StatelessWidget {
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
                 tilePadding: EdgeInsets.zero,
-                title: const Text('التفسير (ابن كثير)', style: TextStyle(fontSize: 12.5, color: AppColors.primaryDark)),
+                title: Text(tafsirLabel, style: const TextStyle(fontSize: 12.5, color: AppColors.primaryDark)),
                 children: [
                   Align(
                     alignment: Alignment.centerRight,

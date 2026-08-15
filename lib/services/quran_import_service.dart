@@ -22,6 +22,14 @@ class QuranImportService {
       final ayat = await _parseAyat();
       final boundaries = await _parseBoundaries();
 
+      // Single pass, in canonical Mushaf order: insert each ayah AND track
+      // the first/last (surah, ayah) seen per page — that directly gives
+      // memorization_units' ranges without a second, trickier tuple-min/max
+      // SQL query (page boundaries don't always align to surah boundaries).
+      final pageFirst = <int, (int, int)>{};
+      final pageLast = <int, (int, int)>{};
+      final pageJuz = <int, int>{};
+
       final batch = db.batch();
       for (final a in ayat) {
         final juz = _boundaryIndexFor(boundaries.juz, a.surah, a.ayah);
@@ -34,26 +42,39 @@ class QuranImportService {
           'juz_number': juz,
           'page_number': page,
         });
+        pageFirst.putIfAbsent(page, () => (a.surah, a.ayah));
+        pageLast[page] = (a.surah, a.ayah);
+        pageJuz.putIfAbsent(page, () => juz);
       }
       await batch.commit(noResult: true);
+      await _generateMemorizationUnits(db, pageFirst, pageLast, pageJuz);
     }
 
     final existingTafsir = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries'));
     if (existingTafsir == null || existingTafsir == 0) {
-      await _importTafsir(db);
+      for (final edition in _tafsirEditions) {
+        await _importTafsirEdition(db, edition);
+      }
     }
   }
 
-  /// Full (unabridged) Arabic Tafsir Ibn Kathir — see QURAN_COMPANION_ROADMAP.md
-  /// section "التفسير" for why this is the full text rather than one of the
-  /// three planned mukhtasars (no comparable structured source was found for
-  /// those). Source: spa5k/tafsir_api (`ar-tafsir-ibn-kathir` edition),
-  /// gzip-compressed in assets/ (89.7MB -> 9.6MB) to keep the app bundle
-  /// reasonable. One row per ayah, `source` fixed to 'ibn_kathir_full' so
-  /// abridged editions can be added later as additional rows without
-  /// conflicting.
-  Future<void> _importTafsir(Database db) async {
-    final byteData = await rootBundle.load('assets/quran/tafsir-ibn-kathir-full.jsonl.gz');
+  /// Four Arabic tafsir editions, all sourced the same way (spa5k/tafsir_api
+  /// via jsDelivr CDN, bulk-fetched to a gzip-compressed JSONL asset — see
+  /// QURAN_COMPANION_ROADMAP.md's "التفسير" section for the full story of
+  /// why these four rather than the three originally-planned mukhtasars, and
+  /// why the full Ibn Kathir text is included alongside three actual
+  /// mukhtasars). Each becomes its own `source` value in `tafsir_entries`,
+  /// so a single ayah can carry all four for the in-app source switcher.
+  static const _tafsirEditions = [
+    ('assets/quran/tafsir-ibn-kathir-full.jsonl.gz', 'ibn_kathir_full'),
+    ('assets/quran/tafsir-almukhtasar.jsonl.gz', 'almukhtasar'),
+    ('assets/quran/tafsir-muyassar.jsonl.gz', 'muyassar'),
+    ('assets/quran/tafsir-saadi.jsonl.gz', 'saadi'),
+  ];
+
+  Future<void> _importTafsirEdition(Database db, (String, String) edition) async {
+    final (assetPath, sourceKey) = edition;
+    final byteData = await rootBundle.load(assetPath);
     final compressed = byteData.buffer.asUint8List();
     final decompressed = gzip.decode(compressed);
     final jsonlText = utf8.decode(decompressed);
@@ -66,11 +87,38 @@ class QuranImportService {
         'surah': obj['surah'] as int,
         'ayah_from': obj['ayah'] as int,
         'ayah_to': obj['ayah'] as int,
-        'source': 'ibn_kathir_full',
+        'source': sourceKey,
         'text': obj['text'] as String,
-        // Not extracted yet — deliberately left null rather than guessed
-        // via an unvalidated text-search heuristic. See roadmap section 2.
+        // Not extracted for any edition yet — deliberately left null rather
+        // than guessed via an unvalidated text-search heuristic.
         'asbab_nuzul_excerpt': null,
+      });
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Phase 1 of QURAN_COMPANION_ROADMAP.md — one `memorization_units` row
+  /// per Mushaf page (604 total), the scheduling unit for the review engine
+  /// (roadmap section 4). `memorization_progress` rows are NOT created here
+  /// — they're created lazily (status 'not_started' is the implicit default
+  /// for any unit with no row yet) so this stays a pure reference table.
+  Future<void> _generateMemorizationUnits(
+    Database db,
+    Map<int, (int, int)> pageFirst,
+    Map<int, (int, int)> pageLast,
+    Map<int, int> pageJuz,
+  ) async {
+    final batch = db.batch();
+    for (final page in pageFirst.keys) {
+      final (surahStart, ayahStart) = pageFirst[page]!;
+      final (surahEnd, ayahEnd) = pageLast[page]!;
+      batch.insert('memorization_units', {
+        'id': page,
+        'surah_start': surahStart,
+        'ayah_start': ayahStart,
+        'surah_end': surahEnd,
+        'ayah_end': ayahEnd,
+        'juz_number': pageJuz[page],
       });
     }
     await batch.commit(noResult: true);
