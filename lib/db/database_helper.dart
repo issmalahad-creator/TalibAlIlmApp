@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 26,
+      version: 27,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -73,6 +73,7 @@ class DatabaseHelper {
         if (oldVersion < 24) await _fixQuranNormalizedTextV24(db);
         if (oldVersion < 25) await _createV25Tables(db);
         if (oldVersion < 26) await _createV26Tables(db);
+        if (oldVersion < 27) await _fixQuranNormalizedTextV27(db);
       },
     );
   }
@@ -778,5 +779,28 @@ class DatabaseHelper {
         note TEXT
       )
     ''');
+  }
+
+  /// Follow-up to `_fixQuranNormalizedTextV24`: that fix stripped the
+  /// combining madda/hamza marks but still deleted the dagger alef
+  /// (U+0670) outright. Deleting it is wrong for most words — in the
+  /// Uthmani rasm it usually stands in for a real, omitted "ا" letter
+  /// (e.g. ٱلظَّـٰلِمِينَ = "الظالمين"), so a plain-typed search for
+  /// "الظالمين" still returned nothing (Ismail's report 2026-08-16,
+  /// second screenshot after the v24 fix). Same reasoning as v24: this
+  /// column is computed once at import time, so already-installed
+  /// devices need every row recomputed with the corrected function.
+  Future<void> _fixQuranNormalizedTextV27(Database db) async {
+    final rows = await db.query('quran_ayat', columns: ['surah', 'ayah', 'text_uthmani']);
+    final batch = db.batch();
+    for (final row in rows) {
+      batch.update(
+        'quran_ayat',
+        {'text_normalized': normalizeArabicForSearch(row['text_uthmani'] as String)},
+        where: 'surah = ? AND ayah = ?',
+        whereArgs: [row['surah'], row['ayah']],
+      );
+    }
+    await batch.commit(noResult: true);
   }
 }
