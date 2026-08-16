@@ -267,6 +267,26 @@ The Phase 19 blank-screen fix added error-visibility but never found the actual 
 - [x] `flutter analyze`/`flutter test` clean, debug APK built and sent.
 - [ ] Not yet confirmed fixed by Ismail on his actual device — this was reasoned from the exact symptom description ("empty, not an error"), not a live repro, so needs his confirmation.
 
+## Phase 30 — أهل القرآن research + طبّق gap fix in the Worship Coach (Ismail's request 2026-08-16) — ✅ DONE (commit 94df17c)
+
+Ismail: "تعلّم زيادة عن توجيه المستخدم كي يكون مسلم ذو خلق وأهل القرآن ومقيم الصلاة، ليس فقط يصلي." Real `WebSearch` research first, per roadmap §4.32.
+
+- [x] أهل القرآن confirmed (via the authentic hadith and classical usage) to be defined by acting on the Quran, not reciting/memorizing it — found `WorshipCoachRepository.quranConsistency()` never counted `did_application` ("طبّق") days despite that column existing since Phase 3. Fixed.
+- [x] إقامة الصلاة vs. mere أداء researched and confirmed — no gap found, the existing Salah companion already tracks khushu/consistency/punctuality/congregation exactly as the concept requires.
+- [x] `flutter analyze`/`flutter test` clean.
+
+## Phase 31 — 4 new memorization-coach features + "تعديل ما حفظت" (Ismail's request 2026-08-16) — ✅ DONE (commits 4e6dc30, fcd541e)
+
+Ismail: "اسمح بالتعديل في ما حفظت واضف 4 مزايه في مدرب التحفيض جديده ابحث في الانترنت ان لم تكن تعلم." All 4 features build on the already-researched سبق/سبقي/منزل methodology (§4.31), plus new research on repetition counts (§4.33).
+
+- [x] `MemorizationRepository.resetProgress(unitId)` — undo a mistakenly-marked memorized page (clears progress + review/mistake history), edit icon on each memorized page in تصفح القرآن behind a confirm dialog
+- [x] Mastery-gate advisory: مدرب العبادة now recommends completing due reviews before a new سبق when there's real review debt — advisory (routes to المراجعة), never a hard block
+- [x] Real منزل weekly target (`manzilDailyPortionSize()`) shown as an informational stat in مدرب العبادة — doesn't touch the live scheduling engine
+- [x] Recurring weak-spot detector (`recurringWeakSpots()`) — reuses existing `mistake_log`, surfaces the most-repeated-mistake pages from the last 30 days
+- [x] Repetition counter for today's سبق — new `sabaq_repetition_log` table (DB v30→v31), simple tap counter on the "تكليف اليوم" card showing the researched 10-40 range honestly, not an invented precise number
+- [x] `flutter analyze`/`flutter test` clean (215 passing, same pre-existing unrelated failure).
+- [ ] Not yet tested on-device.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
