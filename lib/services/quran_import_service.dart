@@ -51,6 +51,21 @@ class QuranImportService {
       await _generateMemorizationUnits(db, pageFirst, pageLast, pageJuz);
     }
 
+    // Self-healing check (Ismail's report 2026-08-16: "حدد ما حفظته"/
+    // "ابدأ الحفظ" opening to a genuinely empty page — not an error, not a
+    // crash, just zero rows). `_generateMemorizationUnits` above only runs
+    // inside the `quran_ayat`-empty branch, so any device that somehow
+    // ended up with `quran_ayat` populated but `memorization_units` empty
+    // (the exact combination that produces this symptom) would never get
+    // it backfilled — this recomputes it independently, straight from the
+    // already-imported `quran_ayat` rows (which already carry the needed
+    // `page_number`/`juz_number` columns), so it self-heals regardless of
+    // how the table ended up empty. Cheap no-op on every normal run.
+    final existingUnits = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM memorization_units'));
+    if (existingUnits == null || existingUnits == 0) {
+      await _regenerateMemorizationUnitsFromAyat(db);
+    }
+
     final existingTafsir = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries'));
     if (existingTafsir == null || existingTafsir == 0) {
       for (final edition in _tafsirEditions) {
@@ -272,6 +287,30 @@ class QuranImportService {
       });
     }
     await batch.commit(noResult: true);
+  }
+
+  /// Same algorithm as `_generateMemorizationUnits`, sourced from the
+  /// already-imported `quran_ayat` rows instead of a fresh text parse —
+  /// the self-healing fallback described above. `quran_ayat` is read in
+  /// canonical Mushaf order (surah ascending, ayah ascending — surah
+  /// numbers themselves already run in Mushaf order, so this needs no
+  /// separate boundary re-parse).
+  Future<void> _regenerateMemorizationUnitsFromAyat(Database db) async {
+    final rows = await db.query('quran_ayat', columns: ['surah', 'ayah', 'page_number', 'juz_number'], orderBy: 'surah ASC, ayah ASC');
+    if (rows.isEmpty) return;
+
+    final pageFirst = <int, (int, int)>{};
+    final pageLast = <int, (int, int)>{};
+    final pageJuz = <int, int>{};
+    for (final row in rows) {
+      final page = row['page_number'] as int;
+      final surah = row['surah'] as int;
+      final ayah = row['ayah'] as int;
+      pageFirst.putIfAbsent(page, () => (surah, ayah));
+      pageLast[page] = (surah, ayah);
+      pageJuz.putIfAbsent(page, () => row['juz_number'] as int);
+    }
+    await _generateMemorizationUnits(db, pageFirst, pageLast, pageJuz);
   }
 
   Future<List<_Ayah>> _parseAyat() async {

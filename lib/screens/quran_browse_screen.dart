@@ -170,9 +170,16 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
                 final juz = juzNumbers[i];
                 final pages = byJuz[juz]!;
                 final juzMemorized = pages.where((u) => u.status != 'not_started').length;
+                // Auto-expand the Juz containing today's highlighted
+                // assignment (or Juz 1 if there's no highlight) so the
+                // screen never LOOKS empty at a glance — every other Juz
+                // starts collapsed by design, but a first-time visitor
+                // shouldn't have to know to tap one open first.
+                final isDefaultExpanded = highlighted != null ? juz == highlighted.juzNumber : juz == juzNumbers.first;
                 return Theme(
                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
+                    initiallyExpanded: isDefaultExpanded,
                     title: Text('الجزء $juz', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                     subtitle: Text('$juzMemorized من ${pages.length} صفحة', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                     children: pages.map(_pageRow).toList(),
