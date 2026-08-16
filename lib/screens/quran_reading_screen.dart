@@ -5,6 +5,7 @@ import '../data/quran_surahs.dart';
 import '../repositories/quran_reading_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../theme/app_theme.dart';
+import 'journey_screen.dart';
 import 'quran_browse_screen.dart';
 import 'quran_search_screen.dart';
 
@@ -118,6 +119,10 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     Navigator.push(context, MaterialPageRoute(builder: (_) => QuranBrowseScreen(highlightUnitId: _page)));
   }
 
+  void _openJourney() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const JourneyScreen()));
+  }
+
   void _notAvailable(String feature) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('"$feature" لا يوجد لها مصدر بيانات موثوق بعد — لم تُضَف حتى لا نخترعها')),
@@ -208,7 +213,23 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
               const SizedBox(height: 14),
               ListTile(leading: const Icon(Icons.list_alt_outlined), title: const Text('الفهرس'), onTap: () { Navigator.pop(context); _openIndex(); }),
               ListTile(leading: const Icon(Icons.search_rounded), title: const Text('البحث'), onTap: () { Navigator.pop(context); _openSearch(); }),
-              ListTile(leading: const Icon(Icons.check_circle_outline), title: const Text('حدّد ما حفظته من هذه الصفحة'), onTap: () { Navigator.pop(context); _openBrowseForCurrentPage(); }),
+              ListTile(
+                leading: const Icon(Icons.check_circle_outline),
+                title: const Text('حدّد ما حفظته من هذه الصفحة'),
+                onTap: () {
+                  Navigator.pop(context);
+                  WidgetsBinding.instance.addPostFrameCallback((_) => _openBrowseForCurrentPage());
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.route_outlined),
+                title: const Text('رحلتي ومدرب الحفظ'),
+                subtitle: const Text('خطتك، تكليف اليوم، ووتيرتك المتكيفة', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.pop(context);
+                  WidgetsBinding.instance.addPostFrameCallback((_) => _openJourney());
+                },
+              ),
               const Divider(),
               SwitchListTile(
                 secondary: const Icon(Icons.menu_book_outlined),
@@ -336,7 +357,21 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: Text('صفحة $_page'),
+        titleSpacing: 0,
+        toolbarHeight: 64,
+        title: _ayat.isEmpty
+            ? Text('صفحة $_page')
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('سورة ${_surahNames[_ayat.first.surah] ?? _ayat.first.surah}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  Text(
+                    'الجزء ${_ayat.first.juzNumber ?? '-'}  ·  الصفحة $_page',
+                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+        centerTitle: true,
         actions: [
           IconButton(icon: const Icon(Icons.search_rounded), tooltip: 'البحث في القرآن', onPressed: _openSearch),
           IconButton(icon: const Icon(Icons.menu_rounded), tooltip: 'طريقة عرض المصحف', onPressed: _openDisplayOptionsSheet),
@@ -346,6 +381,22 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                InkWell(
+                  onTap: _openJourney,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    color: AppColors.primaryLight,
+                    child: Row(
+                      children: [
+                        const Icon(Icons.route_outlined, size: 16, color: AppColors.primaryDark),
+                        const SizedBox(width: 8),
+                        const Expanded(child: Text('رحلتي ومدرب الحفظ — تكليف اليوم ووتيرتك المتكيفة', style: TextStyle(fontSize: 11.5, color: AppColors.primaryDark, fontWeight: FontWeight.w700))),
+                        const Icon(Icons.chevron_left, size: 16, color: AppColors.primaryDark),
+                      ],
+                    ),
+                  ),
+                ),
                 if (_showTafsir)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

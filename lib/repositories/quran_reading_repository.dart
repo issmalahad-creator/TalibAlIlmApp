@@ -7,7 +7,8 @@ class QuranAyahText {
   final int surah;
   final int ayah;
   final String text;
-  QuranAyahText({required this.surah, required this.ayah, required this.text});
+  final int? juzNumber;
+  QuranAyahText({required this.surah, required this.ayah, required this.text, this.juzNumber});
 }
 
 /// "قراءة القرآن" — the periodic full read-through concept added in
@@ -56,7 +57,14 @@ class QuranReadingRepository {
   Future<List<QuranAyahText>> ayatForPage(int page) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query('quran_ayat', where: 'page_number = ?', whereArgs: [page], orderBy: 'surah, ayah');
-    return rows.map((r) => QuranAyahText(surah: r['surah'] as int, ayah: r['ayah'] as int, text: r['text_uthmani'] as String)).toList();
+    return rows
+        .map((r) => QuranAyahText(
+              surah: r['surah'] as int,
+              ayah: r['ayah'] as int,
+              text: r['text_uthmani'] as String,
+              juzNumber: r['juz_number'] as int?,
+            ))
+        .toList();
   }
 
   /// Tafsir for every ayah on [page] in one query, keyed `"surah:ayah"` —

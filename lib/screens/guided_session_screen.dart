@@ -172,42 +172,45 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
     );
   }
 
+  /// A `ListView` (not a `Spacer`-based `Column` directly as the Scaffold
+  /// body) deliberately — a real bug report (2026-08-16, Ismail) described
+  /// this screen going completely blank after tapping "ابدأ الجلسة",
+  /// which matches the exact failure signature of a `Spacer()` inside an
+  /// unbounded/degenerate layout context. A scrollable layout can never
+  /// hit that failure mode, regardless of content length or screen size.
   Widget _buildPhase(SessionPhase phase) {
     final isLast = _step == _plan.length;
-    return Padding(
+    return ListView(
       padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('المرحلة $_step من ${_plan.length}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-          const SizedBox(height: 12),
-          Icon(_phaseIcons[phase.key], size: 40, color: AppColors.primaryDark),
-          const SizedBox(height: 12),
-          Text(phase.titleAr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 6),
-          Text('الوقت المقترح: ${phase.minutes} دقيقة', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark)),
-          const SizedBox(height: 10),
-          Text(phase.descriptionAr, style: const TextStyle(fontSize: 13.5, height: 1.7)),
-          const Spacer(),
-          if (phase.key != 'repetition')
-            FilledButton.icon(
-              onPressed: () => _openPhaseScreen(phase),
-              icon: const Icon(Icons.open_in_new, size: 18),
-              label: const Text('افتح الشاشة'),
-            ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              if (_step > 1) TextButton(onPressed: () => setState(() => _step--), child: const Text('السابق')),
-              const Spacer(),
-              FilledButton(
-                onPressed: () => setState(() => _step++),
-                child: Text(isLast ? 'إنهاء الجلسة' : 'التالي'),
-              ),
-            ],
+      children: [
+        Text('المرحلة $_step من ${_plan.length}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+        const SizedBox(height: 12),
+        Icon(_phaseIcons[phase.key], size: 40, color: AppColors.primaryDark),
+        const SizedBox(height: 12),
+        Text(phase.titleAr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        Text('الوقت المقترح: ${phase.minutes} دقيقة', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark)),
+        const SizedBox(height: 10),
+        Text(phase.descriptionAr, style: const TextStyle(fontSize: 13.5, height: 1.7)),
+        const SizedBox(height: 24),
+        if (phase.key != 'repetition')
+          FilledButton.icon(
+            onPressed: () => _openPhaseScreen(phase),
+            icon: const Icon(Icons.open_in_new, size: 18),
+            label: const Text('افتح الشاشة'),
           ),
-        ],
-      ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            if (_step > 1) TextButton(onPressed: () => setState(() => _step--), child: const Text('السابق')),
+            const Spacer(),
+            FilledButton(
+              onPressed: () => setState(() => _step++),
+              child: Text(isLast ? 'إنهاء الجلسة' : 'التالي'),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

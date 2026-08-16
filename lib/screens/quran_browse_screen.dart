@@ -26,6 +26,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
 
   List<MemorizationUnit> _units = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -33,14 +34,30 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     _load();
   }
 
+  /// A real bug report (2026-08-16, Ismail) described this screen showing
+  /// completely blank instead of the Juz list, with no reliable repro on
+  /// my end — this try/catch makes any real failure visible instead of a
+  /// silent blank page, so it can actually be diagnosed from a screenshot
+  /// if it happens again.
   Future<void> _load() async {
-    setState(() => _loading = true);
-    final units = await _repo.allUnitsWithProgress();
-    if (!mounted) return;
     setState(() {
-      _units = units;
-      _loading = false;
+      _loading = true;
+      _error = null;
     });
+    try {
+      final units = await _repo.allUnitsWithProgress();
+      if (!mounted) return;
+      setState(() {
+        _units = units;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _markMemorized(MemorizationUnit unit) async {
@@ -54,6 +71,44 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(appBar: AppBar(title: const Text('القرآن')), body: const Center(child: CircularProgressIndicator()));
+    }
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('القرآن')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, color: AppColors.textMuted, size: 32),
+                const SizedBox(height: 10),
+                Text('تعذّر تحميل قائمة الصفحات:\n$_error', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5)),
+                const SizedBox(height: 14),
+                FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    if (_units.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('القرآن')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('لا توجد بيانات محفوظة بعد — قد يكون استيراد القرآن لم يكتمل بعد.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+                const SizedBox(height: 14),
+                FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     final byJuz = <int, List<MemorizationUnit>>{};
