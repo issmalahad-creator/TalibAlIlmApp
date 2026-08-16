@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 27,
+      version: 28,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -46,6 +46,7 @@ class DatabaseHelper {
         await _createV23Tables(db);
         await _createV25Tables(db);
         await _createV26Tables(db);
+        await _createV28Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -74,6 +75,7 @@ class DatabaseHelper {
         if (oldVersion < 25) await _createV25Tables(db);
         if (oldVersion < 26) await _createV26Tables(db);
         if (oldVersion < 27) await _fixQuranNormalizedTextV27(db);
+        if (oldVersion < 28) await _createV28Tables(db);
       },
     );
   }
@@ -802,5 +804,18 @@ class DatabaseHelper {
       );
     }
     await batch.commit(noResult: true);
+  }
+
+  /// "محاسبة الوقت" v2 (Ismail's request 2026-08-16): replaces the single
+  /// self-rated "hours well spent" slider with structured, independent
+  /// entries (slept/wasted/studied/worked) that the app computes benefit
+  /// vs. loss FROM, instead of asking the student to self-judge a summary
+  /// number. `hours_well_spent` is kept (now written as a derived value)
+  /// so the existing recent-days trend view keeps working unchanged.
+  Future<void> _createV28Tables(Database db) async {
+    await db.execute('ALTER TABLE time_awareness_log ADD COLUMN hours_slept REAL');
+    await db.execute('ALTER TABLE time_awareness_log ADD COLUMN hours_wasted REAL');
+    await db.execute('ALTER TABLE time_awareness_log ADD COLUMN hours_studied REAL');
+    await db.execute('ALTER TABLE time_awareness_log ADD COLUMN hours_worked REAL');
   }
 }

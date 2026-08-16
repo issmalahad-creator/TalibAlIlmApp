@@ -68,6 +68,18 @@ class NotificationService {
   static const _adhkarMorningHour = 6;
   static const _adhkarEveningHour = 17;
 
+  // "محاسبة الوقت" daily log reminder — fixed evening time, same
+  // always-recurring pattern as the adhkar reminders below (not a
+  // reschedule-on-checkin pattern like reading/hifz/goals, since this
+  // should nudge every day regardless of whether yesterday was logged).
+  // Offset clear of every range above (1001, 2000+taskId, 3000, 4000,
+  // 5000, 6000+goalId, 7000/7001) and clear of the still-unbuilt prayer-
+  // notification range planned at 8000+ (roadmap §4.25).
+  static const _timeLogReminderNotificationId = 9000;
+  static const _timeLogChannelId = 'time_log_reminders';
+  static const _timeLogChannelName = 'تذكير محاسبة الوقت';
+  static const _timeLogReminderHour = 21;
+
   final _plugin = FlutterLocalNotificationsPlugin();
 
   static Future<void>? _initFuture;
@@ -236,11 +248,53 @@ class NotificationService {
   /// Idempotent to call repeatedly (cancels then reschedules).
   Future<void> scheduleAdhkarReminders() async {
     await _ensureInitialized();
-    await _scheduleDailyAt(_adhkarMorningNotificationId, _adhkarMorningHour, 'أذكار الصباح 🌅', 'وقت أذكار الصباح — لا تنسَ نصيبك اليوم.');
-    await _scheduleDailyAt(_adhkarEveningNotificationId, _adhkarEveningHour, 'أذكار المساء 🌇', 'وقت أذكار المساء — لا تنسَ نصيبك اليوم.');
+    await _scheduleDailyAt(
+      id: _adhkarMorningNotificationId,
+      hour: _adhkarMorningHour,
+      title: 'أذكار الصباح 🌅',
+      body: 'وقت أذكار الصباح — لا تنسَ نصيبك اليوم.',
+      channelId: _adhkarChannelId,
+      channelName: _adhkarChannelName,
+      channelDescription: 'تذكير يومي ثابت بأذكار الصباح والمساء (وقت تقريبي، لا يعتمد على أوقات الصلاة الفعلية بعد)',
+    );
+    await _scheduleDailyAt(
+      id: _adhkarEveningNotificationId,
+      hour: _adhkarEveningHour,
+      title: 'أذكار المساء 🌇',
+      body: 'وقت أذكار المساء — لا تنسَ نصيبك اليوم.',
+      channelId: _adhkarChannelId,
+      channelName: _adhkarChannelName,
+      channelDescription: 'تذكير يومي ثابت بأذكار الصباح والمساء (وقت تقريبي، لا يعتمد على أوقات الصلاة الفعلية بعد)',
+    );
   }
 
-  Future<void> _scheduleDailyAt(int id, int hour, String title, String body) async {
+  /// "محاسبة الوقت" daily reminder (Ismail's request 2026-08-16): a fixed
+  /// evening nudge to log how the day's hours were actually spent
+  /// (slept/wasted/studied/worked). Always-recurring like the adhkar
+  /// reminders, not reschedule-on-checkin — the whole point is a daily
+  /// prompt regardless of yesterday's entry.
+  Future<void> scheduleTimeLogReminder() async {
+    await _ensureInitialized();
+    await _scheduleDailyAt(
+      id: _timeLogReminderNotificationId,
+      hour: _timeLogReminderHour,
+      title: 'محاسبة يومك ⏳',
+      body: 'قبل أن ينام يومك — سجّل كم نمت، وكم ضاع، وكم درست واشتغلت.',
+      channelId: _timeLogChannelId,
+      channelName: _timeLogChannelName,
+      channelDescription: 'تذكير يومي ثابت بتسجيل محاسبة الوقت',
+    );
+  }
+
+  Future<void> _scheduleDailyAt({
+    required int id,
+    required int hour,
+    required String title,
+    required String body,
+    required String channelId,
+    required String channelName,
+    required String channelDescription,
+  }) async {
     await _plugin.cancel(id: id);
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
@@ -251,11 +305,11 @@ class NotificationService {
       title: title,
       body: body,
       scheduledDate: scheduled,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
-          _adhkarChannelId,
-          _adhkarChannelName,
-          channelDescription: 'تذكير يومي ثابت بأذكار الصباح والمساء (وقت تقريبي، لا يعتمد على أوقات الصلاة الفعلية بعد)',
+          channelId,
+          channelName,
+          channelDescription: channelDescription,
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),

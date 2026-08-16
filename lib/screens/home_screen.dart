@@ -21,6 +21,7 @@ import '../widgets/animated_banner.dart';
 import '../widgets/category_pill.dart';
 import '../widgets/daily_companion_card.dart';
 import '../widgets/nav_tile.dart';
+import '../widgets/time_accountability_dashboard.dart';
 import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
@@ -34,6 +35,7 @@ import 'salah_tracker_screen.dart';
 import 'audio_library_screen.dart';
 import 'quran_reading_screen.dart';
 import 'review_screen.dart';
+import 'time_awareness_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -190,6 +192,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 16),
                     AnimatedBanner(imageUrl: _banner!.url, caption: _banner!.caption),
                   ],
+                  const SizedBox(height: 16),
+                  TimeAccountabilityDashboard(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TimeAwarenessScreen())),
+                  ),
                   const SizedBox(height: 20),
                   _ProgressCard(percent: percent, month: monthLabel(currentMonth()), goals: _goals),
                   const SizedBox(height: 24),

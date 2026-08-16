@@ -164,6 +164,33 @@ Ismail reported two screens rendering completely blank (app bar title showing, b
 - [x] رحلتي surfaced more visibly inside the القرآن screen: a persistent tappable banner above the reading content, plus a "رحلتي ومدرب الحفظ" entry in the "طريقة عرض المصحف" sheet (previously only reachable via the profile grid).
 - [ ] **Not yet re-tested on-device** — fresh APK built and sent for this batch specifically since blank-screen bugs need real confirmation they're actually gone, not just that analyze passes.
 
+## Phase 20 — Second, deeper Quran search fix: dagger alef U+0670 (Ismail's report 2026-08-16) — ✅ DONE (commit d76f2e8)
+
+The Phase-17-era search fix (commit 1852857) closed the "الفقراء" bug but not the whole problem — Ismail sent a follow-up screenshot showing "الظالمين" still returned no results. See `QURAN_COMPANION_ROADMAP.md` §4.26 for the full technical writeup (three distinct roles the dagger alef plays in the Uthmani rasm, verified against all ~2650 word forms containing it, not guessed).
+
+- [x] `lib/utils/arabic_normalize.dart` rewritten with the 4-case handling (waw+dagger, alif-maqsura+dagger, closed exception list, omitted-letter default)
+- [x] DB migration v26→v27 (`_fixQuranNormalizedTextV27`) recomputes `quran_ayat.text_normalized` for existing installs, same pattern as v24
+- [x] New regression test `test/arabic_normalize_dagger_alif_test.dart` — 11 cases across all 4 categories, all passing against the real Dart implementation (not just a Python simulation)
+- [x] `flutter analyze` clean, `flutter test` clean (the one pre-existing `widget_test.dart` failure is an unrelated `sqflite`/test-harness limitation, confirmed by isolating it — not caused by this change)
+- [ ] Not yet re-tested on-device by Ismail with a fresh APK — next APK build should include this.
+
+## Phase 21 — "مسح الخطة" plan-delete action (Ismail's request 2026-08-16) — ✅ DONE (commit 31090bb)
+
+`CompletionGoalRepository.abandon()` already existed but had no UI path to it. Added a confirm dialog + delete button on each خطط ختمي goal card; marks the goal abandoned (not deleted, so past progress on the underlying content is untouched) and cancels its daily reminder notification.
+
+## Phase 22 — محاسبة الوقت v2: home-screen dashboard + structured time-entry + benefit calculator (Ismail's request 2026-08-16)
+
+Ismail asked to move محاسبة الوقت onto the home screen with year/month/week/day cards each showing a countdown, and to replace the single self-rated slider with independent time-entry fields (slept/wasted/studied/worked) that the app computes benefit-vs-loss FROM — sleep within a reasonable cap counts as neither benefit nor loss, sleep beyond it counts as loss, and any unlogged/unaccounted hours also count as loss ("الباقي ضائع", his explicit closing instruction), plus a daily reminder notification to log the day.
+
+- [x] DB migration v27→v28: 4 new nullable columns on `time_awareness_log` (`hours_slept`/`hours_wasted`/`hours_studied`/`hours_worked`), additive — `hours_well_spent` kept and now written as a derived value so the pre-existing recent-days trend view needed no changes
+- [x] `DailyTimeEntry` (repository) — the actual benefit/waste arithmetic, with an 8-hour sleep cap documented as a heuristic (adjustable), and unaccounted-hours-default-to-wasted per Ismail's explicit instruction. Unit-tested (`test/daily_time_entry_test.dart`, 4 cases).
+- [x] `TimeAwarenessScreen` rebuilt: 4 numeric entry fields instead of a slider, live-computed benefit/waste breakdown shown as you type, gratitude message on save (his "تشكره كل يوم" ask)
+- [x] `TimeAccountabilityDashboard` widget — 4 compact home-screen cards (اليوم/الأسبوع/الشهر/السنة), each with a countdown (hours-left-today, days-left-this-week/month/year) and that period's summed benefit/waste totals, tappable into the full screen
+- [x] Wired into `home_screen.dart`, right after the daily-companion card
+- [x] `NotificationService.scheduleTimeLogReminder()` — fixed daily evening reminder (9pm), same always-recurring pattern as the adhkar reminders (generalized `_scheduleDailyAt` to take channel params instead of hardcoding adhkar's), new id range 9000 (clear of every existing range, and of the still-unbuilt prayer-notification range planned at 8000+)
+- [x] `flutter analyze` clean, `flutter test` clean (206 passing, same one pre-existing unrelated `widget_test.dart` failure)
+- [ ] Not yet tested on-device.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
