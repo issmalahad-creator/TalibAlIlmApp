@@ -257,6 +257,16 @@ Ismail: "ركّز وابحث كيف تكون مدرب شخصي لتطوير ال
 - [ ] Grain 3+ (not started, queued): a real mastery gate (don't recommend new سبق until yesterday's is confirmed solid — advisory, not a lock), true weekly-proportional منزل rotation replacing the fixed 30-day cycle, and tying the real per-level pace numbers into "تكليف اليوم" itself, not just the wizard's warning.
 - [x] `flutter analyze`/`flutter test` clean after each grain (215 passing as of grain 2, same pre-existing unrelated failure)
 
+## Phase 29 — Fix genuinely-empty "حدد ما حفظته"/"ابدأ الحفظ" (Ismail's report 2026-08-16) — ✅ DONE (commit 3c67fdc)
+
+The Phase 19 blank-screen fix added error-visibility but never found the actual root cause. Ismail's follow-up report was concrete: "عند الضغط يطلع فاضي فقط" (opens to genuinely empty, no error) — which narrows it to `memorization_units` having zero rows, since a `LEFT JOIN` from that table can only return zero rows if the table itself is empty.
+
+- [x] Root cause: `_generateMemorizationUnits` only ever runs inside `QuranImportService`'s `quran_ayat`-empty onboarding branch — any device where `quran_ayat` ended up populated but `memorization_units` didn't (schema drift, an interrupted early install) would never get it backfilled, permanently, no matter how many retries.
+- [x] `QuranImportService` now checks `memorization_units` independently and regenerates it straight from the already-imported `quran_ayat` rows if ever found empty — self-heals on next launch regardless of root cause, cheap no-op otherwise.
+- [x] Also hardened the browse screen itself: every Juz `ExpansionTile` started collapsed, which alone could read as "empty" at a glance — now auto-expands the Juz containing today's highlighted assignment (or Juz 1) on load.
+- [x] `flutter analyze`/`flutter test` clean, debug APK built and sent.
+- [ ] Not yet confirmed fixed by Ismail on his actual device — this was reasoned from the exact symptom description ("empty, not an error"), not a live repro, so needs his confirmation.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
