@@ -248,6 +248,15 @@ Ismail's spec, explicitly no AI/LLM: observe consistency across Salah/Quran/Dhik
 - [x] `flutter analyze` clean, `flutter test` clean (211 passing, same pre-existing unrelated failure), debug APK built
 - [ ] Not yet tested on-device.
 
+## Phase 28 — Real hifz coaching methodology: سبق/سبقي/منزل, "حبة حبة" (Ismail's request 2026-08-16) — 🔄 IN PROGRESS
+
+Ismail: "ركّز وابحث كيف تكون مدرب شخصي لتطوير المستخدم في القرآن والتعلم، ابحث اونلاين اولًا وبعدين تعال" — real research (`WebSearch`/`WebFetch`) before any code. Found the traditional Sabaq-Sabqi-Manzil hifz-teaching system (real institute methodology, not a blog) with concrete numbers: real daily new-memorization pace by level, the "must be flawless before advancing" mastery rule, the 15-day سبقي window, and the weekly-proportional منزل rotation. Full findings in `QURAN_COMPANION_ROADMAP.md` §4.31. Ismail confirmed: "نعم وسنطور اكثر حبه حبه" (yes, and we'll develop it further step by step) — building incrementally, not all at once.
+
+- [x] Grain 1 (commit 1913ec3): `MemorizationUnit.hifzCategory()` — pure function categorizing a page as سبق/سبقي/منزل by age since memorized, unit-tested (`test/hifz_category_test.dart`, 4 cases). Wired into the review screen, browse screen status label, and Worship Coach's Quran task wording. Purely a labeling layer — no scheduling math changed.
+- [x] Grain 2 (commit 277b981): non-blocking realistic-pace advisory in رحلتي's SMART wizard — warns (doesn't restrict) when the chosen duration implies a daily pace exceeding real hifz-institute ceilings for the selected level.
+- [ ] Grain 3+ (not started, queued): a real mastery gate (don't recommend new سبق until yesterday's is confirmed solid — advisory, not a lock), true weekly-proportional منزل rotation replacing the fixed 30-day cycle, and tying the real per-level pace numbers into "تكليف اليوم" itself, not just the wizard's warning.
+- [x] `flutter analyze`/`flutter test` clean after each grain (215 passing as of grain 2, same pre-existing unrelated failure)
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
