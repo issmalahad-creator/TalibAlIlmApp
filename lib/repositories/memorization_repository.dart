@@ -88,6 +88,22 @@ class MemorizationRepository {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  /// "تعديل ما حفظت" (Ismail's request 2026-08-16) — undoes a mistaken
+  /// `markMemorized` entirely: removes the page's progress row (back to
+  /// the implicit `not_started` state) along with its review/mistake
+  /// history, since that history describes reviews of a memorization that
+  /// didn't actually happen. Distinct from `recordReview` — this isn't
+  /// "rate it lower," it's "I marked the wrong page / this was a
+  /// mistake," so partial history would be actively misleading.
+  Future<void> resetProgress(int unitId) async {
+    final db = await DatabaseHelper.instance.database;
+    final batch = db.batch();
+    batch.delete('memorization_progress', where: 'unit_id = ?', whereArgs: [unitId]);
+    batch.delete('review_log', where: 'unit_id = ?', whereArgs: [unitId]);
+    batch.delete('mistake_log', where: 'unit_id = ?', whereArgs: [unitId]);
+    await batch.commit(noResult: true);
+  }
+
   /// Records a review and advances/repeats/regresses the unit's station per
   /// the roadmap's transition rules. `note` is only meaningful for
   /// `needsReview` and is logged to `mistake_log`.

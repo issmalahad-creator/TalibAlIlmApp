@@ -67,6 +67,25 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     _load();
   }
 
+  Future<void> _confirmReset(MemorizationUnit unit) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تعديل: إلغاء تسجيل هذه الصفحة؟'),
+        content: Text('ستعود صفحة ${unit.id} إلى "لم تُحفظ بعد"، وسيُحذف كل سجل مراجعتها. استخدم هذا فقط إن سجّلتها بالخطأ.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('إلغاء التسجيل')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _repo.resetProgress(unit.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('أُلغي تسجيل صفحة ${unit.id}')));
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -208,7 +227,20 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
         style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
       ),
       trailing: memorized
-          ? Text(_statusLabel(unit), style: const TextStyle(fontSize: 11, color: AppColors.primaryDark))
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_statusLabel(unit), style: const TextStyle(fontSize: 11, color: AppColors.primaryDark)),
+                IconButton(
+                  onPressed: () => _confirmReset(unit),
+                  icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textMuted),
+                  tooltip: 'تعديل',
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                ),
+              ],
+            )
           : TextButton(onPressed: () => _markMemorized(unit), child: const Text('حفظتها', style: TextStyle(fontSize: 12))),
     );
   }
