@@ -92,7 +92,16 @@ class _WizardViewState extends State<_WizardView> {
     ('advanced', 'متقدم'),
   ];
 
+  /// Real daily سبق (new-memorization) ranges per level — from actual
+  /// hifz-institute guidance researched 2026-08-16 at Ismail's request
+  /// (QURAN_COMPANION_ROADMAP.md §4.31), not an invented estimate:
+  /// beginner/part-time ≈ 0.5-1 page/day, motivated teen/adult ≈ 1-1.5,
+  /// full-time student ≈ 1-2 (up to 2 pushing the realistic ceiling).
+  static const _realisticDailyPagesMax = {'beginner': 1.0, 'intermediate': 1.5, 'advanced': 2.0};
+
   double get _dailyPages => 604 / (_years * 365);
+
+  bool get _isAmbitious => _dailyPages > (_realisticDailyPagesMax[_level] ?? 2.0);
 
   @override
   void dispose() {
@@ -147,9 +156,24 @@ class _WizardViewState extends State<_WizardView> {
         const SizedBox(height: 20),
         Container(
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
-          child: Text('الوتيرة المحسوبة: ${_dailyPages.toStringAsFixed(2)} صفحة يوميًا',
-              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+          decoration: BoxDecoration(
+            color: _isAmbitious ? const Color(0xFFFFF3E0) : AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('الوتيرة المحسوبة: ${_dailyPages.toStringAsFixed(2)} صفحة يوميًا',
+                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+              if (_isAmbitious) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'هذه وتيرة أعلى مما يحفظه حتى الطالب المتفرغ بالكامل عادة (أعلى سقف واقعي معروف: صفحتان يوميًا) — لا بأس أن تجرّبها، لكن قد تحتاج إطالة المدة لاحقًا. سنعرض هذا التذكير دون منعك، القرار لك.',
+                  style: TextStyle(fontSize: 11, color: Colors.brown.shade700, height: 1.5),
+                ),
+              ],
+            ],
+          ),
         ),
         const SizedBox(height: 20),
         const Text('التزام شخصي (اختياري)', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
