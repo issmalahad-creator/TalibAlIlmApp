@@ -214,6 +214,17 @@ Ismail called the Phase-7 plain vertical list "بدائية وليس فيها ت
 - [x] `flutter analyze` clean; debug APK built and sent for visual verification (design-quality changes can't be confirmed by analyze alone)
 - [ ] Not yet visually confirmed by Ismail on-device.
 
+## Phase 25 — Professional certificate redesign + photo + Almosaly competitive analysis (Ismail's request 2026-08-16) — ✅ DONE (commit 9ea3dae)
+
+Ismail sent a certificate-design reference screenshot asking for the same professional level with photo support (explicit color freedom given: "تقدر تعمل لون الشهادة الذي تحبه انت"), and separately asked to browse almosaly.com (the "المصلي" competitor app) to find real feature gaps without copying design/code. A third, much larger ask in the same message — a rule-based "Personal Worship Coach Engine" spanning Salah/Quran/Dhikr — was explicitly paused by Ismail when asked two scoping questions via `AskUserQuestion` ("do not proceed, wait for next instruction"); **not built, research preserved in session memory** (`project_talibalilm_pivot.md`) for a future explicit resume, not re-derived from scratch.
+
+- [x] `certificate_card.dart` rebuilt: gradient green/gold background (app's own identity colors, not the reference's navy/gold), original `CustomPainter` medallion badge (star + ribbon tails) and corner flourishes, banner title, signature/date footer row matching the reference's layout without tracing its artwork
+- [x] Certificate photo: DB v29→v30 (`profile.photo_path`), chosen once via `file_picker` (existing dependency, no new `image_picker`) on the profile screen, copied into the app's persistent documents directory, reused automatically by every certificate via `showCelebration()`
+- [x] `WebFetch` of almosaly.com succeeded (full feature list gathered); Google Play listing failed twice (JS-rendered, un-fetchable) — noted honestly rather than guessing at its content
+- [x] Honest gap analysis documented in `QURAN_COMPANION_ROADMAP.md` §4.28: most of Almosaly's features are already matched/exceeded here; one genuine locally-buildable gap found (multi-method Qibla-finding — sun/moon/shadow/map, not just compass), documented but not built this round; live-streaming/reviews/trending require a real backend (same §4.25 scope boundary)
+- [x] `flutter analyze`/`flutter test` clean (206 passing, same pre-existing unrelated `widget_test.dart` failure)
+- [ ] Not yet tested on-device (photo picker + certificate render).
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
