@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 25,
+      version: 26,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -45,6 +45,7 @@ class DatabaseHelper {
         await _createV22Tables(db);
         await _createV23Tables(db);
         await _createV25Tables(db);
+        await _createV26Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -71,6 +72,7 @@ class DatabaseHelper {
         if (oldVersion < 23) await _createV23Tables(db);
         if (oldVersion < 24) await _fixQuranNormalizedTextV24(db);
         if (oldVersion < 25) await _createV25Tables(db);
+        if (oldVersion < 26) await _createV26Tables(db);
       },
     );
   }
@@ -758,6 +760,22 @@ class DatabaseHelper {
         ayah INTEGER NOT NULL,
         added_date TEXT NOT NULL,
         PRIMARY KEY (surah, ayah)
+      )
+    ''');
+  }
+
+  /// "محاسبة الوقت" — Ismail's request 2026-08-16, grounded in the real
+  /// hadith (Tirmidhi 2417) that a servant will be asked on the Day of
+  /// Judgment how they spent their life/time. Purely self-reported, like
+  /// every other subjective self-rating in this app (khushu, session
+  /// difficulty) — the app never infers or measures how someone's hours
+  /// were actually spent, only records what they say about it.
+  Future<void> _createV26Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE time_awareness_log (
+        log_date TEXT PRIMARY KEY,
+        hours_well_spent REAL,
+        note TEXT
       )
     ''');
   }

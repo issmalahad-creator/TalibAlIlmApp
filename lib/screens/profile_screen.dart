@@ -20,6 +20,7 @@ import 'tajweed_screen.dart';
 import 'wird_screen.dart';
 import 'hifz_teacher_screen.dart';
 import 'personal_accountability_screen.dart';
+import 'time_awareness_screen.dart';
 import 'support_screen.dart';
 import 'completion_goals_screen.dart';
 import 'journey_screen.dart';
@@ -199,6 +200,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: basicText('personal_commitment', _lang),
                     color: NavColors.indigo,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PersonalAccountabilityScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.hourglass_bottom_rounded,
+                    label: 'محاسبة الوقت',
+                    color: NavColors.coral,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TimeAwarenessScreen())),
                   ),
                   NavTileData(
                     icon: Icons.format_quote_rounded,
