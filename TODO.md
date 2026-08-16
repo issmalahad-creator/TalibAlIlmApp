@@ -287,6 +287,17 @@ Ismail: "اسمح بالتعديل في ما حفظت واضف 4 مزايه في
 - [x] `flutter analyze`/`flutter test` clean (215 passing, same pre-existing unrelated failure).
 - [ ] Not yet tested on-device.
 
+## Phase 32 — Page/Juz-based Quran navigation (Ismail's request 2026-08-16) — ✅ DONE (commit 8958b38)
+
+Ismail: "اريد التنقل بين صفحات القران وليس السور فقط... من الفهرس ومن اماكن اخرى انت فكر فيها" — الفهرس was surah-only; asked for page-level navigation from the index and other entry points of my own choosing.
+
+- [x] الفهرس rebuilt as 3 tabs: السور (unchanged), الأجزاء (new — `firstPageOfJuz()`, 30 entries), رقم الصفحة (new — direct page-number entry, 1-604)
+- [x] Second entry point: the page/Juz header in the app bar is now tappable, opening a lightweight quick-jump dialog — faster than the full الفهرس sheet
+- [x] Existing next/previous page buttons unchanged
+- [x] Deliberately did NOT add swipe-gesture page-turning this round — RTL swipe-direction semantics are easy to get backwards (a wrong direction would be a more confusing regression than not having it), and the two tap-based entry points already cover the ask; flagged as a possible future addition, not silently dropped
+- [x] `flutter analyze`/`flutter test` clean (215 passing, same pre-existing unrelated failure)
+- [ ] Not yet tested on-device.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
