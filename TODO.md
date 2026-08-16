@@ -153,6 +153,17 @@ Ismail asked for a real (not invented) reminder feature: hours in a year, how to
 - [x] 5 original practical tips for using time well, matching the `practical_lessons_seed.dart` house style (grounded, not a translation of any single book).
 - [ ] Not yet tested on-device.
 
+## Phase 19 — Two blank-screen bugs + Mushaf page header + رحلتي visibility (Ismail's report 2026-08-16) — ✅ DONE (commit 72cde00)
+
+Ismail reported two screens rendering completely blank (app bar title showing, body empty): "القرآن" (browse/mark-memorized) and "جلسة موجّهة" after tapping "ابدأ الجلسة". He also said "رحلتي"/the memorization coach was hard to find, and asked for the reading page's header to show the surah name on top with جزء/page number below, matching real Mushaf page conventions.
+
+- [x] **Found and fixed the likely root cause for the guided-session blank screen**: `_buildPhase()` used a `Spacer()` inside a `Column` set directly as the Scaffold body (no `ListView`/scrollable wrapper) — a known-fragile pattern that can fail under unbounded/degenerate layout constraints. Rewrote it as a `ListView`, which structurally cannot hit that failure mode. Audited every other `Spacer()` usage in the app (`grep`) — all others are safely inside a bounded `Row`, so this was an isolated instance, not systemic.
+- [x] **Could not reproduce the القرآن-browse blank screen directly** — added real error-visibility instead of silence: `QuranBrowseScreen` now wraps its load in try/catch and shows a visible error message + retry button, or an empty-state message + retry, instead of rendering nothing. If it recurs, the next screenshot will show the actual cause.
+- [x] Fixed a secondary risk in the same area: the "حدّد ما حفظته" flow did `Navigator.pop()` then immediately `Navigator.push()` in the same synchronous callback — deferred the push via `addPostFrameCallback` to avoid same-frame navigation timing issues.
+- [x] Quran reading page header redesigned: surah name on top, "الجزء X · الصفحة Y" below, replacing the plain "صفحة N" title — matches real printed Mushaf page header convention. `QuranAyahText`/`ayatForPage` extended with `juzNumber`.
+- [x] رحلتي surfaced more visibly inside the القرآن screen: a persistent tappable banner above the reading content, plus a "رحلتي ومدرب الحفظ" entry in the "طريقة عرض المصحف" sheet (previously only reachable via the profile grid).
+- [ ] **Not yet re-tested on-device** — fresh APK built and sent for this batch specifically since blank-screen bugs need real confirmation they're actually gone, not just that analyze passes.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
