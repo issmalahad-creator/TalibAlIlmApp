@@ -237,6 +237,17 @@ After the §4.28 gap analysis flagged multi-method Qibla as the one real, locall
 - [x] New deps: `flutter_map`, `latlong2`, `camera` (+ `CAMERA` permission) — `flutter analyze` clean, full debug APK build succeeded (native Gradle integration verified, not just Dart analysis), `flutter test` clean (206 passing, same pre-existing unrelated failure)
 - [ ] Not yet tested on-device, especially the AR camera mode and permission flow.
 
+## Phase 27 — Personal Worship Coach Engine, Phase A (Ismail's request 2026-08-16, resumed after a pause) — ✅ DONE (commit 9616555)
+
+Ismail's spec, explicitly no AI/LLM: observe consistency across Salah/Quran/Dhikr, focus on ONE weak area via a plain IF/ELSE waterfall, recommend ONE small task, never a full checklist. Two scoping questions asked via `AskUserQuestion` were dismissed ("do not proceed, wait for next instruction"); Ismail later said "ابدا" (start) without answering them directly, so both were resolved by engineering judgment rather than guessed re-asking: (1) added as a new home-screen card alongside جلسة اليوم rather than replacing it — a bigger UX change to an already-daily-used screen deserves explicit sign-off, not an assumption from a dismissed question; (2) scoped to Salah+Quran+Dhikr only, since those are the only three domains with any real tracking data — "أعمال إضافية" (qiyam al-layl/witr/sadaqah/voluntary fasting/dua) confirmed to have zero existing tracking anywhere in the codebase, and building 5 new habit tables in the same pass as the whole rule engine would itself be starting with everything at once, which Ismail's own spec explicitly said not to do.
+
+- [x] `WorshipCoachRepository` — rolling 7-day consistency % per domain computed entirely from existing tables (`salah_log` via `SalahRepository`, `daily_session_log`'s activity flags, `adhkar_completion` via `AdhkarRepository`) — no new tracking schema
+- [x] `focusAreaFor()` — pure, DB-free function implementing the exact prayer→quran→dhikr waterfall, unit-tested directly (`test/worship_coach_focus_test.dart`, 5 cases, no fake DB needed)
+- [x] `WorshipCoachCard` (home screen, added not replacing) + `WorshipCoachScreen` (stage, one task with a direct button into the relevant screen, honest 3-number consistency breakdown instead of an opaque "AI suggests")
+- [x] "أعمال إضافية" shown as an honest "قريبًا" note in the detail screen rather than silently absent
+- [x] `flutter analyze` clean, `flutter test` clean (211 passing, same pre-existing unrelated failure), debug APK built
+- [ ] Not yet tested on-device.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
