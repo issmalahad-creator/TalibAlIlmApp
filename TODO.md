@@ -225,6 +225,18 @@ Ismail sent a certificate-design reference screenshot asking for the same profes
 - [x] `flutter analyze`/`flutter test` clean (206 passing, same pre-existing unrelated `widget_test.dart` failure)
 - [ ] Not yet tested on-device (photo picker + certificate render).
 
+## Phase 26 — Qibla rebuilt into a 4-method tabbed screen (Ismail's request 2026-08-16) — ✅ DONE (commit 752fbde)
+
+After the §4.28 gap analysis flagged multi-method Qibla as the one real, locally-buildable gap vs. Almosaly, Ismail sent screenshots of that app's actual compass/map/AR/sun-moon tabs and asked directly whether the same could be built here, better and with original assets.
+
+- [x] Compass tab: rebuilt with a real `CustomPainter` dial (5° tick marks, 8 cardinal/intercardinal labels), bearing/degrees-from-north stat cards, and a hand-drawn Kaaba glyph — same underlying verified `adhan_dart` bearing calculation as before, purely a visual upgrade
+- [x] Map tab ("المرئية"): new `qibla_map_view.dart` using `flutter_map` + OpenStreetMap tiles (free, no API key — Google Maps would need Ismail's own billing account), straight-line distance to the Kaaba
+- [x] AR tab ("الواقع المعزز"): new `qibla_ar_view.dart` — live camera background with a heading-based Kaaba overlay (centers when facing Qibla, slides toward the edge otherwise); deliberately not true ARCore plane-anchoring (no `ar_flutter_plugin`/ARCore dependency added) — same practical orientation aid, much lighter/more reliable
+- [x] Sun/moon tab: left as an honest "قريبًا" rather than shipping an unverified solar-position calculation
+- [x] Kaaba coordinates (21.4225241, 39.8261818) verified against `adhan_dart`'s own `Qibla.makkah` constant directly from its package source, not guessed separately
+- [x] New deps: `flutter_map`, `latlong2`, `camera` (+ `CAMERA` permission) — `flutter analyze` clean, full debug APK build succeeded (native Gradle integration verified, not just Dart analysis), `flutter test` clean (206 passing, same pre-existing unrelated failure)
+- [ ] Not yet tested on-device, especially the AR camera mode and permission flow.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
