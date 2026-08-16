@@ -36,6 +36,7 @@ import 'audio_library_screen.dart';
 import 'quran_reading_screen.dart';
 import 'review_screen.dart';
 import 'time_awareness_screen.dart';
+import 'curriculum_map_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -186,6 +187,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: 'كتب صوتية',
                       color: NavColors.orange,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
+                    ),
+                    NavTileData(
+                      icon: Icons.map_rounded,
+                      label: 'خريطتي التعليمية',
+                      color: NavColors.gold,
+                      onTap: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (_) => const CurriculumMapScreen()));
+                        _load();
+                      },
                     ),
                   ]),
                   if (_banner != null) ...[

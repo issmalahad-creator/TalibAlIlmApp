@@ -11,11 +11,17 @@ class CurriculumItemStatus {
   final String titleAr;
   final CurriculumItemState state;
   final String detailAr;
+  /// 0.0-1.0 for items with a known total (null for open-ended/ongoing
+  /// items like adhkar streaks, or comingSoon items with nothing to
+  /// measure yet) — used to draw a real progress ring on the map node,
+  /// not a decorative placeholder.
+  final double? progressFraction;
   const CurriculumItemStatus({
     required this.contentType,
     required this.titleAr,
     required this.state,
     required this.detailAr,
+    this.progressFraction,
   });
 }
 
@@ -120,6 +126,7 @@ class CurriculumRepository {
       titleAr: item.titleAr,
       state: state,
       detailAr: '$done من $total',
+      progressFraction: (done / total).clamp(0, 1),
     );
   }
 
