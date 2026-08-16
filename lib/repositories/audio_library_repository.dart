@@ -14,12 +14,14 @@ class AudioReflection {
   final int id;
   final String? videoId;
   final String text;
+  final String? resumeNote;
   final String createdDate;
 
   const AudioReflection({
     required this.id,
     required this.videoId,
     required this.text,
+    required this.resumeNote,
     required this.createdDate,
   });
 }
@@ -112,19 +114,36 @@ class AudioLibraryRepository {
               id: r['id'] as int,
               videoId: r['video_id'] as String?,
               text: r['reflection_text'] as String,
+              resumeNote: r['resume_note'] as String?,
               createdDate: r['created_date'] as String,
             ))
         .toList();
   }
 
-  Future<void> addReflection(String seriesId, String? videoId, String text) async {
+  Future<void> addReflection(String seriesId, String? videoId, String text, {String? resumeNote}) async {
     final db = await DatabaseHelper.instance.database;
     await db.insert('audio_reflection_log', {
       'series_id': seriesId,
       'video_id': videoId,
       'reflection_text': text,
+      'resume_note': resumeNote,
       'created_date': todayDate(),
     });
+  }
+
+  Future<void> updateReflection(int id, String text, {String? resumeNote}) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.update(
+      'audio_reflection_log',
+      {'reflection_text': text, 'resume_note': resumeNote},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteReflection(int id) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.delete('audio_reflection_log', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<int> totalReflectionCount() async {

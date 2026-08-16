@@ -58,6 +58,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   final _repo = AudioLibraryRepository();
   final _milestoneRepo = MilestoneRepository();
   final _noteCtrl = TextEditingController();
+  final _resumeCtrl = TextEditingController();
   late final YoutubePlayerController _controller;
   Timer? _saveTimer;
   StreamSubscription? _valueSub;
@@ -79,12 +80,11 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     );
     _valueSub = _controller.stream.listen((value) {
       final meta = value.metaData;
-      if (meta.videoId.isNotEmpty && meta.videoId != _currentVideoId) {
-        setState(() {
-          _currentVideoId = meta.videoId;
-          _currentVideoTitle = meta.title;
-        });
-        _loadReflections();
+      if (meta.videoId.isEmpty) return;
+      if (meta.videoId != _currentVideoId) {
+        _setCurrentVideo(meta.videoId);
+      } else if (meta.title.isNotEmpty && meta.title != _currentVideoTitle) {
+        setState(() => _currentVideoTitle = meta.title);
       }
     });
     _stateSub = _controller.videoStateStream.listen((state) => _lastPosition = state.position);
@@ -101,10 +101,28 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     final resume = await _repo.resumePointFor(widget.seriesId);
     if (resume != null) {
       _resumedFromSaved = true;
+      await _setCurrentVideo(resume.videoId);
       await _controller.cueVideoById(videoId: resume.videoId, startSeconds: resume.positionSeconds.toDouble());
     } else if (widget.playlistId == null && widget.videoId != null) {
+      await _setCurrentVideo(widget.videoId!);
       await _controller.cueVideoById(videoId: widget.videoId!);
     }
+  }
+
+  /// Tracks the video we *intended* to cue, independent of the player's
+  /// own metadata stream — some videos fail to embed entirely (Error 152,
+  /// embedding disabled by the uploader), and when that happens the
+  /// stream never fires with a videoId either. Without this, "افتح هذه
+  /// الحلقة في يوتيوب" silently did nothing on exactly the broken videos
+  /// that need it most (Ismail's report 2026-08-16) — `_currentVideoId`
+  /// only ever got set reactively from a stream event that never came.
+  Future<void> _setCurrentVideo(String videoId) async {
+    if (videoId == _currentVideoId) return;
+    setState(() {
+      _currentVideoId = videoId;
+      _currentVideoTitle = '';
+    });
+    await _loadReflections();
   }
 
   /// YouTube's own embedded player exposes the cued playlist's video IDs
@@ -128,6 +146,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   }
 
   Future<void> _playEpisode(String videoId) async {
+    await _setCurrentVideo(videoId);
     await _controller.cueVideoById(videoId: videoId);
   }
 
@@ -144,7 +163,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     if (_episodeIds.isNotEmpty) {
       await _playEpisode(_episodeIds.first);
     } else if (widget.videoId != null) {
-      await _controller.cueVideoById(videoId: widget.videoId!);
+      await _playEpisode(widget.videoId!);
     }
   }
 
@@ -166,8 +185,10 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   Future<void> _saveReflection() async {
     final text = _noteCtrl.text.trim();
     if (text.isEmpty) return;
-    await _repo.addReflection(widget.seriesId, _currentVideoId, text);
+    final resumeNote = _resumeCtrl.text.trim();
+    await _repo.addReflection(widget.seriesId, _currentVideoId, text, resumeNote: resumeNote.isEmpty ? null : resumeNote);
     _noteCtrl.clear();
+    _resumeCtrl.clear();
     await _loadReflections();
     if (!mounted) return;
     final total = await _repo.totalReflectionCount();
@@ -178,6 +199,60 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ ملاحظتك')));
     }
+  }
+
+  /// "تعديل الملاحظة" / "مسح الملاحظة" (Ismail's request 2026-08-16) —
+  /// دفتر الفوائد previously only supported adding, never fixing a typo or
+  /// removing an entry.
+  Future<void> _editReflection(AudioReflection r) async {
+    final textCtrl = TextEditingController(text: r.text);
+    final resumeCtrl = TextEditingController(text: r.resumeNote ?? '');
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تعديل الملاحظة'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: textCtrl, maxLines: 4, decoration: const InputDecoration(border: OutlineInputBorder())),
+              const SizedBox(height: 10),
+              TextField(
+                controller: resumeCtrl,
+                decoration: const InputDecoration(labelText: 'أين توقفت؟ (رابط أو الوقت)', border: OutlineInputBorder(), isDense: true),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ')),
+        ],
+      ),
+    );
+    if (saved != true) return;
+    final text = textCtrl.text.trim();
+    if (text.isEmpty) return;
+    final resumeNote = resumeCtrl.text.trim();
+    await _repo.updateReflection(r.id, text, resumeNote: resumeNote.isEmpty ? null : resumeNote);
+    await _loadReflections();
+  }
+
+  Future<void> _deleteReflection(AudioReflection r) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('مسح الملاحظة؟'),
+        content: const Text('لا يمكن التراجع عن هذا.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('مسح')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _repo.deleteReflection(r.id);
+    await _loadReflections();
   }
 
   Future<void> _openPlaylistInYoutube() async {
@@ -197,6 +272,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     _stateSub?.cancel();
     _controller.close();
     _noteCtrl.dispose();
+    _resumeCtrl.dispose();
     super.dispose();
   }
 
@@ -329,6 +405,15 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
             ),
           ),
           const SizedBox(height: 8),
+          TextField(
+            controller: _resumeCtrl,
+            decoration: const InputDecoration(
+              labelText: 'أين توقفت؟ (رابط أو الوقت) — احتياطًا إن تعطّل الفيديو',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
             child: FilledButton.icon(
@@ -355,8 +440,40 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(r.text, style: const TextStyle(fontSize: 13, height: 1.6)),
+                      if (r.resumeNote != null && r.resumeNote!.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.bookmark_outline, size: 13, color: AppColors.primaryDark),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text('توقفت عند: ${r.resumeNote}',
+                                  style: const TextStyle(fontSize: 11.5, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 6),
-                      Text(r.createdDate, style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                      Row(
+                        children: [
+                          Text(r.createdDate, style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                          const Spacer(),
+                          InkWell(
+                            onTap: () => _editReflection(r),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(Icons.edit_outlined, size: 15, color: AppColors.textMuted),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () => _deleteReflection(r),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(Icons.delete_outline, size: 15, color: Colors.redAccent),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 )),

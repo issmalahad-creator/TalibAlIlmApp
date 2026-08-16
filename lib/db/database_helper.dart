@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 28,
+      version: 29,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -47,6 +47,7 @@ class DatabaseHelper {
         await _createV25Tables(db);
         await _createV26Tables(db);
         await _createV28Tables(db);
+        await _createV29Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -76,6 +77,7 @@ class DatabaseHelper {
         if (oldVersion < 26) await _createV26Tables(db);
         if (oldVersion < 27) await _fixQuranNormalizedTextV27(db);
         if (oldVersion < 28) await _createV28Tables(db);
+        if (oldVersion < 29) await _createV29Tables(db);
       },
     );
   }
@@ -817,5 +819,17 @@ class DatabaseHelper {
     await db.execute('ALTER TABLE time_awareness_log ADD COLUMN hours_wasted REAL');
     await db.execute('ALTER TABLE time_awareness_log ADD COLUMN hours_studied REAL');
     await db.execute('ALTER TABLE time_awareness_log ADD COLUMN hours_worked REAL');
+  }
+
+  /// "دفتر الفوائد" resume-point safety net (Ismail's request 2026-08-16):
+  /// some YouTube videos in the audio library fail to embed entirely
+  /// (Error 152, embedding disabled by the uploader) — when that happens
+  /// the automatic position-tracking never gets a chance to run either,
+  /// since it depends on the player actually loading. A manual free-text
+  /// "where did you stop" field (a timestamped link, or just "دقيقة 15")
+  /// saved together with the reflection note is a fallback that survives
+  /// a broken embed.
+  Future<void> _createV29Tables(Database db) async {
+    await db.execute('ALTER TABLE audio_reflection_log ADD COLUMN resume_note TEXT');
   }
 }
