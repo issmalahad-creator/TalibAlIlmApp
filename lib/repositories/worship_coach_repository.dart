@@ -81,9 +81,19 @@ class WorshipCoachRepository {
     return completed / (_windowDays * 5);
   }
 
-  /// Fraction of the last 7 days with any real Quran activity (reading,
-  /// new memorization, or review) — reuses `daily_session_log`, the same
-  /// per-day activity flags "جلسة اليوم" already writes.
+  /// Fraction of the last 7 days with any real Quran activity — reading,
+  /// new memorization, review, OR application ("طبّق" — actually living
+  /// out a Quranic lesson that day, `application_log`/`did_application`).
+  /// Application is included deliberately, not just the memorization-
+  /// adjacent steps: real research into "أهل القرآن" (QURAN_COMPANION_
+  /// ROADMAP.md §4.32) confirms the authentic hadith and classical usage
+  /// define it by acting on the Quran, not by reciting or memorizing it —
+  /// someone who lives it without memorizing it is closer to "أهل القرآن"
+  /// than someone who only recites. Before this fix the coach could only
+  /// ever see memorization/reading/review — it had no way to notice
+  /// whether the student was actually living what they memorize.
+  /// Reuses `daily_session_log`, the same per-day activity flags "جلسة
+  /// اليوم" already writes — no new tracking.
   Future<double> quranConsistency() async {
     final db = await DatabaseHelper.instance.database;
     var activeDays = 0;
@@ -91,7 +101,8 @@ class WorshipCoachRepository {
       final rows = await db.query('daily_session_log', where: 'date = ?', whereArgs: [date], limit: 1);
       if (rows.isEmpty) continue;
       final r = rows.first;
-      if ((r['did_reading'] as int) == 1 || (r['did_new_memorization'] as int) == 1 || (r['did_review'] as int) == 1) {
+      final didApplication = (r['did_application'] as int?) == 1;
+      if ((r['did_reading'] as int) == 1 || (r['did_new_memorization'] as int) == 1 || (r['did_review'] as int) == 1 || didApplication) {
         activeDays++;
       }
     }
