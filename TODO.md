@@ -191,6 +191,17 @@ Ismail asked to move محاسبة الوقت onto the home screen with year/mont
 - [x] `flutter analyze` clean, `flutter test` clean (206 passing, same one pre-existing unrelated `widget_test.dart` failure)
 - [ ] Not yet tested on-device.
 
+## Phase 23 — Audio player: broken YouTube-fallback link + دفتر الفوائد edit/delete/resume-point (Ismail's report 2026-08-16) — ✅ DONE (commit 0fe0a29)
+
+Ismail reported (with screenshots showing a "This video is unavailable — Error code: 152" embed failure) that "افتح هذه الحلقة في يوتيوب" did nothing when tapped, and asked for the ability to edit/delete دفتر الفوائد notes plus a manual "where did I stop" field as a fallback for when the embedded player breaks.
+
+- [x] Root cause found: `_currentVideoId` was only ever set reactively from the player's metadata stream, which never fires when a video fails to embed — so the fallback link (and the reflections filter) had no video id on exactly the broken videos. Now set synchronously whenever a video is cued (`_setCurrentVideo`), independent of embed success.
+- [x] `AudioLibraryRepository.updateReflection()`/`deleteReflection()` — UI edit (dialog) and delete (confirm) icons added to each note
+- [x] Optional `resume_note` free-text field (DB v28→v29, additive column) saved alongside each reflection — a manual position record (link or "دقيقة 15") that survives a broken embed, shown on the note card
+- [x] `flutter analyze`/`flutter test` clean
+- [ ] Not yet tested on-device.
+- [ ] **Not built this round, flagged as a much larger follow-up**: Ismail shared his own personal tracking spreadsheet (`life_project.xlsx`, 19 sheets — Quran memorization, tafsir listening, Wasitiyyah, Zad al-Ma'ad, daily wird, Arba'in, takbir, congregation prayer, tasbih/istighfar, plus secular sheets: sleep, exercise, programming, work/freelance, social media, monthly review) as the target level of detail: per-entry link/status/start-end datetime/rich benefit notes/weekly-report field/hours-total, applied uniformly across every content pillar. This is a genuinely large structural expansion (a generalized daily-log-with-weekly-report pattern reused across every existing pillar, not just audio) — architecturally fits the local-SQLite model fine, no blocker, but is a multi-session undertaking on its own, not a quick add-on. Needs explicit prioritization from Ismail before starting, same as the "prayer OS" scoping in §4.25.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
