@@ -184,6 +184,30 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
     _load();
   }
 
+  /// "مسح الخطة" (Ismail's request 2026-08-16) — `CompletionGoalRepository
+  /// .abandon()` already existed (used nowhere in the UI until now). Marks
+  /// the goal 'abandoned' rather than deleting the row, so past progress on
+  /// the underlying content (pages memorized, book position, etc.) is
+  /// untouched — only the plan/target itself goes away. Confirmed first
+  /// since there's no UI path back to an abandoned goal.
+  Future<void> _confirmAndDelete(CompletionGoalStatus s) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('مسح الخطة؟'),
+        content: Text('سيُمسح "${s.goal.displayLabel}" ولن تُذكَّر بها بعد الآن. تقدّمك المُسجَّل لن يتأثر — يمكنك إنشاء خطة جديدة في أي وقت.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('مسح')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await _repo.abandon(s.goal.id);
+    await _notificationService.cancelGoalReminder(s.goal.id);
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,7 +225,11 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _statuses.length,
-                  itemBuilder: (context, i) => _GoalCard(status: _statuses[i], onReschedule: () => _reschedule(_statuses[i])),
+                  itemBuilder: (context, i) => _GoalCard(
+                    status: _statuses[i],
+                    onReschedule: () => _reschedule(_statuses[i]),
+                    onDelete: () => _confirmAndDelete(_statuses[i]),
+                  ),
                 ),
     );
   }
@@ -210,7 +238,8 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
 class _GoalCard extends StatelessWidget {
   final CompletionGoalStatus status;
   final VoidCallback onReschedule;
-  const _GoalCard({required this.status, required this.onReschedule});
+  final VoidCallback onDelete;
+  const _GoalCard({required this.status, required this.onReschedule, required this.onDelete});
 
   (Color, String) get _badge => switch (status.scheduleStatus) {
         ScheduleStatus.ahead => (AppColors.primary, 'متقدم عن الخطة 🌱'),
@@ -249,9 +278,16 @@ class _GoalCard extends StatelessWidget {
             style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
           ),
           const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton(onPressed: onReschedule, child: const Text('أعِد جدولة الخطة', style: TextStyle(fontSize: 12))),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(onPressed: onReschedule, child: const Text('أعِد جدولة الخطة', style: TextStyle(fontSize: 12))),
+              TextButton.icon(
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                label: const Text('مسح الخطة', style: TextStyle(fontSize: 12, color: Colors.redAccent)),
+              ),
+            ],
           ),
         ],
       ),
