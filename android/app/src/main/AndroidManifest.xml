@@ -6,6 +6,11 @@
          calculation accuracy; fine improves Qibla bearing precision. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- "الواقع المعزز" Qibla mode (Ismail's request 2026-08-16) — a live
+         camera background with a heading-based Kaaba overlay, not true
+         ARCore plane-anchoring (no ARCore dependency added). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <application
         android:label="طالب العلم"
         android:name="${applicationName}"

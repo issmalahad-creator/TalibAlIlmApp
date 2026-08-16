@@ -59,6 +59,9 @@ dependencies:
   geolocator: ^14.0.2
   flutter_compass: ^0.8.1
   youtube_player_iframe: ^5.2.0
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  camera: ^0.11.0+2
 
 dev_dependencies:
   flutter_test:
