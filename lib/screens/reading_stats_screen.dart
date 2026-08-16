@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../repositories/book_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// A small personal achievement view — books opened/finished, quizzes
 /// passed, average score — built from [book_bookmarks]/[quiz_results],
@@ -62,7 +63,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('إحصائياتي في القراءة')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

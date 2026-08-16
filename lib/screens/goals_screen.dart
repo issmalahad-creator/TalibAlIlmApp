@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/goal.dart';
 import '../repositories/goal_repository.dart';
 import '../utils/month.dart';
+import '../widgets/loading_view.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -92,7 +93,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('أهداف ${monthLabel(currentMonth())}')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : _goals.isEmpty
               ? const Center(child: Text('لا توجد أهداف بعد — اضغط + لإضافة هدف'))
               : ListView.builder(

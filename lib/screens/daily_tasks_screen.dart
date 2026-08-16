@@ -7,6 +7,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import 'add_task_screen.dart';
+import '../widgets/loading_view.dart';
 
 class DailyTasksScreen extends StatefulWidget {
   const DailyTasksScreen({super.key});
@@ -99,7 +100,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('المهام')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : _tasks.isEmpty
               ? const Center(child: Text('لا توجد مهام بعد — اضغط + لإضافة مهمة', style: TextStyle(color: AppColors.textMuted)))
               : ListView(

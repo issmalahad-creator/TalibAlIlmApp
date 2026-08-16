@@ -8,6 +8,7 @@ import '../repositories/milestone_repository.dart';
 import '../repositories/personal_accountability_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
+import '../widgets/loading_view.dart';
 
 const _hifzCategoryLabels = {
   HifzCategory.sabaq: ('سبق', AppColors.primaryDark),
@@ -130,7 +131,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('المراجعة')),
-      body: _loading ? const Center(child: CircularProgressIndicator()) : _buildBody(),
+      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
     );
   }
 

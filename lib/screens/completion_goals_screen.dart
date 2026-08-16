@@ -8,6 +8,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_display.dart';
 import '../utils/hijri_date.dart';
+import '../widgets/loading_view.dart';
 
 /// "خطط ختمي" — QURAN_COMPANION_ROADMAP.md section 4.15. Create and track
 /// completion plans for Quran reading, Quran memorization, or any book —
@@ -214,7 +215,7 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
       appBar: AppBar(title: const Text('خطط ختمي')),
       floatingActionButton: FloatingActionButton(onPressed: _openNewGoalSheet, child: const Icon(Icons.add)),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : _statuses.isEmpty
               ? const Center(
                   child: Padding(

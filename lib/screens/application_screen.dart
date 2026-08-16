@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/quran_surahs.dart';
 import '../repositories/application_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "التطبيق 🌱" — Phase 3 of QURAN_COMPANION_ROADMAP.md section 4.8. A
 /// short, concrete lesson from a surah the student has actually memorized,
@@ -58,7 +59,7 @@ class _ApplicationScreenState extends State<ApplicationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('التطبيق')),
-      body: _loading ? const Center(child: CircularProgressIndicator()) : _buildBody(),
+      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
     );
   }
 

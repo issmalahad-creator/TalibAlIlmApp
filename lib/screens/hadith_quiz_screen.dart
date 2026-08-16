@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../repositories/daily_session_repository.dart';
 import '../repositories/hadith_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "اختبر نفسك" for Al-Arba'in Al-Nawawiyyah — same self-graded "أكمل"
 /// mechanic as the Quran quiz, generalized to a discrete hadith collection:
@@ -70,7 +71,7 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('اختبر نفسك — الأربعين')),
-      body: _loading ? const Center(child: CircularProgressIndicator()) : _buildBody(),
+      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
     );
   }
 

@@ -31,6 +31,7 @@ import 'journey_screen.dart';
 import 'madarij_screen.dart';
 import 'wasitiyyah_screen.dart';
 import 'zad_almaad_screen.dart';
+import '../widgets/loading_view.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -111,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('الملف الشخصي')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

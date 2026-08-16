@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../repositories/madarij_repository.dart';
 import '../theme/app_theme.dart';
 import 'madarij_chapter_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "مدارج السالكين" — Phase 5ح of QURAN_COMPANION_ROADMAP.md. **المستوى
 /// المتقدم فقط** — أعمق نص بالتطبيق كله، والتحذير أعلى الشاشة ليس نصًا
@@ -41,7 +42,7 @@ class _MadarijScreenState extends State<MadarijScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('مدارج السالكين')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : Column(
               children: [
                 Container(

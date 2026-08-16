@@ -9,6 +9,7 @@ import 'memorization_quiz_screen.dart';
 import 'quran_browse_screen.dart';
 import 'review_screen.dart';
 import 'understanding_screen.dart';
+import '../widgets/loading_view.dart';
 
 const _phaseIcons = {
   'quick_review': Icons.refresh_rounded,
@@ -121,7 +122,7 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('جلسة موجّهة')), body: const Center(child: CircularProgressIndicator()));
+      return Scaffold(appBar: AppBar(title: const Text('جلسة موجّهة')), body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
     }
     return Scaffold(
       appBar: AppBar(title: const Text('جلسة موجّهة')),

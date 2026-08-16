@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/arabic_curriculum.dart';
 import '../repositories/arabic_curriculum_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 const _tierLabels = {
   'tier1': 'الأكثر تكرارًا (المستوى ١)',
@@ -58,7 +59,7 @@ class _ArabicVocabularyLessonScreenState extends State<ArabicVocabularyLessonScr
     return Scaffold(
       appBar: AppBar(title: const Text('المرحلة ٣: أكثر كلمات القرآن تكرارًا')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

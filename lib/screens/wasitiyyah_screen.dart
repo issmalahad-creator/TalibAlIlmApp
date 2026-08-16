@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../repositories/wasitiyyah_repository.dart';
 import '../theme/app_theme.dart';
 import 'wasitiyyah_quiz_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "العقيدة الواسطية" — Phase 5ب of QURAN_COMPANION_ROADMAP.md.
 class WasitiyyahScreen extends StatefulWidget {
@@ -56,7 +57,7 @@ class _WasitiyyahScreenState extends State<WasitiyyahScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : Column(
               children: [
                 Padding(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/salah_content.dart';
 import '../repositories/salah_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// Curated lesson library for "إقامة الصلاة" — browsable by category,
 /// mark-as-read tracking (reading/reflection material, no quiz — same
@@ -45,7 +46,7 @@ class _SalahLibraryScreenState extends State<SalahLibraryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('مكتبة إقامة الصلاة')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

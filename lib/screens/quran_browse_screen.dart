@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/quran_surahs.dart';
 import '../repositories/memorization_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "القرآن" — Phase 1 of QURAN_COMPANION_ROADMAP.md. Browse all 604 pages
 /// grouped by Juz, and mark a page as newly memorized (the entry point into
@@ -98,7 +99,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('القرآن')), body: const Center(child: CircularProgressIndicator()));
+      return Scaffold(appBar: AppBar(title: const Text('القرآن')), body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
     }
     if (_error != null) {
       return Scaffold(

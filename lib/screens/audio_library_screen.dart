@@ -4,6 +4,7 @@ import '../data/audio_series_seed.dart';
 import '../repositories/audio_library_repository.dart';
 import '../theme/app_theme.dart';
 import 'audio_player_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "كتب صوتية من اليوتيوب" (Phase 13, Ismail's request 2026-08-16) —
 /// audio-lecture series streamed via YouTube's own official embedded
@@ -115,7 +116,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

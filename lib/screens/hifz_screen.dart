@@ -6,6 +6,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
+import '../widgets/loading_view.dart';
 
 /// "حفظ القرآن" — deliberately simple, for a self-studying memorizer, not a
 /// Hifz-academy management system: mark which Surahs you've memorized, see
@@ -114,7 +115,7 @@ class _HifzScreenState extends State<HifzScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('حفظ القرآن')), body: const Center(child: CircularProgressIndicator()));
+      return Scaffold(appBar: AppBar(title: const Text('حفظ القرآن')), body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
     }
     final checkedInToday = _checkInDates.contains(todayDate());
     final percentValue = (_percent * 100).round();

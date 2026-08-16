@@ -16,11 +16,16 @@ class NavTileData {
 
 class NavTile extends StatelessWidget {
   final NavTileData data;
-  const NavTile({super.key, required this.data});
+
+  /// Position within its [NavGrid] — drives the staggered entrance below.
+  /// 0 when used standalone (no stagger, appears immediately).
+  final int index;
+
+  const NavTile({super.key, required this.data, this.index = 0});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final content = InkWell(
       onTap: data.onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
@@ -46,6 +51,25 @@ class NavTile extends StatelessWidget {
         ),
       ),
     );
+    if (index == 0) return content;
+
+    // Staggered fade+scale entrance (Ismail's 2026-08-16 decorative-features
+    // request, roadmap §4.34 point 5) — each tile's animation window starts
+    // a little later than the one before it via `Interval`, so the grid
+    // appears as a gentle wave instead of popping in all at once. Capped so
+    // later tiles in a long grid (e.g. the full الملف الشخصي list) don't
+    // end up waiting an unreasonably long time to appear.
+    final delay = (index * 0.06).clamp(0.0, 0.5);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 550),
+      curve: Interval(delay, 1.0, curve: Curves.easeOutCubic),
+      builder: (context, value, child) => Opacity(
+        opacity: value.clamp(0.0, 1.0),
+        child: Transform.scale(scale: 0.85 + 0.15 * value, child: child),
+      ),
+      child: content,
+    );
   }
 }
 
@@ -62,7 +86,7 @@ class NavGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       childAspectRatio: 0.78,
-      children: items.map((d) => NavTile(data: d)).toList(),
+      children: [for (var i = 0; i < items.length; i++) NavTile(data: items[i], index: i + 1)],
     );
   }
 }

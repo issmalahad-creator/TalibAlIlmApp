@@ -8,6 +8,7 @@ import '../repositories/audio_library_repository.dart';
 import '../repositories/milestone_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
+import '../widgets/loading_view.dart';
 
 const _reflectionPrompts = [
   'ما الفكرة التي لفتت انتباهك في هذا المقطع؟',
@@ -347,7 +348,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           ),
           if (_loadingEpisodes) ...[
             const SizedBox(height: 10),
-            const Center(child: CircularProgressIndicator()),
+            const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'),
           ] else if (_episodeIds.length > 1) ...[
             const SizedBox(height: 12),
             const Text('الحلقات', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
@@ -424,7 +425,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           ),
           const SizedBox(height: 20),
           if (_loadingReflections)
-            const Center(child: CircularProgressIndicator())
+            const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           else if (_reflections.isNotEmpty) ...[
             const Text('ملاحظاتك على هذه الحلقة', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),

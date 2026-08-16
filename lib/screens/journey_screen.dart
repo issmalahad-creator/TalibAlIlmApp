@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import 'certificates_screen.dart';
 import 'curriculum_map_screen.dart';
 import 'quran_browse_screen.dart';
+import '../widgets/loading_view.dart';
 
 final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
@@ -64,7 +65,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : _status == null
               ? _WizardView(repo: _repo, onCreated: _load)
               : _DashboardView(status: _status!, repo: _repo, onChanged: _load),

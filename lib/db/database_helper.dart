@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 31,
+      version: 32,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -50,6 +50,7 @@ class DatabaseHelper {
         await _createV29Tables(db);
         await _createV30Tables(db);
         await _createV31Tables(db);
+        await _createV32Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -82,6 +83,7 @@ class DatabaseHelper {
         if (oldVersion < 29) await _createV29Tables(db);
         if (oldVersion < 30) await _createV30Tables(db);
         if (oldVersion < 31) await _createV31Tables(db);
+        if (oldVersion < 32) await _createV32Tables(db);
       },
     );
   }
@@ -857,6 +859,23 @@ class DatabaseHelper {
         log_date TEXT NOT NULL,
         rep_count INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (unit_id, log_date)
+      )
+    ''');
+  }
+
+  /// Session-position for the redesigned continuous adhkar reader (Ismail's
+  /// 2026-08-16 "تجربة عبادة متصلة" request) — deliberately stores only
+  /// which item the student was viewing, not the in-memory repeat counters
+  /// (those stay exactly as they already worked: reset to full count on
+  /// reopen, unless the category is already completed today). `updated_date`
+  /// gates resume to the same Hijri day; a stale row from a previous day is
+  /// ignored rather than deleted, since the next save overwrites it anyway.
+  Future<void> _createV32Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE adhkar_session_position (
+        category_id INTEGER PRIMARY KEY REFERENCES adhkar_categories(id),
+        item_index INTEGER NOT NULL,
+        updated_date TEXT NOT NULL
       )
     ''');
   }

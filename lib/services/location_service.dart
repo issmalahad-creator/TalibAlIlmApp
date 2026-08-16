@@ -5,7 +5,15 @@ class AppCoordinates {
   final double latitude;
   final double longitude;
   final bool isManual;
-  const AppCoordinates({required this.latitude, required this.longitude, this.isManual = false});
+
+  /// GPS accuracy radius in meters, when known (a fresh GPS fix only — null
+  /// for manual/cached locations, since neither carries a real accuracy
+  /// figure). Purely additive info for the Qibla screen's confidence
+  /// display (Ismail's 2026-08-16 "قوّي البوصلة... زيادة لا خراب" request)
+  /// — doesn't change how the coordinates themselves are used anywhere.
+  final double? accuracyMeters;
+
+  const AppCoordinates({required this.latitude, required this.longitude, this.isManual = false, this.accuracyMeters});
 }
 
 /// Location for Phase 9 (Qibla + prayer times) — QURAN_COMPANION_ROADMAP.md.
@@ -61,7 +69,7 @@ class LocationService {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 10)),
       );
-      return AppCoordinates(latitude: position.latitude, longitude: position.longitude);
+      return AppCoordinates(latitude: position.latitude, longitude: position.longitude, accuracyMeters: position.accuracy);
     } catch (_) {
       // Any platform/timeout failure just means "no GPS fix right now" —
       // callers fall back to cached/manual location instead of crashing.

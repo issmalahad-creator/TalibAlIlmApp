@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../repositories/quran_search_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "البحث عن آية" — Phase 1 of QURAN_COMPANION_ROADMAP.md. Search a word or
 /// phrase (no tashkeel needed) and get every matching ayah in the Quran with
@@ -117,7 +118,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
   }
 
   Widget _buildResults() {
-    if (_searching) return const Center(child: CircularProgressIndicator());
+    if (_searching) return const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...');
     if (!_hasSearched) {
       return const Center(
         child: Text('ابحث عن أي كلمة لتظهر كل الآيات التي وردت فيها', style: TextStyle(color: AppColors.textMuted)),

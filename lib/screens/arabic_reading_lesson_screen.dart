@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/arabic_curriculum.dart';
 import '../repositories/arabic_curriculum_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// Stage 2 lesson: harakat (short vowels), tanween, sukoon, shadda, and
 /// madd (long vowels) — the mechanics of reading Arabic script.
@@ -45,7 +46,7 @@ class _ArabicReadingLessonScreenState extends State<ArabicReadingLessonScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('المرحلة ٢: القراءة الأساسية')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: harakatLessons

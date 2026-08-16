@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../repositories/prayer_times_repository.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "أوقات الصلاة" — QURAN_COMPANION_ROADMAP.md Phase 9. Shows today's six
 /// prayers computed offline (once a location is available) via the
@@ -160,7 +161,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.access_time_outlined, message: 'جاري حساب مواقيت الصلاة لموقعك...')
           : _noLocation
               ? _NoLocationView(onManualEntry: _showManualLocationSheet, onRetry: _load)
               : _buildTimes(),
@@ -256,24 +257,21 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               ),
               const SizedBox(height: 16),
               const Text('مذهب حساب العصر', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              RadioListTile<Madhab>(
-                title: const Text('الجمهور (شافعي/مالكي/حنبلي)'),
-                value: Madhab.shafi,
-                groupValue: _madhab,
-                onChanged: (v) {
-                  if (v == null) return;
-                  setSheetState(() => _madhab = v);
-                  _changeMadhab(v);
+              const SizedBox(height: 6),
+              _BorderedOptionTile(
+                label: 'الجمهور (شافعي/مالكي/حنبلي)',
+                selected: _madhab == Madhab.shafi,
+                onTap: () {
+                  setSheetState(() => _madhab = Madhab.shafi);
+                  _changeMadhab(Madhab.shafi);
                 },
               ),
-              RadioListTile<Madhab>(
-                title: const Text('حنفي'),
-                value: Madhab.hanafi,
-                groupValue: _madhab,
-                onChanged: (v) {
-                  if (v == null) return;
-                  setSheetState(() => _madhab = v);
-                  _changeMadhab(v);
+              _BorderedOptionTile(
+                label: 'حنفي',
+                selected: _madhab == Madhab.hanafi,
+                onTap: () {
+                  setSheetState(() => _madhab = Madhab.hanafi);
+                  _changeMadhab(Madhab.hanafi);
                 },
               ),
               const SizedBox(height: 16),
@@ -373,6 +371,50 @@ class _NoLocationView extends StatelessWidget {
             FilledButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
             const SizedBox(height: 10),
             OutlinedButton(onPressed: onManualEntry, child: const Text('إدخال الموقع يدويًا')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bordered selectable option button — Ismail's 2026-08-16 decorative-
+/// features request (roadmap §4.34 point 3), replacing this screen's
+/// `RadioListTile` madhab picker with a bordered-card look closer to the
+/// reference app's option buttons. Same selection semantics as before
+/// (still just calls `onTap` with the value to select), only the visual
+/// presentation changed — and it drops the `RadioListTile`/`groupValue`
+/// pair along the way, which was already flagged deprecated.
+class _BorderedOptionTile extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _BorderedOptionTile({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryLight : AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: selected ? AppColors.primary : AppColors.divider, width: selected ? 1.6 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(selected ? Icons.radio_button_checked : Icons.radio_button_unchecked, size: 18, color: selected ? AppColors.primary : AppColors.textMuted),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(fontSize: 13, fontWeight: selected ? FontWeight.w800 : FontWeight.w500, color: selected ? AppColors.primaryDark : AppColors.textDark),
+              ),
+            ),
           ],
         ),
       ),

@@ -6,6 +6,7 @@ import '../services/hifz_export_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
 import 'hifz_student_detail_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "أستاذ التحفيظ" — a simple roster tool for a Quran-memorization teacher,
 /// deliberately built with the exact same interaction pattern as
@@ -149,7 +150,7 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
         child: const Icon(Icons.add),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : _students.isEmpty
               ? const Center(child: Text('لا يوجد طلاب بعد — اضغط + لإضافة طالب'))
               : ListView(

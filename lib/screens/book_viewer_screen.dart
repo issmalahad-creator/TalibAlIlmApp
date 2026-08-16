@@ -5,6 +5,7 @@ import '../models/reading_record.dart';
 import '../repositories/book_repository.dart';
 import '../services/notification_service.dart';
 import '../utils/month.dart';
+import '../widgets/loading_view.dart';
 
 class BookViewerScreen extends StatefulWidget {
   final String filePath;
@@ -69,7 +70,7 @@ class _BookViewerScreenState extends State<BookViewerScreen> {
         ],
       ),
       body: !_ready
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : PDFView(
               filePath: widget.filePath,
               defaultPage: _defaultPage,

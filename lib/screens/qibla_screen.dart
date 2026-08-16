@@ -3,12 +3,14 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
+import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
 
 import '../repositories/prayer_times_repository.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import 'qibla_ar_view.dart';
 import 'qibla_map_view.dart';
+import '../widgets/loading_view.dart';
 
 /// Exact Kaaba coordinates verified against `adhan_dart`'s own
 /// `Qibla.makkah` constant (`Coordinates(21.4225241, 39.8261818)`,
@@ -44,9 +46,20 @@ class _QiblaScreenState extends State<QiblaScreen> {
   bool _loading = true;
   bool _noLocation = false;
   StreamSubscription<CompassEvent>? _compassSub;
+  StreamSubscription<OrientationEvent>? _fusedSub;
   double? _heading;
   double? _headingAccuracy;
+  double? _fusedHeading;
   _QiblaMethod _method = _QiblaMethod.compass;
+
+  /// The heading actually used for every bearing calculation on this screen
+  /// — Ismail's 2026-08-16 "قوّي البوصلة للأجهزة القديمة" request. Prefers
+  /// `flutter_rotation_sensor`'s gyroscope-fused, smoothed heading (stable
+  /// even on devices with a noisy magnetometer); falls back to the plain
+  /// `flutter_compass` reading on devices without a gyroscope/rotation-vector
+  /// sensor (older/cheaper hardware) so the feature still works there, just
+  /// without the extra stability.
+  double? get _effectiveHeading => _fusedHeading ?? _heading;
 
   @override
   void initState() {
@@ -59,11 +72,42 @@ class _QiblaScreenState extends State<QiblaScreen> {
         _headingAccuracy = event.accuracy;
       });
     });
+    _initFusedHeading();
+  }
+
+  void _initFusedHeading() {
+    try {
+      RotationSensor.samplingPeriod = SensorInterval.gameInterval;
+      _fusedSub = RotationSensor.orientationStream.listen(
+        (event) {
+          if (!mounted) return;
+          final rawHeadingDeg = (event.eulerAngles.azimuth * 180 / pi) % 360;
+          setState(() => _fusedHeading = _smoothHeading(_fusedHeading, rawHeadingDeg, 0.18));
+        },
+        onError: (_) {
+          // No gyroscope/rotation-vector sensor on this device — stays on
+          // the plain flutter_compass heading via _effectiveHeading.
+        },
+      );
+    } catch (_) {
+      // flutter_rotation_sensor unsupported on this platform build.
+    }
+  }
+
+  /// Exponential smoothing aware that headings wrap at 360°/0° — a naive
+  /// average of e.g. 359° and 1° would wrongly produce 180° instead of 0°.
+  double _smoothHeading(double? previous, double target, double alpha) {
+    if (previous == null) return target;
+    final delta = ((target - previous + 540) % 360) - 180;
+    var result = (previous + delta * alpha) % 360;
+    if (result < 0) result += 360;
+    return result;
   }
 
   @override
   void dispose() {
     _compassSub?.cancel();
+    _fusedSub?.cancel();
     super.dispose();
   }
 
@@ -92,12 +136,17 @@ class _QiblaScreenState extends State<QiblaScreen> {
   /// upgraded/guessed past what the sensor actually reports.
   (String, Color) get _confidence {
     final acc = _headingAccuracy;
-    if (_heading == null) return ('لا توجد بيانات من البوصلة', AppColors.textMuted);
+    if (_effectiveHeading == null) return ('لا توجد بيانات من البوصلة', AppColors.textMuted);
     if (acc == null) return ('دقة البوصلة غير معروفة على هذا الجهاز', AppColors.textMuted);
     final accDegrees = acc * 180 / pi;
-    if (accDegrees < 15) return ('دقة عالية', AppColors.primary);
-    if (accDegrees < 40) return ('دقة متوسطة — قد تحتاج معايرة', const Color(0xFFB8860B));
-    return ('دقة ضعيفة — حرّك هاتفك برسم ٨ لمعايرة البوصلة', Colors.redAccent);
+    // Ismail's 2026-08-16 "استمر في نقاط التحسين" follow-up — showing the
+    // actual degree figure alongside the tier label, same spirit as the
+    // location-accuracy addition just before this one (never hide the raw
+    // number behind only a qualitative label).
+    final degText = '~${accDegrees.round()}°';
+    if (accDegrees < 15) return ('دقة عالية ($degText)', AppColors.primary);
+    if (accDegrees < 40) return ('دقة متوسطة ($degText) — قد تحتاج معايرة', const Color(0xFFB8860B));
+    return ('دقة ضعيفة ($degText) — حرّك هاتفك برسم ٨ لمعايرة البوصلة', Colors.redAccent);
   }
 
   @override
@@ -105,7 +154,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('القبلة')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.explore_outlined, message: 'جاري تحديد موقعك لحساب اتجاه القبلة بدقة...')
           : _noLocation
               ? _NoLocationView(onRetry: _load)
               : Column(
@@ -123,9 +172,10 @@ class _QiblaScreenState extends State<QiblaScreen> {
       case _QiblaMethod.compass:
         return _CompassView(
           qiblaBearing: _qiblaBearing ?? 0,
-          heading: _heading,
+          heading: _effectiveHeading,
           confidence: _confidence,
           isManualLocation: coords.isManual,
+          locationAccuracyMeters: coords.accuracyMeters,
         );
       case _QiblaMethod.map:
         return QiblaMapView(
@@ -137,7 +187,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
         return QiblaArView(
           latitude: coords.latitude,
           longitude: coords.longitude,
-          heading: _heading,
+          heading: _effectiveHeading,
+          headingAccuracy: _headingAccuracy,
           qiblaBearing: _qiblaBearing ?? 0,
         );
       case _QiblaMethod.sunMoon:
@@ -194,50 +245,110 @@ class _CompassView extends StatelessWidget {
   final (String, Color) confidence;
   final bool isManualLocation;
 
-  const _CompassView({required this.qiblaBearing, required this.heading, required this.confidence, required this.isManualLocation});
+  /// GPS accuracy radius in meters, when a fresh fix carried one — Ismail's
+  /// 2026-08-16 "زد من قوتها... زيادة لا خراب" request. Purely additive
+  /// info alongside the existing heading-accuracy confidence line: the
+  /// compass can be perfectly stable while the *location* it's aiming from
+  /// is still coarse, and that's a real, separate source of Qibla error the
+  /// screen didn't previously surface at all.
+  final double? locationAccuracyMeters;
+
+  const _CompassView({
+    required this.qiblaBearing,
+    required this.heading,
+    required this.confidence,
+    required this.isManualLocation,
+    this.locationAccuracyMeters,
+  });
+
+  /// Same "never upgrade past what the sensor reports" spirit as the
+  /// heading-accuracy tiering above, just for location instead.
+  (String, Color)? get _locationConfidence {
+    final acc = locationAccuracyMeters;
+    if (acc == null) return null;
+    if (acc < 20) return ('دقة الموقع عالية (~${acc.round()} م)', AppColors.primary);
+    if (acc < 100) return ('دقة الموقع متوسطة (~${acc.round()} م)', const Color(0xFFB8860B));
+    return ('دقة الموقع ضعيفة (~${acc.round()} م) — قد يزيح اتجاه القبلة قليلًا', Colors.redAccent);
+  }
+
+  /// Light-up gold glow color (Ismail's 2026-08-16 "اجعل البوصلة تضيء عند
+  /// الوصول إلى القبلة" request) — the same accent already used elsewhere in
+  /// the app for highlighted/focus states, not a new one-off color.
+  static const _glowColor = Color(0xFFD9A441);
+
+  /// Human-friendly cardinal name for the Qibla bearing — Ismail's
+  /// 2026-08-16 "استمر في نقاط التحسين" follow-up. 8-direction resolution
+  /// (not 16) — precise enough to be useful ("roughly north-east") without
+  /// implying false precision from a single degree number alone.
+  static const _cardinalNames = ['الشمال', 'الشمال الشرقي', 'الشرق', 'الجنوب الشرقي', 'الجنوب', 'الجنوب الغربي', 'الغرب', 'الشمال الغربي'];
+
+  static String _cardinalDirection(double bearingDeg) {
+    final index = ((bearingDeg % 360) / 45).round() % 8;
+    return _cardinalNames[index];
+  }
 
   @override
   Widget build(BuildContext context) {
     final (confidenceLabel, confidenceColor) = confidence;
     final needleAngle = heading == null ? 0.0 : ((qiblaBearing - heading!) * pi / 180);
+    final diff = heading == null ? null : ((qiblaBearing - heading! + 540) % 360) - 180;
+    final facingQibla = diff != null && diff.abs() < 8;
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Center(
-          child: SizedBox(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOut,
             width: 280,
             height: 280,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: facingQibla
+                  ? [BoxShadow(color: _glowColor.withValues(alpha: 0.65), blurRadius: 36, spreadRadius: 6)]
+                  : const [],
+            ),
             child: Stack(
               alignment: Alignment.center,
               children: [
                 Transform.rotate(
                   angle: heading == null ? 0 : -heading! * pi / 180,
-                  child: CustomPaint(size: const Size(280, 280), painter: _DialPainter()),
+                  child: CustomPaint(size: const Size(280, 280), painter: _DialPainter(litUp: facingQibla, glowColor: _glowColor)),
                 ),
                 Transform.rotate(
                   angle: needleAngle,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const _NeedleGlyph(),
-                      Container(margin: const EdgeInsets.only(top: 100), width: 3, height: 60, color: AppColors.primaryDark),
+                      _NeedleGlyph(litUp: facingQibla, glowColor: _glowColor),
+                      Container(
+                        margin: const EdgeInsets.only(top: 100),
+                        width: 3,
+                        height: 60,
+                        color: facingQibla ? _glowColor : AppColors.primaryDark,
+                      ),
                     ],
                   ),
                 ),
-                Container(
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 350),
                   width: 14,
                   height: 14,
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.primaryDark),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: facingQibla ? _glowColor : AppColors.primaryDark),
                 ),
               ],
             ),
           ),
         ),
+        if (facingQibla) ...[
+          const SizedBox(height: 12),
+          Text('أنت تواجه القبلة الآن 🕋', textAlign: TextAlign.center, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: _glowColor)),
+        ],
         const SizedBox(height: 20),
         Row(
           children: [
-            Expanded(child: _StatCard(label: 'اتجاه القبلة', value: '${qiblaBearing.toStringAsFixed(1)}°')),
+            Expanded(child: _StatCard(label: 'اتجاه القبلة', value: '${qiblaBearing.toStringAsFixed(1)}°', subtitle: _cardinalDirection(qiblaBearing))),
             const SizedBox(width: 10),
             Expanded(child: _StatCard(label: 'من الشمال', value: heading == null ? '—' : '${((qiblaBearing - heading!) % 360).toStringAsFixed(0)}°')),
           ],
@@ -254,6 +365,20 @@ class _CompassView extends StatelessWidget {
             ],
           ),
         ),
+        if (_locationConfidence != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(color: _locationConfidence!.$2.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              children: [
+                Icon(Icons.location_on_outlined, size: 18, color: _locationConfidence!.$2),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_locationConfidence!.$1, style: TextStyle(fontSize: 12.5, color: _locationConfidence!.$2, fontWeight: FontWeight.w700))),
+              ],
+            ),
+          ),
+        ],
         if (isManualLocation) ...[
           const SizedBox(height: 8),
           const Text('يُستخدم موقع مُدخَل يدويًا — دقة الاتجاه تعتمد على دقة الإحداثيات المدخلة', style: TextStyle(fontSize: 11, color: AppColors.textMuted), textAlign: TextAlign.center),
@@ -264,21 +389,40 @@ class _CompassView extends StatelessWidget {
           style: TextStyle(fontSize: 11, color: AppColors.textMuted),
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 10),
+        // Honest disclosure, not a silent gap — Ismail's 2026-08-16
+        // "استمر في نقاط التحسين" follow-up. The compass reads magnetic
+        // north, not true north; the geographic bearing above doesn't have
+        // that error at all, so the map tab is a genuinely independent
+        // cross-check rather than just "another view of the same number."
+        const Text(
+          'ملاحظة: البوصلة تعتمد الشمال المغناطيسي، وقد يظهر فرق بسيط بضع درجات حسب موقعك — للتأكد، قارن مع تبويب "المرئية" فهو محسوب جغرافيًا مباشرة بلا اعتماد على البوصلة',
+          style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
 }
 
 class _NeedleGlyph extends StatelessWidget {
-  const _NeedleGlyph();
+  final bool litUp;
+  final Color glowColor;
+  const _NeedleGlyph({required this.litUp, required this.glowColor});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 350),
       width: 34,
       height: 34,
-      decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(4), border: Border.all(color: Colors.white, width: 1.5)),
-      child: Align(alignment: Alignment.center, child: Container(height: 8, color: const Color(0xFFD9A441))),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: litUp ? glowColor : Colors.white, width: litUp ? 2.5 : 1.5),
+        boxShadow: litUp ? [BoxShadow(color: glowColor.withValues(alpha: 0.7), blurRadius: 10, spreadRadius: 1)] : const [],
+      ),
+      child: Align(alignment: Alignment.center, child: Container(height: 8, color: glowColor)),
     );
   }
 }
@@ -286,7 +430,12 @@ class _NeedleGlyph extends StatelessWidget {
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
-  const _StatCard({required this.label, required this.value});
+
+  /// Optional small line under the value — added for the cardinal-direction
+  /// name (Ismail's 2026-08-16 "استمر في نقاط التحسين" follow-up). Purely
+  /// additive: existing callers that don't pass it are unaffected.
+  final String? subtitle;
+  const _StatCard({required this.label, required this.value, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -296,6 +445,10 @@ class _StatCard extends StatelessWidget {
       child: Column(
         children: [
           Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+          if (subtitle != null) ...[
+            const SizedBox(height: 1),
+            Text(subtitle!, style: const TextStyle(fontSize: 10.5, color: AppColors.primary, fontWeight: FontWeight.w600)),
+          ],
           const SizedBox(height: 2),
           Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
         ],
@@ -308,16 +461,31 @@ class _StatCard extends StatelessWidget {
 /// 30°), the 8 cardinal/intercardinal labels, and a plain ring. Hand-drawn
 /// with `Canvas` primitives, not traced from any reference app's artwork.
 class _DialPainter extends CustomPainter {
+  final bool litUp;
+  final Color glowColor;
+  const _DialPainter({required this.litUp, required this.glowColor});
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 6;
 
     canvas.drawCircle(center, radius, Paint()..color = AppColors.surface);
+    if (litUp) {
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..color = glowColor
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+      );
+    }
     canvas.drawCircle(center, radius, Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = AppColors.divider);
+      ..color = litUp ? glowColor : AppColors.divider);
 
     final tickPaint = Paint()..color = AppColors.textMuted;
     for (var deg = 0; deg < 360; deg += 5) {
@@ -343,7 +511,7 @@ class _DialPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _DialPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _DialPainter oldDelegate) => oldDelegate.litUp != litUp;
 }
 
 class _ComingSoonView extends StatelessWidget {

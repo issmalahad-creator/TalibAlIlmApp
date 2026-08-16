@@ -20,6 +20,7 @@ import '../utils/month.dart';
 import '../widgets/animated_banner.dart';
 import '../widgets/category_pill.dart';
 import '../widgets/daily_companion_card.dart';
+import '../widgets/daily_journey_card.dart';
 import '../widgets/nav_tile.dart';
 import '../widgets/time_accountability_dashboard.dart';
 import '../widgets/worship_coach_card.dart';
@@ -39,6 +40,7 @@ import 'quran_reading_screen.dart';
 import 'review_screen.dart';
 import 'time_awareness_screen.dart';
 import 'curriculum_map_screen.dart';
+import '../widgets/loading_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final percent = (_overallProgress * 100).round();
     return Scaffold(
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.wb_sunny_outlined, message: 'جاري تحضير صفحتك الرئيسية...')
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
@@ -149,6 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onOpenPrayerTimes: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
                     onOpenQibla: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
                   ),
+                  const SizedBox(height: 12),
+                  const DailyJourneyCard(),
                   const SizedBox(height: 12),
                   WorshipCoachCard(
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorshipCoachScreen())),

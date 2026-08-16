@@ -5,6 +5,7 @@ import '../repositories/arabic_curriculum_repository.dart';
 import '../repositories/milestone_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
+import '../widgets/loading_view.dart';
 
 /// Stage 1 lesson: the 28-letter Arabic alphabet, each with its name,
 /// pronunciation guidance, and an example word — QURAN_COMPANION_ROADMAP.md
@@ -57,7 +58,7 @@ class _ArabicAlphabetLessonScreenState extends State<ArabicAlphabetLessonScreen>
     return Scaffold(
       appBar: AppBar(title: const Text('المرحلة ١: الحروف والنطق')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

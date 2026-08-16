@@ -9,6 +9,7 @@ import 'arabic_quranic_text_lesson_screen.dart';
 import 'arabic_reading_lesson_screen.dart';
 import 'arabic_resources_screen.dart';
 import 'arabic_vocabulary_lesson_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "منهج تعلم العربية لغير الناطقين بها" — QURAN_COMPANION_ROADMAP.md
 /// Phase 10b. Shows all 5 planned stages; only Stage 1 (alphabet) is
@@ -81,7 +82,7 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('منهج تعلم العربية')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

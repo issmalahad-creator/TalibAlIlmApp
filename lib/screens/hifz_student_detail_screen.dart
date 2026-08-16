@@ -4,6 +4,7 @@ import '../models/hifz_student.dart';
 import '../repositories/hifz_student_repository.dart';
 import '../services/hifz_export_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// One student's page — fixed info at the top, then a free-form list of
 /// "خانات" (sub-fields) the teacher adds himself, specific to this student
@@ -160,7 +161,7 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
         label: const Text('إضافة خانة'),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

@@ -5,6 +5,7 @@ import '../models/personal_book.dart';
 import '../services/personal_library_service.dart';
 import '../theme/app_theme.dart';
 import 'book_viewer_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "مكتبتي" — a student-organized personal library. Top level shows
 /// sections/folders the student created themselves (plus a fixed
@@ -155,7 +156,7 @@ class _PersonalLibraryScreenState extends State<PersonalLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('مكتبتي')), body: const Center(child: CircularProgressIndicator()));
+      return Scaffold(appBar: AppBar(title: const Text('مكتبتي')), body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
     }
     return _openCategoryId == null ? _buildFolderList() : _buildCategoryBooks();
   }

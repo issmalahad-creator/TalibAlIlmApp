@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/arabic_curriculum.dart';
 import '../repositories/arabic_curriculum_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// Stage 4 lesson: 10 core grammar concepts, sequenced the way
 /// established non-native Arabic courses introduce them.
@@ -45,7 +46,7 @@ class _ArabicGrammarLessonScreenState extends State<ArabicGrammarLessonScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('المرحلة ٤: القواعد الأساسية')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: grammarConcepts

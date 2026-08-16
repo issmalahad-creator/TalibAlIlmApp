@@ -13,6 +13,7 @@ import 'new_muslim_guide_screen.dart';
 import 'quran_browse_screen.dart';
 import 'wasitiyyah_screen.dart';
 import 'zad_almaad_screen.dart';
+import '../widgets/loading_view.dart';
 
 const _stateVisual = {
   CurriculumItemState.comingSoon: (Icons.hourglass_empty_rounded, AppColors.textMuted),
@@ -128,7 +129,7 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('خريطتي التعليمية')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.only(bottom: 32),
               children: [

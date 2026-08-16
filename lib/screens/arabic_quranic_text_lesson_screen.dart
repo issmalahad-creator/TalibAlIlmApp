@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/arabic_curriculum.dart';
 import '../repositories/arabic_curriculum_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// Stage 5 lesson: word-by-word breakdown of two short, widely-known
 /// surahs (Al-Fatihah, Al-Ikhlas) — direct application of Stages 1-4.
@@ -45,7 +46,7 @@ class _ArabicQuranicTextLessonScreenState extends State<ArabicQuranicTextLessonS
     return Scaffold(
       appBar: AppBar(title: const Text('المرحلة ٥: فهم لغة القرآن')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

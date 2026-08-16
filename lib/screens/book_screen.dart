@@ -19,6 +19,7 @@ import 'content_history_screen.dart';
 import 'personal_library_screen.dart';
 import 'quiz_screen.dart';
 import 'reading_stats_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// Books, their quizzes, and any extra materials — all fetched live from
 /// the Telegram-controlled content feed. Books accumulate (each `كتاب:`
@@ -525,7 +526,7 @@ class _BookScreenState extends State<BookScreen> {
     if (_loading) {
       return Scaffold(
           appBar: AppBar(title: const Text('الكتاب')),
-          body: const Center(child: CircularProgressIndicator()));
+          body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
     }
     final book = _selectedBook;
 

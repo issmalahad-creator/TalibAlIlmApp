@@ -11,6 +11,7 @@ import 'memorization_quiz_screen.dart';
 import 'quran_browse_screen.dart';
 import 'review_screen.dart';
 import 'understanding_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "اليوم" — QURAN_COMPANION_ROADMAP.md section 6. All 6 designed steps
 /// (قراءة/حفظ جديد/مراجعة/فهم/تطبيق/اختبار) have real data behind them.
@@ -94,7 +95,7 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('جلسة اليوم')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

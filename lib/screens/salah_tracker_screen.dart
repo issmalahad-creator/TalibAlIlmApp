@@ -7,6 +7,7 @@ import 'salah_assessment_screen.dart';
 import 'salah_library_screen.dart';
 import 'salah_stories_screen.dart';
 import 'salah_resources_screen.dart';
+import '../widgets/loading_view.dart';
 
 const _prayerLabels = {
   'fajr': 'الفجر',
@@ -95,7 +96,7 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.mosque_outlined, message: 'جاري تحميل سجل صلاتك...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

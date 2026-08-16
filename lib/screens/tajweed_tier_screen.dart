@@ -5,6 +5,7 @@ import '../repositories/milestone_repository.dart';
 import '../repositories/tajweed_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
+import '../widgets/loading_view.dart';
 
 /// Rule list for one Tajweed tier — mark each rule learned; once every
 /// rule in the tier is learned, the tier-completion certificate fires.
@@ -58,7 +59,7 @@ class _TajweedTierScreenState extends State<TajweedTierScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.tier.titleAr)),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: widget.tier.rules

@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -8,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'journey_screen.dart';
 import 'quran_browse_screen.dart';
 import 'quran_search_screen.dart';
+import '../widgets/loading_view.dart';
 
 const _themeColors = {
   'brown': (Color(0xFF8B5E34), 'بنّي'),
@@ -52,6 +56,13 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   bool _nightMode = false;
   String _themeKey = 'brown';
 
+  /// The currently tapped ayah — highlighted (per-line background, matching
+  /// the reference app's boxed-highlight look) while its context menu is
+  /// open, cleared once it closes. Ismail's 2026-08-16 "طبق الأصل" request.
+  int? _selectedSurah;
+  int? _selectedAyah;
+  final List<TapGestureRecognizer> _recognizers = [];
+
   @override
   void initState() {
     super.initState();
@@ -63,6 +74,9 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _repo.savePosition(_page);
+    for (final r in _recognizers) {
+      r.dispose();
+    }
     super.dispose();
   }
 
@@ -380,6 +394,10 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   }
 
   Future<void> _onAyahTap(QuranAyahText a, TapDownDetails details) async {
+    setState(() {
+      _selectedSurah = a.surah;
+      _selectedAyah = a.ayah;
+    });
     final isFav = await _repo.isFavorite(a.surah, a.ayah);
     if (!mounted) return;
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -398,7 +416,12 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
         const PopupMenuItem(value: 'share', child: ListTile(leading: Icon(Icons.share_outlined), title: Text('نشر'), dense: true)),
       ],
     );
-    if (!mounted || selected == null) return;
+    if (!mounted) return;
+    setState(() {
+      _selectedSurah = null;
+      _selectedAyah = null;
+    });
+    if (selected == null) return;
     switch (selected) {
       case 'tafsir':
         final tafsir = await _repo.tafsirForAyah(a.surah, a.ayah, _tafsirSource);
@@ -440,6 +463,79 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     }
   }
 
+  /// Builds the page as continuously-flowing paragraphs (one per surah
+  /// segment present on the page) instead of one isolated block per ayah —
+  /// this is the actual visual difference from a real printed Mushaf page
+  /// Ismail flagged ("طبق الأصل"): ayat wrap naturally into dense lines
+  /// rather than each starting its own paragraph. True line-for-line
+  /// replication of the official Madinah Mushaf's exact 15-lines-per-page
+  /// breaks would need that print's own line-break dataset, which isn't
+  /// sourced into this app — flagged here rather than faked; this gets the
+  /// visual density and flow right without it.
+  List<Widget> _buildContent(Color themeColor, Color textColor) {
+    for (final r in _recognizers) {
+      r.dispose();
+    }
+    _recognizers.clear();
+
+    final widgets = <Widget>[];
+    var currentSpans = <InlineSpan>[];
+    void flush() {
+      if (currentSpans.isEmpty) return;
+      widgets.add(Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text.rich(TextSpan(children: currentSpans), textAlign: TextAlign.right, textDirection: TextDirection.rtl),
+      ));
+      currentSpans = [];
+    }
+
+    for (final a in _ayat) {
+      if (a.ayah == 1) {
+        flush();
+        widgets.add(_SurahBanner(name: _surahNames[a.surah] ?? '${a.surah}', color: themeColor));
+      }
+      final isSelected = _selectedSurah == a.surah && _selectedAyah == a.ayah;
+      final recognizer = TapGestureRecognizer()..onTapDown = (details) => _onAyahTap(a, details);
+      _recognizers.add(recognizer);
+      currentSpans.add(TextSpan(
+        text: '${a.text} ',
+        recognizer: recognizer,
+        style: TextStyle(
+          fontFamily: 'AmiriQuran',
+          fontSize: 21,
+          height: 2.3,
+          color: textColor,
+          backgroundColor: isSelected ? themeColor.withValues(alpha: 0.18) : null,
+        ),
+      ));
+      currentSpans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: _AyahMedallion(number: a.ayah, color: themeColor, litUp: isSelected),
+        ),
+      ));
+      currentSpans.add(const TextSpan(text: '  '));
+
+      if (_showTafsir) {
+        final tafsir = _tafsirByAyah['${a.surah}:${a.ayah}'];
+        if (tafsir != null && tafsir.trim().isNotEmpty) {
+          flush();
+          widgets.add(Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: _nightMode ? const Color(0xFF1E1E1E) : AppColors.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)),
+              child: Text(tafsir, textAlign: TextAlign.right, style: TextStyle(fontSize: 13, height: 1.7, color: textColor)),
+            ),
+          ));
+        }
+      }
+    }
+    flush();
+    return widgets;
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeColor = _themeColors[_themeKey]!.$1;
@@ -458,14 +554,12 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('سورة ${_surahNames[_ayat.first.surah] ?? _ayat.first.surah}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    _RibbonBadge(text: 'سورة ${_surahNames[_ayat.first.surah] ?? _ayat.first.surah}', color: themeColor),
+                    const SizedBox(height: 4),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'الجزء ${_ayat.first.juzNumber ?? '-'}  ·  الصفحة $_page',
-                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
-                        ),
+                        _RibbonBadge(text: 'الجزء ${_ayat.first.juzNumber ?? '-'}  ·  الصفحة $_page', color: themeColor, small: true),
                         const SizedBox(width: 4),
                         const Icon(Icons.unfold_more_rounded, size: 13, color: AppColors.textMuted),
                       ],
@@ -480,7 +574,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.menu_book_outlined, message: 'جاري تحميل صفحة المصحف...')
           : Column(
               children: [
                 InkWell(
@@ -527,46 +621,22 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.all(10),
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(border: Border.all(color: themeColor, width: 2), borderRadius: BorderRadius.circular(14)),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _ayat.length,
-                      itemBuilder: (context, i) {
-                        final a = _ayat[i];
-                        final isFirstOfSurah = a.ayah == 1;
-                        final tafsir = _tafsirByAyah['${a.surah}:${a.ayah}'];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
+                    decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+                    child: CustomPaint(
+                      foregroundPainter: _MushafFramePainter(color: themeColor),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              if (isFirstOfSurah)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  child: Text(
-                                    'سورة ${_surahNames[a.surah] ?? a.surah}',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(fontWeight: FontWeight.w800, color: themeColor),
-                                  ),
-                                ),
-                              GestureDetector(
-                                onTapDown: (details) => _onAyahTap(a, details),
-                                child: Text('${a.text} ﴿${a.ayah}﴾', textAlign: TextAlign.right, style: TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.1, color: textColor)),
-                              ),
-                              if (_showTafsir && tafsir != null && tafsir.trim().isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4, bottom: 10),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(color: _nightMode ? const Color(0xFF1E1E1E) : AppColors.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)),
-                                    child: Text(tafsir, textAlign: TextAlign.right, style: TextStyle(fontSize: 13, height: 1.7, color: textColor)),
-                                  ),
-                                ),
+                              ..._buildContent(themeColor, textColor),
+                              const SizedBox(height: 6),
+                              Center(child: _PageNumberCartouche(page: _page, color: themeColor)),
                             ],
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -586,4 +656,195 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
             ),
     );
   }
+}
+
+String _easternArabicDigits(int n) {
+  const western = '0123456789';
+  const eastern = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return n.toString().split('').map((c) {
+    final i = western.indexOf(c);
+    return i == -1 ? c : eastern[i];
+  }).join();
+}
+
+/// Original ornamental ayah-number marker — a small circle ringed with
+/// petal-like bumps, drawn from scratch with `CustomPainter` (not traced
+/// from any Mushaf font's glyph artwork) — replaces the plain "﴿30﴾"
+/// bracket-number the reading screen used before Ismail's 2026-08-16 "طبق
+/// الأصل" request for a page that looks like an actual printed Mushaf.
+class _AyahMedallion extends StatelessWidget {
+  final int number;
+  final Color color;
+  final bool litUp;
+  const _AyahMedallion({required this.number, required this.color, required this.litUp});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: CustomPaint(
+        painter: _MedallionPainter(color: litUp ? color : color.withValues(alpha: 0.7)),
+        child: Center(
+          child: Text(_easternArabicDigits(number), style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: color)),
+        ),
+      ),
+    );
+  }
+}
+
+class _MedallionPainter extends CustomPainter {
+  final Color color;
+  const _MedallionPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2;
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..color = color;
+    const petals = 8;
+    for (var i = 0; i < petals; i++) {
+      final angle = (i / petals) * 2 * pi;
+      final bumpCenter = Offset(center.dx + r * 0.8 * cos(angle), center.dy + r * 0.8 * sin(angle));
+      canvas.drawCircle(bumpCenter, r * 0.3, ringPaint);
+    }
+    canvas.drawCircle(center, r * 0.68, Paint()..color = color.withValues(alpha: 0.1));
+    canvas.drawCircle(center, r * 0.68, ringPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MedallionPainter oldDelegate) => oldDelegate.color != color;
+}
+
+/// Hexagonal ribbon-shaped badge (pointed left/right ends via `ClipPath`) —
+/// used for the surah-name/juz-page header pills and the in-page surah
+/// banner, echoing the reference app's ornate banner shapes with original
+/// geometry rather than a copied asset.
+class _RibbonBadge extends StatelessWidget {
+  final String text;
+  final Color color;
+  final bool small;
+  final bool large;
+  const _RibbonBadge({required this.text, required this.color, this.small = false, this.large = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipPath(
+      clipper: const _RibbonClipper(),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: large ? 24 : 16, vertical: large ? 9 : 5),
+        color: color.withValues(alpha: 0.12),
+        child: Text(text, style: TextStyle(fontSize: large ? 14 : (small ? 10.5 : 13), fontWeight: FontWeight.w800, color: color)),
+      ),
+    );
+  }
+}
+
+class _RibbonClipper extends CustomClipper<Path> {
+  const _RibbonClipper();
+
+  @override
+  Path getClip(Size size) {
+    final notch = size.height * 0.28;
+    return Path()
+      ..moveTo(notch, 0)
+      ..lineTo(size.width - notch, 0)
+      ..lineTo(size.width, size.height / 2)
+      ..lineTo(size.width - notch, size.height)
+      ..lineTo(notch, size.height)
+      ..lineTo(0, size.height / 2)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
+class _SurahBanner extends StatelessWidget {
+  final String name;
+  final Color color;
+  const _SurahBanner({required this.name, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Center(child: _RibbonBadge(text: 'سورة $name', color: color, large: true)),
+    );
+  }
+}
+
+/// Double-ring page-number cartouche at the bottom of the page frame —
+/// echoes the reference's ornate page-number circle at the page foot.
+class _PageNumberCartouche extends StatelessWidget {
+  final int page;
+  final Color color;
+  const _PageNumberCartouche({required this.page, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 44,
+      height: 44,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 1.3)),
+      child: Container(
+        width: 32,
+        height: 32,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color.withValues(alpha: 0.5), width: 1)),
+        child: Text(_easternArabicDigits(page), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+      ),
+    );
+  }
+}
+
+/// Decorative double-line page border with small corner flourishes,
+/// painted as a `foregroundPainter` over the reading area — the frame
+/// upgrade behind Ismail's "طبق الأصل" request, in the student's own
+/// chosen "لون مصحفك" theme color rather than a fixed gold.
+class _MushafFramePainter extends CustomPainter {
+  final Color color;
+  const _MushafFramePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final outer = RRect.fromRectAndRadius(Rect.fromLTWH(3, 3, size.width - 6, size.height - 6), const Radius.circular(12));
+    final inner = RRect.fromRectAndRadius(Rect.fromLTWH(8, 8, size.width - 16, size.height - 16), const Radius.circular(9));
+    canvas.drawRRect(
+      outer,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = color,
+    );
+    canvas.drawRRect(
+      inner,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0
+        ..color = color.withValues(alpha: 0.7),
+    );
+    final diamondPaint = Paint()..color = color;
+    for (final corner in [
+      const Offset(3, 3),
+      Offset(size.width - 3, 3),
+      Offset(3, size.height - 3),
+      Offset(size.width - 3, size.height - 3),
+    ]) {
+      final path = Path()
+        ..moveTo(corner.dx, corner.dy - 5)
+        ..lineTo(corner.dx + 5, corner.dy)
+        ..lineTo(corner.dx, corner.dy + 5)
+        ..lineTo(corner.dx - 5, corner.dy)
+        ..close();
+      canvas.drawPath(path, diamondPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MushafFramePainter oldDelegate) => oldDelegate.color != color;
 }

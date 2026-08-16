@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/onboarding_service.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// Decides, once at app start, whether to show the first-launch tutorial or
 /// go straight to [MainShell]. Kept as its own tiny widget so `main.dart`'s
@@ -28,7 +29,7 @@ class _StartupGateState extends State<StartupGate> {
   @override
   Widget build(BuildContext context) {
     if (_showOnboarding == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: AppLoadingView(icon: Icons.auto_stories_outlined, message: 'جاري تحضير تطبيقك...'));
     }
     if (_showOnboarding == true) {
       return OnboardingScreen(

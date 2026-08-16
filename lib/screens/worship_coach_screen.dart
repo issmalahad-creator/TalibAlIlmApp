@@ -8,6 +8,7 @@ import 'adhkar_screen.dart';
 import 'quran_browse_screen.dart';
 import 'review_screen.dart';
 import 'salah_tracker_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "مدرب العبادة" — Ismail's request 2026-08-16: a rule-based (no AI)
 /// coaching engine across Salah/Quran/Dhikr. This screen is the detail
@@ -75,7 +76,7 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('مدرب العبادة')),
       body: status == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.route_outlined, message: 'جاري تحليل انتظامك لتحديد مهمتك...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -213,11 +214,7 @@ class _ConsistencyRow extends StatelessWidget {
                   Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                   if (isFocus) ...[
                     const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-                      child: Text('التركيز الآن', style: TextStyle(fontSize: 9.5, color: color, fontWeight: FontWeight.w800)),
-                    ),
+                    _PulsingFocusBadge(color: color),
                   ],
                 ],
               ),
@@ -232,6 +229,41 @@ class _ConsistencyRow extends StatelessWidget {
           const SizedBox(height: 4),
           const Text('آخر 7 أيام', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
         ],
+      ),
+    );
+  }
+}
+
+/// Gently pulsing "التركيز الآن" badge — Ismail's 2026-08-16 decorative-
+/// features request (roadmap §4.34 point 6): a subtle, continuous
+/// scale-pulse draws the eye to which domain the coach is actually
+/// recommending right now, on top of the existing color highlight.
+class _PulsingFocusBadge extends StatefulWidget {
+  final Color color;
+  const _PulsingFocusBadge({required this.color});
+
+  @override
+  State<_PulsingFocusBadge> createState() => _PulsingFocusBadgeState();
+}
+
+class _PulsingFocusBadgeState extends State<_PulsingFocusBadge> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) => Transform.scale(scale: 1.0 + 0.1 * _controller.value, child: child),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(color: widget.color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+        child: Text('التركيز الآن', style: TextStyle(fontSize: 9.5, color: widget.color, fontWeight: FontWeight.w800)),
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'madarij_screen.dart';
 import 'quran_reading_screen.dart';
 import 'quran_search_screen.dart';
 import 'wasitiyyah_screen.dart';
+import '../widgets/loading_view.dart';
 
 const _istighfarTarget = 100;
 
@@ -97,7 +98,7 @@ class _WirdScreenState extends State<WirdScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('ورد اليوم')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

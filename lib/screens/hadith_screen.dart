@@ -5,6 +5,7 @@ import '../repositories/milestone_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import 'hadith_quiz_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "الأربعين النووية" — Phase 5أ of QURAN_COMPANION_ROADMAP.md. Browse all
 /// 42 hadith with their commentary, mark memorized, and a quick-access
@@ -66,7 +67,7 @@ class _HadithScreenState extends State<HadithScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : Column(
               children: [
                 Padding(

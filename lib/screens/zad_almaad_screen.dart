@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../repositories/zad_almaad_repository.dart';
 import '../theme/app_theme.dart';
 import 'zad_almaad_chapter_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "زاد المعاد" — Phase 5ج of QURAN_COMPANION_ROADMAP.md. Volume 1 only for
 /// now (see repository doc comment) — the rest is added incrementally.
@@ -40,7 +41,7 @@ class _ZadAlMaadScreenState extends State<ZadAlMaadScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('زاد المعاد')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : Column(
               children: [
                 Padding(

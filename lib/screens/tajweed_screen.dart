@@ -5,6 +5,7 @@ import '../repositories/tajweed_repository.dart';
 import '../theme/app_theme.dart';
 import 'tajweed_resources_screen.dart';
 import 'tajweed_tier_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "التجويد" — QURAN_COMPANION_ROADMAP.md Phase 11. Three tiers, each a
 /// full lesson set from day one (unlike the Arabic curriculum's phased
@@ -42,7 +43,7 @@ class _TajweedScreenState extends State<TajweedScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('التجويد')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

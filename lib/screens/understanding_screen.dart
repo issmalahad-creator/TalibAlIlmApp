@@ -4,6 +4,7 @@ import '../data/quran_surahs.dart';
 import '../db/database_helper.dart';
 import '../repositories/understanding_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "الفهم" — Phase 3 of QURAN_COMPANION_ROADMAP.md. Shows the tafsir for a
 /// memorized-but-not-yet-understood page and lets the student mark
@@ -86,7 +87,7 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('الفهم')),
-      body: _loading ? const Center(child: CircularProgressIndicator()) : _buildBody(),
+      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
     );
   }
 

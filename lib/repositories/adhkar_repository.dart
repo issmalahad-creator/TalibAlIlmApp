@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../db/database_helper.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
@@ -101,5 +103,32 @@ class AdhkarRepository {
   String _addDays(String hijriDate, int days) {
     final dt = gregorianFromHijriDateTime(hijriDate, null).add(Duration(days: days));
     return hijriDateStringForDate(dt);
+  }
+
+  /// Where the student left off reading this category today — Ismail's
+  /// 2026-08-16 "تجربة عبادة متصلة" request. Only the item index is
+  /// persisted (repeat counters stay in-memory, unchanged from before);
+  /// gated to today's Hijri date so a stale position from a previous day
+  /// is silently ignored rather than resuming somewhere irrelevant.
+  Future<int> resumePosition(int categoryId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('adhkar_session_position', where: 'category_id = ?', whereArgs: [categoryId], limit: 1);
+    if (rows.isEmpty) return 0;
+    if (rows.first['updated_date'] != todayDate()) return 0;
+    return rows.first['item_index'] as int;
+  }
+
+  Future<void> saveSessionPosition(int categoryId, int itemIndex) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.insert(
+      'adhkar_session_position',
+      {'category_id': categoryId, 'item_index': itemIndex, 'updated_date': todayDate()},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> clearSessionPosition(int categoryId) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.delete('adhkar_session_position', where: 'category_id = ?', whereArgs: [categoryId]);
   }
 }

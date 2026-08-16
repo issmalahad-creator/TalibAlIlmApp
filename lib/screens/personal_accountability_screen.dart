@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/personal_accountability.dart';
 import '../repositories/personal_accountability_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "التزامي الشخصي" — QURAN_COMPANION_ROADMAP.md section 4.7. The student
 /// writes their own reward and (optionally) their own consequence for
@@ -66,7 +67,7 @@ class _PersonalAccountabilityScreenState extends State<PersonalAccountabilityScr
     return Scaffold(
       appBar: AppBar(title: const Text('التزامي الشخصي')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

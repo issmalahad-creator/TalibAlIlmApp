@@ -5,6 +5,7 @@ import '../repositories/guide_progress_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/guide_diagram.dart';
 import 'guide_topic_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "دليل المسلم الجديد" — QURAN_COMPANION_ROADMAP.md §4.9 (5د, expanded).
 /// Topic list: Wudu, Ghusl, Istinja, Salah.
@@ -40,7 +41,7 @@ class _NewMuslimGuideScreenState extends State<NewMuslimGuideScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('دليل المسلم الجديد')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

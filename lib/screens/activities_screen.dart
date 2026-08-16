@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import '../widgets/category_pill.dart';
 import 'add_activity_screen.dart';
+import '../widgets/loading_view.dart';
 
 class ActivitiesScreen extends StatefulWidget {
   const ActivitiesScreen({super.key});
@@ -45,7 +46,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('أنشطة ${monthLabel(currentMonth())}')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : _entries.isEmpty
               ? const Center(child: Text('لا توجد أنشطة مسجلة هذا الشهر بعد', style: TextStyle(color: AppColors.textMuted)))
               : ListView.builder(

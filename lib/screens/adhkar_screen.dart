@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../repositories/adhkar_repository.dart';
 import '../theme/app_theme.dart';
 import 'adhkar_category_screen.dart';
+import '../widgets/loading_view.dart';
 
 /// "حصن المسلم" — QURAN_COMPANION_ROADMAP.md Phase 5هـ. The ~17 routine
 /// everyday-life chapters (waking up, wudu, mosque, morning/evening, sleep,
@@ -55,7 +56,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: AppLoadingView(icon: Icons.spa_outlined, message: 'جاري تحميل الأذكار...'));
     }
     final core = _all.where((c) => c.isDailyCore).toList();
     final rest = _all.where((c) => !c.isDailyCore).toList();

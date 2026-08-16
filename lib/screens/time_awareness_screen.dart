@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../data/time_awareness_content.dart';
 import '../repositories/time_awareness_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "محاسبة الوقت" — Ismail's request 2026-08-16, extended 2026-08-16 same
 /// day per his follow-up: structured, independent time entries (slept/
@@ -93,7 +94,7 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('محاسبة الوقت')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

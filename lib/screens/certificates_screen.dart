@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../repositories/milestone_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
+import '../widgets/loading_view.dart';
 
 /// "شهاداتي" — QURAN_COMPANION_ROADMAP.md §4.14. Shows EVERY possible
 /// certificate at once (achieved in full color, locked greyed with a
@@ -49,7 +50,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
     }
     final byType = <String, List<Milestone>>{};
     for (final m in _all) {

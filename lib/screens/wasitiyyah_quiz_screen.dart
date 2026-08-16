@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../repositories/daily_session_repository.dart';
 import '../repositories/wasitiyyah_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/loading_view.dart';
 
 /// "اختبر نفسك" for Al-Wasitiyyah — "ما المقطع التالي؟", the same
 /// continuation mechanic as the Quran quiz since this is a continuous
@@ -72,7 +73,7 @@ class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('اختبر نفسك — الواسطية')),
-      body: _loading ? const Center(child: CircularProgressIndicator()) : _buildBody(),
+      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
     );
   }
 
