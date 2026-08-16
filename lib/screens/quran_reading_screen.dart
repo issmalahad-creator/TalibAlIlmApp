@@ -119,6 +119,40 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     Navigator.push(context, MaterialPageRoute(builder: (_) => QuranBrowseScreen(highlightUnitId: _page)));
   }
 
+  /// نقطة تنقّل سريعة ثانية (أماكن أخرى غير الفهرس): اضغط رقم الصفحة في
+  /// الأعلى لقفزة مباشرة، بلا فتح ورقة الفهرس الكاملة.
+  Future<void> _quickPageJumpDialog() async {
+    final ctrl = TextEditingController(text: '$_page');
+    final page = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('اذهب إلى صفحة'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '1-604'),
+          onSubmitted: (v) {
+            final p = int.tryParse(v);
+            if (p != null && p >= 1 && p <= 604) Navigator.pop(context, p);
+          },
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          FilledButton(
+            onPressed: () {
+              final p = int.tryParse(ctrl.text);
+              if (p != null && p >= 1 && p <= 604) Navigator.pop(context, p);
+            },
+            child: const Text('اذهب'),
+          ),
+        ],
+      ),
+    );
+    if (page != null) _goToPage(page);
+  }
+
   void _openJourney() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const JourneyScreen()));
   }
@@ -129,37 +163,95 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     );
   }
 
+  /// "الفهرس" — تنقّل عبر 3 طرق (Ismail's request 2026-08-16: "أريد
+  /// التنقل بين صفحات القرآن وليس السور فقط... من الفهرس ومن أماكن
+  /// أخرى"): السور (الأصلي)، الأجزاء (جديد — نفس الفكرة كثيرًا ما تُستخدم
+  /// في المصحف الورقي الحقيقي لتصفح الأجزاء)، ورقم صفحة مباشر (جديد —
+  /// أسرع طريق لصفحة معيّنة إن كان الطالب يعرف رقمها).
   Future<void> _openIndex() async {
-    final surah = await showModalBottomSheet<int>(
+    final pageCtrl = TextEditingController();
+    final page = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.7,
-        builder: (context, scrollController) => Column(
-          children: [
-            const Padding(padding: EdgeInsets.all(14), child: Text('الفهرس', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
-            Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                itemCount: quranSurahs.length,
-                itemBuilder: (context, i) {
-                  final s = quranSurahs[i];
-                  return ListTile(
-                    dense: true,
-                    leading: CircleAvatar(radius: 14, backgroundColor: AppColors.primaryLight, child: Text('${s.number}', style: const TextStyle(fontSize: 10, color: AppColors.primaryDark))),
-                    title: Text(s.name),
-                    onTap: () => Navigator.pop(context, s.number),
-                  );
-                },
+      builder: (context) => DefaultTabController(
+        length: 3,
+        child: DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.75,
+          builder: (context, scrollController) => Column(
+            children: [
+              const Padding(padding: EdgeInsets.all(14), child: Text('الفهرس', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
+              const TabBar(tabs: [Tab(text: 'السور'), Tab(text: 'الأجزاء'), Tab(text: 'رقم الصفحة')]),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    ListView.builder(
+                      controller: scrollController,
+                      itemCount: quranSurahs.length,
+                      itemBuilder: (context, i) {
+                        final s = quranSurahs[i];
+                        return ListTile(
+                          dense: true,
+                          leading: CircleAvatar(radius: 14, backgroundColor: AppColors.primaryLight, child: Text('${s.number}', style: const TextStyle(fontSize: 10, color: AppColors.primaryDark))),
+                          title: Text(s.name),
+                          onTap: () async {
+                            final p = await _repo.firstPageOfSurah(s.number);
+                            if (context.mounted) Navigator.pop(context, p);
+                          },
+                        );
+                      },
+                    ),
+                    ListView.builder(
+                      itemCount: 30,
+                      itemBuilder: (context, i) {
+                        final juz = i + 1;
+                        return ListTile(
+                          dense: true,
+                          leading: CircleAvatar(radius: 14, backgroundColor: AppColors.primaryLight, child: Text('$juz', style: const TextStyle(fontSize: 10, color: AppColors.primaryDark))),
+                          title: Text('الجزء $juz'),
+                          onTap: () async {
+                            final p = await _repo.firstPageOfJuz(juz);
+                            if (context.mounted) Navigator.pop(context, p);
+                          },
+                        );
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text('المصحف 604 صفحة — اكتب رقم الصفحة التي تريدها', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: pageCtrl,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            decoration: const InputDecoration(hintText: 'مثال: 250', border: OutlineInputBorder()),
+                            onSubmitted: (v) {
+                              final p = int.tryParse(v);
+                              if (p != null && p >= 1 && p <= 604) Navigator.pop(context, p);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton(
+                            onPressed: () {
+                              final p = int.tryParse(pageCtrl.text);
+                              if (p != null && p >= 1 && p <= 604) Navigator.pop(context, p);
+                            },
+                            child: const Text('اذهب'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
-    if (surah == null) return;
-    final page = await _repo.firstPageOfSurah(surah);
     if (page != null) _goToPage(page);
   }
 
@@ -359,18 +451,28 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
       appBar: AppBar(
         titleSpacing: 0,
         toolbarHeight: 64,
-        title: _ayat.isEmpty
-            ? Text('صفحة $_page')
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('سورة ${_surahNames[_ayat.first.surah] ?? _ayat.first.surah}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                  Text(
-                    'الجزء ${_ayat.first.juzNumber ?? '-'}  ·  الصفحة $_page',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
+        title: GestureDetector(
+          onTap: _quickPageJumpDialog,
+          child: _ayat.isEmpty
+              ? Text('صفحة $_page')
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('سورة ${_surahNames[_ayat.first.surah] ?? _ayat.first.surah}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'الجزء ${_ayat.first.juzNumber ?? '-'}  ·  الصفحة $_page',
+                          style: const TextStyle(fontSize: 11, color: AppColors.textMuted, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.unfold_more_rounded, size: 13, color: AppColors.textMuted),
+                      ],
+                    ),
+                  ],
+                ),
+        ),
         centerTitle: true,
         actions: [
           IconButton(icon: const Icon(Icons.search_rounded), tooltip: 'البحث في القرآن', onPressed: _openSearch),

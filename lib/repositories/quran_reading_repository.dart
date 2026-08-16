@@ -126,6 +126,15 @@ class QuranReadingRepository {
     return rows.isEmpty ? null : rows.first['p'] as int?;
   }
 
+  /// Powers "الأجزاء" in الفهرس (Ismail's request 2026-08-16: page/Juz-based
+  /// navigation, not just surah-based) — same pattern as
+  /// [firstPageOfSurah], keyed by `juz_number` instead of `surah`.
+  Future<int?> firstPageOfJuz(int juz) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('SELECT MIN(page_number) AS p FROM quran_ayat WHERE juz_number = ?', [juz]);
+    return rows.isEmpty ? null : rows.first['p'] as int?;
+  }
+
   /// Backs "المفضلة" (favorites/bookmarks list) — every saved ayah with
   /// enough context (surah name resolved by the caller) to jump to its page.
   Future<List<FavoriteAyah>> favoriteAyahs() async {
