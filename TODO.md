@@ -202,6 +202,18 @@ Ismail reported (with screenshots showing a "This video is unavailable — Error
 - [ ] Not yet tested on-device.
 - [ ] **Not built this round, flagged as a much larger follow-up**: Ismail shared his own personal tracking spreadsheet (`life_project.xlsx`, 19 sheets — Quran memorization, tafsir listening, Wasitiyyah, Zad al-Ma'ad, daily wird, Arba'in, takbir, congregation prayer, tasbih/istighfar, plus secular sheets: sleep, exercise, programming, work/freelance, social media, monthly review) as the target level of detail: per-entry link/status/start-end datetime/rich benefit notes/weekly-report field/hours-total, applied uniformly across every content pillar. This is a genuinely large structural expansion (a generalized daily-log-with-weekly-report pattern reused across every existing pillar, not just audio) — architecturally fits the local-SQLite model fine, no blocker, but is a multi-session undertaking on its own, not a quick add-on. Needs explicit prioritization from Ismail before starting, same as the "prayer OS" scoping in §4.25.
 
+## Phase 24 — خريطتي التعليمية redesign: real game-style path map (Ismail's request 2026-08-16) — ✅ DONE (commit 5388fcb)
+
+Ismail called the Phase-7 plain vertical list "بدائية وليس فيها تعب ولا تكنلوجيا ولا ابداع حقيقي" (primitive, no real effort/tech/creativity) and asked for a real skill-tree/path map (Duolingo-style) with animation and KPIs, called it one of the most important pages after Quran/tafsir, and explicitly asked for it on its own prominent home-screen entry point.
+
+- [x] `CurriculumItemStatus` extended with a real `progressFraction` (0.0-1.0, computed from the same done/total counts already used for `detailAr`, not string-parsed) for progress-ring rendering
+- [x] `CurriculumMapScreen` rebuilt: a winding snake-lane path (3 lanes, cycling left/center/right/center) connecting nodes via smooth cubic-bezier curves drawn with a `CustomPainter` — solid colored segments for passed/completed steps, dashed grey for not-yet-reached
+- [x] Real progress rings on in-progress nodes (an actual `CircularProgressIndicator` reflecting `progressFraction`, not decorative), filled+glowing nodes for completed items, a pulsing glow animation + "أنت هنا" badge on the one real "next actionable step" (first non-completed, non-comingSoon item in level+item order — derived live, not a separate tracked field)
+- [x] KPI header card: overall completion percent + "$completed من $total محطة مكتملة", gradient-styled matching the app's established hero-card visual language
+- [x] Added as its own `NavGrid` tile on the home screen (`NavColors.gold`, `Icons.map_rounded`) — still also reachable from رحلتي as before
+- [x] `flutter analyze` clean; debug APK built and sent for visual verification (design-quality changes can't be confirmed by analyze alone)
+- [ ] Not yet visually confirmed by Ismail on-device.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
