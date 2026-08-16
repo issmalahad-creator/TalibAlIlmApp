@@ -21,14 +21,15 @@ Future<void> showCelebration(BuildContext context, Milestone milestone) async {
     context: context,
     barrierDismissible: true,
     barrierColor: Colors.black87,
-    builder: (_) => _CelebrationDialog(milestone: milestone, studentName: profile.fullName),
+    builder: (_) => _CelebrationDialog(milestone: milestone, studentName: profile.fullName, photoPath: profile.photoPath),
   );
 }
 
 class _CelebrationDialog extends StatefulWidget {
   final Milestone milestone;
   final String studentName;
-  const _CelebrationDialog({required this.milestone, required this.studentName});
+  final String? photoPath;
+  const _CelebrationDialog({required this.milestone, required this.studentName, this.photoPath});
 
   @override
   State<_CelebrationDialog> createState() => _CelebrationDialogState();
@@ -92,6 +93,7 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                   title: widget.milestone.title,
                   hijriDate: todayDate(),
                   grand: grand,
+                  photoPath: widget.photoPath,
                 ),
               ),
               const SizedBox(height: 20),

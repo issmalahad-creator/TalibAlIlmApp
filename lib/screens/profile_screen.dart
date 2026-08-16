@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../l10n/basic_translations.dart';
 import '../models/student_profile.dart';
@@ -41,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _residenceCtrl = TextEditingController();
   final _studySourceCtrl = TextEditingController();
   String _studyTrack = StudentProfile.studyTracks.first;
+  String? _photoPath;
   bool _loading = true;
   bool _useGregorian = CalendarPreferenceService.useGregorian;
   String _lang = LanguagePreferenceService.currentLanguage;
@@ -59,6 +64,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (profile.studyTrack.isNotEmpty && StudentProfile.studyTracks.contains(profile.studyTrack)) {
       _studyTrack = profile.studyTrack;
     }
+    _photoPath = profile.photoPath;
     setState(() => _loading = false);
   }
 
@@ -68,10 +74,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       residence: _residenceCtrl.text.trim(),
       studyTrack: _studyTrack,
       studySource: _studySourceCtrl.text.trim(),
+      photoPath: _photoPath,
     ));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الحفظ')));
     Navigator.pop(context);
+  }
+
+  /// "صورة الشهادة" (Ismail's request 2026-08-16) — reuses `file_picker`
+  /// (already a dependency for the personal PDF library) instead of adding
+  /// `image_picker`. Copies the chosen image into the app's own documents
+  /// directory under a fixed name so it survives regardless of where the
+  /// original file lives/gets moved — same reasoning as why certificate
+  /// captures go through `path_provider` already.
+  Future<void> _pickPhoto() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+    final pickedPath = result?.files.single.path;
+    if (pickedPath == null) return;
+    final docsDir = await getApplicationDocumentsDirectory();
+    final ext = pickedPath.contains('.') ? pickedPath.split('.').last : 'jpg';
+    final dest = await File(pickedPath).copy('${docsDir.path}/certificate_photo.$ext');
+    if (!mounted) return;
+    setState(() => _photoPath = dest.path);
   }
 
   @override
@@ -91,6 +115,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                Center(
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: _pickPhoto,
+                        child: CircleAvatar(
+                          radius: 36,
+                          backgroundColor: AppColors.primaryLight,
+                          backgroundImage: _photoPath != null ? FileImage(File(_photoPath!)) : null,
+                          child: _photoPath == null ? const Icon(Icons.add_a_photo_outlined, color: AppColors.primaryDark) : null,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextButton(
+                        onPressed: _pickPhoto,
+                        child: Text(_photoPath == null ? 'إضافة صورة للشهادات' : 'تغيير صورة الشهادات', style: const TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
                 TextField(
                   controller: _nameCtrl,
                   decoration: const InputDecoration(labelText: 'الاسم الكامل', border: OutlineInputBorder()),

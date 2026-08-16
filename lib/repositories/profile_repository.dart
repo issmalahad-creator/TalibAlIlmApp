@@ -8,13 +8,7 @@ class ProfileRepository {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query('profile', where: 'id = 1');
     if (rows.isEmpty) return const StudentProfile();
-    final row = rows.first;
-    return StudentProfile.fromMap({
-      'full_name': row['full_name'] as String? ?? '',
-      'residence': row['residence'] as String? ?? '',
-      'study_track': row['study_track'] as String? ?? '',
-      'study_source': row['study_source'] as String? ?? '',
-    });
+    return StudentProfile.fromMap(rows.first);
   }
 
   Future<void> save(StudentProfile profile) async {

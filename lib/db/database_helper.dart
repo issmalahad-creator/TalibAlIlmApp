@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 29,
+      version: 30,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -48,6 +48,7 @@ class DatabaseHelper {
         await _createV26Tables(db);
         await _createV28Tables(db);
         await _createV29Tables(db);
+        await _createV30Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -78,6 +79,7 @@ class DatabaseHelper {
         if (oldVersion < 27) await _fixQuranNormalizedTextV27(db);
         if (oldVersion < 28) await _createV28Tables(db);
         if (oldVersion < 29) await _createV29Tables(db);
+        if (oldVersion < 30) await _createV30Tables(db);
       },
     );
   }
@@ -831,5 +833,12 @@ class DatabaseHelper {
   /// a broken embed.
   Future<void> _createV29Tables(Database db) async {
     await db.execute('ALTER TABLE audio_reflection_log ADD COLUMN resume_note TEXT');
+  }
+
+  /// Optional certificate photo (Ismail's request 2026-08-16) — chosen once
+  /// on the profile screen, reused automatically on every generated
+  /// certificate rather than re-picked each time.
+  Future<void> _createV30Tables(Database db) async {
+    await db.execute('ALTER TABLE profile ADD COLUMN photo_path TEXT');
   }
 }
