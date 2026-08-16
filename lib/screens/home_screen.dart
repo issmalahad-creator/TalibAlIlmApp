@@ -22,6 +22,8 @@ import '../widgets/category_pill.dart';
 import '../widgets/daily_companion_card.dart';
 import '../widgets/nav_tile.dart';
 import '../widgets/time_accountability_dashboard.dart';
+import '../widgets/worship_coach_card.dart';
+import 'worship_coach_screen.dart';
 import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
 import 'hifz_screen.dart';
@@ -147,6 +149,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     onOpenPrayerTimes: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),
                     onOpenQibla: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblaScreen())),
                   ),
+                  const SizedBox(height: 12),
+                  WorshipCoachCard(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorshipCoachScreen())),
+                  ),
+                  const SizedBox(height: 12),
                   FilledButton.icon(
                     onPressed: () async {
                       await Navigator.push(context, MaterialPageRoute(builder: (_) => const DailySessionScreen()));
