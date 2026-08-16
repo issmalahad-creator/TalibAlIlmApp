@@ -143,6 +143,16 @@ Ismail sent screenshots of a reference app and asked explicitly for a much riche
 - [ ] **Not yet visually verified by Ismail** — a fresh APK was built and sent specifically for this, since a design-quality change can't be confirmed by `flutter analyze` passing.
 - [ ] Home screen icon grid (Phase 15) and other screens beyond home-hero/Quran-reading were NOT touched in this pass — if Ismail wants the same visual treatment (gradients, decorative framing) applied elsewhere, that's an explicit follow-up, not assumed.
 
+## Phase 18 — محاسبة الوقت: time-accountability reminder (Ismail's request 2026-08-16) — ✅ DONE (commit 619f85c)
+
+Ismail asked for a real (not invented) reminder feature: hours in a year, how to benefit from each one, hours "wasted" that day, and that every hour is accounted for on the Day of Judgment.
+
+- [x] Grounded in the actual hadith (Sunan al-Tirmidhi #2417 — "لا تزول قدما عبد يوم القيامة حتى يُسأل عن عمره فيما أفناه..."), cited by its known standard wording with real attribution (At-Tirmidhi's own "حسن صحيح" grading, Al-Albani's "صحيح" in Sahih al-Jami) — not paraphrased or invented.
+- [x] Year-hours stat uses the Hijri year (354×24 = 8496 hours), consistent with the app being Hijri-dated throughout, not Gregorian.
+- [x] Daily reflection ("كم ساعة استفدت منها اليوم؟") is purely self-reported via a slider — same non-inferring, non-punitive self-rating pattern as khushu ratings and guided-session difficulty elsewhere; the app never claims to measure how anyone's time was actually spent.
+- [x] 5 original practical tips for using time well, matching the `practical_lessons_seed.dart` house style (grounded, not a translation of any single book).
+- [ ] Not yet tested on-device.
+
 ## Phase 6 — Additional languages (roadmap §4.10)
 
 - [ ] i18n infrastructure for UI strings (Arabic/English/Amharic via ARB files) — only after the Arabic content core is stable
