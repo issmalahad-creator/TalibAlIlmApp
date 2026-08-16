@@ -36,6 +36,10 @@ class WorshipCoachStatus {
   final String stageLabel;
   final String taskLabel;
   final CoachFocusArea taskArea;
+  /// True when the Quran task is "review what you have" (mastery gate)
+  /// rather than "memorize something new" — لديه UI difference: the
+  /// "ابدأ الآن" button should open المراجعة, not تصفح القرآن.
+  final bool quranTaskIsReview;
   const WorshipCoachStatus({
     required this.prayerConsistency,
     required this.quranConsistency,
@@ -44,6 +48,7 @@ class WorshipCoachStatus {
     required this.stageLabel,
     required this.taskLabel,
     required this.taskArea,
+    this.quranTaskIsReview = false,
   });
 }
 
@@ -138,23 +143,33 @@ class WorshipCoachRepository {
         CoachFocusArea.stable => 'المرحلة ٤: التعمّق والاستمرار',
       };
 
-  Future<String> _taskFor(CoachFocusArea focus) async {
+  Future<(String label, bool quranIsReview)> _taskFor(CoachFocusArea focus) async {
     switch (focus) {
       case CoachFocusArea.prayer:
         final statuses = await _salahRepo.statusesForToday();
         final next = _prayerLabels.keys.firstWhere((p) => statuses[p] == null, orElse: () => '');
-        return next.isEmpty ? 'حافظ على صلواتك اليوم — أنت على المسار 🌱' : 'مهمتك الآن: صلاة ${_prayerLabels[next]}';
+        return (next.isEmpty ? 'حافظ على صلواتك اليوم — أنت على المسار 🌱' : 'مهمتك الآن: صلاة ${_prayerLabels[next]}', false);
       case CoachFocusArea.quran:
+        // Mastery gate (advisory, not a lock — QURAN_COMPANION_ROADMAP.md
+        // §4.31's golden rule: "لا يُضاف سبق جديد حتى يُتقن سبق الأمس").
+        // If there's real review debt (سبقي/منزل due), that's what
+        // actually needs solidifying today — recommending a brand-new
+        // page on top of an unreviewed backlog is exactly the "page-
+        // stacking, not mastery" pattern Ismail originally criticized.
+        final due = await _memoRepo.dueToday();
+        if (due.isNotEmpty) {
+          return ('مهمتك الآن: ثبّت ما حفظته أولًا — ${due.length} صفحة بحاجة مراجعة قبل حفظ جديد', true);
+        }
         final next = await _memoRepo.nextRecommendedUnit();
-        return next == null ? 'أكملت الحفظ — واصل المراجعة 🌱' : 'مهمتك الآن: سبق اليوم — احفظ صفحة ${next.id}';
+        return (next == null ? 'أكملت الحفظ — واصل المراجعة 🌱' : 'مهمتك الآن: سبق اليوم — احفظ صفحة ${next.id}', false);
       case CoachFocusArea.dhikr:
         final categories = await _adhkarRepo.allCategories();
         for (final c in categories.where((c) => c.isDailyCore)) {
-          if (!await _adhkarRepo.isCompletedToday(c.id)) return 'مهمتك الآن: ${c.title}';
+          if (!await _adhkarRepo.isCompletedToday(c.id)) return ('مهمتك الآن: ${c.title}', false);
         }
-        return 'أذكارك اليوم مكتملة 🌱';
+        return ('أذكارك اليوم مكتملة 🌱', false);
       case CoachFocusArea.stable:
-        return 'أداؤك مستقر في الصلاة والقرآن والأذكار — استمر 🌱';
+        return ('أداؤك مستقر في الصلاة والقرآن والأذكار — استمر 🌱', false);
     }
   }
 
@@ -163,15 +178,16 @@ class WorshipCoachRepository {
     final quran = await quranConsistency();
     final dhikr = await dhikrConsistency();
     final focus = focusAreaFor(prayer, quran, dhikr);
-    final task = await _taskFor(focus);
+    final (taskLabel, quranIsReview) = await _taskFor(focus);
     return WorshipCoachStatus(
       prayerConsistency: prayer,
       quranConsistency: quran,
       dhikrConsistency: dhikr,
       focus: focus,
       stageLabel: _stageLabel(focus),
-      taskLabel: task,
+      taskLabel: taskLabel,
       taskArea: focus,
+      quranTaskIsReview: quranIsReview,
     );
   }
 }

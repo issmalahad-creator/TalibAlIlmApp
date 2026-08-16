@@ -19,7 +19,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 30,
+      version: 31,
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -49,6 +49,7 @@ class DatabaseHelper {
         await _createV28Tables(db);
         await _createV29Tables(db);
         await _createV30Tables(db);
+        await _createV31Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -80,6 +81,7 @@ class DatabaseHelper {
         if (oldVersion < 28) await _createV28Tables(db);
         if (oldVersion < 29) await _createV29Tables(db);
         if (oldVersion < 30) await _createV30Tables(db);
+        if (oldVersion < 31) await _createV31Tables(db);
       },
     );
   }
@@ -840,5 +842,22 @@ class DatabaseHelper {
   /// certificate rather than re-picked each time.
   Future<void> _createV30Tables(Database db) async {
     await db.execute('ALTER TABLE profile ADD COLUMN photo_path TEXT');
+  }
+
+  /// "كم مرة كررتها؟" — repetition counter for today's new سبق (Ismail's
+  /// request 2026-08-16, one of 4 new coach features: researched real
+  /// repetition guidance first — 10-40 repeats depending on method
+  /// [segmented-then-linked vs. whole-page vs. spaced], not invented).
+  /// Purely a self-reported tally per (page, day), same non-inferring
+  /// spirit as every other self-tracked count in this app.
+  Future<void> _createV31Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE sabaq_repetition_log (
+        unit_id INTEGER NOT NULL,
+        log_date TEXT NOT NULL,
+        rep_count INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (unit_id, log_date)
+      )
+    ''');
   }
 }

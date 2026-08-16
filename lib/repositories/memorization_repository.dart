@@ -220,6 +220,85 @@ class MemorizationRepository {
     return selected.map(_toUnit).toList();
   }
 
+  /// "نقاط تحتاج تركيزًا إضافيًا" (Ismail's request 2026-08-16 — one of 4
+  /// new coach features, "ابحث ان لم تكن تعلم"): a real hifz-teaching
+  /// technique is drilling a student's actual recurring weak spots
+  /// specifically, not just generic review. Reuses `mistake_log` (already
+  /// written every time a review is rated "يحتاج مراجعة") — groups by
+  /// page and ranks by how often it's been marked as a mistake, most
+  /// recent [sinceDays] days only, so an old fixed weakness doesn't stay
+  /// flagged forever. No new tracking, purely a different read of
+  /// existing data.
+  Future<List<(MemorizationUnit unit, int mistakeCount)>> recurringWeakSpots({int limit = 5, int sinceDays = 30}) async {
+    final db = await DatabaseHelper.instance.database;
+    final since = _addDays(todayDate(), -sinceDays);
+    final rows = await db.rawQuery('''
+      SELECT u.id, u.surah_start, u.ayah_start, u.surah_end, u.ayah_end, u.juz_number,
+             p.status, p.station, p.next_review_date, p.memorized_date,
+             COUNT(m.id) AS mistake_count
+      FROM mistake_log m
+      JOIN memorization_units u ON u.id = m.unit_id
+      LEFT JOIN memorization_progress p ON p.unit_id = u.id
+      WHERE m.logged_date >= ?
+      GROUP BY u.id
+      HAVING mistake_count >= 2
+      ORDER BY mistake_count DESC, u.id ASC
+      LIMIT ?
+    ''', [since, limit]);
+    return rows.map((r) => (_toUnit(r), r['mistake_count'] as int)).toList();
+  }
+
+  /// "كم مرة كررتها؟" (Ismail's request 2026-08-16) — real hifz guidance
+  /// found via research (`quranprogress.com`/`aqleeat.co`/`alukah.net`,
+  /// see QURAN_COMPANION_ROADMAP.md §4.33): 10-40 repetitions of a newly
+  /// memorized page/segment before it's considered solid, depending on
+  /// method — a single-point number would misrepresent that range as
+  /// precise, so [repetitionTargetRange] is exposed as a range for the UI
+  /// to show honestly, not one invented "correct" number.
+  static const repetitionTargetRange = (10, 40);
+
+  Future<int> repetitionCountToday(int unitId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('sabaq_repetition_log', where: 'unit_id = ? AND log_date = ?', whereArgs: [unitId, todayDate()], limit: 1);
+    return rows.isEmpty ? 0 : rows.first['rep_count'] as int;
+  }
+
+  Future<int> incrementRepetitionToday(int unitId) async {
+    final db = await DatabaseHelper.instance.database;
+    final current = await repetitionCountToday(unitId);
+    final next = current + 1;
+    await db.insert(
+      'sabaq_repetition_log',
+      {'unit_id': unitId, 'log_date': todayDate(), 'rep_count': next},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    return next;
+  }
+
+  /// The real منزل target (Ismail's request — see QURAN_COMPANION_
+  /// ROADMAP.md §4.31's research): a real hifz institute divides ALL
+  /// established (راسخ) material into 7 roughly equal daily portions so
+  /// the whole thing is covered once a week, growing automatically as
+  /// more pages become established — not a fixed 30-day rotation. This
+  /// is deliberately informational only in this pass (not yet wired into
+  /// `recordReview`'s actual scheduling, which stays unchanged) — it
+  /// tells the student what their real weekly portion size should be,
+  /// without touching the due-date engine every existing user already
+  /// relies on.
+  Future<int> establishedCount() async {
+    final db = await DatabaseHelper.instance.database;
+    return Sqflite.firstIntValue(await db.rawQuery("SELECT COUNT(*) FROM memorization_progress WHERE status = 'established'")) ?? 0;
+  }
+
+  /// Established pages ÷ 7, rounded up (at least 1 once there's anything
+  /// established) — "today's real منزل portion" per the traditional
+  /// weekly-cycle rule.
+  Future<int> manzilDailyPortionSize() async {
+    final established = await establishedCount();
+    if (established == 0) return 0;
+    return (established / 7).ceil();
+  }
+
   /// The next page to memorize, in plain Mushaf order — the first unit
   /// with no `memorization_progress` row at all (never started). Powers
   /// "تكليف اليوم" so the student gets a concrete assignment instead of

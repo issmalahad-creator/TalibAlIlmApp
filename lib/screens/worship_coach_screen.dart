@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../data/quran_surahs.dart';
+import '../repositories/memorization_repository.dart';
 import '../repositories/worship_coach_repository.dart';
 import '../theme/app_theme.dart';
 import 'adhkar_screen.dart';
 import 'quran_browse_screen.dart';
+import 'review_screen.dart';
 import 'salah_tracker_screen.dart';
 
 /// "مدرب العبادة" — Ismail's request 2026-08-16: a rule-based (no AI)
@@ -22,7 +25,11 @@ class WorshipCoachScreen extends StatefulWidget {
 
 class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
   final _repo = WorshipCoachRepository();
+  final _memoRepo = MemorizationRepository();
+  static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
   WorshipCoachStatus? _status;
+  int _manzilPortion = 0;
+  List<(MemorizationUnit unit, int mistakeCount)> _weakSpots = [];
 
   @override
   void initState() {
@@ -32,8 +39,14 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
 
   Future<void> _load() async {
     final status = await _repo.status();
+    final manzilPortion = await _memoRepo.manzilDailyPortionSize();
+    final weakSpots = await _memoRepo.recurringWeakSpots();
     if (!mounted) return;
-    setState(() => _status = status);
+    setState(() {
+      _status = status;
+      _manzilPortion = manzilPortion;
+      _weakSpots = weakSpots;
+    });
   }
 
   void _openTaskScreen() {
@@ -45,7 +58,7 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
         screen = const SalahTrackerScreen();
         break;
       case CoachFocusArea.quran:
-        screen = const QuranBrowseScreen();
+        screen = status.quranTaskIsReview ? const ReviewScreen() : const QuranBrowseScreen();
         break;
       case CoachFocusArea.dhikr:
         screen = const AdhkarScreen();
@@ -102,6 +115,58 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
                 _ConsistencyRow(label: 'القرآن', value: status.quranConsistency, isFocus: status.focus == CoachFocusArea.quran),
                 const SizedBox(height: 10),
                 _ConsistencyRow(label: 'الأذكار', value: status.dhikrConsistency, isFocus: status.focus == CoachFocusArea.dhikr),
+                if (_manzilPortion > 0) ...[
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.replay_circle_filled_outlined, color: AppColors.primaryDark, size: 22),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('منزل — حصتك الأسبوعية', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 2),
+                              Text(
+                                'لتغطية كل محفوظك الراسخ مرة كل أسبوع، راجع نحو $_manzilPortion صفحة يوميًا',
+                                style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                if (_weakSpots.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  const Text('نقاط تحتاج تركيزًا إضافيًا', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 4),
+                  const Text('الصفحات التي تكرر فيها "يحتاج مراجعة" مؤخرًا — آخر 30 يومًا', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                  const SizedBox(height: 10),
+                  ..._weakSpots.map((w) {
+                    final (unit, mistakeCount) = w;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(12)),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'صفحة ${unit.id} — من سورة ${_surahNames[unit.surahStart] ?? unit.surahStart}',
+                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          Text('$mistakeCount مرات', style: const TextStyle(fontSize: 11, color: Colors.redAccent, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
                 const SizedBox(height: 20),
                 Container(
                   padding: const EdgeInsets.all(14),

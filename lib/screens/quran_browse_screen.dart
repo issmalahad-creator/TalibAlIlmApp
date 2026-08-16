@@ -27,6 +27,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
   List<MemorizationUnit> _units = [];
   bool _loading = true;
   String? _error;
+  int _repCount = 0;
 
   @override
   void initState() {
@@ -46,9 +47,11 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     });
     try {
       final units = await _repo.allUnitsWithProgress();
+      final repCount = widget.highlightUnitId != null ? await _repo.repetitionCountToday(widget.highlightUnitId!) : 0;
       if (!mounted) return;
       setState(() {
         _units = units;
+        _repCount = repCount;
         _loading = false;
       });
     } catch (e) {
@@ -58,6 +61,12 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
         _loading = false;
       });
     }
+  }
+
+  Future<void> _incrementRepetition(int unitId) async {
+    final count = await _repo.incrementRepetitionToday(unitId);
+    if (!mounted) return;
+    setState(() => _repCount = count);
   }
 
   Future<void> _markMemorized(MemorizationUnit unit) async {
@@ -156,23 +165,45 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.flag_outlined, color: AppColors.primaryDark),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('تكليف اليوم', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
-                          Text(
-                            'صفحة ${highlighted.id} — من سورة ${_surahNames[highlighted.surahStart] ?? highlighted.surahStart} آية ${highlighted.ayahStart}',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                    Row(
+                      children: [
+                        const Icon(Icons.flag_outlined, color: AppColors.primaryDark),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('تكليف اليوم — سبق', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                              Text(
+                                'صفحة ${highlighted.id} — من سورة ${_surahNames[highlighted.surahStart] ?? highlighted.surahStart} آية ${highlighted.ayahStart}',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        FilledButton(onPressed: () => _markMemorized(highlighted!), child: const Text('حفظتها')),
+                      ],
                     ),
-                    FilledButton(onPressed: () => _markMemorized(highlighted!), child: const Text('حفظتها')),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'كم مرة كررتها اليوم؟ $_repCount — الهدف الإرشادي ${MemorizationRepository.repetitionTargetRange.$1}-${MemorizationRepository.repetitionTargetRange.$2} مرة',
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () => _incrementRepetition(highlighted!.id),
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text('كررتها', style: TextStyle(fontSize: 12)),
+                          style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
