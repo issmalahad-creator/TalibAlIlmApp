@@ -14,6 +14,24 @@ extension on ReviewQuality {
       };
 }
 
+/// Real hifz-teaching structure (سبق/سبقي/منزل — Sabaq/Sabqi/Manzil),
+/// researched 2026-08-16 at Ismail's request before any code ("ابحث
+/// اونلاين اولا"): the traditional three-tier review system used in real
+/// hifz institutes, not an invented category scheme. Defined by how long
+/// ago a page was memorized, matching how real teachers describe it:
+///  - سبق: memorized today — today's brand-new lesson, not yet reviewed.
+///  - سبقي: memorized within the last ~15 days — the "recent revision"
+///    window (sources cite 7-15 days; 15 used here as the safe upper
+///    bound so nothing falls through a gap).
+///  - منزل: older than 15 days (or already "established") — long-term
+///    rotation review.
+/// This is a presentational grouping on top of the existing 6-station
+/// engine, not a replacement for it — the due-date scheduling itself is
+/// unchanged in this pass; see QURAN_COMPANION_ROADMAP.md §4.31 for the
+/// full research and what's still queued (mastery gate before new سبق,
+/// true weekly-proportional منزل rotation, real level-based pacing).
+enum HifzCategory { sabaq, sabqi, manzil, notStarted }
+
 class MemorizationUnit {
   final int id; // = page number
   final int surahStart, ayahStart, surahEnd, ayahEnd;
@@ -21,6 +39,7 @@ class MemorizationUnit {
   final String status; // not_started | new | reviewing | established
   final int? station;
   final String? nextReviewDate;
+  final String? memorizedDate;
   MemorizationUnit({
     required this.id,
     required this.surahStart,
@@ -31,7 +50,18 @@ class MemorizationUnit {
     required this.status,
     this.station,
     this.nextReviewDate,
+    this.memorizedDate,
   });
+
+  HifzCategory hifzCategory({DateTime? asOf}) {
+    if (memorizedDate == null) return HifzCategory.notStarted;
+    final memorized = gregorianFromHijriDateTime(memorizedDate!, null);
+    final today = asOf ?? DateTime.now();
+    final ageDays = DateTime(today.year, today.month, today.day).difference(DateTime(memorized.year, memorized.month, memorized.day)).inDays;
+    if (ageDays <= 0) return HifzCategory.sabaq;
+    if (ageDays <= 15) return HifzCategory.sabqi;
+    return HifzCategory.manzil;
+  }
 }
 
 /// The 6-station Ebbinghaus-forgetting-curve review engine —
@@ -161,7 +191,7 @@ class MemorizationRepository {
     final today = todayDate();
     final rows = await db.rawQuery('''
       SELECT u.id, u.surah_start, u.ayah_start, u.surah_end, u.ayah_end, u.juz_number,
-             p.status, p.station, p.next_review_date
+             p.status, p.station, p.next_review_date, p.memorized_date
       FROM memorization_progress p
       JOIN memorization_units u ON u.id = p.unit_id
       WHERE p.next_review_date <= ?
@@ -184,7 +214,7 @@ class MemorizationRepository {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.rawQuery('''
       SELECT u.id, u.surah_start, u.ayah_start, u.surah_end, u.ayah_end, u.juz_number,
-             p.status, p.station, p.next_review_date
+             p.status, p.station, p.next_review_date, p.memorized_date
       FROM memorization_units u
       LEFT JOIN memorization_progress p ON p.unit_id = u.id
       WHERE p.unit_id IS NULL
@@ -222,7 +252,7 @@ class MemorizationRepository {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.rawQuery('''
       SELECT u.id, u.surah_start, u.ayah_start, u.surah_end, u.ayah_end, u.juz_number,
-             COALESCE(p.status, 'not_started') AS status, p.station, p.next_review_date
+             COALESCE(p.status, 'not_started') AS status, p.station, p.next_review_date, p.memorized_date
       FROM memorization_units u
       LEFT JOIN memorization_progress p ON p.unit_id = u.id
       ORDER BY u.id
@@ -240,6 +270,7 @@ class MemorizationRepository {
         status: row['status'] as String,
         station: row['station'] as int?,
         nextReviewDate: row['next_review_date'] as String?,
+        memorizedDate: row['memorized_date'] as String?,
       );
 
   String _addDays(String hijriDate, int days) {

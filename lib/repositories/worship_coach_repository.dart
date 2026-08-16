@@ -135,7 +135,7 @@ class WorshipCoachRepository {
         return next.isEmpty ? 'حافظ على صلواتك اليوم — أنت على المسار 🌱' : 'مهمتك الآن: صلاة ${_prayerLabels[next]}';
       case CoachFocusArea.quran:
         final next = await _memoRepo.nextRecommendedUnit();
-        return next == null ? 'أكملت الحفظ — واصل المراجعة 🌱' : 'مهمتك الآن: احفظ صفحة ${next.id}';
+        return next == null ? 'أكملت الحفظ — واصل المراجعة 🌱' : 'مهمتك الآن: سبق اليوم — احفظ صفحة ${next.id}';
       case CoachFocusArea.dhikr:
         final categories = await _adhkarRepo.allCategories();
         for (final c in categories.where((c) => c.isDailyCore)) {

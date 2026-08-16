@@ -206,9 +206,20 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     );
   }
 
+  static const _hifzCategoryLabels = {
+    HifzCategory.sabaq: 'سبق',
+    HifzCategory.sabqi: 'سبقي',
+    HifzCategory.manzil: 'منزل',
+  };
+
+  /// Real hifz-teaching terms (سبق/سبقي/منزل — see
+  /// `MemorizationUnit.hifzCategory`, QURAN_COMPANION_ROADMAP.md §4.31)
+  /// instead of an abstract "محطة N".
   String _statusLabel(MemorizationUnit unit) {
-    if (unit.status == 'established') return 'راسخة ✓';
-    if (unit.station != null) return 'محطة ${unit.station}';
-    return unit.status;
+    if (unit.status == 'established') return 'راسخة (منزل) ✓';
+    final category = unit.hifzCategory();
+    final label = _hifzCategoryLabels[category];
+    if (label == null) return unit.status;
+    return unit.station != null ? '$label · محطة ${unit.station}' : label;
   }
 }

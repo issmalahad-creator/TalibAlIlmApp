@@ -9,9 +9,20 @@ import '../repositories/personal_accountability_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 
+const _hifzCategoryLabels = {
+  HifzCategory.sabaq: ('سبق', AppColors.primaryDark),
+  HifzCategory.sabqi: ('سبقي', AppColors.primary),
+  HifzCategory.manzil: ('منزل', Color(0xFFB8860B)),
+  HifzCategory.notStarted: ('', AppColors.textMuted),
+};
+
 /// "المراجعة" — Phase 2 of QURAN_COMPANION_ROADMAP.md. Today's due reviews,
 /// one page at a time, rated ممتاز/جيد/يحتاج مراجعة against the 6-station
-/// algorithm in `MemorizationRepository`.
+/// algorithm in `MemorizationRepository`. Each page is also labeled with
+/// its real سبق/سبقي/منزل category (`MemorizationUnit.hifzCategory`,
+/// QURAN_COMPANION_ROADMAP.md §4.31) so the student sees WHY they're
+/// reviewing what they're reviewing — a real hifz-teacher's structure,
+/// not an abstract "station number."
 class ReviewScreen extends StatefulWidget {
   const ReviewScreen({super.key});
 
@@ -172,7 +183,22 @@ class _ReviewScreenState extends State<ReviewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('صفحة ${unit.id}', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                  Row(
+                    children: [
+                      Text('صفحة ${unit.id}', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                      if (unit.hifzCategory() != HifzCategory.notStarted) ...[
+                        const SizedBox(width: 8),
+                        Builder(builder: (context) {
+                          final (label, color) = _hifzCategoryLabels[unit.hifzCategory()]!;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                            child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w800)),
+                          );
+                        }),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 6),
                   Text(
                     'من سورة ${_surahNames[unit.surahStart] ?? unit.surahStart} آية ${unit.ayahStart} '
