@@ -180,6 +180,17 @@ flutter:
         - asset: assets/fonts/Amiri-Regular.ttf
         - asset: assets/fonts/Amiri-Bold.ttf
           weight: 700
+    # Digital Khatt "Madina" (SIL Open Font License 1.1, see
+    # assets/fonts/DIGITALKHATT_MADINA_LICENSE.txt) — matches the 1420H
+    # Madani Mushaf script, sourced from github.com/DigitalKhatt/madinafont
+    # (sponsored by Tarteel AI). Offered as a selectable alternative to
+    # AmiriQuran in شاشة القرآن (Ismail's request 2026-08-20), not a
+    # replacement — KFGQPC's own Uthmanic Hafs font was checked first and
+    # ruled out: its license forbids redistribution without King Fahd
+    # Complex's written approval.
+    - family: DigitalKhattMadina
+      fonts:
+        - asset: assets/fonts/DigitalKhattMadina.otf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

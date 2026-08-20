@@ -77,6 +77,24 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   bool _nightMode = false;
   String _themeKey = 'brown';
 
+  /// "خط المصحف" (Ismail's request 2026-08-20) — AmiriQuran stays the only
+  /// selectable option for now. DigitalKhattMadina (OFL-1.1,
+  /// github.com/DigitalKhatt/madinafont) was added and tried on-device, but
+  /// confirmed broken: overlapping/garbled glyphs, matching a real,
+  /// still-open upstream issue (github.com/DigitalKhatt/madinafont/issues/21,
+  /// "many rendering problems" in Safari — a genuine cross-engine
+  /// variable-font/CFF2 bug in the font itself, not a Flutter/Android-only
+  /// glitch). A `fonttools` static-instancing attempt to work around it
+  /// crashed on a malformed charstring inside the font, confirming it's an
+  /// upstream font bug, not something fixable from this app's side. Font
+  /// asset + pubspec registration are left in place (harmless, unused) so
+  /// re-adding it is a one-line change once it's actually fixed upstream or
+  /// King Fahd Complex responds with official font permission instead.
+  static const _quranFonts = {
+    'AmiriQuran': 'الأميري',
+  };
+  String _quranFontFamily = 'AmiriQuran';
+
   /// The currently tapped ayah — highlighted (per-line background, matching
   /// the reference app's boxed-highlight look) while its context menu is
   /// open, cleared once it closes. Ismail's 2026-08-16 "طبق الأصل" request.
@@ -136,6 +154,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadNightModePref();
+    _loadFontPref();
     _load();
     _loadJourneySummary();
     _initTiltParallax();
@@ -153,6 +172,22 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     setState(() => _nightMode = value);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_nightModePrefKey, value);
+  }
+
+  static const _quranFontPrefKey = 'quran_reading_font_family';
+
+  Future<void> _loadFontPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_quranFontPrefKey);
+    if (saved != null && _quranFonts.containsKey(saved) && mounted) {
+      setState(() => _quranFontFamily = saved);
+    }
+  }
+
+  Future<void> _setFontFamily(String family) async {
+    setState(() => _quranFontFamily = family);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_quranFontPrefKey, family);
   }
 
   /// Same "don't crash if the sensor/platform doesn't support this" spirit
@@ -685,7 +720,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                 itemBuilder: (context, i) {
                   final f = favorites[i];
                   return ListTile(
-                    title: Text(f.text, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 16)),
+                    title: Text(f.text, textAlign: TextAlign.right, style: TextStyle(fontFamily: _quranFontFamily, fontSize: 16)),
                     subtitle: Text('سورة ${_surahNames[f.surah] ?? f.surah} — آية ${f.ayah}', textAlign: TextAlign.right),
                     onTap: () => Navigator.pop(context, f.pageNumber),
                   );
@@ -785,6 +820,32 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                   _setNightMode(v);
                 },
               ),
+              // Picker UI only shows once a second real font option exists
+              // again (see `_quranFonts`'s own doc comment) — a chip row
+              // with a single always-selected entry is just clutter.
+              if (_quranFonts.length > 1) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Align(alignment: Alignment.centerRight, child: Text('خط المصحف', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: _quranFonts.entries.map((e) {
+                    final selected = _quranFontFamily == e.key;
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: ChoiceChip(
+                        label: Text(e.value, style: TextStyle(fontFamily: e.key, fontSize: 15)),
+                        selected: selected,
+                        onSelected: (_) {
+                          setSheetState(() {});
+                          _setFontFamily(e.key);
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Align(alignment: Alignment.centerRight, child: Text('لون مصحفك', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
@@ -927,7 +988,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
         text: '${a.text} ',
         recognizer: recognizer,
         style: TextStyle(
-          fontFamily: 'AmiriQuran',
+          fontFamily: _quranFontFamily,
           fontSize: 21,
           height: 2.3,
           color: textColor,
@@ -1163,8 +1224,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                           // separates the "page" from its surroundings, the way
                           // a physical Mushaf actually sits above a table.
                           boxShadow: [
-                            BoxShadow(color: _warmShadowTint.withValues(alpha: 0.28), blurRadius: 22, offset: const Offset(0, 10)),
-                            BoxShadow(color: themeColor.withValues(alpha: 0.14), blurRadius: 5, offset: const Offset(0, 2)),
+                            BoxShadow(color: _warmShadowTint.withValues(alpha: 0.10), blurRadius: 10, offset: const Offset(0, 3)),
                           ],
                         ),
                         child: ClipRRect(
@@ -1214,7 +1274,6 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                                 ),
                                 child: CustomPaint(
                                   key: ValueKey(_page),
-                                  foregroundPainter: _MushafFramePainter(color: themeColor),
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
                                     child: SingleChildScrollView(
@@ -1235,13 +1294,6 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                           ),
                         ),
                       ),
-                      ),
-                      // شارة الكتاب العلوية (quirky-gliding-shell.md's
-                      // "الإطار الحقيقي" batch) — تجلس على الحافة العلوية
-                      // للإطار نفسه، نفس لمسة المرجع.
-                      const Positioned(
-                        top: 2,
-                        child: _TopMedallion(),
                       ),
                       // شارة العد التنازلي لجلسة القراءة (2026-08-17) — لا
                       // تظهر إلا أثناء جلسة فعلية، ولا تحجز مساحة من الرأس
@@ -1370,38 +1422,16 @@ class _MedallionPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // 2026-08-17: Ismail named this specifically — the reference's
-    // ayah-end markers read as rich, warm, filled badges; the original
-    // version here was a thin 1.1px outline over a near-invisible 0.1-alpha
-    // fill, which is why it looked "washed out" beside it. Thicker strokes,
-    // a real radial gradient fill (not flat), and richer petals — still
-    // tinted by the student's own "لون مصحفك" choice, not hardcoded gold,
-    // so the existing color customization still works.
+    // 2026-08-20 ("i want the style to be like this i didn't like my
+    // style"): reverted from the 2026-08-17 richness pass (filled gradient
+    // rosette with 8 petal bumps) back toward a plain thin outline ring,
+    // matching the reference Mushaf's delicate, mostly-empty ayah-end
+    // marks instead of a jeweled badge. Still tinted by the student's own
+    // "لون مصحفك" choice, not hardcoded gold.
     final center = Offset(size.width / 2, size.height / 2);
     final r = size.width / 2;
-    final ringPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..color = color;
-    final petalFillPaint = Paint()..color = color.withValues(alpha: 0.28);
-    const petals = 8;
-    for (var i = 0; i < petals; i++) {
-      final angle = (i / petals) * 2 * pi;
-      final bumpCenter = Offset(center.dx + r * 0.82 * cos(angle), center.dy + r * 0.82 * sin(angle));
-      canvas.drawCircle(bumpCenter, r * 0.32, petalFillPaint);
-      canvas.drawCircle(bumpCenter, r * 0.32, ringPaint);
-    }
-    final coreRect = Rect.fromCircle(center: center, radius: r * 0.7);
-    canvas.drawCircle(
-      center,
-      r * 0.7,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.3, -0.3),
-          colors: [color.withValues(alpha: 0.4), color.withValues(alpha: 0.16)],
-        ).createShader(coreRect),
-    );
-    canvas.drawCircle(center, r * 0.7, ringPaint);
+    canvas.drawCircle(center, r * 0.92, Paint()..style = PaintingStyle.stroke..strokeWidth = 1.1..color = color);
+    canvas.drawCircle(center, r * 0.7, Paint()..style = PaintingStyle.stroke..strokeWidth = 0.8..color = color);
   }
 
   @override
@@ -1499,123 +1529,6 @@ class _PageNumberCartouche extends StatelessWidget {
         decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color.withValues(alpha: 0.5), width: 1)),
         child: Text(_easternArabicDigits(page), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
       ),
-    );
-  }
-}
-
-/// Decorative double-line page border with small corner flourishes,
-/// painted as a `foregroundPainter` over the reading area — the frame
-/// upgrade behind Ismail's "طبق الأصل" request, in the student's own
-/// chosen "لون مصحفك" theme color rather than a fixed gold.
-///
-/// 2026-08-17 ("الإطار الحقيقي" batch): upgraded from a single double-line
-/// to a genuinely ornate double-border — an extra outer hairline plus a
-/// hand-drawn corner flourish (a small quarter-arc + crossing ticks) at
-/// each of the 4 corners, replacing the plain diamond markers. Still pure
-/// `Canvas` drawing, no image assets, and still tinted by the student's
-/// own "لون مصحفك" choice rather than a fixed gold.
-class _MushafFramePainter extends CustomPainter {
-  final Color color;
-  const _MushafFramePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final outermost = RRect.fromRectAndRadius(Rect.fromLTWH(1, 1, size.width - 2, size.height - 2), const Radius.circular(13));
-    final outer = RRect.fromRectAndRadius(Rect.fromLTWH(4, 4, size.width - 8, size.height - 8), const Radius.circular(12));
-    final inner = RRect.fromRectAndRadius(Rect.fromLTWH(9, 9, size.width - 18, size.height - 18), const Radius.circular(9));
-    canvas.drawRRect(
-      outermost,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.8
-        ..color = color.withValues(alpha: 0.45),
-    );
-    canvas.drawRRect(
-      outer,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6
-        ..color = color,
-    );
-    canvas.drawRRect(
-      inner,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.0
-        ..color = color.withValues(alpha: 0.7),
-    );
-
-    final flourishPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.3
-      ..color = color;
-    final diamondPaint = Paint()..color = color;
-
-    void drawCornerFlourish(Offset corner, double signX, double signY) {
-      // 2026-08-17: denser than the first pass — the reference's corners
-      // read as a small lace/vine cluster, not one bare arc. Added two more
-      // concentric arcs (a fan instead of a single sweep) plus a pair of
-      // small leaf shapes (mirrored quadratic curves) alongside the
-      // existing arc/ticks/diamond — still pure hand-drawn `Canvas` calls,
-      // no image asset.
-      final startAngle = signX > 0 ? (signY > 0 ? pi : pi / 2) : (signY > 0 ? -pi / 2 : 0.0);
-      for (final r in [26.0, 19.0, 13.0]) {
-        canvas.drawArc(Rect.fromCenter(center: corner, width: r, height: r), startAngle, pi / 2, false, flourishPaint);
-      }
-      canvas.drawLine(corner + Offset(signX * 14, signY * 3), corner + Offset(signX * 22, signY * 3), flourishPaint);
-      canvas.drawLine(corner + Offset(signX * 3, signY * 14), corner + Offset(signX * 3, signY * 22), flourishPaint);
-
-      void leaf(Offset from, Offset to, Offset control) {
-        final path = Path()
-          ..moveTo(from.dx, from.dy)
-          ..quadraticBezierTo(control.dx, control.dy, to.dx, to.dy);
-        canvas.drawPath(path, flourishPaint);
-      }
-
-      final tip = corner + Offset(signX * 17, signY * 17);
-      leaf(corner + Offset(signX * 9, signY * 2), tip, corner + Offset(signX * 16, signY * 6));
-      leaf(corner + Offset(signX * 2, signY * 9), tip, corner + Offset(signX * 6, signY * 16));
-
-      final path = Path()
-        ..moveTo(corner.dx, corner.dy - 5)
-        ..lineTo(corner.dx + 5, corner.dy)
-        ..lineTo(corner.dx, corner.dy + 5)
-        ..lineTo(corner.dx - 5, corner.dy)
-        ..close();
-      canvas.drawPath(path, diamondPaint);
-    }
-
-    drawCornerFlourish(const Offset(4, 4), 1, 1);
-    drawCornerFlourish(Offset(size.width - 4, 4), -1, 1);
-    drawCornerFlourish(Offset(4, size.height - 4), 1, -1);
-    drawCornerFlourish(Offset(size.width - 4, size.height - 4), -1, -1);
-  }
-
-  @override
-  bool shouldRepaint(covariant _MushafFramePainter oldDelegate) => oldDelegate.color != color;
-}
-
-/// Small circular book-icon badge sitting astride the frame's top edge —
-/// the "center isn't refined enough" gap Ismail flagged against the
-/// reference, which has a matching medallion at the same spot. Pure
-/// `Container`/`Icon`, no image asset.
-class _TopMedallion extends StatelessWidget {
-  const _TopMedallion();
-
-  @override
-  Widget build(BuildContext context) {
-    // 2026-08-17: small gold connector stubs on each side — the badge was
-    // floating with a visible gap from the frame line under it; these
-    // bridge it, matching the reference's medallion sitting IN the border
-    // rather than just above it.
-    Widget connector() => Container(width: 14, height: 1.4, color: _goldColor.withValues(alpha: 0.6));
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        connector(),
-        _GoldCircleIcon(icon: Icons.menu_book_rounded, size: 30, onTap: () {}),
-        connector(),
-      ],
     );
   }
 }
