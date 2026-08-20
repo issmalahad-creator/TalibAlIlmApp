@@ -145,4 +145,34 @@ void main() {
       expect(intent.responsesByLang['en'], isNotEmpty, reason: '${intent.id} has no English responses');
     }
   });
+
+  test('typing English still matches while the requested/app language is Arabic (2026-08-20 universal language layer)', () {
+    final engine = CompanionChatEngine();
+    expect(engine.matchIntentId('hello there, how are you'), 'greeting');
+    expect(engine.matchIntentId('i am so tired today'), 'tiredness');
+  });
+
+  test('typing Arabic still matches while the requested/app language is English', () {
+    final engine = CompanionChatEngine();
+    expect(engine.matchIntentId('السلام عليكم', lang: 'en'), 'greeting');
+  });
+
+  test('the reply language follows what the student actually typed, not the requested app language', () {
+    final engine = CompanionChatEngine();
+    final reply = engine.respond('hello there, how are you');
+    // English reply pool for 'greeting' — see defaultCompanionIntents.
+    expect(
+      reply,
+      anyOf(
+        'Wa alaikum salam 🤍 How are you doing with the Quran today?',
+        'Hey! Ready for a new step today?',
+        'Welcome — tell me how your day is going.',
+      ),
+    );
+  });
+
+  test('English negation blocks a keyword that would otherwise match (new per-language negation map)', () {
+    final engine = CompanionChatEngine();
+    expect(engine.matchIntentId('i am not tired today', lang: 'en'), isNot('tiredness'));
+  });
 }

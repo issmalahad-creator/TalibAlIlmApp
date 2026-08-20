@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../utils/arabic_normalize.dart';
 import '../utils/fuzzy_match.dart' as fuzzy;
+import '../utils/language_detect.dart';
 
 /// "محادثة الرفيق" — QURAN_COMPANION_ROADMAP.md §4.36, Ismail's 2026-08-18
 /// request for a companion the student can actually type to, without any
@@ -25,6 +26,18 @@ import '../utils/fuzzy_match.dart' as fuzzy;
 /// language code falls back to 'ar' rather than failing silently. Filling
 /// in the remaining languages is the same "حبة حبة" sweep already used for
 /// the rest of the app's UI strings — a follow-up step, not guessed now.
+///
+/// 2026-08-20 ("لا تجعل اللغة جزءًا من محرك البحث" — Ismail): the requested
+/// [lang] parameter no longer gates what a student can type. Every call
+/// also cheaply detects the input's own script (`language_detect.dart`,
+/// Arabic-vs-Latin, no ML) and scores against that language's keywords too
+/// when it differs from [lang] — so typing English while the app's UI
+/// language is Arabic (or vice versa) still reaches the right intent, and
+/// replies come back in whichever language actually matched. Synonym and
+/// negation handling (`_synonymGroupsByLang`/`_negationWordsByLang`) moved
+/// from Arabic-only fields to per-language maps for the same reason: a new
+/// language gets the exact same capability the moment its lists are
+/// curated, no bespoke code path needed.
 class CompanionIntent {
   final String id;
   final Map<String, List<String>> keywordsByLang;
@@ -44,18 +57,28 @@ class CompanionIntent {
 /// tolerance), 0 = nothing.
 const _confidenceThreshold = 0.6;
 
-/// Each inner list is one concept; the first word is the canonical form
-/// every other word in the group collapses to before matching. Deliberately
-/// small and scoped to concepts already used by the current catalog — not a
-/// general-purpose Arabic thesaurus, which would need native-speaker review
-/// to build responsibly.
-const _arabicSynonymGroups = [
-  ['انجزت', 'خلصت', 'سويت', 'حققت', 'كملت'],
-  ['باقي', 'تبقى', 'متبقي', 'متبقية'],
-  ['تقدمي', 'تقدم'],
-];
+/// Per-language synonym groups — each inner list is one concept, first word
+/// is the canonical form every other word in the group collapses to before
+/// matching. Keyed by language code so a new language gets the exact same
+/// capability the moment someone curates its groups, instead of a
+/// bespoke Arabic-only code path (2026-08-20, "لا تجعل اللغة جزءًا من محرك
+/// البحث" — Ismail). Deliberately small and scoped to concepts already used
+/// by the current catalog, not a general-purpose thesaurus per language,
+/// which would need native-speaker review to build responsibly.
+const _synonymGroupsByLang = <String, List<List<String>>>{
+  'ar': [
+    ['انجزت', 'خلصت', 'سويت', 'حققت', 'كملت'],
+    ['باقي', 'تبقى', 'متبقي', 'متبقية'],
+    ['تقدمي', 'تقدم'],
+  ],
+};
 
-const _arabicNegationWords = {'لا', 'ما', 'لم', 'لن', 'مو', 'مب', 'ليس', 'مش'};
+/// Per-language negation-word sets, same "pluggable per language" shape as
+/// the synonym groups above.
+const _negationWordsByLang = <String, Set<String>>{
+  'ar': {'لا', 'ما', 'لم', 'لن', 'مو', 'مب', 'ليس', 'مش'},
+  'en': {'not', "don't", 'dont', "didn't", 'didnt', 'no', 'never'},
+};
 
 class CompanionChatEngine {
   final List<CompanionIntent> intents;
@@ -76,11 +99,15 @@ class CompanionChatEngine {
   /// Matches [userText] and returns both which intent matched and the
   /// chosen response — the single source of truth `respond`/`matchIntentId`
   /// both read from, so a caller needing both never scores the catalog twice.
+  /// The response is picked in whichever language actually produced the
+  /// winning match (see `_scoreAllIntents`'s doc comment) — a student typing
+  /// English while the app itself is set to Arabic gets an English reply,
+  /// not a mismatched one just because that's the app's current UI language.
   (String? intentId, String? response) match(String userText, {String lang = 'ar'}) {
-    final (id, confidence) = matchWithConfidence(userText, lang: lang);
+    final (id, confidence, matchedLang) = _matchWithConfidenceAndLang(userText, lang);
     if (id == null || confidence < _confidenceThreshold) return (null, null);
     final intent = intents.firstWhere((i) => i.id == id);
-    final responses = intent.responsesFor(lang);
+    final responses = intent.responsesFor(matchedLang);
     return (id, responses[_random.nextInt(responses.length)]);
   }
 
@@ -98,35 +125,74 @@ class CompanionChatEngine {
   /// intent, grown from real usage (`companion_chat_log`) — not a hidden
   /// similarity model.
   (String? intentId, double confidence) matchWithConfidence(String userText, {String lang = 'ar'}) {
+    final (id, confidence, _) = _matchWithConfidenceAndLang(userText, lang);
+    return (id, confidence);
+  }
+
+  /// Same as `matchWithConfidence`, but also reports which language's
+  /// keyword set actually produced the winning score — [lang] (the app's
+  /// requested language) or the input's detected script language, whichever
+  /// scored higher for the winning intent. Falls back to [lang] on a tie so
+  /// existing same-language behavior is unchanged.
+  (String? intentId, double confidence, String matchedLang) _matchWithConfidenceAndLang(String userText, String lang) {
     // Scans in catalog order with a strict `>` so ties resolve to whichever
     // intent appears first in `intents` — same deterministic tie-break as
     // before this method existed. `List.sort` isn't guaranteed stable, so
     // `debugScores()`'s sorted view is for display only, never for this
     // decision.
-    final scores = _scoreAllIntents(userText, lang);
-    if (scores.isEmpty) return (null, 0);
+    final byLang = _scoreAllIntentsPerLang(userText, lang);
     String? bestId;
     var bestScore = 0.0;
-    for (final entry in scores.entries) {
-      if (entry.value > bestScore) {
-        bestScore = entry.value;
-        bestId = entry.key;
+    var bestLang = lang;
+    for (final scoreLang in byLang.keys) {
+      for (final entry in byLang[scoreLang]!.entries) {
+        if (entry.value > bestScore) {
+          bestScore = entry.value;
+          bestId = entry.key;
+          bestLang = scoreLang;
+        }
       }
     }
-    return (bestId, bestScore);
+    return (bestId, bestScore, bestLang);
   }
 
   /// Every intent's raw score for [userText], highest first — the debug
   /// view (`CompanionDebugScreen`) reads this directly so what it shows is
   /// never a re-implementation that could drift from the real matcher, only
-  /// a different view of the exact same computation `match()` uses.
+  /// a different view of the exact same computation `match()` uses. Merges
+  /// across languages the same way `_matchWithConfidenceAndLang` does (max
+  /// score per intent), so the debug view reflects what a real call sees.
   List<MapEntry<String, double>> debugScores(String userText, {String lang = 'ar'}) {
-    final scores = _scoreAllIntents(userText, lang);
-    final sorted = scores.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final byLang = _scoreAllIntentsPerLang(userText, lang);
+    final merged = <String, double>{};
+    for (final intent in intents) {
+      var best = 0.0;
+      for (final scores in byLang.values) {
+        final s = scores[intent.id] ?? 0.0;
+        if (s > best) best = s;
+      }
+      merged[intent.id] = best;
+    }
+    final sorted = merged.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return sorted;
   }
 
-  Map<String, double> _scoreAllIntents(String userText, String lang) {
+  /// Scores every intent against [lang]'s keyword set, and — if [userText]'s
+  /// detected script language differs from [lang] — also against that
+  /// detected language's keyword set. This is the actual "universal
+  /// language layer" behavior (2026-08-20, Ismail: "لا تجعل اللغة جزءًا من
+  /// محرك البحث"): a student can type in whichever language they're
+  /// comfortable with at the moment, regardless of the app's current UI
+  /// language setting, and still reach the right intent. Detection is a
+  /// cheap Arabic-vs-Latin script check (`language_detect.dart`), not a
+  /// real language model — matches this whole feature's "no AI" constraint.
+  Map<String, Map<String, double>> _scoreAllIntentsPerLang(String userText, String lang) {
+    final detected = detectScriptLanguage(userText);
+    final langsToTry = detected == null || detected == lang ? [lang] : [lang, detected];
+    return {for (final l in langsToTry) l: _scoreAllIntentsForLang(userText, l)};
+  }
+
+  Map<String, double> _scoreAllIntentsForLang(String userText, String lang) {
     final normalized = _normalize(userText.trim(), lang);
     if (normalized.isEmpty) return {};
     final inputWords = normalized.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
@@ -175,11 +241,13 @@ class CompanionChatEngine {
   }
 
   /// True if a negation word appears in the 2 words immediately before
-  /// `inputWords[index]`.
+  /// `inputWords[index]` — checked against whichever language's negation
+  /// set applies, or none at all for a language with none curated yet.
   bool _isNegatedAt(List<String> inputWords, int index, String lang) {
-    if (lang != 'ar' || index == 0) return false;
+    final negationWords = _negationWordsByLang[lang];
+    if (negationWords == null || index == 0) return false;
     final start = index - 2 < 0 ? 0 : index - 2;
-    return inputWords.sublist(start, index).any(_arabicNegationWords.contains);
+    return inputWords.sublist(start, index).any(negationWords.contains);
   }
 
   /// Collapses runs of the same letter repeated 3+ times ("مراااحب" →
@@ -191,18 +259,21 @@ class CompanionChatEngine {
   String _normalize(String text, String lang) {
     final collapsed = text.replaceAllMapped(RegExp(r'(.)\1{2,}'), (m) => m.group(1)!);
     final base = lang == 'ar' ? normalizeArabicForSearch(collapsed) : collapsed.toLowerCase();
-    return lang == 'ar' ? _applyArabicSynonyms(base) : base;
+    return _applySynonyms(base, lang);
   }
 
-  /// Small, curated synonym layer (Arabic only — the language we can
-  /// actually vouch for) covering concepts already present in the catalog,
-  /// not a blind blanket dictionary. Each group's words are replaced with
-  /// the group's first entry before matching, so e.g. "خلصت"/"سويت" reach
-  /// the same keyword as "انجزت" without every intent needing every
+  /// Small, curated per-language synonym layer covering concepts already
+  /// present in the catalog, not a blind blanket dictionary — a language
+  /// with no curated groups yet (`_synonymGroupsByLang[lang] == null`) just
+  /// skips this step rather than guessing. Each group's words are replaced
+  /// with the group's first entry before matching, so e.g. "خلصت"/"سويت"
+  /// reach the same keyword as "انجزت" without every intent needing every
   /// synonym listed separately.
-  String _applyArabicSynonyms(String normalizedText) {
+  String _applySynonyms(String normalizedText, String lang) {
+    final groups = _synonymGroupsByLang[lang];
+    if (groups == null) return normalizedText;
     var result = normalizedText;
-    for (final group in _arabicSynonymGroups) {
+    for (final group in groups) {
       final canonical = group.first;
       for (final variant in group.skip(1)) {
         result = result.replaceAll(RegExp('\\b$variant\\b'), canonical);
