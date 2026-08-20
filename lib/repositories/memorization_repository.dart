@@ -299,6 +299,29 @@ class MemorizationRepository {
     return (established / 7).ceil();
   }
 
+  /// "بوابة الإتقان" (Grain 3 of the سبق/سبقي/منزل research, §4.31/§4.33) —
+  /// real hifz-institute guidance: don't move to a new سبق until
+  /// yesterday's is confirmed solid. Deliberately **advisory only, never a
+  /// lock** — same "companion not manager" principle as the rest of this
+  /// app (`curriculum_levels.dart`'s explicit no-lock policy) — the
+  /// student can still memorize a new page regardless; this only
+  /// surfaces a suggestion. A unit counts as "not yet confirmed" if it
+  /// was memorized yesterday and hasn't had a review recorded today
+  /// (`last_review_date` still equals the memorized date).
+  Future<String?> masteryGateAdvisory() async {
+    final db = await DatabaseHelper.instance.database;
+    final yesterday = _addDays(todayDate(), -1);
+    final today = todayDate();
+    final rows = await db.query(
+      'memorization_progress',
+      where: 'memorized_date = ? AND last_review_date != ?',
+      whereArgs: [yesterday, today],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return 'راجع ما حفظته أمس أولًا للتأكد من إتقانه، قبل حفظ صفحة جديدة.';
+  }
+
   /// The next page to memorize, in plain Mushaf order — the first unit
   /// with no `memorization_progress` row at all (never started). Powers
   /// "تكليف اليوم" so the student gets a concrete assignment instead of
@@ -353,6 +376,92 @@ class MemorizationRepository {
       ORDER BY u.id
     ''');
     return rows.map(_toUnit).toList();
+  }
+
+  /// "عرض الحزب" (100_IDEAS_FOR_IMPROVEMENT.md #17) — an alternate unit
+  /// alongside the existing page-based mastery stat. A Hizb counts as
+  /// reached once every page touching it has been marked memorized at all
+  /// (any row in `memorization_progress`), the same bar `CompletionGoalRepository`
+  /// already uses as `currentPosition` for `quran_memorization` goals —
+  /// not the stricter "established" bar, so this stays consistent with
+  /// what "خطتك" already reports elsewhere. Page→Hizb is approximated by
+  /// each page's first ayah's Hizb (same approximation already used for
+  /// page→Juz during import), since a handful of pages straddle a
+  /// Hizb boundary.
+  Future<(int completed, int total)> hizbProgress() async {
+    final db = await DatabaseHelper.instance.database;
+    final pageHizbRows = await db.rawQuery('''
+      SELECT page_number, MIN(hizb_number) AS hizb
+      FROM quran_ayat
+      WHERE page_number IS NOT NULL AND hizb_number IS NOT NULL
+      GROUP BY page_number
+    ''');
+    final startedRows = await db.query('memorization_progress', columns: ['unit_id']);
+    final startedPages = startedRows.map((r) => r['unit_id'] as int).toSet();
+
+    final hizbPages = <int, List<int>>{};
+    for (final row in pageHizbRows) {
+      final hizb = row['hizb'] as int;
+      hizbPages.putIfAbsent(hizb, () => []).add(row['page_number'] as int);
+    }
+    if (hizbPages.isEmpty) return (0, 60);
+    final completed = hizbPages.values.where((pages) => pages.every(startedPages.contains)).length;
+    return (completed, hizbPages.length);
+  }
+
+  /// "أين كنت قبل 30 يومًا" (100_IDEAS_FOR_IMPROVEMENT.md #18) — how many
+  /// pages had already been marked memorized by [daysAgo] days ago, read
+  /// straight from `memorization_progress.memorized_date` (real history,
+  /// no new tracking). Compared against the current total by the caller.
+  Future<int> pagesStartedAsOf(int daysAgo) async {
+    final db = await DatabaseHelper.instance.database;
+    final cutoff = _addDays(todayDate(), -daysAgo);
+    final count = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM memorization_progress WHERE memorized_date IS NOT NULL AND memorized_date <= ?', [cutoff]),
+    );
+    return count ?? 0;
+  }
+
+  /// "أطول فترة استمرار في الحفظ" (100_IDEAS_FOR_IMPROVEMENT.md #24) — the
+  /// longest run of consecutive calendar days that had at least one page
+  /// newly memorized, computed straight from real `memorized_date` history
+  /// (no separate streak-tracking column, same "read live" principle as
+  /// the rest of this repository).
+  Future<int> longestMemorizationStreak() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT DISTINCT memorized_date FROM memorization_progress WHERE memorized_date IS NOT NULL ORDER BY memorized_date ASC',
+    );
+    if (rows.isEmpty) return 0;
+
+    final days = rows.map((r) => gregorianFromHijriDateTime(r['memorized_date'] as String, null)).toList()..sort();
+    var longest = 1;
+    var current = 1;
+    for (var i = 1; i < days.length; i++) {
+      final gap = days[i].difference(days[i - 1]).inDays;
+      if (gap == 1) {
+        current++;
+        longest = current > longest ? current : longest;
+      } else if (gap > 1) {
+        current = 1;
+      }
+    }
+    return longest;
+  }
+
+  /// "معدل نجاحك في المراجعة" (100_IDEAS_FOR_IMPROVEMENT.md #27) — % of
+  /// logged reviews rated ممتاز/جيد vs يحتاج مراجعة, read straight from
+  /// `review_log` (already written by every `recordReview` call, no new
+  /// tracking). Returns null with too little history (<5 reviews) so the
+  /// stat doesn't show a misleadingly precise percentage off 1-2 reviews.
+  Future<double?> reviewSuccessRate() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('SELECT quality, COUNT(*) AS c FROM review_log GROUP BY quality');
+    final counts = {for (final r in rows) r['quality'] as String: r['c'] as int};
+    final total = counts.values.fold(0, (a, b) => a + b);
+    if (total < 5) return null;
+    final success = (counts['excellent'] ?? 0) + (counts['good'] ?? 0);
+    return success / total * 100;
   }
 
   MemorizationUnit _toUnit(Map<String, Object?> row) => MemorizationUnit(

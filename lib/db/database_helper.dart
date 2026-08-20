@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -19,7 +20,18 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 32,
+      version: 44,
+      // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
+      // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
+      // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
+      // ما أعاد التطبيق للعمل. الأرجح: تبديل قاعدة بيانات SQLite قائمة
+      // فعليًا (لا قاعدة جديدة) من وضع rollback-journal الافتراضي إلى WAL
+      // عبر PRAGMA حيّة قد يتعطّل على بعض أجهزة أندرويد/إصدارات SQLite
+      // المرفقة. لا تُعِد تفعيل هذا دون اختبار حقيقي على جهاز حقيقي أولًا.
+      // onConfigure: (db) async {
+      //   await db.execute('PRAGMA journal_mode = WAL');
+      //   await db.execute('PRAGMA synchronous = NORMAL');
+      // },
       onCreate: (db, version) async {
         await _createV1Tables(db);
         await _createV2Tables(db);
@@ -51,6 +63,18 @@ class DatabaseHelper {
         await _createV30Tables(db);
         await _createV31Tables(db);
         await _createV32Tables(db);
+        await _createV33Tables(db);
+        await _createV34Tables(db);
+        await _createV35Tables(db);
+        await _createV36Tables(db);
+        await _createV37Tables(db);
+        await _createV38Tables(db);
+        await _createV39Tables(db);
+        await _createV40Tables(db);
+        await _createV41Tables(db);
+        await _createV42Tables(db);
+        await _createV43Tables(db);
+        await _createV44Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -84,6 +108,21 @@ class DatabaseHelper {
         if (oldVersion < 30) await _createV30Tables(db);
         if (oldVersion < 31) await _createV31Tables(db);
         if (oldVersion < 32) await _createV32Tables(db);
+        if (oldVersion < 33) await _createV33Tables(db);
+        if (oldVersion < 34) await _createV34Tables(db);
+        if (oldVersion < 35) await _createV35Tables(db);
+        if (oldVersion < 36) await _createV36Tables(db);
+        if (oldVersion < 37) await _createV37Tables(db);
+        if (oldVersion < 38) await _createV38Tables(db);
+        if (oldVersion < 39) {
+          await _createV39Tables(db);
+          await _backfillHizbNumbersV39(db);
+        }
+        if (oldVersion < 40) await _createV40Tables(db);
+        if (oldVersion < 41) await _createV41Tables(db);
+        if (oldVersion < 42) await _createV42Tables(db);
+        if (oldVersion < 43) await _createV43Tables(db);
+        if (oldVersion < 44) await _createV44Tables(db);
       },
     );
   }
@@ -876,6 +915,438 @@ class DatabaseHelper {
         category_id INTEGER PRIMARY KEY REFERENCES adhkar_categories(id),
         item_index INTEGER NOT NULL,
         updated_date TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// "دفتر الفوائد" + application log for any PDF book opened via
+  /// `BookViewerScreen` (personal library or the Telegram-fed `BookScreen`)
+  /// — Ismail's 2026-08-16 request, explicitly mirroring the audio
+  /// library's existing `audio_reflection_log` pattern rather than
+  /// inventing a new one. `book_key` matches whatever key
+  /// `BookViewerScreen` already uses (a URL for fed content, `personal_<id>`
+  /// for library picks), so no changes were needed to how books identify
+  /// themselves. Reflections carry `page` instead of audio's `resume_note`
+  /// — books already have a robust auto-saved page bookmark
+  /// (`book_bookmarks`), so there's no dead-video-link problem to hedge
+  /// against the way audio's manual resume note was for.
+  Future<void> _createV33Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE book_reflection_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_key TEXT NOT NULL,
+        page INTEGER,
+        reflection_text TEXT NOT NULL,
+        created_date TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX idx_book_reflection_log_key ON book_reflection_log(book_key)
+    ''');
+    await db.execute('''
+      CREATE TABLE book_application_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_key TEXT NOT NULL,
+        application_text TEXT NOT NULL,
+        created_date TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE INDEX idx_book_application_log_key ON book_application_log(book_key)
+    ''');
+  }
+
+  /// Content-type/occasion classification for the 134 `adhkar_categories`
+  /// rows — Ismail's 2026-08-16 request after critiquing an external
+  /// content-ontology proposal he sent, scoped down to what's real for a
+  /// single-book dataset (no LOCATION/ACTIVITY trigger engine, no hadith-
+  /// authenticity grading — see the roadmap for why those were excluded).
+  ///
+  /// Purely additive: `content_type` defaults to `'dhikr'` for every
+  /// existing row, so nothing that reads `adhkar_categories`/`is_daily_core`
+  /// today changes behavior — in particular the three places that hardcode
+  /// the exact title "أذكار الصباح والمساء"
+  /// (`adhkar_category_screen.dart`'s `_streakTrackedCategoryTitle`,
+  /// `adhkar_journey.dart`'s journey suggestions, `wird_repository.dart`'s
+  /// raw title lookup) keep working unmodified, since no title is renamed.
+  ///
+  /// The classification below was done by hand against every one of the
+  /// 134 actual titles (not a blind prefix heuristic — several titles like
+  /// "التشهد" or "الاستغفار والتوبة" don't carry an obvious دعاء/ذكر
+  /// prefix and needed real judgment) — this list *is* the "human review"
+  /// step an automated import pipeline would otherwise need.
+  Future<void> _createV34Tables(Database db) async {
+    await db.execute("ALTER TABLE adhkar_categories ADD COLUMN content_type TEXT NOT NULL DEFAULT 'dhikr'");
+    await db.execute('ALTER TABLE adhkar_categories ADD COLUMN occasion TEXT');
+
+    const duaTitles = [
+      'دعاء لبس الثوب',
+      'دعاء لبس الثوب الجديد',
+      'الدعاء لمن لبس ثوباً جديداً',
+      'دعاء دخول الخلاء',
+      'دعاء الخروج من الخلاء',
+      'دعاء الذهاب إلى المسجد',
+      'دعاء دخول المسجد',
+      'دعاء الخروج من المسجد',
+      'دعاء الاستفتاح',
+      'دعاء الركوع',
+      'دعاء الرفع من الركوع',
+      'دعاء السجود',
+      'دعاء الجلسة بين السجدتين',
+      'دعاء سجود التلاوة',
+      'الدعاء بعد التشهد الأخير وقبل السلام',
+      'دعاء صلاة الاستخارة',
+      'الدعاء إذا تقلب ليلاً',
+      'دعاء القلق والفزع في النوم ومن بلي بالوحشة',
+      'دعاء قنوت الوتر',
+      'دعاء الهم والحزن',
+      'دعاء الكرب',
+      'دعاء لقاء العدو وذي السلطان',
+      'دعاء من خاف ظلم السلطان',
+      'الدعاء على العدو',
+      'دعاء من أصابه شك في الإيمان',
+      'الدعاء قضاء الدين',
+      'دعاء الوسوسة في الصلاة والقراءة',
+      'دعاء من استصعب عليه أمر',
+      'دعاء طرد الشيطان ووساوسه',
+      'الدعاء حينما يقع مالا يرضاه أو غلب على أمره',
+      'ما يعوذ به الأولاد',
+      'الدعاء للمريض في عيادته',
+      'دعاء المريض الذي يئس من حياته',
+      'دعاء من أصيب بمصيبة',
+      'الدعاء عند إغماض الميت',
+      'الدعاء للميت في الصلاة عليه',
+      'الدعاء للفرط في الصلاة عليه',
+      'دعاء التعزية',
+      'الدعاء عند إدخال الميت القبر',
+      'الدعاء بعد دفن الميت',
+      'دعاء زيارة القبور',
+      'دعاء الريح',
+      'دعاء الرعد',
+      'من أدعية الاستسقاء',
+      'الدعاء إذا نزل المطر',
+      'من أدعية الاستصحاء',
+      'دعاء رؤية الهلال',
+      'الدعاء عند إفطار الصائم',
+      'الدعاء قبل الطعام',
+      'الدعاء عند الفراغ من الطعام',
+      'دعاء الضيف لصاحب الطعام',
+      'الدعاء لمن سقاه أو إذا أراد ذلك',
+      'الدعاء إذا أفطر عند أهل بيت',
+      'دعاء الصائم إذا حضر الطعام ولم يفطر',
+      'الدعاء عند رؤية باكورة الثمر',
+      'دعاء العطاس',
+      'الدعاء للمتزوج',
+      'دعاء المتزوج لنفسه ودعاء شراء الدابة',
+      'الدعاء قبل إتيان الزوجة',
+      'دعاء الغضب',
+      'دعاء من رأى مبتلى',
+      'الدعاء لمن قال غفر الله لك',
+      'الدعاء لمن صنع إليك معروفاً',
+      'ما يعصم به من الدجال',
+      'الدعاء لمن قال إني أحبك في الله',
+      'الدعاء لمن عرض عليك ماله',
+      'الدعاء لمن أقرض عند القضاء',
+      'دعاء الخوف من الشرك',
+      'الدعاء لمن قال بارك الله فيك',
+      'دعاء كراهية الطيرة',
+      'دعاء ركوب الدابة',
+      'دعاء السفر',
+      'دعاء دخول القرية أو البلدة',
+      'دعاء دخول السوق',
+      'الدعاء إذا تعس المركوب',
+      'دعاء المسافر للمقيم',
+      'دعاء المقيم للمسافر',
+      'دعاء المسافر إذا أسحر',
+      'الدعاء إذا نزل منزلا في سفر أو غيره',
+      'دعاء صياح الديك ونهيق الحمار',
+      'دعاء نباح الكلاب بالليل',
+      'الدعاء لمن سببته',
+      'الدعاء بين الركن اليماني والحجر الأسود',
+      'دعاء الوقوف على الصفا والمروة',
+      'الدعاء يوم عرفة',
+      'دعاء من خشي أن يصيب شيئاً بعينه',
+    ];
+
+    const otherTitles = [
+      'المقدمة',
+      'فضل الذكر',
+      'ما يفعل من رأى الرؤيا أو الحلم',
+      'تهنئة المولود له وجوابه',
+      'فضل عيادة المريض',
+      'تلقين المحتضر',
+      'فضل الصلاة على النبي صلى الله عليه وسلم',
+      'إفشاء السلام',
+      'كيف يرد السلام على الكافر إذا سلم',
+      'ما يفعل من أتاه أمر يسره',
+      'كيف كان النبي صلى الله عليه وسلم يسبح ؟',
+      'من أنواع الخير والآداب الجامعة',
+    ];
+
+    const occasionTitles = {
+      'travel': [
+        'دعاء ركوب الدابة',
+        'دعاء السفر',
+        'دعاء دخول القرية أو البلدة',
+        'دعاء دخول السوق',
+        'الدعاء إذا تعس المركوب',
+        'دعاء المسافر للمقيم',
+        'دعاء المقيم للمسافر',
+        'التكبير والتسبيح في سير السفر',
+        'دعاء المسافر إذا أسحر',
+        'الدعاء إذا نزل منزلا في سفر أو غيره',
+        'ذكر الرجوع من السفر',
+      ],
+      'funeral': [
+        'دعاء المريض الذي يئس من حياته',
+        'تلقين المحتضر',
+        'دعاء من أصيب بمصيبة',
+        'الدعاء عند إغماض الميت',
+        'الدعاء للميت في الصلاة عليه',
+        'الدعاء للفرط في الصلاة عليه',
+        'دعاء التعزية',
+        'الدعاء عند إدخال الميت القبر',
+        'الدعاء بعد دفن الميت',
+        'دعاء زيارة القبور',
+      ],
+      'hajj': [
+        'كيف يلبي المحرم في الحج أو العمرة',
+        'التكبيرة إذا أتي الركن الأسود',
+        'الدعاء بين الركن اليماني والحجر الأسود',
+        'دعاء الوقوف على الصفا والمروة',
+        'الدعاء يوم عرفة',
+        'الذكر عند المشعر الحرام',
+        'التكبيرة عند رمي الجمار مع كل حصاة',
+      ],
+      'food': [
+        'الدعاء عند إفطار الصائم',
+        'الدعاء قبل الطعام',
+        'الدعاء عند الفراغ من الطعام',
+        'دعاء الضيف لصاحب الطعام',
+        'الدعاء لمن سقاه أو إذا أراد ذلك',
+        'الدعاء إذا أفطر عند أهل بيت',
+        'دعاء الصائم إذا حضر الطعام ولم يفطر',
+        'ما يقول الصائم إذا سابه أحد',
+        'الدعاء عند رؤية باكورة الثمر',
+      ],
+    };
+
+    final batch = db.batch();
+    for (final t in duaTitles) {
+      batch.update('adhkar_categories', {'content_type': 'dua'}, where: 'title = ?', whereArgs: [t]);
+    }
+    for (final t in otherTitles) {
+      batch.update('adhkar_categories', {'content_type': 'other'}, where: 'title = ?', whereArgs: [t]);
+    }
+    for (final entry in occasionTitles.entries) {
+      for (final t in entry.value) {
+        batch.update('adhkar_categories', {'occasion': entry.key}, where: 'title = ?', whereArgs: [t]);
+      }
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Generalized spaced-repetition table for pillars beyond Quran
+  /// memorization — Ismail's 2026-08-16 "الدماغ الذي يربط" request, Batch 1
+  /// (`spaced_repetition_engine.dart`/`KnowledgeReviewRepository`). Deliberately
+  /// a separate table from `memorization_progress` rather than a shared one:
+  /// the Quran engine and its 604-row table stay completely untouched (zero
+  /// migration risk to existing data), and `item_type` disambiguates which
+  /// pillar's items this generalized table is reviewing (`'hadith'` →
+  /// `hadith_progress.hadith_id`, `'wasitiyyah'` → `wasitiyyah_progress.section_id`).
+  /// Same station/date columns as `memorization_progress` by design, so the
+  /// pure `spaced_repetition_engine.dart` logic (extracted from
+  /// `MemorizationRepository.recordReview`) applies unchanged to both tables.
+  Future<void> _createV35Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE knowledge_review_progress (
+        item_type TEXT NOT NULL,
+        item_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'not_started',
+        station INTEGER,
+        last_review_date TEXT,
+        next_review_date TEXT,
+        consecutive_good_count INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (item_type, item_id)
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_knowledge_review_next ON knowledge_review_progress(next_review_date)');
+  }
+
+  /// "التسبيح" free-tap dhikr counter — Ismail's 2026-08-16 request after
+  /// reviewing a reference app's design: a genuinely missing feature, not
+  /// decoration (grep-confirmed zero existing tasbih/counter screen —
+  /// adhkar's per-item tap-counters are structured/scripted content, not a
+  /// free-form "count any phrase toward any target" tool). One row per
+  /// (date, phrase) so switching phrase mid-day keeps each count separate,
+  /// same "count resets are just a fresh date-keyed row" pattern as every
+  /// other daily-completion table in this app (`adhkar_completion` etc.).
+  Future<void> _createV36Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE tasbih_log (
+        log_date TEXT NOT NULL,
+        phrase_key TEXT NOT NULL,
+        count INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (log_date, phrase_key)
+      )
+    ''');
+  }
+
+  /// "رسالتي" (إيكيغاي طالب العلم) — Ismail's 2026-08-17 request, an
+  /// expansion of the already-approved-but-unbuilt "اختبار تحديد المستوى"
+  /// (Batch 2 of the "الدماغ الذي يربط" plan) to also capture interest
+  /// ("ماذا تحب") and a one-year mission, not just a bare skill rating.
+  /// `placement_ratings` is re-assessable (upsert by area, no history row
+  /// pile-up, same pattern as `journey_plan`'s singleton row).
+  Future<void> _createV37Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE placement_ratings (
+        area TEXT PRIMARY KEY,
+        rating INTEGER NOT NULL,
+        interest INTEGER NOT NULL DEFAULT 0,
+        assessed_date TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE student_mission (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        daily_minutes INTEGER,
+        one_year_goal TEXT,
+        assessed_date TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// Custom per-category adhkar reminders — Ismail's 2026-08-17 request to
+  /// go beyond the 3 fixed morning/evening/sleep notifications and let him
+  /// pick ANY dhikr category (from either the category's own reading
+  /// screen, or the notification settings screen) and give it its own
+  /// reminder. `category_id` is the primary key — one reminder per
+  /// category, re-adding just updates the hour (upsert).
+  Future<void> _createV38Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE custom_adhkar_reminders (
+        category_id INTEGER PRIMARY KEY,
+        hour INTEGER NOT NULL
+      )
+    ''');
+  }
+
+  /// "عرض الحزب" (100_IDEAS_FOR_IMPROVEMENT.md #17) — additive column only;
+  /// existing installs get it backfilled below, fresh installs get it
+  /// filled directly by `QuranImportService` during its normal import pass
+  /// (same as `juz_number`/`page_number`), so this ALTER is safe to run
+  /// unconditionally in both onCreate and onUpgrade.
+  Future<void> _createV39Tables(Database db) async {
+    await db.execute('ALTER TABLE quran_ayat ADD COLUMN hizb_number INTEGER');
+  }
+
+  /// Backfill for installs that already had `quran_ayat` populated before
+  /// this column existed. Reuses `assets/quran/quran-data.js`'s
+  /// `QuranData.HizbQaurter` boundaries (same bundled Tanzil data
+  /// `QuranImportService` already parses for Juz/Page) — 240 quarter-hizb
+  /// (ربع الحزب) boundaries in Mushaf order; a Hizb is 4 quarters, so
+  /// `hizb = ((quarterIndex - 1) ~/ 4) + 1`. No-op on a fresh install
+  /// (`quran_ayat` still empty at this point — `QuranImportService` runs
+  /// after the DB opens, not during this migration).
+  Future<void> _backfillHizbNumbersV39(Database db) async {
+    final existing = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM quran_ayat'));
+    if (existing == null || existing == 0) return;
+
+    final raw = await rootBundle.loadString('assets/quran/quran-data.js');
+    final start = raw.indexOf('QuranData.HizbQaurter = [');
+    final end = raw.indexOf('];', start);
+    final block = raw.substring(start, end);
+    final pairRegex = RegExp(r'\[\s*(\d+)\s*,\s*(\d+)\s*\]');
+    final quarters = pairRegex.allMatches(block).map((m) => (int.parse(m.group(1)!), int.parse(m.group(2)!))).toList();
+
+    final rows = await db.query('quran_ayat', columns: ['surah', 'ayah']);
+    final batch = db.batch();
+    for (final row in rows) {
+      final surah = row['surah'] as int;
+      final ayah = row['ayah'] as int;
+      var quarterIndex = 1;
+      for (var i = 0; i < quarters.length; i++) {
+        final (qSurah, qAyah) = quarters[i];
+        if (qSurah < surah || (qSurah == surah && qAyah <= ayah)) quarterIndex = i + 1;
+      }
+      final hizb = (quarterIndex - 1) ~/ 4 + 1;
+      batch.update('quran_ayat', {'hizb_number': hizb}, where: 'surah = ? AND ayah = ?', whereArgs: [surah, ayah]);
+    }
+    await batch.commit(noResult: true);
+  }
+
+  /// Multi-language tafsir/translation library, batch 1 (Amharic + English)
+  /// — quirky-gliding-shell.md's "مكتبة التفسير/الترجمة متعددة اللغات" plan.
+  /// Additive column only; the 4 existing Arabic editions all default to
+  /// `'ar'`, which is already correct for them — no backfill needed.
+  Future<void> _createV40Tables(Database db) async {
+    await db.execute("ALTER TABLE tafsir_entries ADD COLUMN language TEXT NOT NULL DEFAULT 'ar'");
+  }
+
+  /// CUSTOMIZATION_IDEAS.md #1 — the tasbih counter only ever offered 6
+  /// fixed phrases; students who want to count a dhikr not on that list
+  /// (or a personal supplication) had no way to. `text` stores the phrase
+  /// itself as the identifier (no separate key needed — nothing else
+  /// references custom phrases by id).
+  Future<void> _createV43Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE custom_tasbih_phrases (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        text TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// QURAN_COMPANION_ROADMAP.md §4.36 — "اريد ان يتذكره ويكون صديقه"
+  /// (Ismail, 2026-08-18): the companion chat engine was stateless (every
+  /// reply picked fresh, nothing carried over). `companion_memory` is a
+  /// tiny key-value store for durable facts (currently just the student's
+  /// name, once they introduce themselves); `companion_chat_log` keeps a
+  /// rolling history of what was said and which intent matched, so the
+  /// engine can reference "what we talked about last time" instead of
+  /// greeting the student as a stranger every single message.
+  Future<void> _createV44Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE companion_memory (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE companion_chat_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT NOT NULL,
+        user_text TEXT NOT NULL,
+        intent_id TEXT
+      )
+    ''');
+  }
+
+  /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried
+  /// on every single page turn (`QuranReadingRepository.ayatForPage`) but
+  /// had no index, forcing a full scan of all 6236 rows each time. Real,
+  /// verified gap (checked the actual query, not guessed), not a blind
+  /// "index everything" pass.
+  Future<void> _createV42Tables(Database db) async {
+    await db.execute('CREATE INDEX idx_quran_ayat_page ON quran_ayat(page_number)');
+  }
+
+  /// Daily Quran-reading minutes target/countdown — Ismail's 2026-08-17
+  /// "gym coach" request: the student sets how many minutes they'll read
+  /// today, the app counts down on the reading screen itself, and on
+  /// completion compares against yesterday's `completed_minutes` to decide
+  /// which encouragement pool (`reading_encouragement.dart`) to draw from.
+  /// One row per day (`date` is the primary key), same upsert pattern as
+  /// `daily_session_log`.
+  Future<void> _createV41Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE quran_reading_minutes_log (
+        date TEXT PRIMARY KEY,
+        target_minutes INTEGER NOT NULL,
+        completed_minutes INTEGER NOT NULL DEFAULT 0,
+        completed INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }

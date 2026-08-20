@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../repositories/daily_session_repository.dart';
 import '../repositories/hadith_repository.dart';
+import '../repositories/knowledge_review_repository.dart';
+import '../services/spaced_repetition_engine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -21,6 +23,7 @@ class HadithQuizScreen extends StatefulWidget {
 class _HadithQuizScreenState extends State<HadithQuizScreen> {
   final _repo = HadithRepository();
   final _sessionRepo = DailySessionRepository();
+  final _reviewRepo = KnowledgeReviewRepository();
 
   NawawiHadith? _hadith;
   String _opening = '';
@@ -60,6 +63,14 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
 
   Future<void> _selfReport(bool knewIt) async {
     await _sessionRepo.markStep(quiz: true);
+    final hadith = _hadith;
+    if (hadith != null) {
+      await _reviewRepo.recordReview(
+        'hadith',
+        hadith.id,
+        knewIt ? ReviewQuality.good : ReviewQuality.needsReview,
+      );
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(knewIt ? 'أحسنت 🌱' : 'لا بأس — راجعه اليوم')),

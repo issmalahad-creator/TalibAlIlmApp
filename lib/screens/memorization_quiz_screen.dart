@@ -27,6 +27,15 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
   bool _loading = true;
   bool _markedToday = false;
 
+  /// Progressive hinting before full reveal — Ismail's session (2026-08-16
+  /// Phase 14 Sub-phase A) flagged the old "one reveal button" as a "blind
+  /// self-rate," not real تسميع. A real hifz teacher gives a word or two
+  /// of a hint before the full answer, rather than jumping straight to it
+  /// — `_hintWordCount` tracks how many words of `q.nextText` are shown
+  /// before the student either recalls the rest or asks for the full
+  /// answer.
+  int _hintWordCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +46,7 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
     setState(() {
       _loading = true;
       _revealed = false;
+      _hintWordCount = 0;
     });
     final q = await _repo.randomQuestion();
     if (!mounted) return;
@@ -44,6 +54,11 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
       _question = q;
       _loading = false;
     });
+  }
+
+  void _addHintWord() {
+    final total = (_question?.nextText.split(' ').length) ?? 0;
+    setState(() => _hintWordCount = (_hintWordCount + 1).clamp(0, total));
   }
 
   Future<void> _selfReport(bool knewIt) async {
@@ -89,9 +104,36 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
           const SizedBox(height: 16),
           const Text('ما الآية التالية؟', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          if (!_revealed)
-            OutlinedButton(onPressed: () => setState(() => _revealed = true), child: const Text('أظهر الإجابة'))
-          else ...[
+          if (!_revealed) ...[
+            if (_hintWordCount > 0) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
+                child: Text(
+                  q.nextText.split(' ').take(_hintWordCount).join(' '),
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(fontSize: 16, height: 1.9, color: AppColors.textMuted),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _hintWordCount >= q.nextText.split(' ').length ? null : _addHintWord,
+                    icon: const Icon(Icons.lightbulb_outline, size: 16),
+                    label: const Text('تلميح كلمة'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton(onPressed: () => setState(() => _revealed = true), child: const Text('أظهر الإجابة كاملة')),
+                ),
+              ],
+            ),
+          ] else ...[
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(18)),

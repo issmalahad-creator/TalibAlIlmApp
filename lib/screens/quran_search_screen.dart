@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../repositories/memorization_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
@@ -30,6 +31,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
   bool _searching = false;
   bool _hasSearched = false;
   String _tafsirSource = QuranSearchRepository.defaultTafsirSource;
+  String _language = 'ar';
 
   @override
   void dispose() {
@@ -53,6 +55,20 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
   void _onTafsirSourceChanged(String? source) {
     if (source == null) return;
     setState(() => _tafsirSource = source);
+    if (_controller.text.trim().isNotEmpty) _runSearch(_controller.text);
+  }
+
+  /// Switching language re-anchors the source dropdown to the first
+  /// edition available in that language, so the two selectors never fall
+  /// out of sync (e.g. an Arabic source left selected while "English" is
+  /// showing above it).
+  void _onLanguageChanged(String? language) {
+    if (language == null) return;
+    final firstForLanguage = QuranSearchRepository.tafsirSources.firstWhere((s) => s.$3 == language);
+    setState(() {
+      _language = language;
+      _tafsirSource = firstForLanguage.$1;
+    });
     if (_controller.text.trim().isNotEmpty) _runSearch(_controller.text);
   }
 
@@ -94,6 +110,21 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
             const SizedBox(height: 10),
             Row(
               children: [
+                const Text('اللغة: ', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                DropdownButton<String>(
+                  isDense: true,
+                  value: _language,
+                  underline: const SizedBox.shrink(),
+                  items: QuranSearchRepository.languageLabels.entries
+                      .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontSize: 13))))
+                      .toList(),
+                  onChanged: _onLanguageChanged,
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
                 const Text('التفسير: ', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                 Expanded(
                   child: DropdownButton<String>(
@@ -102,6 +133,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
                     value: _tafsirSource,
                     underline: const SizedBox.shrink(),
                     items: QuranSearchRepository.tafsirSources
+                        .where((s) => s.$3 == _language)
                         .map((s) => DropdownMenuItem(value: s.$1, child: Text(s.$2, style: const TextStyle(fontSize: 13))))
                         .toList(),
                     onChanged: _onTafsirSourceChanged,
@@ -142,6 +174,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
           result: r,
           tafsirLabel: _tafsirSourceLabel,
           onTap: r.pageNumber == null ? null : () => Navigator.pop(context, r.pageNumber),
+          onMemorize: r.pageNumber == null ? null : () => _memorizePage(r.pageNumber!),
         );
       },
     );
@@ -149,13 +182,26 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
 
   String get _tafsirSourceLabel =>
       QuranSearchRepository.tafsirSources.firstWhere((s) => s.$1 == _tafsirSource).$2;
+
+  /// "احفظ هذه الصفحة" (100_IDEAS_FOR_IMPROVEMENT.md #26) — a direct link
+  /// from a search result straight into memorization, instead of having to
+  /// leave the search screen, open القرآن, jump to the page, then mark it.
+  /// `markMemorized` is idempotent (upserts), so tapping twice is harmless.
+  Future<void> _memorizePage(int page) async {
+    await MemorizationRepository().markMemorized(page);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('سُجّلت صفحة $page ضمن حفظك — ستظهر في مراجعاتك القادمة')),
+    );
+  }
 }
 
 class _ResultCard extends StatelessWidget {
   final QuranSearchResult result;
   final String tafsirLabel;
   final VoidCallback? onTap;
-  const _ResultCard({required this.result, required this.tafsirLabel, this.onTap});
+  final VoidCallback? onMemorize;
+  const _ResultCard({required this.result, required this.tafsirLabel, this.onTap, this.onMemorize});
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +241,18 @@ class _ResultCard extends StatelessWidget {
             textAlign: TextAlign.right,
             style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 20, height: 2.0),
           ),
+          if (onMemorize != null) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                onPressed: onMemorize,
+                icon: const Icon(Icons.bookmark_add_outlined, size: 15),
+                label: const Text('احفظ هذه الصفحة', style: TextStyle(fontSize: 11.5)),
+                style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), minimumSize: Size.zero),
+              ),
+            ),
+          ],
           if (result.tafsir != null && result.tafsir!.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             Theme(

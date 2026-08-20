@@ -16,12 +16,19 @@ class CurriculumItemStatus {
   /// measure yet) — used to draw a real progress ring on the map node,
   /// not a decorative placeholder.
   final double? progressFraction;
+
+  /// Non-blocking suggestion text (e.g. "يُنصح بإكمال X أولًا") when one of
+  /// this item's `prerequisites` isn't `completed`/`ongoing` yet — null
+  /// when there's nothing to suggest. **Never** prevents opening the item;
+  /// see `CurriculumItemDef.prerequisites`'s doc comment.
+  final String? advisoryText;
   const CurriculumItemStatus({
     required this.contentType,
     required this.titleAr,
     required this.state,
     required this.detailAr,
     this.progressFraction,
+    this.advisoryText,
   });
 }
 
@@ -33,6 +40,47 @@ class CurriculumRepository {
   Future<List<CurriculumItemStatus>> statusesFor(List<CurriculumItemDef> items) async {
     final db = await DatabaseHelper.instance.database;
     return [for (final item in items) await _statusFor(db, item)];
+  }
+
+  /// Every item across all 3 levels, keyed by level id — 100_IDEAS_FOR_IMPROVEMENT.md's
+  /// "deepen the prerequisite map" ask. Computed over the *full* flattened
+  /// list (not per-level, unlike [statusesFor]) because a prerequisite can
+  /// point at an item from an earlier level, so its status must already be
+  /// known before [advisoryText] can be filled in. Only 12 items total —
+  /// cheap enough to always compute in full.
+  Future<Map<int, List<CurriculumItemStatus>>> allStatuses() async {
+    final db = await DatabaseHelper.instance.database;
+    final allItems = [for (final level in curriculumLevels) ...level.items];
+
+    final byType = <String, CurriculumItemStatus>{};
+    for (final item in allItems) {
+      byType[item.contentType] = await _statusFor(db, item);
+    }
+
+    final withAdvisory = <String, CurriculumItemStatus>{};
+    for (final item in allItems) {
+      final base = byType[item.contentType]!;
+      String? advisory;
+      for (final prereqType in item.prerequisites) {
+        final prereqStatus = byType[prereqType];
+        if (prereqStatus == null) continue;
+        final satisfied = prereqStatus.state == CurriculumItemState.completed || prereqStatus.state == CurriculumItemState.ongoing;
+        if (!satisfied) {
+          advisory = 'يُنصح بإكمال "${prereqStatus.titleAr}" أولًا';
+          break;
+        }
+      }
+      withAdvisory[item.contentType] = CurriculumItemStatus(
+        contentType: base.contentType,
+        titleAr: base.titleAr,
+        state: base.state,
+        detailAr: base.detailAr,
+        progressFraction: base.progressFraction,
+        advisoryText: advisory,
+      );
+    }
+
+    return {for (final level in curriculumLevels) level.id: [for (final item in level.items) withAdvisory[item.contentType]!]};
   }
 
   Future<CurriculumItemStatus> _statusFor(Database db, CurriculumItemDef item) async {

@@ -9,13 +9,16 @@ import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
 import '../services/calendar_preference_service.dart';
 import '../services/language_preference_service.dart';
+import '../services/text_scale_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nav_tile.dart';
+import '../widgets/restart_widget.dart';
 import 'adab_screen.dart';
 import 'adhkar_screen.dart';
 import 'arabic_curriculum_screen.dart';
 import 'hadith_screen.dart';
 import 'new_muslim_guide_screen.dart';
+import 'notification_settings_screen.dart';
 import 'prayer_times_screen.dart';
 import 'qibla_screen.dart';
 import 'salah_tracker_screen.dart';
@@ -49,7 +52,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _photoPath;
   bool _loading = true;
   bool _useGregorian = CalendarPreferenceService.useGregorian;
-  String _lang = LanguagePreferenceService.currentLanguage;
+  final String _lang = LanguagePreferenceService.currentLanguage;
+  double _textScale = TextScalePreferenceService.scaleNotifier.value;
 
   @override
   void initState() {
@@ -78,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       photoPath: _photoPath,
     ));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الحفظ')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(basicText('saved_confirmation', _lang))));
     Navigator.pop(context);
   }
 
@@ -110,9 +114,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الملف الشخصي')),
+      appBar: AppBar(title: Text(basicText('nav_profile', _lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', _lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -131,7 +135,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 6),
                       TextButton(
                         onPressed: _pickPhoto,
-                        child: Text(_photoPath == null ? 'إضافة صورة للشهادات' : 'تغيير صورة الشهادات', style: const TextStyle(fontSize: 12)),
+                        child: Text(
+                          basicText(_photoPath == null ? 'add_certificate_photo' : 'change_certificate_photo', _lang),
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       ),
                     ],
                   ),
@@ -139,17 +146,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'الاسم الكامل', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: basicText('full_name_label', _lang), border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 14),
                 TextField(
                   controller: _residenceCtrl,
-                  decoration: const InputDecoration(labelText: 'محل الإقامة', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: basicText('residence_label', _lang), border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
                   initialValue: _studyTrack,
-                  decoration: const InputDecoration(labelText: 'المسار العلمي', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: basicText('study_track_label', _lang), border: const OutlineInputBorder()),
                   items: StudentProfile.studyTracks
                       .map((track) => DropdownMenuItem(value: track, child: Text(track)))
                       .toList(),
@@ -158,16 +165,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 14),
                 TextField(
                   controller: _studySourceCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'مصدر الدراسة (مثال: الراسخون في العلم)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: basicText('study_source_label', _lang),
+                    border: const OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: _save,
                   icon: const Icon(Icons.save),
-                  label: const Text('حفظ'),
+                  label: Text(basicText('save', _lang)),
                 ),
                 const SizedBox(height: 12),
                 Container(
@@ -179,8 +186,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('عرض التواريخ بالتقويم الميلادي', style: TextStyle(fontSize: 13.5)),
-                    subtitle: const Text('التخزين الداخلي يبقى هجريًا دائمًا — هذا يغيّر طريقة العرض فقط', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    title: Text(basicText('gregorian_toggle_title', _lang), style: const TextStyle(fontSize: 13.5)),
+                    subtitle: Text(basicText('gregorian_toggle_subtitle', _lang), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                     value: _useGregorian,
                     onChanged: (v) async {
                       await CalendarPreferenceService.setUseGregorian(v);
@@ -199,10 +206,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('لغة العناوين الأساسية', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
-                      const Text(
-                        'يبقى المحتوى الإسلامي العميق (القرآن، الأذكار، الفقه) بالعربية دائمًا — هذا يترجم فقط عناوين التنقل الأساسية',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                      Text(basicText('basic_titles_language_label', _lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                      Text(
+                        basicText('basic_titles_language_desc', _lang),
+                        style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                       ),
                       const SizedBox(height: 8),
                       DropdownButton<String>(
@@ -211,13 +218,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         items: supportedLanguages.entries
                             .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
                             .toList(),
+                        // 2026-08-17 ("نفس الوندوز"): was just `setState(() =>
+                        // _lang = v)` — updated this screen's own labels but
+                        // left every other already-mounted screen (which may
+                        // read the language into its own local `State` field
+                        // just like this one used to) showing whatever
+                        // language was current when THEY were built. A full
+                        // restart makes every screen remount fresh instead.
                         onChanged: (v) async {
                           if (v == null) return;
                           await LanguagePreferenceService.setLanguage(v);
-                          setState(() => _lang = v);
+                          if (!context.mounted) return;
+                          RestartWidget.restartApp(context);
                         },
                       ),
                       const SizedBox(height: 6),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(basicText('font_size_label', _lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: TextScalePreferenceService.presets
+                            .map((scale) => ChoiceChip(
+                                  label: Text(TextScalePreferenceService.presetLabels[scale]!),
+                                  selected: _textScale == scale,
+                                  onSelected: (_) async {
+                                    await TextScalePreferenceService.setScale(scale);
+                                    setState(() => _textScale = scale);
+                                  },
+                                ))
+                            .toList(),
+                      ),
                     ],
                   ),
                 ),
@@ -237,7 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   NavTileData(
                     icon: Icons.school_rounded,
-                    label: 'أستاذ التحفيظ',
+                    label: basicText('teacher_hifz', _lang),
                     color: NavColors.teal,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzTeacherScreen())),
                   ),
@@ -249,31 +293,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   NavTileData(
                     icon: Icons.hourglass_bottom_rounded,
-                    label: 'محاسبة الوقت',
+                    label: basicText('time_accountability', _lang),
                     color: NavColors.coral,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TimeAwarenessScreen())),
                   ),
                   NavTileData(
                     icon: Icons.format_quote_rounded,
-                    label: 'الأربعين النووية',
+                    label: basicText('hadith_arbaeen', _lang),
                     color: NavColors.brown,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HadithScreen())),
                   ),
                   NavTileData(
                     icon: Icons.menu_book_outlined,
-                    label: 'العقيدة الواسطية',
+                    label: basicText('aqeedah_wasitiyyah', _lang),
                     color: NavColors.deepPurple,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WasitiyyahScreen())),
                   ),
                   NavTileData(
                     icon: Icons.history_edu_rounded,
-                    label: 'زاد المعاد',
+                    label: basicText('zad_almaad', _lang),
                     color: NavColors.gold,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ZadAlMaadScreen())),
                   ),
                   NavTileData(
                     icon: Icons.terrain_rounded,
-                    label: 'مدارج السالكين',
+                    label: basicText('madarij_salikeen', _lang),
                     color: NavColors.coral,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MadarijScreen())),
                   ),
@@ -285,25 +329,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   NavTileData(
                     icon: Icons.school_outlined,
-                    label: 'منهج تعلم العربية',
+                    label: basicText('arabic_curriculum', _lang),
                     color: NavColors.cyan,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArabicCurriculumScreen())),
                   ),
                   NavTileData(
                     icon: Icons.record_voice_over_outlined,
-                    label: 'التجويد',
+                    label: basicText('tajweed', _lang),
                     color: NavColors.green,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TajweedScreen())),
                   ),
                   NavTileData(
                     icon: Icons.mosque_outlined,
-                    label: 'إقامة الصلاة',
+                    label: basicText('salah_companion', _lang),
                     color: NavColors.teal,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahTrackerScreen())),
                   ),
                   NavTileData(
                     icon: Icons.podcasts_outlined,
-                    label: 'كتب صوتية',
+                    label: basicText('audio_library', _lang),
                     color: NavColors.orange,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AudioLibraryScreen())),
                   ),
@@ -336,6 +380,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: basicText('new_muslim_guide', _lang),
                     color: NavColors.pink,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewMuslimGuideScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.notifications_active_outlined,
+                    label: basicText('adhkar_notifications', _lang),
+                    color: NavColors.cyan,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen())),
                   ),
                   NavTileData(
                     icon: Icons.support_agent_rounded,

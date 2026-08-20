@@ -7,6 +7,7 @@ import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
 
 import '../repositories/prayer_times_repository.dart';
 import '../services/location_service.dart';
+import '../services/solar_position.dart';
 import '../theme/app_theme.dart';
 import 'qibla_ar_view.dart';
 import 'qibla_map_view.dart';
@@ -19,7 +20,7 @@ import '../widgets/loading_view.dart';
 const kaabaLatitude = 21.4225241;
 const kaabaLongitude = 39.8261818;
 
-enum _QiblaMethod { compass, map, ar, sunMoon }
+enum _QiblaMethod { compass, map, ar, sun }
 
 /// "اتجاه القبلة" — QURAN_COMPANION_ROADMAP.md Phase 9, redesigned
 /// 2026-08-16 into a 4-method tabbed screen (Ismail's explicit request,
@@ -191,8 +192,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
           headingAccuracy: _headingAccuracy,
           qiblaBearing: _qiblaBearing ?? 0,
         );
-      case _QiblaMethod.sunMoon:
-        return const _ComingSoonView();
+      case _QiblaMethod.sun:
+        return _SunView(latitude: coords.latitude, longitude: coords.longitude, qiblaBearing: _qiblaBearing ?? 0);
     }
   }
 }
@@ -206,7 +207,7 @@ class _MethodTabs extends StatelessWidget {
     (_QiblaMethod.compass, 'البوصلة', Icons.explore_outlined),
     (_QiblaMethod.map, 'المرئية', Icons.map_outlined),
     (_QiblaMethod.ar, 'الواقع المعزز', Icons.view_in_ar_outlined),
-    (_QiblaMethod.sunMoon, 'الشمس والقمر', Icons.wb_twighlight),
+    (_QiblaMethod.sun, 'الشمس', Icons.wb_sunny_outlined),
   ];
 
   @override
@@ -514,33 +515,143 @@ class _DialPainter extends CustomPainter {
   bool shouldRepaint(covariant _DialPainter oldDelegate) => oldDelegate.litUp != litUp;
 }
 
-class _ComingSoonView extends StatelessWidget {
-  const _ComingSoonView();
+/// "تحديد القبلة بالشمس" — a cross-check that doesn't depend on the phone's
+/// magnetometer at all (unlike the compass tab, which can be thrown off by
+/// magnetic interference). Real solar azimuth (`SolarPosition`, verified
+/// against a hard mathematical invariant in `test/solar_position_test.dart`,
+/// not a remembered formula) refreshed every 15s — the sun moves slowly
+/// enough that this feels live without being wasteful. Deliberately doesn't
+/// attempt a moon-based method: the moon's usefulness for this depends on
+/// its illuminated phase and is far less reliable, and this app doesn't
+/// claim features it hasn't actually built and verified.
+class _SunView extends StatefulWidget {
+  final double latitude;
+  final double longitude;
+  final double qiblaBearing;
+  const _SunView({required this.latitude, required this.longitude, required this.qiblaBearing});
+
+  @override
+  State<_SunView> createState() => _SunViewState();
+}
+
+class _SunViewState extends State<_SunView> {
+  Timer? _timer;
+  SolarPosition? _sun;
+
+  @override
+  void initState() {
+    super.initState();
+    _update();
+    _timer = Timer.periodic(const Duration(seconds: 15), (_) => _update());
+  }
+
+  void _update() {
+    final sun = SolarPosition.forLocation(latitude: widget.latitude, longitude: widget.longitude, utc: DateTime.now().toUtc());
+    if (!mounted) return;
+    setState(() => _sun = sun);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    final sun = _sun;
+    if (sun == null) return const Center(child: CircularProgressIndicator());
+
+    if (sun.altitudeDegrees < 0) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.nightlight_outlined, size: 40, color: AppColors.textMuted),
+              const SizedBox(height: 12),
+              const Text('الشمس غاربة الآن', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14), textAlign: TextAlign.center),
+              const SizedBox(height: 6),
+              const Text(
+                'طريقة الشمس تعمل فقط أثناء ظهورها فوق الأفق — استخدم الآن تبويب "البوصلة" أو "المرئية"',
+                style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final shadowAzimuth = (sun.azimuthDegrees + 180) % 360;
+    // Signed angle from the sun's direction to the Qibla, wrapped to
+    // [-180, 180]: positive means Qibla is clockwise (to the right) of the
+    // sun as you face it, negative means counter-clockwise (to the left).
+    final turn = ((widget.qiblaBearing - sun.azimuthDegrees + 540) % 360) - 180;
+    final turnRight = turn >= 0;
+
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Row(
           children: [
-            Icon(Icons.wb_twighlight, size: 40, color: AppColors.textMuted),
-            SizedBox(height: 12),
-            Text(
-              'تحديد القبلة بالشمس والقمر — قريبًا',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 6),
-            Text(
-              'يحتاج حساب موقع الشمس/القمر الفلكي وقت الاستخدام — لم نضفه بعد حتى نتأكد من دقته قبل عرضه، بدل عرض شيء قد يكون غير دقيق',
-              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
-              textAlign: TextAlign.center,
-            ),
+            Expanded(child: _StatCard(label: 'اتجاه الشمس الآن', value: '${sun.azimuthDegrees.toStringAsFixed(0)}°')),
+            const SizedBox(width: 10),
+            Expanded(child: _StatCard(label: 'ارتفاع الشمس', value: '${sun.altitudeDegrees.toStringAsFixed(0)}°')),
           ],
         ),
-      ),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(turnRight ? Icons.turn_right : Icons.turn_left, color: AppColors.primaryDark),
+                  const SizedBox(width: 8),
+                  const Text('طريقة استقبال الشمس', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'قف مستقبلًا الشمس مباشرة، ثم استدر ${turn.abs().toStringAsFixed(0)}° نحو ${turnRight ? "يمينك" : "يسارك"} — تكون بذلك متجهًا نحو القبلة.',
+                style: const TextStyle(fontSize: 13, color: AppColors.textDark, height: 1.6),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.wb_shade_outlined, color: AppColors.textMuted, size: 18),
+                  SizedBox(width: 8),
+                  Text('أو بطريقة الظل', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'إن كانت الشمس قوية على عينيك، انظر إلى ظل أي شيء عمودي (عصا، عمود) بدلًا منها — الظل الآن يشير إلى ${shadowAzimuth.toStringAsFixed(0)}°، أي بعيدًا عن الشمس تمامًا. قف وظلك في هذا الاتجاه، ثم استدر ${turn.abs().toStringAsFixed(0)}° نحو ${turnRight ? "يمينك" : "يسارك"} كما في الطريقة الأولى.',
+                style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'ميزة هذه الطريقة أنها لا تعتمد على بوصلة الهاتف إطلاقًا — فهي مستقلة تمامًا عن أي تشويش مغناطيسي قد يؤثر على تبويب "البوصلة"، ومفيدة كتأكيد إضافي.',
+          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }

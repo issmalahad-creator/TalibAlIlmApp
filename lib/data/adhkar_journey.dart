@@ -1,3 +1,4 @@
+import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 
 /// Time-of-day windows for the "رحلتك اليومية" home-screen card — Ismail's
@@ -7,6 +8,13 @@ import 'package:flutter/material.dart';
 /// what to read instead of the student having to search for it.
 enum DayWindow { earlyMorning, morning, afternoon, evening, night }
 
+/// Fixed-clock-hour fallback, used only when prayer times aren't available
+/// (no location permission/fix yet) — see [dayWindowFromPrayerTimes] for the
+/// accurate version, added 2026-08-17 per Ismail's request to improve how
+/// the daily adhkar window is actually presented. Fixed clock hours are a
+/// rough approximation at best: real أذكار الصباح/المساء windows are
+/// anchored to Fajr/Asr, not to fixed hours, and those prayer times shift
+/// through the year — this function only exists as a safe fallback.
 DayWindow dayWindowFor(DateTime now) {
   final hour = now.hour;
   if (hour >= 3 && hour < 6) return DayWindow.earlyMorning;
@@ -14,6 +22,28 @@ DayWindow dayWindowFor(DateTime now) {
   if (hour >= 12 && hour < 16) return DayWindow.afternoon;
   if (hour >= 16 && hour < 20) return DayWindow.evening;
   return DayWindow.night;
+}
+
+/// Accurate version anchored to the student's real, calculated prayer
+/// times (same `adhan_dart` engine already used app-wide) instead of fixed
+/// clock hours — أذكار الصباح traditionally starts at Fajr, أذكار المساء at
+/// Asr, matching real scholarly practice rather than an arbitrary "6am/4pm"
+/// guess. The one exception is [DayWindow.earlyMorning] ("استيقاظ"), which
+/// has no prayer-time anchor (waking up isn't a prayer time) — keeps the
+/// same fixed 3am lower bound as the fallback, just with an accurate,
+/// date-correct Fajr as its upper bound instead of a fixed 6am.
+DayWindow dayWindowFromPrayerTimes(DateTime now, PrayerTimes times) {
+  final fajr = times.fajr.toLocal();
+  final dhuhr = times.dhuhr.toLocal();
+  final asr = times.asr.toLocal();
+  final isha = times.isha.toLocal();
+  final earlyMorningStart = DateTime(now.year, now.month, now.day, 3);
+
+  if (now.isBefore(earlyMorningStart) || !now.isBefore(isha)) return DayWindow.night;
+  if (now.isBefore(fajr)) return DayWindow.earlyMorning;
+  if (now.isBefore(dhuhr)) return DayWindow.morning;
+  if (now.isBefore(asr)) return DayWindow.afternoon;
+  return DayWindow.evening;
 }
 
 class JourneySuggestion {
@@ -39,3 +69,7 @@ const _suggestions = {
 };
 
 JourneySuggestion journeySuggestionFor(DateTime now) => _suggestions[dayWindowFor(now)]!;
+
+/// Prayer-time-accurate version — same suggestion table, real window.
+JourneySuggestion journeySuggestionFromPrayerTimes(DateTime now, PrayerTimes times) =>
+    _suggestions[dayWindowFromPrayerTimes(now, times)]!;

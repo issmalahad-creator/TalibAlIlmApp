@@ -35,6 +35,8 @@ class QuranImportService {
       for (final a in ayat) {
         final juz = _boundaryIndexFor(boundaries.juz, a.surah, a.ayah);
         final page = _boundaryIndexFor(boundaries.page, a.surah, a.ayah);
+        final hizbQuarter = _boundaryIndexFor(boundaries.hizbQuarter, a.surah, a.ayah);
+        final hizb = (hizbQuarter - 1) ~/ 4 + 1;
         batch.insert('quran_ayat', {
           'surah': a.surah,
           'ayah': a.ayah,
@@ -42,6 +44,7 @@ class QuranImportService {
           'text_normalized': normalizeArabicForSearch(a.text),
           'juz_number': juz,
           'page_number': page,
+          'hizb_number': hizb,
         });
         pageFirst.putIfAbsent(page, () => (a.surah, a.ayah));
         pageLast[page] = (a.surah, a.ayah);
@@ -66,9 +69,32 @@ class QuranImportService {
       await _regenerateMemorizationUnitsFromAyat(db);
     }
 
-    final existingTafsir = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries'));
-    if (existingTafsir == null || existingTafsir == 0) {
-      for (final edition in _tafsirEditions) {
+    // 2026-08-18: targeted one-time repair for `ibn_ashur` — installs that
+    // ran the earlier (broken, 156-empty-ayah) version of this edition
+    // already have those bad rows, and the self-heal loop below only
+    // imports when a source has ZERO rows, so it would otherwise never
+    // pick up the corrected data. Only deletes+re-triggers when an actual
+    // empty row is found (the old-version marker) — a no-op on fresh
+    // installs or installs that already have the corrected data, so this
+    // doesn't cost anything on every normal launch.
+    final hasBrokenIbnAshurRow = Sqflite.firstIntValue(
+      await db.rawQuery("SELECT COUNT(*) FROM tafsir_entries WHERE source = 'ibn_ashur' AND text = ''"),
+    );
+    if (hasBrokenIbnAshurRow != null && hasBrokenIbnAshurRow > 0) {
+      await db.delete('tafsir_entries', where: 'source = ?', whereArgs: ['ibn_ashur']);
+    }
+
+    // Per-edition self-heal (not a single all-or-nothing gate): a fresh
+    // install imports every edition; an existing install that already has
+    // the 4 original Arabic editions but not yet the newer English/Amharic
+    // ones (added after those installs' first run) picks up just the
+    // missing ones, same "self-heal" spirit as `memorization_units` above.
+    for (final edition in _tafsirEditions) {
+      final (_, sourceKey, _) = edition;
+      final existingForSource = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries WHERE source = ?', [sourceKey]),
+      );
+      if (existingForSource == null || existingForSource == 0) {
         await _importTafsirEdition(db, edition);
       }
     }
@@ -231,14 +257,81 @@ class QuranImportService {
   /// mukhtasars). Each becomes its own `source` value in `tafsir_entries`,
   /// so a single ayah can carry all four for the in-app source switcher.
   static const _tafsirEditions = [
-    ('assets/quran/tafsir-ibn-kathir-full.jsonl.gz', 'ibn_kathir_full'),
-    ('assets/quran/tafsir-almukhtasar.jsonl.gz', 'almukhtasar'),
-    ('assets/quran/tafsir-muyassar.jsonl.gz', 'muyassar'),
-    ('assets/quran/tafsir-saadi.jsonl.gz', 'saadi'),
+    ('assets/quran/tafsir-ibn-kathir-full.jsonl.gz', 'ibn_kathir_full', 'ar'),
+    ('assets/quran/tafsir-almukhtasar.jsonl.gz', 'almukhtasar', 'ar'),
+    ('assets/quran/tafsir-muyassar.jsonl.gz', 'muyassar', 'ar'),
+    ('assets/quran/tafsir-saadi.jsonl.gz', 'saadi', 'ar'),
+    // 2026-08-18: أُعيد تفعيله بعد إصلاح فعلي وموثَّق (لا تخمين):
+    // - 46 آية فارغة متفرقة (سور 2، 3، 4، 10، 11، 22) — سبق ابن عاشور فيها
+    //   مجموعة آيات بتعليق واحد تحت أول آية؛ مُلئت تلقائيًا من آخر نص غير
+    //   فارغ في نفس السورة (`tool/convert_tanweer_to_jsonl.dart`).
+    // - سورة الكهف كاملة (110/110 آية) بلا نص ابن عاشور في هذا المصدر —
+    //   تحقّقتُ من مصدر مستقل ثانٍ (SAFI174/tafsir-json) فوجدت الثغرة
+    //   نفسها بالضبط، مما يرجّح أنها ثغرة حقيقية في التوثيق الرقمي الأصلي
+    //   من جامعة الملك سعود، لا خطأ نسخ في مرآة واحدة. تُعرَض الآن رسالة
+    //   صريحة بدل نص فارغ أو مستعار من سورة أخرى.
+    ('assets/quran/tafsir-ibn_ashur.jsonl.gz', 'ibn_ashur', 'ar'),
+    // Batch 1 of the multi-language library (quirky-gliding-shell.md) —
+    // QuranEnc.com source, verified redistribution terms (attribution + no
+    // modification, no commercial restriction found). Same JSONL shape
+    // ({surah, ayah, text} per line) produced by tool/fetch_quranenc_translations.dart.
+    ('assets/quran/tafsir-english_rwwad.jsonl.gz', 'english_rwwad', 'en'),
+    ('assets/quran/tafsir-amharic_sadiq.jsonl.gz', 'amharic_sadiq', 'am'),
+    // Batch 2 — same source/terms, expanding language coverage.
+    ('assets/quran/tafsir-french_rashid.jsonl.gz', 'french_rashid', 'fr'),
+    ('assets/quran/tafsir-turkish_rwwad.jsonl.gz', 'turkish_rwwad', 'tr'),
+    ('assets/quran/tafsir-indonesian_sabiq.jsonl.gz', 'indonesian_sabiq', 'id'),
+    ('assets/quran/tafsir-urdu_junagarhi.jsonl.gz', 'urdu_junagarhi', 'ur'),
+    ('assets/quran/tafsir-bengali_zakaria.jsonl.gz', 'bengali_zakaria', 'bn'),
+    // Batch 3 — as many more QuranEnc languages as verified real.
+    ('assets/quran/tafsir-spanish_garcia.jsonl.gz', 'spanish_garcia', 'es'),
+    ('assets/quran/tafsir-portuguese_nasr.jsonl.gz', 'portuguese_nasr', 'pt'),
+    ('assets/quran/tafsir-greek_rwwad.jsonl.gz', 'greek_rwwad', 'el'),
+    ('assets/quran/tafsir-german_rwwad.jsonl.gz', 'german_rwwad', 'de'),
+    ('assets/quran/tafsir-italian_rwwad.jsonl.gz', 'italian_rwwad', 'it'),
+    ('assets/quran/tafsir-bulgarian_translation.jsonl.gz', 'bulgarian_translation', 'bg'),
+    ('assets/quran/tafsir-romanian_project.jsonl.gz', 'romanian_project', 'ro'),
+    ('assets/quran/tafsir-dutch_center.jsonl.gz', 'dutch_center', 'nl'),
+    ('assets/quran/tafsir-swedish_rwwad.jsonl.gz', 'swedish_rwwad', 'sv'),
+    ('assets/quran/tafsir-azeri_musayev.jsonl.gz', 'azeri_musayev', 'az'),
+    ('assets/quran/tafsir-georgian_rwwad.jsonl.gz', 'georgian_rwwad', 'ka'),
+    ('assets/quran/tafsir-macedonian_group.jsonl.gz', 'macedonian_group', 'mk'),
+    ('assets/quran/tafsir-albanian_rwwad.jsonl.gz', 'albanian_rwwad', 'sq'),
+    ('assets/quran/tafsir-bosnian_rwwad.jsonl.gz', 'bosnian_rwwad', 'bs'),
+    ('assets/quran/tafsir-russian_rwwad.jsonl.gz', 'russian_rwwad', 'ru'),
+    ('assets/quran/tafsir-belarusian_krivtsov.jsonl.gz', 'belarusian_krivtsov', 'be'),
+    ('assets/quran/tafsir-serbian_rwwad.jsonl.gz', 'serbian_rwwad', 'sr'),
+    ('assets/quran/tafsir-croatian_rwwad.jsonl.gz', 'croatian_rwwad', 'hr'),
+    ('assets/quran/tafsir-lithuanian_rwwad.jsonl.gz', 'lithuanian_rwwad', 'lt'),
+    ('assets/quran/tafsir-ukrainian_yakubovych.jsonl.gz', 'ukrainian_yakubovych', 'uk'),
+    ('assets/quran/tafsir-kazakh_altai.jsonl.gz', 'kazakh_altai', 'kk'),
+    ('assets/quran/tafsir-uzbek_rwwad.jsonl.gz', 'uzbek_rwwad', 'uz'),
+    ('assets/quran/tafsir-tajik_arifi.jsonl.gz', 'tajik_arifi', 'tg'),
+    ('assets/quran/tafsir-kyrgyz_hakimov.jsonl.gz', 'kyrgyz_hakimov', 'ky'),
+    ('assets/quran/tafsir-circassian_rwwad.jsonl.gz', 'circassian_rwwad', 'ady'),
+    ('assets/quran/tafsir-tagalog_rwwad.jsonl.gz', 'tagalog_rwwad', 'tl'),
+    ('assets/quran/tafsir-bisayan_rwwad.jsonl.gz', 'bisayan_rwwad', 'ceb'),
+    ('assets/quran/tafsir-iranun_sarro.jsonl.gz', 'iranun_sarro', 'iru'),
+    ('assets/quran/tafsir-maguindanao_rwwad.jsonl.gz', 'maguindanao_rwwad', 'mdh'),
+    ('assets/quran/tafsir-malay_basumayyah.jsonl.gz', 'malay_basumayyah', 'ms'),
+    // 2026-08-17: these 6 are still being fetched by the background script
+    // (`tool/fetch_quranenc_translations.dart`, resumable/idempotent — it
+    // skips any language whose file already exists) — temporarily
+    // commented out here + in pubspec.yaml so a build isn't blocked on
+    // them. Re-add both the moment the asset files land; nothing else
+    // needs to change (`_importTafsirEdition`'s per-edition self-heal
+    // picks up new editions on the very next app launch after an update,
+    // no fresh install required).
+    // ('assets/quran/tafsir-chinese_suliman.jsonl.gz', 'chinese_suliman', 'zh'),
+    // ('assets/quran/tafsir-uyghur_saleh.jsonl.gz', 'uyghur_saleh', 'ug'),
+    // ('assets/quran/tafsir-japanese_saeedsato.jsonl.gz', 'japanese_saeedsato', 'ja'),
+    // ('assets/quran/tafsir-somali_abduh.jsonl.gz', 'somali_abduh', 'so'),
+    // ('assets/quran/tafsir-hindi_omari.jsonl.gz', 'hindi_omari', 'hi'),
+    // ('assets/quran/tafsir-luganda_foundation.jsonl.gz', 'luganda_foundation', 'lg'),
   ];
 
-  Future<void> _importTafsirEdition(Database db, (String, String) edition) async {
-    final (assetPath, sourceKey) = edition;
+  Future<void> _importTafsirEdition(Database db, (String, String, String) edition) async {
+    final (assetPath, sourceKey, language) = edition;
     final byteData = await rootBundle.load(assetPath);
     final compressed = byteData.buffer.asUint8List();
     final decompressed = gzip.decode(compressed);
@@ -254,6 +347,7 @@ class QuranImportService {
         'ayah_to': obj['ayah'] as int,
         'source': sourceKey,
         'text': obj['text'] as String,
+        'language': language,
         // Not extracted for any edition yet — deliberately left null rather
         // than guessed via an unvalidated text-search heuristic.
         'asbab_nuzul_excerpt': null,
@@ -336,7 +430,8 @@ class QuranImportService {
     final raw = await rootBundle.loadString('assets/quran/quran-data.js');
     final juzBlock = _extractBlock(raw, 'QuranData.Juz');
     final pageBlock = _extractBlock(raw, 'QuranData.Page');
-    return _Boundaries(_extractPairs(juzBlock), _extractPairs(pageBlock));
+    final hizbBlock = _extractBlock(raw, 'QuranData.HizbQaurter');
+    return _Boundaries(_extractPairs(juzBlock), _extractPairs(pageBlock), _extractPairs(hizbBlock));
   }
 
   String _extractBlock(String raw, String varName) {
@@ -377,5 +472,6 @@ class _Ayah {
 class _Boundaries {
   final List<(int, int)> juz;
   final List<(int, int)> page;
-  _Boundaries(this.juz, this.page);
+  final List<(int, int)> hizbQuarter;
+  _Boundaries(this.juz, this.page, this.hizbQuarter);
 }

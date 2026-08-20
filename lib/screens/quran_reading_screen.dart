@@ -1,17 +1,37 @@
+import 'dart:async';
 import 'dart:math';
 
+import 'package:confetti/confetti.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/quran_surahs.dart';
+import 'tahfeez_session_setup_screen.dart';
+import '../l10n/reading_encouragement.dart';
+import '../repositories/journey_plan_repository.dart';
 import '../repositories/quran_reading_repository.dart';
+import '../repositories/quran_reading_session_repository.dart';
 import '../repositories/quran_search_repository.dart';
+import '../services/companion_context_tracker.dart';
+import '../services/language_preference_service.dart';
+import '../services/quran_audio/quran_audio_provider_registry.dart';
+import '../services/quran_audio_engine.dart';
+import '../services/text_scale_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/depth.dart';
+import '../theme/motion.dart';
 import 'journey_screen.dart';
 import 'quran_browse_screen.dart';
 import 'quran_search_screen.dart';
 import '../widgets/loading_view.dart';
+
+/// The rail/frame gold — reuses `DepthPalette.quran.accent`
+/// (`lib/theme/depth.dart`), the app's one established Quran-section gold,
+/// rather than a second hand-picked color.
+final _goldColor = DepthPalette.quran.accent;
 
 const _themeColors = {
   'brown': (Color(0xFF8B5E34), 'بنّي'),
@@ -52,6 +72,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   bool _loading = true;
   bool _showTafsir = false;
   String _tafsirSource = QuranSearchRepository.defaultTafsirSource;
+  String _tafsirLanguage = 'ar';
   Map<String, String> _tafsirByAyah = {};
   bool _nightMode = false;
   String _themeKey = 'brown';
@@ -63,21 +84,245 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   int? _selectedAyah;
   final List<TapGestureRecognizer> _recognizers = [];
 
+  /// "الوقت المتبقي لختم القرآن" (100_IDEAS_FOR_IMPROVEMENT.md #21) —
+  /// shown here too, not only inside رحلتي, so it's visible without an
+  /// extra tap. Loaded separately from `_load()` (own try/no-op-if-null
+  /// path) so a student with no active memorization plan yet sees the
+  /// banner's original static text with no error.
+  int? _daysLeftToKhatm;
+
+  /// "طابع الـ3D" (quirky-gliding-shell.md's premium-depth plan) — a
+  /// living-light effect on the Mushaf page, tied to the phone's real tilt
+  /// instead of a mouse (which doesn't exist on a touch device). Values
+  /// stay small and are throttled (`_lastTiltUpdate`) so the effect reads
+  /// as gentle ambient light, not a distracting gimmick, and so `setState`
+  /// doesn't fire on every sensor frame.
+  StreamSubscription<OrientationEvent>? _tiltSub;
+  double _tiltX = 0;
+  double _tiltY = 0;
+  DateTime _lastTiltUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// "فضّل هذه الصفحة" (الرواق الذهبي، 2026-08-17) — true فقط إن كانت كل
+  /// آيات الصفحة الحالية مفضَّلة فعليًا بالفعل (`QuranReadingRepository`
+  /// الموجودة، لا آلية جديدة). يُعاد حسابها بعد كل تحميل صفحة.
+  bool _pageFavorited = false;
+
+  /// شريط الاستماع (الرواق الذهبي، 2026-08-17) — يبني على `QuranAudioEngine`
+  /// الموجود فعليًا (`playAyah`/`stop`)، يتحكم يدويًا بالتقدّم آية-بآية بدل
+  /// `playRange` الأعمى، لأن `stateStream` لا تُغذّى إلا من جلسة التحفيظ
+  /// المنفصلة. `_audioPaused` يمنع بدء الآية التالية فقط — لا يوقف صوتًا
+  /// منتصف التشغيل، قيد حقيقي في `QuranAudioEngine` موثَّق لا مُخفى.
+  final _audioEngine = QuranAudioEngine();
+  bool _showAudioBar = false;
+  bool _audioPlaying = false;
+  bool _audioPaused = false;
+  int _audioIndex = 0;
+  String _audioReciterId = QuranAudioProviderRegistry.reciters().first.id;
+
+  /// "كم دقيقة ستقرأ القرآن اليوم" (2026-08-17, Ismail's "gym coach" idea)
+  /// — a simple countdown from a student-picked target, celebrated on
+  /// completion by comparing against `_readingSessionRepo.lastCompletedMinutes()`.
+  /// Lives entirely in this screen's own lifecycle (matches "عند دخول
+  /// القرآن... الدقائق"): starting a session doesn't survive navigating
+  /// away, same as the audio bar above.
+  final _readingSessionRepo = QuranReadingSessionRepository();
+  Timer? _sessionTimer;
+  int? _sessionTargetMinutes;
+  int _sessionRemainingSeconds = 0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _loadNightModePref();
     _load();
+    _loadJourneySummary();
+    _initTiltParallax();
+  }
+
+  static const _nightModePrefKey = 'quran_reading_night_mode';
+
+  Future<void> _loadNightModePref() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(_nightModePrefKey);
+    if (saved != null && mounted) setState(() => _nightMode = saved);
+  }
+
+  Future<void> _setNightMode(bool value) async {
+    setState(() => _nightMode = value);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_nightModePrefKey, value);
+  }
+
+  /// Same "don't crash if the sensor/platform doesn't support this" spirit
+  /// as `qibla_screen.dart`'s `_initFusedHeading` — the page just stays
+  /// static (no parallax) rather than throwing, on any device/platform
+  /// where the rotation-vector sensor is unavailable.
+  void _initTiltParallax() {
+    try {
+      _tiltSub = RotationSensor.orientationStream.listen(
+        (event) {
+          final now = DateTime.now();
+          if (now.difference(_lastTiltUpdate).inMilliseconds < 150) return;
+          _lastTiltUpdate = now;
+          if (!mounted) return;
+          setState(() {
+            _tiltX = (event.eulerAngles.roll / (pi / 4)).clamp(-1.0, 1.0);
+            _tiltY = (event.eulerAngles.pitch / (pi / 4)).clamp(-1.0, 1.0);
+          });
+        },
+        onError: (_) {},
+      );
+    } catch (_) {
+      // Rotation sensor unsupported on this platform/device.
+    }
+  }
+
+  Future<void> _loadJourneySummary() async {
+    final status = await JourneyPlanRepository().status();
+    if (!mounted || status == null) return;
+    setState(() => _daysLeftToKhatm = status.goalStatus.daysLeft);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _repo.savePosition(_page);
+    _tiltSub?.cancel();
+    _audioEngine.stop();
+    _audioEngine.dispose();
+    _sessionTimer?.cancel();
     for (final r in _recognizers) {
       r.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _openReadingSessionSheet() async {
+    if (_sessionTimer != null) {
+      final stop = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('جلسة القراءة جارية'),
+          content: Text('باقٍ ${_sessionRemainingSeconds ~/ 60}:${(_sessionRemainingSeconds % 60).toString().padLeft(2, '0')} دقيقة — هل تريد إيقافها؟'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('استمرار')),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('إيقاف')),
+          ],
+        ),
+      );
+      if (stop == true) {
+        setState(() {
+          _sessionTimer?.cancel();
+          _sessionTimer = null;
+          _sessionTargetMinutes = null;
+        });
+      }
+      return;
+    }
+    const options = [5, 10, 15, 20, 30];
+    final chosen = await showModalBottomSheet<int>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('كم دقيقة ستقرأ القرآن الآن؟', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              const Text('خطوة صغيرة كل يوم، أفضل من محاولة كبيرة لا تستمر', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: options.map((m) => ActionChip(label: Text('$m'), onPressed: () => Navigator.pop(context, m))).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (chosen == null) return;
+    await _readingSessionRepo.setTargetMinutes(chosen);
+    if (!mounted) return;
+    setState(() {
+      _sessionTargetMinutes = chosen;
+      _sessionRemainingSeconds = chosen * 60;
+    });
+    _sessionTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_sessionRemainingSeconds <= 1) {
+        timer.cancel();
+        _completeReadingSession();
+        return;
+      }
+      setState(() => _sessionRemainingSeconds--);
+    });
+  }
+
+  Future<void> _completeReadingSession() async {
+    final minutes = _sessionTargetMinutes;
+    if (minutes == null) return;
+    final lastCompleted = await _readingSessionRepo.lastCompletedMinutes();
+    await _readingSessionRepo.recordCompletion(minutes);
+    if (!mounted) return;
+    final trend = lastCompleted == null
+        ? ReadingTrend.first
+        : minutes > lastCompleted
+            ? ReadingTrend.improved
+            : minutes == lastCompleted
+                ? ReadingTrend.same
+                : ReadingTrend.less;
+    setState(() {
+      _sessionTimer = null;
+      _sessionTargetMinutes = null;
+    });
+    await _showReadingSessionCelebration(minutes, trend);
+  }
+
+  Future<void> _showReadingSessionCelebration(int minutes, ReadingTrend trend) async {
+    final phrase = randomEncouragement(trend, LanguagePreferenceService.currentLanguage);
+    final confetti = ConfettiController(duration: const Duration(seconds: 2));
+    confetti.play();
+    await showDialog<void>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Align(
+              alignment: Alignment.topCenter,
+              child: ConfettiWidget(
+                confettiController: confetti,
+                blastDirectionality: BlastDirectionality.explosive,
+                numberOfParticles: 16,
+                gravity: 0.25,
+                colors: const [AppColors.primary, AppColors.primaryDark, Color(0xFFB8860B), Colors.white],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(AppRadius.xl)),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.emoji_events_outlined, color: Color(0xFFB8860B), size: 36),
+                  const SizedBox(height: 10),
+                  Text('$minutes دقيقة', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                  const SizedBox(height: 8),
+                  Text(phrase, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 16),
+                  FilledButton(onPressed: () => Navigator.pop(context), child: const Text('الحمد لله')),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    confetti.dispose();
   }
 
   @override
@@ -98,6 +343,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
       _loading = false;
     });
     if (_showTafsir) _loadTafsir();
+    _refreshPageFavoritedState();
   }
 
   Future<void> _goToPage(int page) async {
@@ -108,6 +354,11 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('بارك الله فيك — ختمت القرآن 🎉 نبدأ ختمة جديدة')));
       page = 1;
     }
+    _audioEngine.stop();
+    setState(() {
+      _audioPlaying = false;
+      _audioPaused = false;
+    });
     await _repo.savePosition(page);
     final ayat = await _repo.ayatForPage(page);
     if (!mounted) return;
@@ -116,6 +367,144 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
       _ayat = ayat;
     });
     if (_showTafsir) _loadTafsir();
+    _refreshPageFavoritedState();
+  }
+
+  /// "فضّل هذه الصفحة" (رواق الأيقونات الذهبي) — يبني فوق `isFavorite`/
+  /// `addFavorite`/`removeFavorite` الموجودة فعليًا في
+  /// `QuranReadingRepository`، لا آلية "مفضلة صفحة" منفصلة جديدة: الصفحة
+  /// تُعتبَر مفضَّلة فقط إن كانت كل آياتها مفضَّلة فعليًا.
+  Future<void> _refreshPageFavoritedState() async {
+    if (_ayat.isEmpty) return;
+    final results = await Future.wait(_ayat.map((a) => _repo.isFavorite(a.surah, a.ayah)));
+    if (!mounted) return;
+    setState(() => _pageFavorited = results.every((f) => f));
+  }
+
+  Future<void> _toggleFavoritePage() async {
+    if (_ayat.isEmpty) return;
+    if (_pageFavorited) {
+      for (final a in _ayat) {
+        await _repo.removeFavorite(a.surah, a.ayah);
+      }
+    } else {
+      for (final a in _ayat) {
+        await _repo.addFavorite(a.surah, a.ayah);
+      }
+    }
+    if (!mounted) return;
+    setState(() => _pageFavorited = !_pageFavorited);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_pageFavorited ? 'أُضيفت هذه الصفحة للمفضلة' : 'أُزيلت هذه الصفحة من المفضلة')),
+    );
+  }
+
+  void _toggleAudioBar() {
+    setState(() => _showAudioBar = !_showAudioBar);
+    if (!_showAudioBar) {
+      _audioEngine.stop();
+      setState(() {
+        _audioPlaying = false;
+        _audioPaused = false;
+      });
+    }
+  }
+
+  /// يشغّل آيات الصفحة الحالية بدءًا من [startIndex] بالتتابع، آية بآية،
+  /// عبر `QuranAudioEngine.playAyah` مباشرة (لا `playRange` — نحتاج تتبّع
+  /// `_audioIndex` حيًا لتغذية الشريط بمكان التشغيل الفعلي). يتوقف بصمت إن
+  /// غادر الطالب الصفحة أو أوقف التشغيل يدويًا أثناء الانتظار.
+  Future<void> _playFrom(int startIndex) async {
+    setState(() {
+      _audioPlaying = true;
+      _audioPaused = false;
+      _audioIndex = startIndex;
+    });
+    for (var i = startIndex; i < _ayat.length; i++) {
+      if (!mounted || !_audioPlaying) return;
+      while (_audioPaused) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        if (!mounted || !_audioPlaying) return;
+      }
+      setState(() => _audioIndex = i);
+      final a = _ayat[i];
+      await _audioEngine.playAyah(_audioReciterId, a.surah, a.ayah);
+    }
+    if (mounted) setState(() => _audioPlaying = false);
+  }
+
+  void _playPauseAudio() {
+    if (!_audioPlaying) {
+      _playFrom(_audioIndex);
+    } else {
+      setState(() => _audioPaused = !_audioPaused);
+    }
+  }
+
+  void _nextAudioAyah() {
+    _audioEngine.stop();
+    if (_audioIndex < _ayat.length - 1) _playFrom(_audioIndex + 1);
+  }
+
+  void _prevAudioAyah() {
+    _audioEngine.stop();
+    if (_audioIndex > 0) _playFrom(_audioIndex - 1);
+  }
+
+  Future<void> _pickReciter() async {
+    final reciters = QuranAudioProviderRegistry.reciters();
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => ListView(
+        shrinkWrap: true,
+        children: reciters
+            .map((r) => ListTile(
+                  title: Text(r.nameAr, textAlign: TextAlign.right),
+                  trailing: r.id == _audioReciterId ? Icon(Icons.check, color: _goldColor) : null,
+                  onTap: () => Navigator.pop(context, r.id),
+                ))
+            .toList(),
+      ),
+    );
+    if (picked == null) return;
+    _audioEngine.stop();
+    setState(() {
+      _audioReciterId = picked;
+      _audioPlaying = false;
+      _audioPaused = false;
+    });
+  }
+
+  Future<void> _pickFontSize() async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('حجم الخط', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                children: TextScalePreferenceService.presets.map((scale) {
+                  final selected = TextScalePreferenceService.scaleNotifier.value == scale;
+                  return ChoiceChip(
+                    label: Text(TextScalePreferenceService.presetLabels[scale] ?? '$scale'),
+                    selected: selected,
+                    onSelected: (_) {
+                      TextScalePreferenceService.setScale(scale);
+                      setSheetState(() {});
+                    },
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _loadTafsir() async {
@@ -330,10 +719,29 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
               ListTile(
                 leading: const Icon(Icons.route_outlined),
                 title: const Text('رحلتي ومدرب الحفظ'),
-                subtitle: const Text('خطتك، تكليف اليوم، ووتيرتك المتكيفة', style: TextStyle(fontSize: 11)),
+                subtitle: Text(
+                  _daysLeftToKhatm == null
+                      ? 'خطتك، تكليف اليوم، ووتيرتك المتكيفة'
+                      : 'بقي ${_daysLeftToKhatm!} يومًا لختم القرآن حفظًا بإذن الله',
+                  style: const TextStyle(fontSize: 11),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   WidgetsBinding.instance.addPostFrameCallback((_) => _openJourney());
+                },
+              ),
+              ListTile(
+                leading: Icon(_sessionTimer != null ? Icons.timer : Icons.timer_outlined),
+                title: const Text('جلسة قراءة بوقت محدد'),
+                subtitle: Text(
+                  _sessionTimer != null
+                      ? 'جارية — باقٍ ${_sessionRemainingSeconds ~/ 60}:${(_sessionRemainingSeconds % 60).toString().padLeft(2, '0')}'
+                      : 'اختر عدد الدقائق، ونحتفل معك عند الإتمام',
+                  style: const TextStyle(fontSize: 11),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  WidgetsBinding.instance.addPostFrameCallback((_) => _openReadingSessionSheet());
                 },
               ),
               const Divider(),
@@ -348,7 +756,17 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                 },
               ),
               ListTile(leading: const Icon(Icons.list, color: AppColors.textMuted), title: const Text('المعاني', style: TextStyle(color: AppColors.textMuted)), onTap: () => _notAvailable('المعاني')),
-              ListTile(leading: const Icon(Icons.headphones_outlined, color: AppColors.textMuted), title: const Text('الصوتيات', style: TextStyle(color: AppColors.textMuted)), onTap: () => _notAvailable('الاستماع للآيات')),
+              ListTile(
+                leading: const Icon(Icons.headphones_outlined),
+                title: const Text('التحفيظ الصوتي'),
+                subtitle: const Text('استماع وتكرار بصوت القارئ لحفظ نطاق آيات', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.pop(context);
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => Navigator.push(context, MaterialPageRoute(builder: (_) => const TahfeezSessionSetupScreen())),
+                  );
+                },
+              ),
               ListTile(leading: const Icon(Icons.translate_outlined, color: AppColors.textMuted), title: const Text('الترجمة', style: TextStyle(color: AppColors.textMuted)), onTap: () => _notAvailable('الترجمة')),
               const Divider(),
               SwitchListTile(
@@ -357,7 +775,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                 value: _nightMode,
                 onChanged: (v) {
                   setSheetState(() {});
-                  setState(() => _nightMode = v);
+                  _setNightMode(v);
                 },
               ),
               const Padding(
@@ -394,6 +812,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   }
 
   Future<void> _onAyahTap(QuranAyahText a, TapDownDetails details) async {
+    CompanionContextTracker.instance.setCurrentAyah(a.surah, a.ayah);
     setState(() {
       _selectedSurah = a.surah;
       _selectedAyah = a.ayah;
@@ -536,123 +955,368 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     return widgets;
   }
 
+  // 2026-08-17: warm ivory/beige tokens pulled from a close read of the
+  // reference (the "warmth" Ismail kept naming) — a background gradient
+  // instead of one flat tone, and a warm brown ayah-text color instead of
+  // the app's cooler blue-gray `AppColors.textDark` (kept as-is everywhere
+  // else in the app; this warm tone is specific to the Mushaf page itself).
+  static const _warmBgTop = Color(0xFFF5F0E6);
+  static const _warmBgBottom = Color(0xFFEFE6D8);
+  static const _warmAyahText = Color(0xFF2C221E);
+  static const _warmShadowTint = Color(0xFF3A2E2B);
+
   @override
   Widget build(BuildContext context) {
     final themeColor = _themeColors[_themeKey]!.$1;
     final bgColor = _nightMode ? const Color(0xFF121212) : const Color(0xFFFBF6EE);
-    final textColor = _nightMode ? Colors.white : AppColors.textDark;
+    final textColor = _nightMode ? Colors.white : _warmAyahText;
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         titleSpacing: 0,
-        toolbarHeight: 64,
+        // 2026-08-17 ("لا تخفِ البحث والهمبرجر"): the header is now ONE
+        // compact line — search+menu always visible on the outer edge
+        // (left, in this RTL app's `actions`), a single-line surah/juz/page
+        // string centered, and the page-nav arrow on the other edge
+        // (`leading`). Nothing here was deleted, only shrunk: the big
+        // two-line ribbon-badge title became one Text line, and the
+        // standalone bookmark button that used to sit next to the arrow was
+        // dropped because it's a pure duplicate of the page's own rail
+        // bookmark (`Positioned(right: 0, ...)` further down) — same
+        // `_toggleFavoritePage`/`_pageFavorited`, still one tap away, just
+        // not doubled up in the header too.
+        toolbarHeight: 48,
         title: GestureDetector(
           onTap: _quickPageJumpDialog,
-          child: _ayat.isEmpty
-              ? Text('صفحة $_page')
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _RibbonBadge(text: 'سورة ${_surahNames[_ayat.first.surah] ?? _ayat.first.surah}', color: themeColor),
-                    const SizedBox(height: 4),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _RibbonBadge(text: 'الجزء ${_ayat.first.juzNumber ?? '-'}  ·  الصفحة $_page', color: themeColor, small: true),
-                        const SizedBox(width: 4),
-                        const Icon(Icons.unfold_more_rounded, size: 13, color: AppColors.textMuted),
-                      ],
-                    ),
-                  ],
-                ),
+          child: Text(
+            _ayat.isEmpty
+                ? 'صفحة $_page'
+                : 'سورة ${_surahNames[_ayat.first.surah] ?? _ayat.first.surah}  •  الجزء ${_ayat.first.juzNumber ?? '-'}  •  الصفحة $_page',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          ),
         ),
         centerTitle: true,
+        // `leading` renders on the visual RIGHT in this RTL app, matching
+        // point 12's "يمين الشاشة: أزرار التنقل بين الصفحات" — kept as a
+        // second way to reach the next page alongside the swipe, just
+        // smaller now that it's alone.
+        leadingWidth: 44,
+        leading: Padding(
+          padding: const EdgeInsets.only(right: 6),
+          // `arrow_forward_rounded` renders pointing left on-device in this
+          // RTL app — `arrow_back_rounded` is what actually renders
+          // pointing right.
+          child: _GoldCircleIcon(icon: Icons.arrow_back_rounded, size: 30, onTap: () => _goToPage(_page + 1)),
+        ),
+        // Point 11/15: search and the ☰ menu (which opens the sheet with
+        // الفهرس/البحث/رحلتي/التحفيظ/الوضع الليلي/... — this app's actual
+        // "side menu of functions") stay put on the outer left edge, always
+        // visible, never collapsed behind anything else.
         actions: [
-          IconButton(icon: const Icon(Icons.search_rounded), tooltip: 'البحث في القرآن', onPressed: _openSearch),
-          IconButton(icon: const Icon(Icons.menu_rounded), tooltip: 'طريقة عرض المصحف', onPressed: _openDisplayOptionsSheet),
+          _GoldCircleIcon(icon: Icons.search_rounded, size: 30, onTap: _openSearch),
+          const SizedBox(width: 6),
+          _GoldCircleIcon(icon: Icons.menu_rounded, size: 30, onTap: _openDisplayOptionsSheet),
+          const SizedBox(width: 10),
         ],
       ),
       body: _loading
           ? const AppLoadingView(icon: Icons.menu_book_outlined, message: 'جاري تحميل صفحة المصحف...')
-          : Column(
-              children: [
-                InkWell(
-                  onTap: _openJourney,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    color: AppColors.primaryLight,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.route_outlined, size: 16, color: AppColors.primaryDark),
-                        const SizedBox(width: 8),
-                        const Expanded(child: Text('رحلتي ومدرب الحفظ — تكليف اليوم ووتيرتك المتكيفة', style: TextStyle(fontSize: 11.5, color: AppColors.primaryDark, fontWeight: FontWeight.w700))),
-                        const Icon(Icons.chevron_left, size: 16, color: AppColors.primaryDark),
-                      ],
+          : Container(
+              // Warm ivory→beige gradient instead of one flat tone — the
+              // "warmth" Ismail kept naming turned out to be a real,
+              // fixable background choice, not something abstract.
+              decoration: _nightMode
+                  ? null
+                  : const BoxDecoration(
+                      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [_warmBgTop, _warmBgBottom]),
                     ),
-                  ),
-                ),
+              child: Column(
+              children: [
+                // 2026-08-17 (point 13, "لا تحذف الوظائف — أعد توزيعها"): the
+                // full-width "رحلتي" glass banner used to sit right here,
+                // stealing a whole row above the Mushaf page. It wasn't
+                // deleted — `_openJourney` is still one tap away from the ☰
+                // menu's "رحلتي ومدرب الحفظ" entry (now showing the same
+                // live day-countdown this banner used to), which is a more
+                // efficient spot for something that doesn't need to be
+                // visible while actually reading.
                 if (_showTafsir)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Row(
+                    child: Column(
                       children: [
-                        const Text('التفسير: ', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                        Expanded(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            isDense: true,
-                            value: _tafsirSource,
-                            underline: const SizedBox.shrink(),
-                            items: QuranSearchRepository.tafsirSources
-                                .map((s) => DropdownMenuItem(value: s.$1, child: Text(s.$2, style: const TextStyle(fontSize: 12.5))))
-                                .toList(),
-                            onChanged: (v) {
-                              if (v == null) return;
-                              setState(() => _tafsirSource = v);
-                              _loadTafsir();
-                            },
-                          ),
+                        Row(
+                          children: [
+                            const Text('اللغة: ', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                            DropdownButton<String>(
+                              isDense: true,
+                              value: _tafsirLanguage,
+                              underline: const SizedBox.shrink(),
+                              items: QuranSearchRepository.languageLabels.entries
+                                  .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontSize: 12.5))))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v == null) return;
+                                final firstForLanguage = QuranSearchRepository.tafsirSources.firstWhere((s) => s.$3 == v);
+                                setState(() {
+                                  _tafsirLanguage = v;
+                                  _tafsirSource = firstForLanguage.$1;
+                                });
+                                _loadTafsir();
+                              },
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const Text('التفسير: ', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                            Expanded(
+                              child: DropdownButton<String>(
+                                isExpanded: true,
+                                isDense: true,
+                                value: _tafsirSource,
+                                underline: const SizedBox.shrink(),
+                                items: QuranSearchRepository.tafsirSources
+                                    .where((s) => s.$3 == _tafsirLanguage)
+                                    .map((s) => DropdownMenuItem(value: s.$1, child: Text(s.$2, style: const TextStyle(fontSize: 12.5))))
+                                    .toList(),
+                                onChanged: (v) {
+                                  if (v == null) return;
+                                  setState(() => _tafsirSource = v);
+                                  _loadTafsir();
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
-                    child: CustomPaint(
-                      foregroundPainter: _MushafFramePainter(color: themeColor),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                  // 2026-08-17 ("عشان تحصل مساحة أكبر"): swipe replaces the
+                  // removed الصفحة التالية/السابقة button row — same
+                  // right-to-left reading direction as physically turning a
+                  // Mushaf page: a drag toward the left (negative velocity)
+                  // advances to the next page, a drag toward the right goes
+                  // back. `_goToPage` already handles saving position,
+                  // stopping any playing audio, and refreshing the favorite
+                  // state — reused as-is, only the trigger changed.
+                  child: GestureDetector(
+                    onHorizontalDragEnd: (details) {
+                      // 2026-08-17: reversed per Ismail's feedback — same
+                      // direction correction the adhkar screen's swipe
+                      // needed earlier this session.
+                      final velocity = details.primaryVelocity ?? 0;
+                      if (velocity > 200) {
+                        _goToPage(_page + 1);
+                      } else if (velocity < -200) {
+                        _goToPage(_page - 1);
+                      }
+                    },
+                    child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // 2026-08-17: this used to be a plain (non-positioned)
+                      // Stack child — a real regression from adding this
+                      // outer Stack for the rails. A non-positioned Stack
+                      // child gets LOOSE constraints (sized to its own
+                      // content, then centered by `alignment`), whereas
+                      // before this page container was `Expanded`'s direct
+                      // child and got forced to fill the full height. Since
+                      // the page's inner content (`SingleChildScrollView`)
+                      // sizes to its own text, not to available space, the
+                      // page was shrinking to text height and floating in
+                      // the middle of the available area — exactly the
+                      // "big empty margins above/below the frame" gap
+                      // Ismail caught. `Positioned.fill` forces it back to
+                      // filling the Stack completely, like before.
+                      Positioned.fill(
+                        child: Container(
+                        // 2026-08-17 ("وسع الجوانب الى الاخير"): was
+                        // `horizontal: 40` — sized to leave room for the
+                        // left/right icon rails that used to float beside
+                        // the page. Those rails moved into one bottom
+                        // toolbar row below (see the row that replaced the
+                        // old audio-toggle-only bottom bar), so nothing
+                        // needs that side clearance anymore — the page can
+                        // use almost the full screen width.
+                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(12),
+                          // "طابع الـ3D" (quirky-gliding-shell.md) — the page
+                          // container's color previously matched the Scaffold's
+                          // `backgroundColor` exactly (both `bgColor`), so there
+                          // was literally no depth cue besides the thin frame
+                          // painter lines. A real layered shadow (soft dark lift
+                          // + a warm tint from the current theme color) finally
+                          // separates the "page" from its surroundings, the way
+                          // a physical Mushaf actually sits above a table.
+                          boxShadow: [
+                            BoxShadow(color: _warmShadowTint.withValues(alpha: 0.28), blurRadius: 22, offset: const Offset(0, 10)),
+                            BoxShadow(color: themeColor.withValues(alpha: 0.14), blurRadius: 5, offset: const Offset(0, 2)),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Stack(
                             children: [
-                              ..._buildContent(themeColor, textColor),
-                              const SizedBox(height: 6),
-                              Center(child: _PageNumberCartouche(page: _page, color: themeColor)),
+                              // A living-light effect tied to the phone's real
+                              // tilt (`_tiltX`/`_tiltY`) instead of a mouse,
+                              // which doesn't exist on a touch device — subtle
+                              // by design, an ambient cue not a gimmick.
+                              Positioned.fill(
+                                child: IgnorePointer(
+                                  child: Align(
+                                    alignment: Alignment(_tiltX * 0.6, -0.6 + _tiltY * 0.4),
+                                    child: Container(
+                                      width: 260,
+                                      height: 260,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: RadialGradient(
+                                          colors: [
+                                            Colors.white.withValues(alpha: _nightMode ? 0.04 : 0.35),
+                                            Colors.white.withValues(alpha: 0),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Same non-positioned-Stack-child sizing issue
+                              // as the outer page Container, one level in:
+                              // without `Positioned.fill`, `CustomPaint`
+                              // sizes itself to its content (the ayah text
+                              // block), so the ornate frame it paints would
+                              // only wrap the text, not the whole page —
+                              // leaving a frame-less gap below on any page
+                              // whose text doesn't reach the bottom.
+                              Positioned.fill(
+                                child: AnimatedSwitcher(
+                                duration: AppMotion.premium,
+                                switchInCurve: AppMotion.entranceCurve,
+                                switchOutCurve: AppMotion.exitCurve,
+                                transitionBuilder: (child, animation) => SlideTransition(
+                                  position: Tween<Offset>(begin: const Offset(0.06, 0), end: Offset.zero).animate(animation),
+                                  child: FadeTransition(opacity: animation, child: child),
+                                ),
+                                child: CustomPaint(
+                                  key: ValueKey(_page),
+                                  foregroundPainter: _MushafFramePainter(color: themeColor),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          ..._buildContent(themeColor, textColor),
+                                          const SizedBox(height: 6),
+                                          Center(child: _PageNumberCartouche(page: _page, color: themeColor)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              ),
                             ],
                           ),
                         ),
                       ),
+                      ),
+                      // شارة الكتاب العلوية (quirky-gliding-shell.md's
+                      // "الإطار الحقيقي" batch) — تجلس على الحافة العلوية
+                      // للإطار نفسه، نفس لمسة المرجع.
+                      const Positioned(
+                        top: 2,
+                        child: _TopMedallion(),
+                      ),
+                      // شارة العد التنازلي لجلسة القراءة (2026-08-17) — لا
+                      // تظهر إلا أثناء جلسة فعلية، ولا تحجز مساحة من الرأس
+                      // المضغوط، عائمة فوق زاوية الصفحة نفسها فقط.
+                      if (_sessionTimer != null)
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: GestureDetector(
+                            onTap: _openReadingSessionSheet,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: _goldColor.withValues(alpha: 0.92),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: DepthShadows.soft(_goldColor),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.timer_outlined, size: 13, color: Colors.white),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${_sessionRemainingSeconds ~/ 60}:${(_sessionRemainingSeconds % 60).toString().padLeft(2, '0')}',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                     ),
                   ),
                 ),
+                if (_showAudioBar) _AyahAudioBar(state: this, themeColor: themeColor),
+                // 2026-08-17 ("وسع الجوانب الى الاخير — صف الايقونات في
+                // الاسفل"): the two vertical icon rails that used to float
+                // beside the page (الفهرس/طريقة العرض/الوضع الليلي/حجم
+                // الخط/التفسير on the left, المفضلة on the right) moved
+                // here, into one horizontal bottom toolbar alongside the
+                // existing audio toggle — exactly the "Bottom Toolbar
+                // للأدوات" point 14 asked for. Every one of those `onTap`
+                // handlers is untouched, just relocated.
                 SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: _GoldRail(
+                      axis: Axis.horizontal,
                       children: [
-                        Expanded(child: OutlinedButton(onPressed: () => _goToPage(_page + 1), child: const Text('الصفحة التالية'))),
-                        const SizedBox(width: 8),
-                        Expanded(child: OutlinedButton(onPressed: () => _goToPage(_page - 1), child: const Text('الصفحة السابقة'))),
+                        _GoldCircleIcon(icon: Icons.menu_book_outlined, size: 34, onTap: _openIndex),
+                        _GoldCircleIcon(icon: Icons.settings_outlined, size: 34, onTap: _openDisplayOptionsSheet),
+                        _GoldCircleIcon(
+                          icon: _nightMode ? Icons.nightlight : Icons.nightlight_outlined,
+                          size: 34,
+                          onTap: () => _setNightMode(!_nightMode),
+                        ),
+                        _GoldCircleIcon(icon: Icons.text_fields_rounded, size: 34, onTap: _pickFontSize),
+                        _GoldCircleIcon(
+                          icon: Icons.auto_stories_outlined,
+                          size: 34,
+                          onTap: () {
+                            setState(() => _showTafsir = !_showTafsir);
+                            if (_showTafsir) _loadTafsir();
+                          },
+                        ),
+                        _GoldCircleIcon(
+                          icon: _pageFavorited ? Icons.bookmark : Icons.bookmark_outline,
+                          size: 34,
+                          onTap: _toggleFavoritePage,
+                        ),
+                        _GoldCircleIcon(
+                          icon: _showAudioBar ? Icons.headset_off_outlined : Icons.headset_outlined,
+                          size: 34,
+                          onTap: _toggleAudioBar,
+                        ),
                       ],
                     ),
                   ),
                 ),
               ],
+              ),
             ),
     );
   }
@@ -699,20 +1363,38 @@ class _MedallionPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // 2026-08-17: Ismail named this specifically — the reference's
+    // ayah-end markers read as rich, warm, filled badges; the original
+    // version here was a thin 1.1px outline over a near-invisible 0.1-alpha
+    // fill, which is why it looked "washed out" beside it. Thicker strokes,
+    // a real radial gradient fill (not flat), and richer petals — still
+    // tinted by the student's own "لون مصحفك" choice, not hardcoded gold,
+    // so the existing color customization still works.
     final center = Offset(size.width / 2, size.height / 2);
     final r = size.width / 2;
     final ringPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.1
+      ..strokeWidth = 1.6
       ..color = color;
+    final petalFillPaint = Paint()..color = color.withValues(alpha: 0.28);
     const petals = 8;
     for (var i = 0; i < petals; i++) {
       final angle = (i / petals) * 2 * pi;
-      final bumpCenter = Offset(center.dx + r * 0.8 * cos(angle), center.dy + r * 0.8 * sin(angle));
-      canvas.drawCircle(bumpCenter, r * 0.3, ringPaint);
+      final bumpCenter = Offset(center.dx + r * 0.82 * cos(angle), center.dy + r * 0.82 * sin(angle));
+      canvas.drawCircle(bumpCenter, r * 0.32, petalFillPaint);
+      canvas.drawCircle(bumpCenter, r * 0.32, ringPaint);
     }
-    canvas.drawCircle(center, r * 0.68, Paint()..color = color.withValues(alpha: 0.1));
-    canvas.drawCircle(center, r * 0.68, ringPaint);
+    final coreRect = Rect.fromCircle(center: center, radius: r * 0.7);
+    canvas.drawCircle(
+      center,
+      r * 0.7,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(-0.3, -0.3),
+          colors: [color.withValues(alpha: 0.4), color.withValues(alpha: 0.16)],
+        ).createShader(coreRect),
+    );
+    canvas.drawCircle(center, r * 0.7, ringPaint);
   }
 
   @override
@@ -726,18 +1408,30 @@ class _MedallionPainter extends CustomPainter {
 class _RibbonBadge extends StatelessWidget {
   final String text;
   final Color color;
-  final bool small;
   final bool large;
-  const _RibbonBadge({required this.text, required this.color, this.small = false, this.large = false});
+  const _RibbonBadge({required this.text, required this.color, this.large = false});
 
   @override
   Widget build(BuildContext context) {
-    return ClipPath(
-      clipper: const _RibbonClipper(),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: large ? 24 : 16, vertical: large ? 9 : 5),
-        color: color.withValues(alpha: 0.12),
-        child: Text(text, style: TextStyle(fontSize: large ? 14 : (small ? 10.5 : 13), fontWeight: FontWeight.w800, color: color)),
+    // 2026-08-17: was a flat single-tone fill with no outline — the
+    // reference's title/juz-page ribbons read as small gold-bordered
+    // jewelry pieces (soft gradient + a real gold edge), not a plain tint.
+    return Container(
+      decoration: BoxDecoration(boxShadow: DepthShadows.soft(_goldColor)),
+      child: ClipPath(
+        clipper: const _RibbonClipper(),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: large ? 24 : 16, vertical: large ? 9 : 5),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.surface, color.withValues(alpha: 0.14)],
+            ),
+            border: Border.all(color: _goldColor.withValues(alpha: 0.55), width: 1),
+          ),
+          child: Text(text, style: TextStyle(fontSize: large ? 14 : 13, fontWeight: FontWeight.w800, color: color)),
+        ),
       ),
     );
   }
@@ -806,14 +1500,29 @@ class _PageNumberCartouche extends StatelessWidget {
 /// painted as a `foregroundPainter` over the reading area — the frame
 /// upgrade behind Ismail's "طبق الأصل" request, in the student's own
 /// chosen "لون مصحفك" theme color rather than a fixed gold.
+///
+/// 2026-08-17 ("الإطار الحقيقي" batch): upgraded from a single double-line
+/// to a genuinely ornate double-border — an extra outer hairline plus a
+/// hand-drawn corner flourish (a small quarter-arc + crossing ticks) at
+/// each of the 4 corners, replacing the plain diamond markers. Still pure
+/// `Canvas` drawing, no image assets, and still tinted by the student's
+/// own "لون مصحفك" choice rather than a fixed gold.
 class _MushafFramePainter extends CustomPainter {
   final Color color;
   const _MushafFramePainter({required this.color});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final outer = RRect.fromRectAndRadius(Rect.fromLTWH(3, 3, size.width - 6, size.height - 6), const Radius.circular(12));
-    final inner = RRect.fromRectAndRadius(Rect.fromLTWH(8, 8, size.width - 16, size.height - 16), const Radius.circular(9));
+    final outermost = RRect.fromRectAndRadius(Rect.fromLTWH(1, 1, size.width - 2, size.height - 2), const Radius.circular(13));
+    final outer = RRect.fromRectAndRadius(Rect.fromLTWH(4, 4, size.width - 8, size.height - 8), const Radius.circular(12));
+    final inner = RRect.fromRectAndRadius(Rect.fromLTWH(9, 9, size.width - 18, size.height - 18), const Radius.circular(9));
+    canvas.drawRRect(
+      outermost,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.8
+        ..color = color.withValues(alpha: 0.45),
+    );
     canvas.drawRRect(
       outer,
       Paint()
@@ -828,13 +1537,38 @@ class _MushafFramePainter extends CustomPainter {
         ..strokeWidth = 1.0
         ..color = color.withValues(alpha: 0.7),
     );
+
+    final flourishPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..color = color;
     final diamondPaint = Paint()..color = color;
-    for (final corner in [
-      const Offset(3, 3),
-      Offset(size.width - 3, 3),
-      Offset(3, size.height - 3),
-      Offset(size.width - 3, size.height - 3),
-    ]) {
+
+    void drawCornerFlourish(Offset corner, double signX, double signY) {
+      // 2026-08-17: denser than the first pass — the reference's corners
+      // read as a small lace/vine cluster, not one bare arc. Added two more
+      // concentric arcs (a fan instead of a single sweep) plus a pair of
+      // small leaf shapes (mirrored quadratic curves) alongside the
+      // existing arc/ticks/diamond — still pure hand-drawn `Canvas` calls,
+      // no image asset.
+      final startAngle = signX > 0 ? (signY > 0 ? pi : pi / 2) : (signY > 0 ? -pi / 2 : 0.0);
+      for (final r in [26.0, 19.0, 13.0]) {
+        canvas.drawArc(Rect.fromCenter(center: corner, width: r, height: r), startAngle, pi / 2, false, flourishPaint);
+      }
+      canvas.drawLine(corner + Offset(signX * 14, signY * 3), corner + Offset(signX * 22, signY * 3), flourishPaint);
+      canvas.drawLine(corner + Offset(signX * 3, signY * 14), corner + Offset(signX * 3, signY * 22), flourishPaint);
+
+      void leaf(Offset from, Offset to, Offset control) {
+        final path = Path()
+          ..moveTo(from.dx, from.dy)
+          ..quadraticBezierTo(control.dx, control.dy, to.dx, to.dy);
+        canvas.drawPath(path, flourishPaint);
+      }
+
+      final tip = corner + Offset(signX * 17, signY * 17);
+      leaf(corner + Offset(signX * 9, signY * 2), tip, corner + Offset(signX * 16, signY * 6));
+      leaf(corner + Offset(signX * 2, signY * 9), tip, corner + Offset(signX * 6, signY * 16));
+
       final path = Path()
         ..moveTo(corner.dx, corner.dy - 5)
         ..lineTo(corner.dx + 5, corner.dy)
@@ -843,8 +1577,234 @@ class _MushafFramePainter extends CustomPainter {
         ..close();
       canvas.drawPath(path, diamondPaint);
     }
+
+    drawCornerFlourish(const Offset(4, 4), 1, 1);
+    drawCornerFlourish(Offset(size.width - 4, 4), -1, 1);
+    drawCornerFlourish(Offset(4, size.height - 4), 1, -1);
+    drawCornerFlourish(Offset(size.width - 4, size.height - 4), -1, -1);
   }
 
   @override
   bool shouldRepaint(covariant _MushafFramePainter oldDelegate) => oldDelegate.color != color;
+}
+
+/// Small circular book-icon badge sitting astride the frame's top edge —
+/// the "center isn't refined enough" gap Ismail flagged against the
+/// reference, which has a matching medallion at the same spot. Pure
+/// `Container`/`Icon`, no image asset.
+class _TopMedallion extends StatelessWidget {
+  const _TopMedallion();
+
+  @override
+  Widget build(BuildContext context) {
+    // 2026-08-17: small gold connector stubs on each side — the badge was
+    // floating with a visible gap from the frame line under it; these
+    // bridge it, matching the reference's medallion sitting IN the border
+    // rather than just above it.
+    Widget connector() => Container(width: 14, height: 1.4, color: _goldColor.withValues(alpha: 0.6));
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        connector(),
+        _GoldCircleIcon(icon: Icons.menu_book_rounded, size: 30, onTap: () {}),
+        connector(),
+      ],
+    );
+  }
+}
+
+/// A richer gold circular button, specific to this screen (not the shared
+/// `DepthIconButton`, which stays calm/neutral for the rest of the app —
+/// `DESIGN_SYSTEM_3D.md` itself says القرآن gets the deepest treatment of
+/// any section). 2026-08-17: Ismail compared against the reference and
+/// called the plain flat-tinted circles out directly — this replaces them
+/// with a real radial highlight (light source top-left, like the
+/// reference's embossed look), a warmer two-stop gold ring instead of a
+/// single flat stroke, and a stronger layered shadow so it reads as
+/// polished metal/jewelry, not a flat icon with a gold tint.
+class _GoldCircleIcon extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final double size;
+  const _GoldCircleIcon({required this.icon, required this.onTap, this.size = 40});
+
+  @override
+  State<_GoldCircleIcon> createState() => _GoldCircleIconState();
+}
+
+class _GoldCircleIconState extends State<_GoldCircleIcon> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // 2026-08-17 crash fix: the gold ring used to be a custom `BoxBorder`
+    // subclass set on this `AnimatedContainer`'s `decoration`. Flutter's
+    // implicit-animation machinery calls the STATIC `BoxDecoration.lerp`
+    // on every rebuild (even when nothing actually changed), and that
+    // only knows how to interpolate the built-in `Border`/`BorderDirectional`
+    // types — any other `BoxBorder` subclass throws
+    // ("BoxBorder.lerp can only interpolate Border and BorderDirectional
+    // classes"), which crashed this exact screen on-device. Fixed by
+    // moving the gradient ring out of the animated `decoration` entirely
+    // and drawing it with a `CustomPaint` `foregroundPainter` instead —
+    // painting isn't subject to that interpolation restriction at all.
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: AppMotion.fast,
+        curve: AppMotion.stateCurve,
+        width: widget.size,
+        height: widget.size,
+        transform: _pressed ? (Matrix4.identity()..scaleByDouble(0.94, 0.94, 0.94, 1.0)) : Matrix4.identity(),
+        transformAlignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            center: const Alignment(-0.4, -0.5),
+            radius: 1.1,
+            colors: [AppColors.surface, const Color(0xFFF6E9CE)],
+          ),
+          boxShadow: _pressed
+              ? DepthShadows.soft(_goldColor)
+              : [
+                  ...DepthShadows.floating(_goldColor),
+                  BoxShadow(color: Colors.white.withValues(alpha: 0.7), blurRadius: 1, offset: const Offset(-1, -1)),
+                ],
+        ),
+        child: CustomPaint(
+          painter: _GoldRingPainter(),
+          child: Center(child: Icon(widget.icon, color: _goldColor, size: widget.size * 0.46)),
+        ),
+      ),
+    );
+  }
+}
+
+/// Draws the two-tone gold ring (brighter top-left, as if lit) as a normal
+/// `Canvas` stroke — see `_GoldCircleIconState`'s doc comment for why this
+/// replaced a custom `BoxBorder` subclass.
+class _GoldRingPainter extends CustomPainter {
+  const _GoldRingPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final paint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [_goldColor.withValues(alpha: 0.95), _goldColor.withValues(alpha: 0.45)],
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3;
+    canvas.drawCircle(rect.center, (size.shortestSide - 1.3) / 2, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GoldRingPainter oldDelegate) => false;
+}
+
+/// The floating gold icon-rail container (quirky-gliding-shell.md's
+/// "الإطار الحقيقي" batch) — a translucent pill holding a vertical stack
+/// of `DepthIconButton`s along a page edge, with its own soft depth so it
+/// reads as a physically separate floating strip rather than icons glued
+/// onto the page.
+class _GoldRail extends StatelessWidget {
+  final List<Widget> children;
+  final Axis axis;
+  const _GoldRail({required this.children, this.axis = Axis.vertical});
+
+  @override
+  Widget build(BuildContext context) {
+    // 2026-08-17: was one pill-shaped container behind all the buttons —
+    // the reference actually shows each button as its OWN separate
+    // floating circle (individual shadow, visible gaps of page showing
+    // through between them), not one connected background strip. Each
+    // `DepthIconButton` already draws its own circle + shadow, so this is
+    // now just spacing, no shared background.
+    //
+    // `axis: Axis.horizontal` (added for the bottom toolbar row) reuses the
+    // same spacing idea sideways instead of stacking top-to-bottom, wrapped
+    // in `Wrap` + `Center` so it still lines up nicely if a narrow screen
+    // ever forces it to break into two lines.
+    final spaced = [for (var i = 0; i < children.length; i++) ...[if (i > 0) const SizedBox(height: 14, width: 14), children[i]]];
+    if (axis == Axis.vertical) {
+      return Column(mainAxisSize: MainAxisSize.min, children: spaced);
+    }
+    return Center(child: Wrap(alignment: WrapAlignment.center, runSpacing: 10, children: spaced));
+  }
+}
+
+/// شريط الاستماع العائم (quirky-gliding-shell.md's "الإطار الحقيقي" batch)
+/// — قارئ حقيقي (`QuranAudioProviderRegistry.reciters()`)، تحكم حقيقي
+/// (تشغيل/إيقاف مؤقت/تالٍ/سابق) مبني فوق `QuranAudioEngine.playAyah`،
+/// وتسمية موضع حيّة "سورة:آية — سورة:آية" بدل شريط تقدّم نسبي مُخترَع.
+/// يقرأ حقول `_QuranReadingScreenState` مباشرة (نفس الملف) بدل تكرار
+/// الحالة في ودجت منفصل.
+class _AyahAudioBar extends StatelessWidget {
+  final _QuranReadingScreenState state;
+  final Color themeColor;
+  const _AyahAudioBar({required this.state, required this.themeColor});
+
+  @override
+  Widget build(BuildContext context) {
+    final reciters = QuranAudioProviderRegistry.reciters();
+    final currentReciter = reciters.firstWhere((r) => r.id == state._audioReciterId, orElse: () => reciters.first);
+    final hasAyat = state._ayat.isNotEmpty;
+    final currentAyah = hasAyat ? state._ayat[state._audioIndex.clamp(0, state._ayat.length - 1)] : null;
+    final lastAyah = hasAyat ? state._ayat.last : null;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: _goldColor.withValues(alpha: 0.25)),
+        boxShadow: DepthShadows.floating(_goldColor),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              InkWell(
+                onTap: state._pickReciter,
+                borderRadius: BorderRadius.circular(20),
+                child: Row(
+                  children: [
+                    CircleAvatar(radius: 16, backgroundColor: _goldColor.withValues(alpha: 0.15), child: Icon(Icons.mic_none_rounded, size: 16, color: _goldColor)),
+                    const SizedBox(width: 8),
+                    Text(currentReciter.nameAr, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                    const Icon(Icons.expand_more_rounded, size: 16, color: AppColors.textMuted),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              IconButton(icon: Icon(Icons.skip_next_rounded), color: _goldColor, onPressed: hasAyat ? state._nextAudioAyah : null),
+              Container(
+                decoration: BoxDecoration(shape: BoxShape.circle, color: _goldColor),
+                child: IconButton(
+                  icon: Icon(state._audioPlaying && !state._audioPaused ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white),
+                  onPressed: hasAyat ? state._playPauseAudio : null,
+                ),
+              ),
+              IconButton(icon: Icon(Icons.skip_previous_rounded), color: _goldColor, onPressed: hasAyat ? state._prevAudioAyah : null),
+            ],
+          ),
+          if (currentAyah != null && lastAyah != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '${_easternArabicDigits(currentAyah.surah)}:${_easternArabicDigits(currentAyah.ayah)}  —  ${_easternArabicDigits(lastAyah.surah)}:${_easternArabicDigits(lastAyah.ayah)}',
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

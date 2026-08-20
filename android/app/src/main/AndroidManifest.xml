@@ -2,6 +2,14 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Prayer-time notifications only (2026-08-17 reliability pass) — lets
+         `zonedSchedule` use `exactAllowWhileIdle` for the 5 daily prayer
+         alarms so Doze mode can't delay them by several minutes; every
+         other reminder in the app stays on the inexact mode, which needs
+         no permission. Requested at runtime via
+         `requestExactAlarmsPermission()`; silently falls back to inexact
+         scheduling if denied. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <!-- Phase 9 (Qibla + prayer times) — coarse is enough for prayer-time
          calculation accuracy; fine improves Qibla bearing precision. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>

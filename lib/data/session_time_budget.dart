@@ -34,16 +34,57 @@ const _phaseTitles = {
   'understanding': ('فهم', 'اقرأ تفسير ما حفظته وتدبّره'),
 };
 
+/// A phase's minutes floor when the greedy backlog top-up (below) shifts
+/// time away from it — never emptied out entirely just because a lot is
+/// due elsewhere, only thinned.
+const _minPhaseFloor = 5;
+
+/// Rough, explicitly-approximate minutes-per-item used only to decide
+/// *how much* extra review time a real backlog justifies — not a claim
+/// about how long any single review actually takes.
+const _minutesPerDueItem = 2;
+
 /// Splits [totalMinutes] across the 5 phases for [level]
 /// ('beginner'/'intermediate'/'advanced', falls back to beginner ratios
 /// for an unrecognized value). Whole-minute rounding, with the remainder
 /// (if any, from rounding down) added to "تكرار" so the total always adds
 /// up to [totalMinutes] exactly.
-List<SessionPhase> computeSessionPlan(String level, int totalMinutes) {
+///
+/// [dueQuranReviews]/[dueKnowledgeReviews] (100_IDEAS_FOR_IMPROVEMENT.md's
+/// "Learning Decision Engine" ask, deliberately scoped to a plain
+/// deterministic greedy top-up rather than a full LP solver — 5 fixed
+/// phases doesn't justify that complexity) are optional and default to 0,
+/// so the two existing call sites in `guided_session_screen.dart` are
+/// completely unaffected unless they start passing real backlog counts.
+/// When the real due-item count would need more time than the level's
+/// baseline "مراجعة سريعة" share already covers, minutes are moved in from
+/// "فهم" then "حفظ جديد" (in that order), each never thinned below
+/// [_minPhaseFloor] — review of material already memorized takes priority
+/// over new volume when there's a real backlog, but a session never loses
+/// a phase entirely. The total always still sums to exactly [totalMinutes]
+/// since this only moves minutes between buckets.
+List<SessionPhase> computeSessionPlan(
+  String level,
+  int totalMinutes, {
+  int dueQuranReviews = 0,
+  int dueKnowledgeReviews = 0,
+}) {
   final ratios = _ratiosByLevel[level] ?? _ratiosByLevel['beginner']!;
   final minutes = {for (final e in ratios.entries) e.key: (totalMinutes * e.value).floor()};
   final allocated = minutes.values.fold(0, (a, b) => a + b);
   minutes['repetition'] = (minutes['repetition'] ?? 0) + (totalMinutes - allocated);
+
+  final neededReview = ((dueQuranReviews + dueKnowledgeReviews) * _minutesPerDueItem).clamp(0, totalMinutes);
+  var extraNeeded = neededReview - minutes['quick_review']!;
+  if (extraNeeded > 0) {
+    for (final donor in ['understanding', 'new_memorization']) {
+      if (extraNeeded <= 0) break;
+      final shiftable = (minutes[donor]! - _minPhaseFloor).clamp(0, extraNeeded);
+      minutes[donor] = minutes[donor]! - shiftable;
+      minutes['quick_review'] = minutes['quick_review']! + shiftable;
+      extraNeeded -= shiftable;
+    }
+  }
 
   return [
     for (final key in ['quick_review', 'new_memorization', 'repetition', 'recitation_test', 'understanding'])

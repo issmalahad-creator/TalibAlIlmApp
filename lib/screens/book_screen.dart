@@ -4,6 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/book_content.dart';
 import '../models/book_of_month.dart';
 import '../models/personal_book.dart';
@@ -12,6 +13,7 @@ import '../services/book_content_service.dart';
 import '../services/content_badge_service.dart';
 import '../services/downloaded_file_service.dart';
 import '../services/hidden_books_service.dart';
+import '../services/language_preference_service.dart';
 import '../services/personal_library_service.dart';
 import '../theme/app_theme.dart';
 import 'book_viewer_screen.dart';
@@ -41,6 +43,7 @@ class _BookScreenState extends State<BookScreen> {
   final _hiddenBooksService = HiddenBooksService();
   final _downloadService = DownloadedFileService();
   final _libraryService = PersonalLibraryService();
+  final _lang = LanguagePreferenceService.currentLanguage;
 
   BookContentFeed _feed = BookContentFeed.empty;
   Set<String> _hiddenIds = {};
@@ -174,7 +177,7 @@ class _BookScreenState extends State<BookScreen> {
           MaterialPageRoute(builder: (_) => BookViewerScreen(filePath: file.path, title: title, bookKey: url)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر تحميل الملف: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${basicText('cannot_download_file', _lang)}: $e')));
     } finally {
       if (mounted) setState(() => _downloadingUrl = null);
     }
@@ -204,21 +207,21 @@ class _BookScreenState extends State<BookScreen> {
               const Icon(Icons.collections_bookmark_rounded, color: AppColors.primary),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('مكتبتي (${_personalBooks.length})',
+                child: Text('${basicText('my_library', _lang)} (${_personalBooks.length})',
                     style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
               ),
             ],
           ),
           const SizedBox(height: 2),
-          const Text('نظّم كتبك الخاصة (من جهازك) في أقسام مثل الفقه والعقيدة، واقرأها هنا حتى بدون إنترنت.',
-              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+          Text(basicText('my_library_desc', _lang),
+              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
           const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _openMyLibrary,
               icon: const Icon(Icons.folder_open_rounded, size: 18),
-              label: const Text('فتح مكتبتي'),
+              label: Text(basicText('open_my_library', _lang)),
             ),
           ),
         ],
@@ -231,7 +234,7 @@ class _BookScreenState extends State<BookScreen> {
       final uri = Uri.parse(item.url);
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تعذر فتح الملف')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(basicText('cannot_open_file', _lang))));
       }
       return;
     }
@@ -263,10 +266,10 @@ class _BookScreenState extends State<BookScreen> {
     final visible = _visibleBooks;
     final hidden = _hiddenBooks;
     if (visible.isEmpty && hidden.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
-        child: Text('لم يتم إضافة أي كتاب بعد.\nسيظهر هنا بمجرد إرساله من قبل المشرف.',
-            textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Text(basicText('no_books_yet', _lang),
+            textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
       );
     }
     return Container(
@@ -288,7 +291,7 @@ class _BookScreenState extends State<BookScreen> {
                   const Icon(Icons.menu_book_rounded, color: AppColors.primary),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text('الكتب (${visible.length})',
+                    child: Text('${basicText('books_label', _lang)} (${visible.length})',
                         style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
                   ),
                   Icon(_listExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
@@ -306,7 +309,7 @@ class _BookScreenState extends State<BookScreen> {
                   onChanged: (v) => setState(() => _bookSearchQuery = v),
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: 'ابحث عن كتاب...',
+                    hintText: basicText('search_book_hint', _lang),
                     prefixIcon: const Icon(Icons.search_rounded, size: 20),
                     suffixIcon: _bookSearchQuery.isEmpty
                         ? null
@@ -321,9 +324,9 @@ class _BookScreenState extends State<BookScreen> {
                 ),
               ),
             if (visible.isEmpty && _bookSearchQuery.isNotEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: Text('لا توجد نتائج.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(basicText('no_results', _lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
               ),
             ...visible.map((book) => _bookRow(book, hidden: false)),
             if (hidden.isNotEmpty)
@@ -337,7 +340,7 @@ class _BookScreenState extends State<BookScreen> {
                       Icon(_showHidden ? Icons.visibility_off_rounded : Icons.visibility_rounded,
                           size: 16, color: AppColors.textMuted),
                       const SizedBox(width: 8),
-                      Text('${hidden.length} كتب مخفية — ${_showHidden ? "إخفاء" : "عرض"}',
+                      Text('${hidden.length} ${basicText('hidden_books_count', _lang)} — ${_showHidden ? basicText('hide_action', _lang) : basicText('show_action', _lang)}',
                           style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                     ],
                   ),
@@ -387,7 +390,7 @@ class _BookScreenState extends State<BookScreen> {
               iconSize: 18,
               visualDensity: VisualDensity.compact,
               icon: Icon(hidden ? Icons.replay_rounded : Icons.close_rounded, color: AppColors.textMuted),
-              tooltip: hidden ? 'إظهار' : 'إخفاء عن قائمتي',
+              tooltip: hidden ? basicText('show_action', _lang) : basicText('hide_from_my_list', _lang),
               onPressed: () => hidden ? _unhideBook(book) : _hideBook(book),
             ),
           ],
@@ -403,7 +406,7 @@ class _BookScreenState extends State<BookScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('محتوى آخر من المشرف', style: Theme.of(context).textTheme.titleMedium),
+          Text(basicText('more_content_from_admin', _lang), style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           ..._feed.items.map((item) {
             if (item.type == 'voice') {
@@ -447,7 +450,7 @@ class _BookScreenState extends State<BookScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('الكتاب المحدَّد',
+                Text(basicText('selected_book_label', _lang),
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.textMuted)),
                 const SizedBox(height: 4),
                 Text(book.title, style: Theme.of(context).textTheme.titleLarge),
@@ -460,7 +463,7 @@ class _BookScreenState extends State<BookScreen> {
                       ? const SizedBox(
                           width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.menu_book),
-                  label: Text(downloadingBook ? 'جارٍ التحميل...' : 'فتح هذا الكتاب'),
+                  label: Text(downloadingBook ? basicText('downloading_ellipsis', _lang) : basicText('open_this_book', _lang)),
                 ),
               ],
             ),
@@ -473,9 +476,9 @@ class _BookScreenState extends State<BookScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('نسبة القراءة (تقديرية): $_progress%', style: Theme.of(context).textTheme.titleMedium),
-                const Text('استخدم هذا فقط إن كنت تقرأ نسخة ورقية — عند القراءة داخل التطبيق يُحفظ موضعك تلقائياً بالصفحة.',
-                    style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                Text('${basicText('reading_percent_label', _lang)}: $_progress%', style: Theme.of(context).textTheme.titleMedium),
+                Text(basicText('reading_percent_desc', _lang),
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                 Slider(
                   value: _progress.toDouble(),
                   min: 0,
@@ -495,9 +498,9 @@ class _BookScreenState extends State<BookScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('اختبار هذا الكتاب', style: Theme.of(context).textTheme.titleMedium),
+                Text(basicText('book_quiz_label', _lang), style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
-                Text(_quizScore != null ? 'نتيجتك: $_quizScore%' : 'لم يتم إجراء الاختبار بعد'),
+                Text(_quizScore != null ? '${basicText('your_score_label', _lang)}: $_quizScore%' : basicText('quiz_not_taken_yet', _lang)),
                 const SizedBox(height: 12),
                 FilledButton.icon(
                   onPressed: book.quiz.isEmpty
@@ -508,7 +511,7 @@ class _BookScreenState extends State<BookScreen> {
                           if (result == true) _loadProgressFor(book.id);
                         },
                   icon: const Icon(Icons.quiz),
-                  label: Text(book.quiz.isEmpty ? 'لا يوجد اختبار بعد' : 'بدء الاختبار'),
+                  label: Text(book.quiz.isEmpty ? basicText('no_quiz_yet', _lang) : basicText('start_quiz', _lang)),
                 ),
               ],
             ),
@@ -525,24 +528,24 @@ class _BookScreenState extends State<BookScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-          appBar: AppBar(title: const Text('الكتاب')),
-          body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
+          appBar: AppBar(title: Text(basicText('nav_book', _lang))),
+          body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', _lang)));
     }
     final book = _selectedBook;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الكتاب'),
+        title: Text(basicText('nav_book', _lang)),
         actions: [
           IconButton(
             icon: const Icon(Icons.history_rounded),
-            tooltip: 'سجل الإعلانات والبانرات',
+            tooltip: basicText('announcements_history', _lang),
             onPressed: () =>
                 Navigator.push(context, MaterialPageRoute(builder: (_) => ContentHistoryScreen(history: _feed.history))),
           ),
           IconButton(
             icon: const Icon(Icons.bar_chart_rounded),
-            tooltip: 'إحصائياتي',
+            tooltip: basicText('my_stats', _lang),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReadingStatsScreen())),
           ),
         ],

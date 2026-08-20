@@ -46,6 +46,7 @@ class MilestoneRepository {
   static const _totalHadiths = 42;
   static const _adhkarStreakThresholds = [7, 30, 100];
   static const _audioReflectionThresholds = {1: 'أول فائدة', 10: '10 فوائد', 50: '50 فائدة'};
+  static const _tasbihThresholds = {1000: 'ألف تسبيحة', 10000: '10 آلاف تسبيحة', 50000: '50 ألف تسبيحة'};
   static const _tajweedTierTitles = {
     'basic': 'المستوى الأساسي',
     'intermediate': 'المستوى المتوسط',
@@ -55,6 +56,12 @@ class MilestoneRepository {
   Future<void> seedIfNeeded() async {
     final db = await DatabaseHelper.instance.database;
     final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM achievement_milestones'));
+    // 2026-08-18 bug fix: this whole method used to bail out the moment ANY
+    // milestone row existed — meaning a pillar added after someone's
+    // already installed the app (like tasbih, added today) would NEVER get
+    // seeded on their device, since `count` is already > 0. `_seedPillarIfMissing`
+    // below runs unconditionally instead, checking per-pillar.
+    await _seedTasbihIfMissing(db);
     if ((count ?? 0) > 0) return;
 
     final batch = db.batch();
@@ -122,6 +129,21 @@ class MilestoneRepository {
         'milestone_type': 'audio_reflections_${entry.key}',
         'reference_id': null,
         'title': 'شهادة تسجيل ${entry.value} من الصوتيات في دفتر الفوائد',
+      });
+    }
+    await batch.commit(noResult: true);
+  }
+
+  Future<void> _seedTasbihIfMissing(Database db) async {
+    final count = Sqflite.firstIntValue(await db.rawQuery("SELECT COUNT(*) FROM achievement_milestones WHERE pillar = 'tasbih'"));
+    if ((count ?? 0) > 0) return;
+    final batch = db.batch();
+    for (final entry in _tasbihThresholds.entries) {
+      batch.insert('achievement_milestones', {
+        'pillar': 'tasbih',
+        'milestone_type': 'tasbih_total_${entry.key}',
+        'reference_id': null,
+        'title': 'شهادة التسبيح ${entry.value}',
       });
     }
     await batch.commit(noResult: true);
@@ -280,6 +302,29 @@ class MilestoneRepository {
         'achievement_milestones',
         where: 'pillar = ? AND milestone_type = ?',
         whereArgs: ['audio', 'audio_reflections_$threshold'],
+      );
+      if (rows.isEmpty || rows.first['achieved_date'] != null) continue;
+      final row = rows.first;
+      await db.update('achievement_milestones', {'achieved_date': today}, where: 'id = ?', whereArgs: [row['id']]);
+      newlyEarned.add(_toMilestone({...row, 'achieved_date': today}));
+    }
+
+    return newlyEarned;
+  }
+
+  /// Detects newly-reached lifetime tasbih-count certificates — call after
+  /// `TasbihRepository.increment` with the new `lifetimeTotal()`.
+  Future<List<Milestone>> checkTasbihMilestones(int lifetimeTotal) async {
+    final db = await DatabaseHelper.instance.database;
+    final newlyEarned = <Milestone>[];
+    final today = todayDate();
+
+    for (final threshold in _tasbihThresholds.keys) {
+      if (lifetimeTotal < threshold) continue;
+      final rows = await db.query(
+        'achievement_milestones',
+        where: 'pillar = ? AND milestone_type = ?',
+        whereArgs: ['tasbih', 'tasbih_total_$threshold'],
       );
       if (rows.isEmpty || rows.first['achieved_date'] != null) continue;
       final row = rows.first;

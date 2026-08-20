@@ -7,6 +7,7 @@ import '../services/certificate_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import 'certificate_card.dart';
+import 'premium_modal.dart';
 
 /// Full-screen celebration for a newly-earned certificate —
 /// QURAN_COMPANION_ROADMAP.md §4.14: confetti intensity/duration scales with
@@ -14,11 +15,18 @@ import 'certificate_card.dart';
 /// addictive-engagement loop — this only ever fires for a genuinely
 /// completed milestone (called from `MilestoneRepository.checkQuranMilestones`/
 /// `checkHadithMilestones`'s newly-earned results), never on a fixed timer.
+///
+/// Uses `showPremiumDialogTransition` (quirky-gliding-shell.md's "طابع
+/// الـ3D" plan) rather than the full titled-card `showPremiumModal` — this
+/// content already has its own bespoke full-bleed layout (confetti flying
+/// around the certificate over a dark backdrop), which a bordered card
+/// shell would only get in the way of. Just the blur+rise+scale entrance
+/// is reused here, not the card chrome.
 Future<void> showCelebration(BuildContext context, Milestone milestone) async {
   final profile = await ProfileRepository().get();
   if (!context.mounted) return;
-  await showDialog<void>(
-    context: context,
+  await showPremiumDialogTransition<void>(
+    context,
     barrierDismissible: true,
     barrierColor: Colors.black87,
     builder: (_) => _CelebrationDialog(milestone: milestone, studentName: profile.fullName, photoPath: profile.photoPath),
@@ -96,7 +104,13 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                   photoPath: widget.photoPath,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+              const Text(
+                'أحسنت 🌱 تقدّمت خطوة أخرى في رحلتك',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+              ),
+              const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

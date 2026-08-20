@@ -3,6 +3,14 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../repositories/adhkar_repository.dart';
+import '../repositories/prayer_times_repository.dart';
+import 'adhkar_notification_prefs.dart';
+import 'companion_engine.dart';
+import 'location_service.dart';
+import 'prayer_notification_prefs.dart';
+import 'quiet_hours_prefs.dart';
+
 /// Schedules local notifications: one optional reminder per daily task, plus
 /// reading/hifz inactivity nudges. `FlutterLocalNotificationsPlugin`'s
 /// platform channel is effectively shared across every Dart-side instance,
@@ -55,18 +63,55 @@ class NotificationService {
   static const _goalChannelName = 'تذكير خطط الختم';
   static const _goalReminderHour = 20;
 
-  // Adhkar morning/evening reminders — fixed daily times (honest
-  // approximation: this app has no real prayer-time calculation yet, so
-  // these are NOT actually "after Fajr"/"after Asr" as the roadmap's
-  // original wording aspired to, just reasonable fixed clock times).
-  // Offset clear of every range above (1001, 2000+taskId, 3000, 4000,
-  // 5000, 6000+goalId).
+  // Adhkar morning/evening/sleep reminders — 2026-08-17: now anchored to
+  // real prayer times (Fajr/Asr/Isha) when location is available, same
+  // `dayWindowFromPrayerTimes` pattern already proven in
+  // `lib/data/adhkar_journey.dart`; falls back to these fixed clock times
+  // otherwise. `_adhkarSleepNotificationId` uses the entirely-free 10000+
+  // range (8000+ is earmarked for prayer notifications, roadmap §4.25) —
+  // offset clear of every range above.
   static const _adhkarMorningNotificationId = 7000;
   static const _adhkarEveningNotificationId = 7001;
+  static const _adhkarSleepNotificationId = 10000;
   static const _adhkarChannelId = 'adhkar_reminders';
-  static const _adhkarChannelName = 'تذكير أذكار الصباح والمساء';
+  static const _adhkarChannelName = 'تذكير أذكار الصباح والمساء والنوم';
   static const _adhkarMorningHour = 6;
   static const _adhkarEveningHour = 17;
+  static const _adhkarSleepHour = 21;
+
+  // Custom per-category adhkar reminders (Ismail's 2026-08-17 request) —
+  // one id per category, offset well clear of every fixed range above.
+  // `adhkar_categories.id` currently tops out around 134, so this base
+  // leaves a wide, collision-free window.
+  static const _customAdhkarReminderIdBase = 11000;
+  static const _customAdhkarChannelId = 'custom_adhkar_reminders';
+  static const _customAdhkarChannelName = 'تذكيرات أذكار مخصّصة';
+
+  // 5 daily prayer-time notifications — the range this file's own comments
+  // reserved back when it was still just a plan (roadmap §4.25). One fixed
+  // id per prayer; rescheduled daily (real prayer times shift every day,
+  // unlike every other reminder above which repeats at a fixed clock hour).
+  static const _fajrNotificationId = 8001;
+  static const _dhuhrNotificationId = 8002;
+  static const _asrNotificationId = 8003;
+  static const _maghribNotificationId = 8004;
+  static const _ishaNotificationId = 8005;
+  static const _prayerChannelId = 'prayer_time_notifications';
+  static const _prayerChannelName = 'تنبيه أوقات الصلاة';
+
+  // Adhan sound (2026-08-17) — `assets/audio/adhan_beautiful.ogg` /
+  // `android/app/src/main/res/raw/adhan_beautiful.ogg`, CC0 (Wikimedia
+  // Commons, see LICENSED_CONTENT_SOURCES.md). A SEPARATE channel id is
+  // required, not just a different `sound:` param on the existing channel
+  // — Android locks a notification channel's sound at the moment the
+  // channel is first created, and silently ignores any `sound:` passed on
+  // later calls to the same channel id. Any device that already has
+  // `_prayerChannelId` created (default sound) keeps that channel exactly
+  // as before; enabling the toggle routes to this second channel instead,
+  // created for the first time with the real audio baked in.
+  static const _prayerChannelIdAdhan = 'prayer_time_notifications_adhan';
+  static const _prayerChannelNameAdhan = 'تنبيه أوقات الصلاة (بصوت الأذان)';
+  static const _adhanSoundResource = 'adhan_beautiful';
 
   // "محاسبة الوقت" daily log reminder — fixed evening time, same
   // always-recurring pattern as the adhkar reminders below (not a
@@ -80,11 +125,37 @@ class NotificationService {
   static const _timeLogChannelName = 'تذكير محاسبة الوقت';
   static const _timeLogReminderHour = 21;
 
+  // "رفيق طالب العلم" as a real push (2026-08-17), not just the in-app
+  // card — reuses the entirely-free 10000+ range, next id after the
+  // adhkar-sleep reminder (10000).
+  static const _companionNotificationId = 10001;
+  static const _companionChannelId = 'companion_checkin';
+  static const _companionChannelName = 'رفيق طالب العلم';
+  static const _companionCheckInHour = 20;
+
   final _plugin = FlutterLocalNotificationsPlugin();
 
   static Future<void>? _initFuture;
 
+  /// Set once from `main.dart` — called with a notification's `payload`
+  /// whenever the student taps one while the app process is alive
+  /// (foreground or backgrounded). Cold-start taps (app fully closed) are
+  /// handled separately via `getLaunchPayload()`, since the plugin's
+  /// response callback doesn't fire in that case until well after
+  /// `main()` has already run.
+  static void Function(String payload)? onNotificationTap;
+
   Future<void> init() => _ensureInitialized();
+
+  /// Returns the payload of the notification that launched the app from a
+  /// fully-closed state, if any — call once from `main.dart` after
+  /// `init()`. Null on every ordinary (non-notification) launch.
+  Future<String?> getLaunchPayload() async {
+    await _ensureInitialized();
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return null;
+    return details?.notificationResponse?.payload;
+  }
 
   Future<void> _ensureInitialized() {
     return _initFuture ??= _doInit();
@@ -101,16 +172,54 @@ class NotificationService {
     }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _plugin.initialize(settings: const InitializationSettings(android: androidInit));
+    await _plugin.initialize(
+      settings: const InitializationSettings(android: androidInit),
+      onDidReceiveNotificationResponse: (response) {
+        final payload = response.payload;
+        if (payload != null) onNotificationTap?.call(payload);
+      },
+    );
 
-    await _plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestNotificationsPermission();
+    // Prayer-time notifications only (2026-08-17 reliability pass) — asks
+    // once for exact-alarm scheduling so Doze mode can't delay the adhan
+    // notification by several minutes. A no-op if already granted; opens
+    // Android's own settings screen on 12+ if not. `schedulePrayerTimeNotifications`
+    // checks `canScheduleExactNotifications()` itself and silently falls
+    // back to inexact scheduling if this was denied — never blocks or throws.
+    await android?.requestExactAlarmsPermission();
 
     // Report-deadline reminder removed with the Report feature (Phase -1).
     // Cancel any reminder a previous app version may have already scheduled
     // on this device so it doesn't keep firing with stale copy.
     await _plugin.cancel(id: _reminderNotificationId);
+  }
+
+  /// Whether the OS notification permission is currently granted — read by
+  /// `NotificationDiagnosticsScreen`, not used to gate scheduling (the
+  /// plugin already no-ops safely if denied).
+  Future<bool> notificationsEnabled() async {
+    await _ensureInitialized();
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    return await android?.areNotificationsEnabled() ?? false;
+  }
+
+  /// Whether exact-alarm scheduling is currently available — same
+  /// diagnostics use, also consulted by `schedulePrayerTimeNotifications`
+  /// to decide `exactAllowWhileIdle` vs. `inexactAllowWhileIdle`.
+  Future<bool> exactAlarmsEnabled() async {
+    await _ensureInitialized();
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    return await android?.canScheduleExactNotifications() ?? false;
+  }
+
+  /// Every notification currently scheduled with the OS — read by
+  /// `NotificationDiagnosticsScreen` so Ismail can confirm reminders are
+  /// actually queued, not just that a preference was saved.
+  Future<List<PendingNotificationRequest>> pendingNotifications() async {
+    await _ensureInitialized();
+    return _plugin.pendingNotificationRequests();
   }
 
   Future<void> scheduleTaskReminder({
@@ -138,6 +247,7 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: 'home',
     );
   }
 
@@ -170,6 +280,7 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: 'reading',
     );
   }
 
@@ -196,6 +307,7 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: 'hifz',
     );
   }
 
@@ -233,6 +345,7 @@ class NotificationService {
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      payload: 'goal',
     );
   }
 
@@ -241,31 +354,215 @@ class NotificationService {
     await _plugin.cancel(id: _goalReminderNotificationIdBase + goalId);
   }
 
-  /// Fixed daily adhkar reminders (morning ~$_adhkarMorningHour:00, evening
-  /// ~$_adhkarEveningHour:00) — true recurring alarms via
-  /// `matchDateTimeComponents: DateTimeComponents.time`, unlike every other
-  /// reminder in this file which reschedules itself on each check-in.
-  /// Idempotent to call repeatedly (cancels then reschedules).
+  /// Daily adhkar reminders (morning/evening/sleep) — true recurring alarms
+  /// via `matchDateTimeComponents: DateTimeComponents.time`, unlike every
+  /// other reminder in this file which reschedules itself on each
+  /// check-in. Idempotent to call repeatedly (cancels then reschedules) —
+  /// call again after any change in `AdhkarNotificationPrefs` (e.g. from
+  /// `NotificationSettingsScreen`) to apply it immediately.
+  ///
+  /// 2026-08-17: each category's default hour now comes from the
+  /// student's real, calculated prayer time (Fajr for morning, Asr for
+  /// evening, Isha for sleep) when location is available — same
+  /// `LocationService` → `PrayerTimesRepository` pattern already proven in
+  /// `dayWindowFromPrayerTimes` (`lib/data/adhkar_journey.dart`), with the
+  /// same silent fallback to the fixed hours below on any failure. A
+  /// student can override any category's hour manually, or disable it
+  /// entirely, via `AdhkarNotificationPrefs`.
   Future<void> scheduleAdhkarReminders() async {
     await _ensureInitialized();
-    await _scheduleDailyAt(
+    final prefs = AdhkarNotificationPrefs();
+
+    int? fajrHour, asrHour, ishaHour;
+    try {
+      final coords = await LocationService().currentLocation();
+      if (coords != null) {
+        final times = await PrayerTimesRepository().prayerTimesFor(coords);
+        fajrHour = times.fajr.toLocal().hour;
+        asrHour = times.asr.toLocal().hour;
+        ishaHour = times.isha.toLocal().hour;
+      }
+    } catch (_) {
+      // Falls back to the fixed hours below.
+    }
+
+    final morningMinutes = await _estimatedMinutesForCategory('أذكار الصباح والمساء');
+    final sleepMinutes = await _estimatedMinutesForCategory('أذكار النوم');
+
+    await _scheduleAdhkarCategory(
+      category: 'morning',
       id: _adhkarMorningNotificationId,
-      hour: _adhkarMorningHour,
+      prefs: prefs,
+      defaultHour: fajrHour ?? _adhkarMorningHour,
       title: 'أذكار الصباح 🌅',
-      body: 'وقت أذكار الصباح — لا تنسَ نصيبك اليوم.',
-      channelId: _adhkarChannelId,
-      channelName: _adhkarChannelName,
-      channelDescription: 'تذكير يومي ثابت بأذكار الصباح والمساء (وقت تقريبي، لا يعتمد على أوقات الصلاة الفعلية بعد)',
+      body: '$morningMinutes دقائق فقط ترفع درجتك اليوم — لنبدأ.',
     );
-    await _scheduleDailyAt(
+    await _scheduleAdhkarCategory(
+      category: 'evening',
       id: _adhkarEveningNotificationId,
-      hour: _adhkarEveningHour,
+      prefs: prefs,
+      defaultHour: asrHour ?? _adhkarEveningHour,
       title: 'أذكار المساء 🌇',
-      body: 'وقت أذكار المساء — لا تنسَ نصيبك اليوم.',
+      body: '$morningMinutes دقائق فقط تحفظ يومك — لنكمله بذكر.',
+    );
+    await _scheduleAdhkarCategory(
+      category: 'sleep',
+      id: _adhkarSleepNotificationId,
+      prefs: prefs,
+      defaultHour: ishaHour ?? _adhkarSleepHour,
+      title: 'أذكار النوم 🌙',
+      body: '$sleepMinutes دقائق فقط قبل أن تنام — ختام جميل ليومك.',
+    );
+  }
+
+  Future<void> _scheduleAdhkarCategory({
+    required String category,
+    required int id,
+    required AdhkarNotificationPrefs prefs,
+    required int defaultHour,
+    required String title,
+    required String body,
+  }) async {
+    if (!await prefs.isEnabled(category)) {
+      await _plugin.cancel(id: id);
+      return;
+    }
+    final hour = await prefs.customHour(category) ?? defaultHour;
+    await _scheduleDailyAt(
+      id: id,
+      hour: hour,
+      title: title,
+      body: body,
       channelId: _adhkarChannelId,
       channelName: _adhkarChannelName,
-      channelDescription: 'تذكير يومي ثابت بأذكار الصباح والمساء (وقت تقريبي، لا يعتمد على أوقات الصلاة الفعلية بعد)',
+      channelDescription: 'تذكير يومي بأذكار الصباح/المساء/النوم، بوقت مرتبط بأوقات الصلاة الفعلية عند توفر الموقع',
+      payload: 'adhkar',
     );
+  }
+
+  /// Notifies at each of today's 5 real, calculated prayer times — closes
+  /// the gap this file's own comments had reserved an id range for since
+  /// early in this session (roadmap §4.25) but never actually built.
+  /// Unlike the adhkar reminders, prayer times shift every day, so this
+  /// can't use `matchDateTimeComponents: DateTimeComponents.time` — it
+  /// schedules today's remaining prayers as one-shot alarms and must be
+  /// called again (e.g. on next app start) to pick up tomorrow's times.
+  /// Silently does nothing if disabled or location isn't available yet —
+  /// same graceful-fallback spirit as the adhkar prayer-time anchoring.
+  Future<void> schedulePrayerTimeNotifications() async {
+    await _ensureInitialized();
+    final ids = [_fajrNotificationId, _dhuhrNotificationId, _asrNotificationId, _maghribNotificationId, _ishaNotificationId];
+
+    if (!await PrayerNotificationPrefs().isEnabled()) {
+      for (final id in ids) {
+        await _plugin.cancel(id: id);
+      }
+      return;
+    }
+
+    // 2026-08-17 reliability pass: prayer notifications are the one case
+    // in this file where a several-minute Doze delay actually matters
+    // (the whole point is "right when the prayer enters"). Uses exact
+    // scheduling when the OS has granted it, silently falls back to the
+    // existing inexact mode otherwise — never throws, never blocks.
+    final exact = await exactAlarmsEnabled();
+    final scheduleMode = exact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle;
+
+    // Real licensed adhan audio (CC0, see LICENSED_CONTENT_SOURCES.md) —
+    // a distinct channel id when enabled, since Android fixes a channel's
+    // sound at creation and ignores changes afterward (see the constants'
+    // doc comment above).
+    final useAdhanSound = await PrayerNotificationPrefs().useAdhanSound();
+    final channelId = useAdhanSound ? _prayerChannelIdAdhan : _prayerChannelId;
+    final channelName = useAdhanSound ? _prayerChannelNameAdhan : _prayerChannelName;
+    final sound = useAdhanSound ? const RawResourceAndroidNotificationSound(_adhanSoundResource) : null;
+
+    try {
+      final coords = await LocationService().currentLocation();
+      if (coords == null) return;
+      final times = await PrayerTimesRepository().prayerTimesFor(coords);
+
+      final prayers = [
+        (_fajrNotificationId, 'الفجر', times.fajr),
+        (_dhuhrNotificationId, 'الظهر', times.dhuhr),
+        (_asrNotificationId, 'العصر', times.asr),
+        (_maghribNotificationId, 'المغرب', times.maghrib),
+        (_ishaNotificationId, 'العشاء', times.isha),
+      ];
+
+      final now = DateTime.now();
+      for (final (id, name, time) in prayers) {
+        await _plugin.cancel(id: id);
+        final local = time.toLocal();
+        if (local.isBefore(now)) continue; // already passed today
+        await _plugin.zonedSchedule(
+          id: id,
+          title: 'حان وقت صلاة $name 🕌',
+          body: 'حي على الصلاة، حي على الفلاح.',
+          scheduledDate: tz.TZDateTime.from(local, tz.local),
+          notificationDetails: NotificationDetails(
+            android: AndroidNotificationDetails(
+              channelId,
+              channelName,
+              channelDescription: 'تنبيه عند دخول وقت كل صلاة، محسوب من موقعك الفعلي',
+              importance: Importance.high,
+              priority: Priority.high,
+              sound: sound,
+              playSound: true,
+            ),
+          ),
+          androidScheduleMode: scheduleMode,
+          payload: 'prayer_times',
+        );
+      }
+    } catch (_) {
+      // Location/prayer-time lookup failed — leave any previously
+      // scheduled notifications as-is rather than clearing them.
+    }
+  }
+
+  /// Schedules (or re-schedules) a reminder for one custom-picked adhkar
+  /// category — called from `AdhkarCategoryScreen`'s "🔔 أضف تذكيرًا" button
+  /// and from `NotificationSettingsScreen`'s "أضف ذكرًا" flow.
+  Future<void> scheduleCustomAdhkarReminder({required int categoryId, required String categoryTitle, required int hour}) async {
+    await _ensureInitialized();
+    final minutes = await _estimatedMinutesForCategory(categoryTitle);
+    await _scheduleDailyAt(
+      id: _customAdhkarReminderIdBase + categoryId,
+      hour: hour,
+      title: '$categoryTitle 🔔',
+      body: '$minutes دقائق فقط ترفع درجتك — حان وقتها الآن.',
+      channelId: _customAdhkarChannelId,
+      channelName: _customAdhkarChannelName,
+      channelDescription: 'تذكيرات أذكار اخترتها بنفسك من خارج الصباح/المساء/النوم',
+      payload: 'adhkar',
+    );
+  }
+
+  Future<void> cancelCustomAdhkarReminder(int categoryId) async {
+    await _ensureInitialized();
+    await _plugin.cancel(id: _customAdhkarReminderIdBase + categoryId);
+  }
+
+  /// Re-applies every saved custom reminder — call at app startup
+  /// alongside `scheduleAdhkarReminders()`, since Android alarms don't
+  /// survive some device reboots/updates and this file has no persistent
+  /// background scheduler of its own.
+  Future<void> scheduleAllCustomAdhkarReminders(List<({int categoryId, String categoryTitle, int hour})> reminders) async {
+    for (final r in reminders) {
+      await scheduleCustomAdhkarReminder(categoryId: r.categoryId, categoryTitle: r.categoryTitle, hour: r.hour);
+    }
+  }
+
+  Future<int> _estimatedMinutesForCategory(String title) async {
+    try {
+      final categories = await AdhkarRepository().allCategories();
+      final matches = categories.where((c) => c.title == title);
+      if (matches.isEmpty) return 8;
+      return await AdhkarRepository().estimatedMinutes(matches.first.id);
+    } catch (_) {
+      return 8;
+    }
   }
 
   /// "محاسبة الوقت" daily reminder (Ismail's request 2026-08-16): a fixed
@@ -283,9 +580,16 @@ class NotificationService {
       channelId: _timeLogChannelId,
       channelName: _timeLogChannelName,
       channelDescription: 'تذكير يومي ثابت بتسجيل محاسبة الوقت',
+      payload: 'home',
     );
   }
 
+  /// Shared by every "fixed clock hour, repeats daily" reminder (adhkar,
+  /// custom adhkar, time log). 2026-08-17: now also applies
+  /// [QuietHoursPrefs] — if the requested hour falls inside the student's
+  /// configured quiet window, it's pushed to the window's end instead. Only
+  /// shifts *this* scheduling call; it can't recall an alarm the OS already
+  /// fired under an earlier schedule (see `QuietHoursPrefs`'s doc comment).
   Future<void> _scheduleDailyAt({
     required int id,
     required int hour,
@@ -294,10 +598,20 @@ class NotificationService {
     required String channelId,
     required String channelName,
     required String channelDescription,
+    required String payload,
   }) async {
     await _plugin.cancel(id: id);
+
+    final quiet = QuietHoursPrefs();
+    final effectiveHour = applyQuietHours(
+      hour: hour,
+      quietEnabled: await quiet.isEnabled(),
+      quietStart: await quiet.startHour(),
+      quietEnd: await quiet.endHour(),
+    );
+
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
+    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, effectiveHour);
     if (scheduled.isBefore(now)) scheduled = scheduled.add(const Duration(days: 1));
 
     await _plugin.zonedSchedule(
@@ -316,6 +630,7 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
+      payload: payload,
     );
   }
 
@@ -337,6 +652,33 @@ class NotificationService {
           priority: Priority.high,
         ),
       ),
+      payload: 'home',
+    );
+  }
+
+  /// "رفيق طالب العلم" as a real push (2026-08-17) — call from `main.dart`
+  /// on every app start alongside the other daily scheduling. [message] is
+  /// gathered by `buildCompanionContext()` + `companionMessageFor()`
+  /// (`companion_context_service.dart`), the exact same signals the
+  /// in-app `CompanionCard` uses. Null means the rule engine found nothing
+  /// worth saying today — the ONE existing check-in (if any) is cancelled
+  /// rather than left stale, and nothing new is scheduled. Never spams: a
+  /// day with nothing to say gets no notification at all.
+  Future<void> scheduleOrCancelCompanionMessage(CompanionMessage? message) async {
+    await _ensureInitialized();
+    if (message == null) {
+      await _plugin.cancel(id: _companionNotificationId);
+      return;
+    }
+    await _scheduleDailyAt(
+      id: _companionNotificationId,
+      hour: _companionCheckInHour,
+      title: '${message.title} ${message.icon}',
+      body: message.body,
+      channelId: _companionChannelId,
+      channelName: _companionChannelName,
+      channelDescription: 'رسالة يومية من رفيق طالب العلم، فقط عندما يكون لديه شيء مفيد ليقوله',
+      payload: 'companion',
     );
   }
 }

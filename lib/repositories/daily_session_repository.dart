@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
+import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 
 class DailySessionStatus {
@@ -82,6 +83,26 @@ class DailySessionRepository {
       limit: limit,
     );
     return rows.map((r) => r['session_difficulty'] as String).toList();
+  }
+
+  /// Days since the last recorded session activity — the one signal
+  /// `companion_engine.dart`'s "returning after an absence" rule needs
+  /// that didn't exist anywhere in the codebase before (confirmed by
+  /// direct search 2026-08-17). Lexicographic `MAX(date)` works correctly
+  /// here because the stored Hijri date strings are zero-padded
+  /// "YYYY-MM-DD", same convention every other date-ordered query in this
+  /// app already relies on. Returns null if there's no activity logged at
+  /// all yet (a brand-new install), not zero.
+  Future<int?> daysSinceLastActivity() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('SELECT MAX(date) as last_date FROM daily_session_log');
+    final lastDate = rows.first['last_date'] as String?;
+    if (lastDate == null) return null;
+    final last = gregorianFromHijriDateTime(lastDate, null);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final lastDay = DateTime(last.year, last.month, last.day);
+    return today.difference(lastDay).inDays.clamp(0, 100000);
   }
 
   Future<void> markStep({

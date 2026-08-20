@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/curriculum_levels.dart';
 import '../repositories/curriculum_repository.dart';
 import '../theme/app_theme.dart';
+import '../theme/motion.dart';
 import 'adhkar_screen.dart';
 import 'audio_library_screen.dart';
 import 'hadith_screen.dart';
@@ -51,11 +52,14 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    for (final level in curriculumLevels) {
-      _statuses[level.id] = await _repo.statusesFor(level.items);
-    }
+    final all = await _repo.allStatuses();
     if (!mounted) return;
-    setState(() => _loading = false);
+    setState(() {
+      _statuses
+        ..clear()
+        ..addAll(all);
+      _loading = false;
+    });
   }
 
   void _open(String contentType) {
@@ -205,13 +209,18 @@ class _MapKpiHeader extends StatelessWidget {
   }
 }
 
-/// Lane fractions (of available width) the path snakes between, and the
-/// cycling order it visits them in — produces a left/center/right/center
-/// wave rather than a flat two-column zigzag, closer to a real game map.
-const _laneFractions = [0.24, 0.5, 0.76];
-const _lanePattern = [0, 1, 2, 1];
-const _nodeSize = 68.0;
-const _rowHeight = 128.0;
+/// A single gently-winding lane rather than a 3-lane zigzag — Ismail's
+/// 2026-08-16 request for richer EduTree-style info cards (icon, title,
+/// detail line, progress) at each node meant the old 3-lane layout no
+/// longer had room: a ~300px-wide card centered at the 24%/76% side lanes
+/// would overflow a typical phone's content width. A small alternating
+/// offset (±7%) keeps the "it's a path, not a list" feel without risking
+/// card overflow.
+const _laneFractions = [0.46, 0.54];
+const _lanePattern = [0, 1];
+const _nodeSize = 56.0;
+const _rowHeight = 176.0;
+const _cardWidth = 264.0;
 
 class _LevelPath extends StatelessWidget {
   final CurriculumLevelDef level;
@@ -224,7 +233,7 @@ class _LevelPath extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final n = statuses.length;
-    final stackHeight = n == 0 ? 0.0 : (n - 1) * _rowHeight + _nodeSize + 56;
+    final stackHeight = n == 0 ? 0.0 : (n - 1) * _rowHeight + _nodeSize + 170;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
       child: Column(
@@ -346,24 +355,118 @@ class _MapNodeSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: center.dx - 60,
+      left: center.dx - _cardWidth / 2,
       top: center.dy - _nodeSize / 2,
-      width: 120,
+      width: _cardWidth,
       child: Column(
         children: [
           if (isCurrent) const _NowBadge(),
           _MapNode(status: status, isCurrent: isCurrent, onTap: onTap),
-          const SizedBox(height: 6),
-          Text(
-            status.titleAr,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDark),
-          ),
-          Text(status.detailAr, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted)),
+          const SizedBox(height: 8),
+          _MapInfoCard(status: status, isCurrent: isCurrent, onTap: onTap),
         ],
       ),
+    );
+  }
+}
+
+/// The EduTree-style info card under each path node — icon badge, title,
+/// one real detail line (`status.detailAr`, already-live data, not
+/// invented copy), and a thin progress bar for in-progress items. No
+/// points/XP badge: Ismail was explicit earlier this session that the
+/// reward should be the actual learning milestone, not a fake currency
+/// ("لا يجب أن يتحول طالب العلم إلى: أجمع نقاطاً").
+class _MapInfoCard extends StatelessWidget {
+  final CurriculumItemStatus status;
+  final bool isCurrent;
+  final VoidCallback onTap;
+  const _MapInfoCard({required this.status, required this.isCurrent, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, iconColor) = _stateVisual[status.state]!;
+    final isCompleted = status.state == CurriculumItemState.completed;
+    final isComingSoon = status.state == CurriculumItemState.comingSoon;
+    final fraction = status.progressFraction;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isCurrent ? AppColors.primary : AppColors.divider, width: isCurrent ? 1.6 : 1),
+          boxShadow: isCurrent
+              ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.18), blurRadius: 14, spreadRadius: 1)]
+              : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isCompleted ? AppColors.primary : AppColors.primaryLight,
+              ),
+              child: Icon(icon, size: 17, color: isCompleted ? Colors.white : iconColor),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(status.titleAr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                  const SizedBox(height: 2),
+                  Text(status.detailAr, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                  if (status.advisoryText != null) ...[
+                    const SizedBox(height: 3),
+                    Text(status.advisoryText!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 10, color: Color(0xFFB8860B), fontWeight: FontWeight.w600)),
+                  ],
+                  if (fraction != null && !isCompleted) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(value: fraction, minHeight: 5, backgroundColor: AppColors.divider, valueColor: const AlwaysStoppedAnimation(AppColors.primary)),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (isCompleted)
+                        const _CardTag(text: 'أُنجز', color: AppColors.primary, textColor: Colors.white)
+                      else if (isComingSoon)
+                        const _CardTag(text: 'قريبًا', color: AppColors.divider, textColor: AppColors.textMuted)
+                      else
+                        _CardTag(text: isCurrent ? 'تابع الآن' : 'افتح', color: AppColors.primaryLight, textColor: AppColors.primaryDark),
+                      const Spacer(),
+                      if (!isComingSoon) const Icon(Icons.chevron_left_rounded, size: 18, color: AppColors.textMuted),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CardTag extends StatelessWidget {
+  final String text;
+  final Color color;
+  final Color textColor;
+  const _CardTag({required this.text, required this.color, required this.textColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
+      child: Text(text, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: textColor)),
     );
   }
 }
@@ -398,7 +501,7 @@ class _MapNodeState extends State<_MapNode> with SingleTickerProviderStateMixin 
   @override
   void initState() {
     super.initState();
-    _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100))..repeat(reverse: true);
+    _pulse = AnimationController(vsync: this, duration: AppMotion.ambient)..repeat(reverse: true);
   }
 
   @override

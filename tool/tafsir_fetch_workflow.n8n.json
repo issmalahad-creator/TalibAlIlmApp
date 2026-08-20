@@ -1,0 +1,85 @@
+{
+  "name": "Tafsir Fetch Reliability",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            { "field": "days", "daysInterval": 7 }
+          ]
+        }
+      },
+      "id": "schedule-trigger-1",
+      "name": "Weekly Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8765/run",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "http-request-1",
+      "name": "Run Tafsir Fetch on Host",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 60000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "749369573",
+        "text": "=⚠️ فشل جلب التفاسير (تلقائي) بعد 3 محاولات.\n\nالخطأ: {{ $json.error?.message || $json.message || 'غير معروف' }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-alert-1",
+      "name": "Telegram: Fetch Failed",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [680, 460],
+      "credentials": {
+        "telegramApi": {
+          "id": "",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## طالب العلم — موثوقية جلب التفاسير\n\nيشغّل `tool/fetch_quranenc_translations.dart` على جهاز إسماعيل نفسه (عبر `tool/fetch_runner_server.dart` على المنفذ 8765) — لأن n8n يعمل داخل حاوية Docker لا تصل لملفات المشروع ولا تملك Dart.\n\n**إعادة المحاولة**: 3 محاولات، بفاصل 60 ثانية، مضبوطة على عقدة HTTP Request نفسها.\n\n**السكربت آمن للتكرار** — يتخطى أي لغة مجلوبة مسبقًا، فإعادة التشغيل بعد فشل جزئي لا يكرر عملًا.\n\n**تنبيه عند الفشل**: عقدة تيليجرام (@TalibAlIlmAdhkarBot_bot) متصلة بمخرج الفشل. بعد الاستيراد: افتحها واختر الاعتماد (Credential) الذي أنشأته باسم \"Telegram Bot\"، والصق chat id الخاص بك مكان النص الرمزي.",
+        "height": 400,
+        "width": 460
+      },
+      "id": "sticky-note-1",
+      "name": "ملاحظة",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [460, 620]
+    }
+  ],
+  "connections": {
+    "Weekly Schedule": {
+      "main": [
+        [
+          { "node": "Run Tafsir Fetch on Host", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Run Tafsir Fetch on Host": {
+      "main": [
+        [],
+        [
+          { "node": "Telegram: Fetch Failed", "type": "main", "index": 0 }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

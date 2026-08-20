@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../repositories/daily_session_repository.dart';
+import '../repositories/knowledge_review_repository.dart';
 import '../repositories/wasitiyyah_repository.dart';
+import '../services/spaced_repetition_engine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -20,6 +22,7 @@ class WasitiyyahQuizScreen extends StatefulWidget {
 class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
   final _repo = WasitiyyahRepository();
   final _sessionRepo = DailySessionRepository();
+  final _reviewRepo = KnowledgeReviewRepository();
 
   WasitiyyahSection? _current;
   WasitiyyahSection? _next;
@@ -64,6 +67,14 @@ class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
 
   Future<void> _selfReport(bool knewIt) async {
     await _sessionRepo.markStep(quiz: true);
+    final current = _current;
+    if (current != null) {
+      await _reviewRepo.recordReview(
+        'wasitiyyah',
+        current.id,
+        knewIt ? ReviewQuality.good : ReviewQuality.needsReview,
+      );
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(knewIt ? 'أحسنت 🌱' : 'لا بأس — راجعه اليوم')));
     _loadQuestion();

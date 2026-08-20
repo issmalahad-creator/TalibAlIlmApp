@@ -1,6 +1,7 @@
 import '../data/quran_surahs.dart';
 import '../db/database_helper.dart';
 import '../utils/arabic_normalize.dart';
+import '../utils/fuzzy_match.dart' as fuzzy;
 
 class QuranSearchResult {
   final int surah;
@@ -29,17 +30,120 @@ class QuranSearchResult {
 class QuranSearchRepository {
   static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
-  /// The four available tafsir sources (slug, display label) — see
-  /// QURAN_COMPANION_ROADMAP.md's "التفسير" section. Default is the concise
-  /// modern mukhtasar, not the full Ibn Kathir text, since search results
-  /// are meant to be scannable.
+  /// Available tafsir/translation sources (slug, display label, language
+  /// code) — see QURAN_COMPANION_ROADMAP.md's "التفسير" section for the
+  /// original 4 Arabic editions, and quirky-gliding-shell.md's "مكتبة
+  /// التفسير/الترجمة متعددة اللغات" plan for the English/Amharic additions
+  /// (batch 1 of a wider multi-language library, QuranEnc.com source).
+  /// Default is the concise modern mukhtasar, not the full Ibn Kathir text,
+  /// since search results are meant to be scannable.
   static const tafsirSources = [
-    ('almukhtasar', 'التفسير المختصر'),
-    ('muyassar', 'التفسير الميسر'),
-    ('saadi', 'تفسير السعدي'),
-    ('ibn_kathir_full', 'تفسير ابن كثير (الكامل)'),
+    ('almukhtasar', 'التفسير المختصر', 'ar'),
+    ('muyassar', 'التفسير الميسر', 'ar'),
+    ('saadi', 'تفسير السعدي', 'ar'),
+    ('ibn_kathir_full', 'تفسير ابن كثير (الكامل)', 'ar'),
+    ('ibn_ashur', 'التحرير والتنوير (ابن عاشور)', 'ar'),
+    ('english_rwwad', 'Rowwad Translation Center', 'en'),
+    ('amharic_sadiq', 'መሐመድ ሳዲቅ', 'am'),
+    ('french_rashid', 'Rachid Maach', 'fr'),
+    ('turkish_rwwad', 'Rowwad Translation Center', 'tr'),
+    ('indonesian_sabiq', 'Sabiq Company', 'id'),
+    ('urdu_junagarhi', 'محمد جوناگڑھی', 'ur'),
+    ('bengali_zakaria', 'ড. আবু বকর মুহাম্মাদ যাকারিয়া', 'bn'),
+    // Batch 3 — as many more QuranEnc languages as verified real (every
+    // key curl-checked live before being added; see TODO.md Phase 61).
+    ('spanish_garcia', 'Muhammad Isa García', 'es'),
+    ('portuguese_nasr', 'Helmi Nasr', 'pt'),
+    ('greek_rwwad', 'Rowwad Translation Center', 'el'),
+    ('german_rwwad', 'Rowwad Translation Center', 'de'),
+    ('italian_rwwad', 'Rowwad Translation Center', 'it'),
+    ('bulgarian_translation', 'фондация "99 имена на Аллах"', 'bg'),
+    ('romanian_project', 'Islam4RO Project', 'ro'),
+    ('dutch_center', 'Dutch Islamic Center', 'nl'),
+    ('swedish_rwwad', 'Rowwad Translation Center', 'sv'),
+    ('azeri_musayev', 'Musayev', 'az'),
+    ('georgian_rwwad', 'Rowwad Translation Center', 'ka'),
+    ('macedonian_group', 'Translation Group', 'mk'),
+    ('albanian_rwwad', 'Rowwad Translation Center', 'sq'),
+    ('bosnian_rwwad', 'Rowwad Translation Center', 'bs'),
+    ('russian_rwwad', 'Rowwad Translation Center', 'ru'),
+    ('belarusian_krivtsov', 'Krivtsov', 'be'),
+    ('serbian_rwwad', 'Rowwad Translation Center', 'sr'),
+    ('croatian_rwwad', 'Rowwad Translation Center', 'hr'),
+    ('lithuanian_rwwad', 'Rowwad Translation Center', 'lt'),
+    ('ukrainian_yakubovych', 'Yakubovych', 'uk'),
+    ('kazakh_altai', 'Altai', 'kk'),
+    ('uzbek_rwwad', 'Rowwad Translation Center', 'uz'),
+    ('tajik_arifi', 'Arifi', 'tg'),
+    ('kyrgyz_hakimov', 'Hakimov', 'ky'),
+    ('circassian_rwwad', 'Rowwad Translation Center', 'ady'),
+    ('tagalog_rwwad', 'Rowwad Translation Center', 'tl'),
+    ('bisayan_rwwad', 'Rowwad Translation Center', 'ceb'),
+    ('iranun_sarro', 'Sarro', 'iru'),
+    ('maguindanao_rwwad', 'Rowwad Translation Center', 'mdh'),
+    ('malay_basumayyah', 'Abdullah Basumayyah', 'ms'),
+    // 2026-08-17: matching the temporary hold in quran_import_service.dart
+    // — these 6 aren't imported into this build yet (still fetching in
+    // the background), so left out of the picker rather than offering a
+    // language that would show an empty result. Re-add alongside the
+    // import list the moment the asset files land.
+    // ('chinese_suliman', 'Suliman', 'zh'),
+    // ('uyghur_saleh', 'Saleh', 'ug'),
+    // ('japanese_saeedsato', 'Saeed Sato', 'ja'),
+    // ('somali_abduh', 'Mahmud Muhammad Abduh', 'so'),
+    // ('hindi_omari', 'Azizul Haq Al-Omari', 'hi'),
+    // ('luganda_foundation', 'African Institution for Development', 'lg'),
   ];
   static const defaultTafsirSource = 'almukhtasar';
+
+  /// Display name per language code, for the language-picker step —
+  /// each language's own name in its own script, not translated.
+  static const languageLabels = {
+    'ar': 'العربية',
+    'en': 'English',
+    'am': 'አማርኛ',
+    'fr': 'Français',
+    'tr': 'Türkçe',
+    'id': 'Bahasa Indonesia',
+    'ur': 'اردو',
+    'bn': 'বাংলা',
+    'es': 'Español',
+    'pt': 'Português',
+    'el': 'Ελληνικά',
+    'de': 'Deutsch',
+    'it': 'Italiano',
+    'bg': 'Български',
+    'ro': 'Română',
+    'nl': 'Nederlands',
+    'sv': 'Svenska',
+    'az': 'Azərbaycan',
+    'ka': 'ქართული',
+    'mk': 'Македонски',
+    'sq': 'Shqip',
+    'bs': 'Bosanski',
+    'ru': 'Русский',
+    'be': 'Беларуская',
+    'sr': 'Српски',
+    'hr': 'Hrvatski',
+    'lt': 'Lietuvių',
+    'uk': 'Українська',
+    'kk': 'Қазақша',
+    'uz': 'Oʻzbekcha',
+    'tg': 'Тоҷикӣ',
+    'ky': 'Кыргызча',
+    'ady': 'Адыгэбзэ',
+    'tl': 'Tagalog',
+    'ceb': 'Cebuano',
+    'iru': 'Iranun',
+    'mdh': 'Maguindanaon',
+    'ms': 'Bahasa Melayu',
+    'zh': '中文',
+    'ug': 'ئۇيغۇرچە',
+    'ja': '日本語',
+    'so': 'Soomaali',
+    'hi': 'हिन्दी',
+    'lg': 'Luganda',
+  };
 
   /// Also accepts a direct `"سورة آية"` / `"سورة:آية"` reference (e.g.
   /// "البقرة 255") and resolves it to that single ayah instead of a text
@@ -67,6 +171,72 @@ class QuranSearchRepository {
     LEFT JOIN tafsir_entries t ON t.surah = q.surah AND q.ayah BETWEEN t.ayah_from AND t.ayah_to AND t.source = ?
   ''';
 
+  static const _selectByTranslationText = '''
+    SELECT t.surah, t.ayah_from AS ayah, q.text_uthmani, q.page_number, q.juz_number, t.text AS tafsir
+    FROM tafsir_entries t
+    JOIN quran_ayat q ON q.surah = t.surah AND q.ayah = t.ayah_from
+    WHERE t.source = ?
+  ''';
+
+  /// Real multi-language search ("تعدد اللغه" — Ismail, 2026-08-18): rather
+  /// than inventing translation content, searches the ACTUAL translation
+  /// text already stored per-language in `tafsir_entries` (the same
+  /// QuranEnc-sourced rows `tafsirSources` already lists — e.g.
+  /// 'english_rwwad'). A student typing in English searches English
+  /// translation text directly, not the Arabic Quran text. `source` must be
+  /// a non-Arabic entry from `tafsirSources` (e.g. 'english_rwwad',
+  /// 'french_rashid').
+  Future<List<QuranSearchResult>> searchTranslationText(String query, String source) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      '$_selectByTranslationText AND t.text LIKE ? ORDER BY t.surah, t.ayah_from LIMIT 300',
+      [source, '%$trimmed%'],
+    );
+    return rows.map(_toResult).toList();
+  }
+
+  /// Same "closest real thing, not nothing" fallback as `closestMatch()`,
+  /// applied to a translation-text source instead of the Arabic Quran text
+  /// — identical algorithm (word-overlap + Damerau-Levenshtein fuzzy
+  /// matching via `fuzzy.isFuzzyMatch`), just a different content column,
+  /// which is exactly why the matching logic lives in a shared,
+  /// script-agnostic utility rather than being duplicated per language.
+  Future<QuranSearchResult?> closestTranslationMatch(String query, String source) async {
+    final queryWords = query.toLowerCase().split(RegExp(r'\s+')).where((w) => w.length >= 2).toList();
+    if (queryWords.isEmpty) return null;
+
+    final db = await DatabaseHelper.instance.database;
+    final seen = <String>{};
+    final candidates = <Map<String, Object?>>[];
+    for (final word in queryWords.take(5)) {
+      final rows = await db.rawQuery(
+        '$_selectByTranslationText AND t.text LIKE ? LIMIT 100',
+        [source, '%$word%'],
+      );
+      for (final row in rows) {
+        final key = '${row['surah']}:${row['ayah']}';
+        if (seen.add(key)) candidates.add(row);
+      }
+    }
+    if (candidates.isEmpty) return null;
+
+    Map<String, Object?>? best;
+    var bestScore = 0.0;
+    for (final row in candidates) {
+      final textWords = (row['tafsir'] as String).toLowerCase().split(RegExp(r'\s+')).toSet();
+      final matchedCount = queryWords.where((qw) => textWords.any((tw) => tw.contains(qw) || qw.contains(tw) || fuzzy.isFuzzyMatch(tw, qw))).length;
+      final score = matchedCount / queryWords.length;
+      if (score > bestScore) {
+        bestScore = score;
+        best = row;
+      }
+    }
+    if (best == null || bestScore < 0.4) return null;
+    return _toResult(best);
+  }
+
   Future<List<QuranSearchResult>> _byReference(int surah, int ayah, String tafsirSource) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.rawQuery(
@@ -84,6 +254,55 @@ class QuranSearchRepository {
       [tafsirSource, '%$normalized%'],
     );
     return rows.map(_toResult).toList();
+  }
+
+  /// "تخيل انه بحث عام... مثل اليوتيوب" (Ismail, 2026-08-18): `search()`
+  /// only does exact substring matching (`LIKE '%...%'`) — a single typo or
+  /// slightly different phrasing returns nothing at all. This is the
+  /// "closest real thing" fallback: pulls candidate ayat containing at
+  /// least one significant query word (bounded — at most 5 words × 100
+  /// rows), then ranks them by how many query words actually appear in
+  /// each candidate (word-level, fuzzy-tolerant via `fuzzy.isFuzzyMatch` so
+  /// small typos on either side still count). Requires at least 40% of the
+  /// query's words to match before returning anything — an honest
+  /// "couldn't find anything close" (null) beats a confident-looking wrong
+  /// guess. Pure edit-distance arithmetic, not language-specific — works
+  /// the same on any script — but only ever searches this table's Arabic
+  /// Quran text, so a query in another script simply won't have matching
+  /// words to score against.
+  Future<QuranSearchResult?> closestMatch(String query, {String tafsirSource = defaultTafsirSource}) async {
+    final normalizedQuery = normalizeArabicForSearch(query);
+    final queryWords = normalizedQuery.split(RegExp(r'\s+')).where((w) => w.length >= 2).toList();
+    if (queryWords.isEmpty) return null;
+
+    final db = await DatabaseHelper.instance.database;
+    final seen = <String>{};
+    final candidates = <Map<String, Object?>>[];
+    for (final word in queryWords.take(5)) {
+      final rows = await db.rawQuery(
+        '$_selectWithTafsir WHERE q.text_normalized LIKE ? LIMIT 100',
+        [tafsirSource, '%$word%'],
+      );
+      for (final row in rows) {
+        final key = '${row['surah']}:${row['ayah']}';
+        if (seen.add(key)) candidates.add(row);
+      }
+    }
+    if (candidates.isEmpty) return null;
+
+    Map<String, Object?>? best;
+    var bestScore = 0.0;
+    for (final row in candidates) {
+      final ayahWords = normalizeArabicForSearch(row['text_uthmani'] as String).split(RegExp(r'\s+')).toSet();
+      final matchedCount = queryWords.where((qw) => ayahWords.any((aw) => aw.contains(qw) || qw.contains(aw) || fuzzy.isFuzzyMatch(aw, qw))).length;
+      final score = matchedCount / queryWords.length;
+      if (score > bestScore) {
+        bestScore = score;
+        best = row;
+      }
+    }
+    if (best == null || bestScore < 0.4) return null;
+    return _toResult(best);
   }
 
   QuranSearchResult _toResult(Map<String, Object?> row) {

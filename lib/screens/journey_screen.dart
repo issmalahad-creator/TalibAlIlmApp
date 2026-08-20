@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/completion_goal_repository.dart';
 import '../repositories/journey_plan_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'certificates_screen.dart';
+import 'command_center_screen.dart';
 import 'curriculum_map_screen.dart';
+import 'mission_screen.dart';
 import 'quran_browse_screen.dart';
 import '../widgets/loading_view.dart';
 
 final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
-const _scheduleLabels = {
-  ScheduleStatus.ahead: ('متقدّم على الخطة', Icons.trending_up, AppColors.primary),
-  ScheduleStatus.onTrack: ('في الموعد', Icons.check_circle_outline, AppColors.primaryDark),
-  ScheduleStatus.behind: ('متأخر عن الخطة', Icons.schedule_outlined, Color(0xFFD9A441)),
-};
+/// Same real hifz-institute daily-pace ceilings as `_WizardView`'s own
+/// `_realisticDailyPagesMax` (kept as a separate top-level const rather
+/// than refactored into one shared symbol, to avoid touching that
+/// existing, working wizard code — Grain 3's "tie the real pace numbers
+/// into تكليف اليوم itself" ask, §4.31/§4.33).
+const _dashboardRealisticDailyPagesMax = {'beginner': 1.0, 'intermediate': 1.5, 'advanced': 2.0};
+
+(String, IconData, Color) _scheduleLabel(ScheduleStatus status, String lang) => switch (status) {
+      ScheduleStatus.ahead => (basicText('schedule_ahead', lang), Icons.trending_up, AppColors.primary),
+      ScheduleStatus.onTrack => (basicText('schedule_on_track', lang), Icons.check_circle_outline, AppColors.primaryDark),
+      ScheduleStatus.behind => (basicText('schedule_behind', lang), Icons.schedule_outlined, const Color(0xFFD9A441)),
+    };
 
 /// "رحلتي" — QURAN_COMPANION_ROADMAP.md §4.7, rebuilt 2026-08-16. First run
 /// shows a SMART-style setup wizard (goal duration + current level);
@@ -53,22 +64,29 @@ class _JourneyScreenState extends State<JourneyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('رحلتي'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.emoji_events_outlined),
-            tooltip: 'شهاداتي',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CertificatesScreen())),
-          ),
-        ],
+    // 2026-08-17 (Ismail's screenshot of the still-Arabic _DashboardView):
+    // one `ValueListenableBuilder` around the whole Scaffold now, so the
+    // AppBar title/tooltip and the dashboard body share the same live
+    // `lang` instead of each needing its own separate wrapper.
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+        appBar: AppBar(
+          title: Text(basicText('my_journey', lang)),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.emoji_events_outlined),
+              tooltip: basicText('my_certificates_label', lang),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CertificatesScreen())),
+            ),
+          ],
+        ),
+        body: _loading
+            ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+            : _status == null
+                ? _WizardView(repo: _repo, onCreated: _load)
+                : _DashboardView(status: _status!, repo: _repo, onChanged: _load, lang: lang),
       ),
-      body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
-          : _status == null
-              ? _WizardView(repo: _repo, onCreated: _load)
-              : _DashboardView(status: _status!, repo: _repo, onChanged: _load),
     );
   }
 }
@@ -121,34 +139,42 @@ class _WizardViewState extends State<_WizardView> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) {
+        final levelLabels = {
+          'beginner': basicText('level_beginner', lang),
+          'intermediate': basicText('level_intermediate', lang),
+          'advanced': basicText('level_advanced', lang),
+        };
+        return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Text('ابدأ رحلتك', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        Text(basicText('journey_start_title', lang), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
-        const Text(
-          'حدّد هدفك ومستواك الحالي، وسنحسب لك وتيرة يومية مناسبة — وستتكيّف هذه الوتيرة تلقائيًا مع أدائك الفعلي لاحقًا، لا تبقى رقمًا ثابتًا.',
-          style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+        Text(
+          basicText('journey_start_subtitle', lang),
+          style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
         ),
         const SizedBox(height: 24),
-        const Text('في كم سنة تريد ختم حفظ القرآن؟', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+        Text(basicText('journey_years_question', lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
         Slider(
           value: _years,
           min: 0.5,
           max: 10,
           divisions: 19,
-          label: '${_years.toStringAsFixed(1)} سنة',
+          label: '${_years.toStringAsFixed(1)} ${basicText('years_label', lang)}',
           onChanged: (v) => setState(() => _years = v),
         ),
-        Text('${_years.toStringAsFixed(1)} سنة', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+        Text('${_years.toStringAsFixed(1)} ${basicText('years_label', lang)}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
         const SizedBox(height: 20),
-        const Text('ما مستواك الحالي؟', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+        Text(basicText('journey_level_question', lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           children: _levels
               .map((l) => ChoiceChip(
-                    label: Text(l.$2),
+                    label: Text(levelLabels[l.$1] ?? l.$2),
                     selected: _level == l.$1,
                     onSelected: (_) => setState(() => _level = l.$1),
                   ))
@@ -164,12 +190,12 @@ class _WizardViewState extends State<_WizardView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('الوتيرة المحسوبة: ${_dailyPages.toStringAsFixed(2)} صفحة يوميًا',
+              Text('${basicText('calculated_pace_prefix', lang)}: ${_dailyPages.toStringAsFixed(2)} ${basicText('pages_per_day_label', lang)}',
                   style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
               if (_isAmbitious) ...[
                 const SizedBox(height: 6),
                 Text(
-                  'هذه وتيرة أعلى مما يحفظه حتى الطالب المتفرغ بالكامل عادة (أعلى سقف واقعي معروف: صفحتان يوميًا) — لا بأس أن تجرّبها، لكن قد تحتاج إطالة المدة لاحقًا. سنعرض هذا التذكير دون منعك، القرار لك.',
+                  basicText('ambitious_pace_warning', lang),
                   style: TextStyle(fontSize: 11, color: Colors.brown.shade700, height: 1.5),
                 ),
               ],
@@ -177,24 +203,26 @@ class _WizardViewState extends State<_WizardView> {
           ),
         ),
         const SizedBox(height: 20),
-        const Text('التزام شخصي (اختياري)', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+        Text(basicText('journey_commitment_label', lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
-        const Text(
-          'تذكير تكتبه لنفسك يظهر لك عند العودة بعد انقطاع — أنت من يقرر وينفّذ، لا التطبيق.',
-          style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+        Text(
+          basicText('journey_commitment_desc', lang),
+          style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _commitmentController,
           maxLines: 2,
-          decoration: const InputDecoration(
-            hintText: 'مثال: لو فوّت 3 أيام متتالية، سأتصدق بكذا',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: basicText('journey_commitment_placeholder', lang),
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 24),
-        FilledButton(onPressed: _create, child: const Text('ابدأ رحلتي')),
+        FilledButton(onPressed: _create, child: Text(basicText('journey_start_button', lang))),
       ],
+    );
+      },
     );
   }
 }
@@ -203,18 +231,19 @@ class _DashboardView extends StatelessWidget {
   final JourneyStatus status;
   final JourneyPlanRepository repo;
   final VoidCallback onChanged;
-  const _DashboardView({required this.status, required this.repo, required this.onChanged});
+  final String lang;
+  const _DashboardView({required this.status, required this.repo, required this.onChanged, required this.lang});
 
   Future<void> _editCommitment(BuildContext context) async {
     final controller = TextEditingController(text: status.plan.personalCommitmentText ?? '');
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('التزامي الشخصي'),
+        title: Text(basicText('personal_commitment_label', lang)),
         content: TextField(controller: controller, maxLines: 3, decoration: const InputDecoration(border: OutlineInputBorder())),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('حفظ')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(basicText('cancel', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: Text(basicText('save', lang))),
         ],
       ),
     );
@@ -228,22 +257,22 @@ class _DashboardView extends StatelessWidget {
     final choice = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('أنت متأخر قليلًا عن الخطة — لا بأس'),
+        title: Text(basicText('behind_schedule_title', lang)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('اختر ما يناسبك، بلا أي ضغط:', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+            Text(basicText('choose_whats_right_for_you', lang), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
             const SizedBox(height: 14),
             _ChoiceCard(
-              title: 'أكمل بوتيرتي الحالية',
-              subtitle: 'سيتأخر تاريخ الختم قليلًا، وهذا طبيعي',
+              title: basicText('continue_current_pace_title', lang),
+              subtitle: basicText('continue_current_pace_subtitle', lang),
               onTap: () => Navigator.pop(context, 'extend'),
             ),
             const SizedBox(height: 8),
             _ChoiceCard(
-              title: 'كثّف للوصول للهدف الأصلي',
-              subtitle: 'وتيرتك المطلوبة الآن: ${gs.recalculatedDailyTarget.toStringAsFixed(2)} ${status.goal.unitLabel} يوميًا',
+              title: basicText('intensify_title', lang),
+              subtitle: '${basicText('target_pace_now_prefix', lang)}: ${gs.recalculatedDailyTarget.toStringAsFixed(2)} ${status.goal.unitLabel} ${basicText('daily_suffix', lang)}',
               onTap: () => Navigator.pop(context, 'intensify'),
             ),
           ],
@@ -261,14 +290,14 @@ class _DashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gs = status.goalStatus;
-    final scheduleLabel = _scheduleLabels[gs.scheduleStatus]!;
+    final scheduleLabel = _scheduleLabel(gs.scheduleStatus, lang);
     final nextUnit = status.nextRecommendedUnit;
     final surahName = nextUnit == null ? null : (_surahNames[nextUnit.surahStart] ?? '${nextUnit.surahStart}');
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Text('أنت اليوم في اليوم ${status.dayNumber}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        Text('${basicText('day_number_prefix', lang)} ${status.dayNumber}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -284,12 +313,12 @@ class _DashboardView extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'الوتيرة الحالية: ${gs.recalculatedDailyTarget.toStringAsFixed(2)} ${status.goal.unitLabel} يوميًا — بقي ${gs.remaining} من ${gs.daysLeft} يومًا',
+          '${basicText('current_pace_label', lang)}: ${gs.recalculatedDailyTarget.toStringAsFixed(2)} ${status.goal.unitLabel} ${basicText('daily_suffix', lang)} — ${basicText('remaining_prefix', lang)} ${gs.remaining} ${basicText('of_label', lang)} ${gs.daysLeft} ${basicText('days_unit_label', lang)}',
           style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
         ),
         if (gs.scheduleStatus == ScheduleStatus.behind) ...[
           const SizedBox(height: 10),
-          OutlinedButton(onPressed: () => _showReplanChoices(context), child: const Text('أعِد التخطيط')),
+          OutlinedButton(onPressed: () => _showReplanChoices(context), child: Text(basicText('replan_button', lang))),
         ],
         if (status.difficultyAdvisory != null) ...[
           const SizedBox(height: 12),
@@ -301,7 +330,21 @@ class _DashboardView extends StatelessWidget {
                 const Icon(Icons.lightbulb_outline, size: 18, color: AppColors.textMuted),
                 const SizedBox(width: 8),
                 Expanded(child: Text(status.difficultyAdvisory!, style: const TextStyle(fontSize: 12, color: AppColors.textMuted))),
-                TextButton(onPressed: () => _showReplanChoices(context), child: const Text('أعِد التخطيط', style: TextStyle(fontSize: 12))),
+                TextButton(onPressed: () => _showReplanChoices(context), child: Text(basicText('replan_button', lang), style: const TextStyle(fontSize: 12))),
+              ],
+            ),
+          ),
+        ],
+        if (status.masteryGateAdvisory != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: const Color(0xFFFFF7E6), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE8CD8A))),
+            child: Row(
+              children: [
+                const Icon(Icons.psychology_alt_outlined, size: 18, color: Color(0xFFB8860B)),
+                const SizedBox(width: 8),
+                Expanded(child: Text(status.masteryGateAdvisory!, style: const TextStyle(fontSize: 12, color: Color(0xFF8A6416)))),
               ],
             ),
           ),
@@ -314,41 +357,80 @@ class _DashboardView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('تكليف اليوم', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                Text(basicText('today_assignment_label', lang), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
                 const SizedBox(height: 6),
-                Text('صفحة ${nextUnit.id} — سورة $surahName، من آية ${nextUnit.ayahStart}',
+                Text('${basicText('page_label', lang)} ${nextUnit.id} — سورة $surahName، ${basicText('from_ayah_label', lang)} ${nextUnit.ayahStart}',
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4),
+                Text(
+                  '${basicText('max_realistic_pace_label', lang)}: ${_dashboardRealisticDailyPagesMax[status.plan.level] ?? 2.0} ${basicText('pages_per_day_label', lang)}',
+                  style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                ),
                 const SizedBox(height: 10),
                 FilledButton.icon(
                   onPressed: () => Navigator.push(
                       context, MaterialPageRoute(builder: (_) => QuranBrowseScreen(highlightUnitId: nextUnit.id))),
                   icon: const Icon(Icons.play_arrow, size: 18),
-                  label: const Text('ابدأ الحفظ'),
+                  label: Text(basicText('start_memorizing_button', lang)),
                 ),
               ],
             ),
           ),
         const SizedBox(height: 20),
-        Text('${status.masteryPercent.toStringAsFixed(1)}% إتقان', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        Text('${status.masteryPercent.toStringAsFixed(1)}% ${basicText('mastery_percent_label', lang)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(value: status.masteryPercent / 100, minHeight: 10, backgroundColor: AppColors.divider),
         ),
         const SizedBox(height: 6),
-        Text('${status.masteredPages} من ${status.totalPages} صفحة متقنة تمامًا (بعد مراجعات متكررة، لا بمجرد "حفظتها")',
+        Text('${status.masteredPages} ${basicText('of_label', lang)} ${status.totalPages} ${basicText('pages_fully_mastered_suffix', lang)}',
             style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+        const SizedBox(height: 4),
+        Text('${basicText('hizb_completed_prefix', lang)}: ${status.hizbCompleted} ${basicText('of_label', lang)} ${status.hizbTotal} ${basicText('hizb_completed_suffix', lang)}',
+            style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+        const SizedBox(height: 4),
+        Text(
+          '${basicText('days_ago_had_pages_prefix', lang)} ${status.pagesStarted30DaysAgo} ${basicText('pages_word', lang)} — ${basicText('added_since_then_prefix', lang)} ${(status.pagesStartedNow - status.pagesStarted30DaysAgo).clamp(0, 604)} ${basicText('pages_since_then_suffix', lang)}'
+          ' ${basicText('longest_streak_label', lang)}: ${status.longestMemorizationStreak} ${basicText('days_unit_label', lang)}',
+          style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+        ),
+        if (status.reviewSuccessRate != null) ...[
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(Icons.insights_outlined, size: 15, color: AppColors.primaryDark),
+              const SizedBox(width: 6),
+              Text(
+                '${basicText('review_success_rate_prefix', lang)}: ${status.reviewSuccessRate!.toStringAsFixed(0)}% ${basicText('excellent_good_label', lang)}',
+                style: const TextStyle(fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: 16),
         OutlinedButton.icon(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CertificatesScreen())),
           icon: const Icon(Icons.emoji_events_outlined),
-          label: const Text('شهاداتي'),
+          label: Text(basicText('my_certificates_label', lang)),
         ),
         const SizedBox(height: 10),
         OutlinedButton.icon(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CurriculumMapScreen())),
           icon: const Icon(Icons.map_outlined),
-          label: const Text('خريطتي التعليمية'),
+          label: Text(basicText('my_curriculum_map_label', lang)),
+        ),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MissionScreen())),
+          icon: const Icon(Icons.flag_outlined),
+          label: Text(basicText('my_mission_label', lang)),
+        ),
+        const SizedBox(height: 10),
+        OutlinedButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommandCenterScreen())),
+          icon: const Icon(Icons.dashboard_customize_outlined),
+          label: Text(basicText('command_center_label', lang)),
         ),
         const SizedBox(height: 12),
         Container(
@@ -357,16 +439,16 @@ class _DashboardView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('التزامي الشخصي', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              Text(basicText('personal_commitment_label', lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
               Text(
-                status.plan.personalCommitmentText?.isNotEmpty == true ? status.plan.personalCommitmentText! : 'لم تكتب التزامًا بعد',
+                status.plan.personalCommitmentText?.isNotEmpty == true ? status.plan.personalCommitmentText! : basicText('no_commitment_yet', lang),
                 style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
               ),
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerLeft,
-                child: TextButton(onPressed: () => _editCommitment(context), child: const Text('تعديل', style: TextStyle(fontSize: 12))),
+                child: TextButton(onPressed: () => _editCommitment(context), child: Text(basicText('edit_action', lang), style: const TextStyle(fontSize: 12))),
               ),
             ],
           ),

@@ -23,6 +23,51 @@ class AppColors {
   };
 }
 
+/// Shared corner-radius vocabulary — added 2026-08-16 after a grep across
+/// `lib/screens`+`lib/widgets` found `BorderRadius.circular(...)` called
+/// with 11 different ad-hoc values (2/4/8/10/12/14/16/18/20/22/999), no
+/// shared scale. Same problem, same fix as `AppMotion`
+/// (`lib/theme/motion.dart`): four tiers derived from the values already
+/// dominant in the app (14 and 18 are by far the most common), not
+/// invented numbers, for new work to reach for — existing call sites are
+/// NOT rewritten as part of this (scope creep beyond "add the vocabulary").
+class AppRadius {
+  static const sm = 12.0; // inputs, small chips
+  static const md = 14.0; // the app's most common value — ordinary cards/buttons
+  static const lg = 18.0; // matches CardTheme's own default below — prominent cards
+  static const xl = 22.0; // hero/feature cards
+  static const pill = 999.0; // fully-rounded badges/chips
+}
+
+/// Shared typography vocabulary — added 2026-08-17, same discipline as
+/// `AppRadius`/`AppMotion`: a grep across `lib/screens/*.dart` found 432
+/// `fontSize:` occurrences using 23 distinct values, no shared scale (the
+/// top 8 values already account for ~80% of real usage). Tiers below are
+/// named from that real distribution, not invented — for NEW work only;
+/// the 432 existing call sites are deliberately not rewritten, exactly as
+/// `AppRadius`/`AppMotion` left their own precedents untouched.
+///
+/// `quranBody`/`duaBody` formalize a split that already exists in practice
+/// (Quran ayat use `AmiriQuran`, one hadith block uses `Amiri`, everything
+/// else uses the theme's default `Tahoma`) rather than introducing a new
+/// font choice.
+class AppTextStyles {
+  static const caption = TextStyle(fontSize: 11, color: AppColors.textMuted);
+  static const label = TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600);
+  static const body = TextStyle(fontSize: 13.5, color: AppColors.textDark);
+  static const title = TextStyle(fontSize: 15, fontWeight: FontWeight.w800);
+  static const headline = TextStyle(fontSize: 18, fontWeight: FontWeight.w800);
+  static const display = TextStyle(fontSize: 22, fontWeight: FontWeight.w800);
+
+  /// Quran ayah recitation text — matches the size/family already used in
+  /// `review_screen.dart`/`tahfeez_playback_screen.dart`, not a new choice.
+  static const quranBody = TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 1.9);
+
+  /// Hadith/dua recitation text — matches `time_awareness_screen.dart`'s
+  /// existing usage.
+  static const duaBody = TextStyle(fontFamily: 'Amiri', fontSize: 16, height: 1.9);
+}
+
 ThemeData buildAppTheme() {
   final colorScheme = ColorScheme.fromSeed(
     seedColor: AppColors.primary,

@@ -6,6 +6,7 @@ import '../repositories/daily_task_repository.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
+import '../widgets/premium_modal.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final DailyTask? existing;
@@ -119,16 +120,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Future<void> _delete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('حذف المهمة'),
-        content: const Text('هل تريد حذف هذه المهمة؟'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
-        ],
-      ),
+    final confirmed = await showPremiumModal<bool>(
+      context,
+      title: 'حذف المهمة',
+      icon: Icons.delete_outline,
+      child: const Text('هل تريد حذف هذه المهمة؟', textAlign: TextAlign.center, style: AppTextStyles.body),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+      ],
     );
     if (confirmed != true) return;
     await _notificationService.cancelTaskReminder(widget.existing!.id!);

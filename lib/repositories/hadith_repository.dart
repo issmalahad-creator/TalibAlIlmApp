@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
 import '../utils/month.dart';
+import 'knowledge_review_repository.dart';
 
 class NawawiHadith {
   final int id;
@@ -40,6 +41,10 @@ class HadithRepository {
       {'hadith_id': hadithId, 'memorized': 1, 'memorized_date': todayDate()},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    // Seeds the hadith into spaced review too — see
+    // `KnowledgeReviewRepository`'s doc comment for why this sits alongside
+    // the flat "memorized" flag rather than replacing it.
+    await KnowledgeReviewRepository().startReviewing('hadith', hadithId);
   }
 
   Future<List<int>> memorizedIds() async {

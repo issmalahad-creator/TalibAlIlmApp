@@ -4,12 +4,29 @@ import '../db/database_helper.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 
+/// `contentType`/`occasion` — Ismail's 2026-08-16 content-taxonomy request
+/// (scoped down from a much larger external ontology proposal; see
+/// `database_helper.dart`'s `_createV34Tables` doc comment for what was
+/// excluded and why). `contentType` is one of `'dhikr'` | `'dua'` |
+/// `'other'` (defaults to `'dhikr'` for any row not explicitly reclassified
+/// by the v34 migration); `occasion` is nullable — only set for the real
+/// occasion groupings that already exist in Hisn al-Muslim (travel,
+/// funeral, hajj, food), null for everything else.
 class AdhkarCategory {
   final int id;
   final int order;
   final String title;
   final bool isDailyCore;
-  AdhkarCategory({required this.id, required this.order, required this.title, required this.isDailyCore});
+  final String contentType;
+  final String? occasion;
+  AdhkarCategory({
+    required this.id,
+    required this.order,
+    required this.title,
+    required this.isDailyCore,
+    this.contentType = 'dhikr',
+    this.occasion,
+  });
 }
 
 class AdhkarItem {
@@ -34,6 +51,8 @@ class AdhkarRepository {
               order: r['category_order'] as int,
               title: r['title'] as String,
               isDailyCore: (r['is_daily_core'] as int) == 1,
+              contentType: r['content_type'] as String? ?? 'dhikr',
+              occasion: r['occasion'] as String?,
             ))
         .toList();
   }
@@ -41,6 +60,25 @@ class AdhkarRepository {
   Future<List<AdhkarItem>> itemsFor(int categoryId) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query('adhkar_items', where: 'category_id = ?', whereArgs: [categoryId], orderBy: 'item_order');
+    return rows
+        .map((r) => AdhkarItem(
+              id: r['id'] as int,
+              text: r['text'] as String,
+              footnote: r['footnote'] as String?,
+              repeatCount: r['repeat_count'] as int,
+            ))
+        .toList();
+  }
+
+  /// Fetches specific items by id, regardless of category — powers
+  /// `adhkar_quiz_screen.dart`'s "pick a random item under review" sampling
+  /// (the spaced-review engine tracks items by id across all categories,
+  /// not per-category).
+  Future<List<AdhkarItem>> itemsByIds(List<int> ids) async {
+    if (ids.isEmpty) return [];
+    final db = await DatabaseHelper.instance.database;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final rows = await db.query('adhkar_items', where: 'id IN ($placeholders)', whereArgs: ids);
     return rows
         .map((r) => AdhkarItem(
               id: r['id'] as int,
@@ -130,5 +168,27 @@ class AdhkarRepository {
   Future<void> clearSessionPosition(int categoryId) async {
     final db = await DatabaseHelper.instance.database;
     await db.delete('adhkar_session_position', where: 'category_id = ?', whereArgs: [categoryId]);
+  }
+
+  /// Estimated minutes to read/repeat through a category — Ismail's
+  /// 2026-08-17 request ("أذكار الصباح تأخذ 8 دقائق") to make the daily
+  /// adhkar feel like a concrete, worthwhile time investment rather than an
+  /// open-ended list. A single SQL aggregate (no per-item text loaded into
+  /// Dart), using a documented reading-pace heuristic — not a measured
+  /// per-student speed, same honesty as `session_time_budget.dart`'s
+  /// level-ratio heuristic. Ismail found the original 350 chars/min
+  /// estimate ran noticeably longer than his real reading pace ("اجعله نصف
+  /// دقيقة" — halve it) — doubled to 700 same day.
+  static const _charsPerMinute = 700; // spoken-recitation pace, not silent reading
+
+  Future<int> estimatedMinutes(int categoryId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT SUM(LENGTH(text) * repeat_count) AS total_chars FROM adhkar_items WHERE category_id = ?',
+      [categoryId],
+    );
+    final totalChars = (rows.first['total_chars'] as int?) ?? 0;
+    if (totalChars == 0) return 1;
+    return (totalChars / _charsPerMinute).ceil().clamp(1, 999);
   }
 }

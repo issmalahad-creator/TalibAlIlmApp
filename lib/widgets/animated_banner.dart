@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
+import '../theme/motion.dart';
 
 /// An eye-catching promo/notice banner shown on the Home screen, sourced from
 /// whatever the admin most recently pushed via the Telegram bot's "🖼 إرسال
@@ -39,12 +40,12 @@ class _AnimatedBannerState extends State<AnimatedBanner> {
   Widget build(BuildContext context) {
     return AnimatedOpacity(
       opacity: _visible ? 1 : 0,
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeOut,
+      duration: AppMotion.premium,
+      curve: AppMotion.entranceCurve,
       child: AnimatedSlide(
         offset: _visible ? Offset.zero : const Offset(0, 0.08),
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.easeOut,
+        duration: AppMotion.premium,
+        curve: AppMotion.entranceCurve,
         child: Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(

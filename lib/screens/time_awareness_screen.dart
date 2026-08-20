@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/time_awareness_content.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/time_awareness_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -24,6 +26,7 @@ class TimeAwarenessScreen extends StatefulWidget {
 
 class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
   final _repo = TimeAwarenessRepository();
+  final _lang = LanguagePreferenceService.currentLanguage;
   final _sleptCtrl = TextEditingController();
   final _wastedCtrl = TextEditingController();
   final _studiedCtrl = TextEditingController();
@@ -80,7 +83,7 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
     await _repo.saveToday(_currentEntry);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('بارك الله في وقتك — تم تسجيل يومك، جزاك الله خيرًا على صدقك مع نفسك')),
+      SnackBar(content: Text(basicText('time_saved_confirmation', _lang))),
     );
   }
 
@@ -92,9 +95,9 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
     final entry = _currentEntry;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('محاسبة الوقت')),
+      appBar: AppBar(title: Text(basicText('time_accountability', _lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', _lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -107,11 +110,14 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('ساعات سنتك الهجرية', style: TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w700)),
+                      Text(basicText('hijri_year_hours_label', _lang), style: const TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
                       Text('${TimeAwarenessRepository.hoursPerYear}', style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white)),
                       const SizedBox(height: 8),
-                      Text('مضى منها تقريبًا $hoursElapsed ساعة — وبقي $hoursRemaining ساعة', style: const TextStyle(fontSize: 12.5, color: Colors.white70)),
+                      Text(
+                        '${basicText('elapsed_approx_prefix', _lang)} $hoursElapsed ${basicText('hour_unit_label', _lang)} ${basicText('remaining_and_prefix', _lang)} $hoursRemaining ${basicText('hour_unit_label', _lang)}',
+                        style: const TextStyle(fontSize: 12.5, color: Colors.white70),
+                      ),
                     ],
                   ),
                 ),
@@ -129,26 +135,26 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('يومك اليوم', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(basicText('today_your_day_label', _lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                const Text(
-                  'بصدق مع نفسك — كم ساعة نمت، وكم ضاعت منك، وكم درست، وكم اشتغلت؟ النوم المعتاد لا يُحسب لك ولا عليك، وما زاد عنه يُحسب ضياعًا؛ وما لم تُسجّله يُحسب ضياعًا أيضًا — هذا لك أنت، لا أحد سيحاسبك عليه هنا سوى نفسك.',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                Text(
+                  basicText('time_honesty_desc', _lang),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 14),
                 Row(
                   children: [
-                    Expanded(child: _HoursField(label: 'كم نمت؟', controller: _sleptCtrl)),
+                    Expanded(child: _HoursField(label: basicText('how_much_slept', _lang), suffix: basicText('hour_unit_label', _lang), controller: _sleptCtrl)),
                     const SizedBox(width: 10),
-                    Expanded(child: _HoursField(label: 'كم ضاع منك؟', controller: _wastedCtrl)),
+                    Expanded(child: _HoursField(label: basicText('how_much_wasted', _lang), suffix: basicText('hour_unit_label', _lang), controller: _wastedCtrl)),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    Expanded(child: _HoursField(label: 'كم درست؟', controller: _studiedCtrl)),
+                    Expanded(child: _HoursField(label: basicText('how_much_studied', _lang), suffix: basicText('hour_unit_label', _lang), controller: _studiedCtrl)),
                     const SizedBox(width: 10),
-                    Expanded(child: _HoursField(label: 'كم اشتغلت؟', controller: _workedCtrl)),
+                    Expanded(child: _HoursField(label: basicText('how_much_worked', _lang), suffix: basicText('hour_unit_label', _lang), controller: _workedCtrl)),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -159,17 +165,25 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('استفدت: ${entry.benefitedHours.toStringAsFixed(1)} ساعة  •  ضاع: ${entry.wastedHours.toStringAsFixed(1)} ساعة',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                        Text(
+                          '${basicText('benefited_label', _lang)}: ${entry.benefitedHours.toStringAsFixed(1)} ${basicText('hour_unit_label', _lang)}  •  ${basicText('wasted_label', _lang)}: ${entry.wastedHours.toStringAsFixed(1)} ${basicText('hour_unit_label', _lang)}',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                        ),
                         if (entry.unaccountedHours > 0)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text('منها ${entry.unaccountedHours.toStringAsFixed(1)} ساعة لم تُسجَّل بعد', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                            child: Text(
+                              '${basicText('of_which_prefix', _lang)} ${entry.unaccountedHours.toStringAsFixed(1)} ${basicText('unaccounted_hours_suffix', _lang)}',
+                              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                            ),
                           ),
                         if (entry.excessSleepHours > 0)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: Text('منها ${entry.excessSleepHours.toStringAsFixed(1)} ساعة نوم زائد عن ${DailyTimeEntry.sleepCapHours.toStringAsFixed(0)} ساعات', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                            child: Text(
+                              '${basicText('of_which_prefix', _lang)} ${entry.excessSleepHours.toStringAsFixed(1)} ${basicText('excess_sleep_over_label', _lang)} ${DailyTimeEntry.sleepCapHours.toStringAsFixed(0)} ${basicText('hours_plural_label', _lang)}',
+                              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                            ),
                           ),
                       ],
                     ),
@@ -178,12 +192,12 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                 TextField(
                   controller: _noteCtrl,
                   maxLines: 2,
-                  decoration: const InputDecoration(hintText: 'ملاحظة (اختياري): بم استفدت؟ وأين ضاع وقتك؟', border: OutlineInputBorder()),
+                  decoration: InputDecoration(hintText: basicText('time_note_hint', _lang), border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 10),
-                Align(alignment: Alignment.centerLeft, child: FilledButton(onPressed: _save, child: const Text('حفظ'))),
+                Align(alignment: Alignment.centerLeft, child: FilledButton(onPressed: _save, child: Text(basicText('save', _lang)))),
                 const SizedBox(height: 24),
-                const Text('كيف تستفيد من كل ساعة؟', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(basicText('how_to_benefit_hours_title', _lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 10),
                 ...timeAwarenessTips.map((t) => Container(
                       margin: const EdgeInsets.only(bottom: 8),
@@ -200,7 +214,7 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                     )),
                 if (_recent.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  const Text('آخر أيامك (ساعات مُستفادة)', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+                  Text(basicText('recent_days_label', _lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
                   ..._recent.map((e) => Padding(
                         padding: const EdgeInsets.only(bottom: 4),
@@ -208,7 +222,7 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(e.$1, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                            Text('${e.$2?.toStringAsFixed(1) ?? '-'} ساعة', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                            Text('${e.$2?.toStringAsFixed(1) ?? '-'} ${basicText('hour_unit_label', _lang)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                           ],
                         ),
                       )),
@@ -221,8 +235,9 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
 
 class _HoursField extends StatelessWidget {
   final String label;
+  final String suffix;
   final TextEditingController controller;
-  const _HoursField({required this.label, required this.controller});
+  const _HoursField({required this.label, required this.suffix, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +245,7 @@ class _HoursField extends StatelessWidget {
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-      decoration: InputDecoration(labelText: label, suffixText: 'ساعة', border: const OutlineInputBorder(), isDense: true),
+      decoration: InputDecoration(labelText: label, suffixText: suffix, border: const OutlineInputBorder(), isDense: true),
     );
   }
 }

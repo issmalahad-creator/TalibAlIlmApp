@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/goal.dart';
 import '../repositories/goal_repository.dart';
+import '../services/language_preference_service.dart';
 import '../utils/month.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/premium_modal.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -14,8 +17,10 @@ class GoalsScreen extends StatefulWidget {
 
 class _GoalsScreenState extends State<GoalsScreen> {
   final _repo = GoalRepository();
+  final _lang = LanguagePreferenceService.currentLanguage;
   List<Goal> _goals = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -23,14 +28,30 @@ class _GoalsScreenState extends State<GoalsScreen> {
     _load();
   }
 
+  // 2026-08-17 (Ismail: goals screen not working even in Arabic, no
+  // reliable repro found on review) — same defensive pattern already
+  // shipped on `quran_browse_screen.dart`'s own "blank screen" bug: a
+  // failure here previously left `_loading` stuck `true` forever with no
+  // visible cause. Now any real failure surfaces as an actual message.
   Future<void> _load() async {
-    setState(() => _loading = true);
-    final goals = await _repo.forMonth(currentMonth());
-    if (!mounted) return;
     setState(() {
-      _goals = goals;
-      _loading = false;
+      _loading = true;
+      _error = null;
     });
+    try {
+      final goals = await _repo.forMonth(currentMonth());
+      if (!mounted) return;
+      setState(() {
+        _goals = goals;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _goalDialog({Goal? existing}) async {
@@ -39,32 +60,31 @@ class _GoalsScreenState extends State<GoalsScreen> {
     final currentCtrl = TextEditingController(text: existing != null ? '${existing.current}' : '0');
     final isEdit = existing != null;
 
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isEdit ? 'تعديل الهدف' : 'هدف جديد'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'عنوان الهدف')),
+    final result = await showPremiumModal<bool>(
+      context,
+      title: basicText(isEdit ? 'edit_goal_title' : 'new_goal_title', _lang),
+      icon: Icons.flag_outlined,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(controller: titleCtrl, decoration: InputDecoration(labelText: basicText('goal_title_label', _lang))),
+          TextField(
+            controller: targetCtrl,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: basicText('goal_target_label', _lang)),
+          ),
+          if (isEdit)
             TextField(
-              controller: targetCtrl,
+              controller: currentCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'الرقم المستهدف'),
+              decoration: InputDecoration(labelText: basicText('goal_current_label', _lang)),
             ),
-            if (isEdit)
-              TextField(
-                controller: currentCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'المُنجز حتى الآن'),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(isEdit ? 'حفظ' : 'إضافة')),
         ],
       ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('cancel', _lang))),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText(isEdit ? 'save' : 'add', _lang))),
+      ],
     );
     if (result != true || titleCtrl.text.trim().isEmpty) return;
 
@@ -91,11 +111,27 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('أهداف ${monthLabel(currentMonth())}')),
+      appBar: AppBar(title: Text('${basicText('nav_goals', _lang)} ${monthLabel(currentMonth())}')),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
-          : _goals.isEmpty
-              ? const Center(child: Text('لا توجد أهداف بعد — اضغط + لإضافة هدف'))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', _lang))
+          : _error != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.error_outline, size: 32),
+                        const SizedBox(height: 10),
+                        Text('${basicText('load_failed_prefix', _lang)}:\n$_error', textAlign: TextAlign.center, style: const TextStyle(fontSize: 12.5)),
+                        const SizedBox(height: 14),
+                        FilledButton(onPressed: _load, child: Text(basicText('retry_action', _lang))),
+                      ],
+                    ),
+                  ),
+                )
+              : _goals.isEmpty
+              ? Center(child: Text(basicText('no_goals_yet', _lang)))
               : ListView.builder(
                   itemCount: _goals.length,
                   itemBuilder: (context, i) {

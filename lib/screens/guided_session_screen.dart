@@ -5,6 +5,7 @@ import '../repositories/daily_session_repository.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../repositories/memorization_repository.dart';
 import '../theme/app_theme.dart';
+import '../theme/motion.dart';
 import 'memorization_quiz_screen.dart';
 import 'quran_browse_screen.dart';
 import 'review_screen.dart';
@@ -17,6 +18,18 @@ const _phaseIcons = {
   'repetition': Icons.repeat_rounded,
   'recitation_test': Icons.mic_none_rounded,
   'understanding': Icons.auto_stories_rounded,
+};
+
+/// "أثناء الجلسة" companion placement — Ismail's 2026-08-17 spec example
+/// ("اقرأ الآيات بصوت مسموع ثم اضغط 'اختبرني'"). Static per-phase, not the
+/// rule engine (`companion_engine.dart`) — this is a fixed instruction for
+/// *this* phase, not a state-dependent message about the student overall.
+const _phaseCompanionTips = {
+  'quick_review': 'اقرأ ما راجعته سابقًا بصوت مسموع قبل أن تنتقل.',
+  'new_memorization': 'كرّر كل آية عدة مرات قبل الانتقال للتي تليها.',
+  'repetition': 'التكرار الهادئ أفضل من السرعة — لا تستعجل.',
+  'recitation_test': 'اقرأ من الذاكرة كاملة أولًا، ثم افتح المصحف للتصحيح فقط.',
+  'understanding': 'اسأل نفسك: ماذا أفهم من هذا الآن، لا فقط ماذا أحفظ؟',
 };
 
 const _difficultyOptions = [
@@ -126,11 +139,19 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
     }
     return Scaffold(
       appBar: AppBar(title: const Text('جلسة موجّهة')),
-      body: _step == 0
-          ? _buildPicker()
-          : _step <= _plan.length
-              ? _buildPhase(_plan[_step - 1])
-              : _buildReflection(),
+      body: AnimatedSwitcher(
+        duration: AppMotion.normal,
+        switchInCurve: AppMotion.entranceCurve,
+        switchOutCurve: AppMotion.exitCurve,
+        child: KeyedSubtree(
+          key: ValueKey(_step),
+          child: _step == 0
+              ? _buildPicker()
+              : _step <= _plan.length
+                  ? _buildPhase(_plan[_step - 1])
+                  : _buildReflection(),
+        ),
+      ),
     );
   }
 
@@ -193,6 +214,21 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
         Text('الوقت المقترح: ${phase.minutes} دقيقة', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark)),
         const SizedBox(height: 10),
         Text(phase.descriptionAr, style: const TextStyle(fontSize: 13.5, height: 1.7)),
+        if (_phaseCompanionTips[phase.key] != null) ...[
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(12)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('🌿', style: TextStyle(fontSize: 14)),
+                const SizedBox(width: 8),
+                Expanded(child: Text(_phaseCompanionTips[phase.key]!, style: const TextStyle(fontSize: 12.5, color: AppColors.primaryDark, fontWeight: FontWeight.w600))),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 24),
         if (phase.key != 'repetition')
           FilledButton.icon(

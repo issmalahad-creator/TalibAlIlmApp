@@ -9,7 +9,16 @@
 class CurriculumItemDef {
   final String contentType;
   final String titleAr;
-  const CurriculumItemDef({required this.contentType, required this.titleAr});
+
+  /// `contentType` values of items a real hifz/study-institute sequence
+  /// would normally cover first — 100_IDEAS_FOR_IMPROVEMENT.md's "deepen
+  /// the prerequisite map" ask, picking up a decision made but never
+  /// implemented in an earlier plan. **Advisory only, never a lock** — a
+  /// student can still open and start any item regardless (same
+  /// "companion not manager" principle stated above), this only powers a
+  /// non-blocking suggestion badge (`CurriculumRepository.allStatuses()`).
+  final List<String> prerequisites;
+  const CurriculumItemDef({required this.contentType, required this.titleAr, this.prerequisites = const []});
 }
 
 class CurriculumLevelDef {
@@ -32,7 +41,7 @@ const curriculumLevels = [
     descriptionAr: 'أساس القراءة والحفظ الأول — لكل من يبدأ من الصفر، صغيرًا كان أو كبيرًا.',
     items: [
       CurriculumItemDef(contentType: 'qaida', titleAr: 'القاعدة النورانية (قراءة الحروف)'),
-      CurriculumItemDef(contentType: 'juz_amma', titleAr: 'حفظ جزء عمّ'),
+      CurriculumItemDef(contentType: 'juz_amma', titleAr: 'حفظ جزء عمّ', prerequisites: ['qaida']),
       CurriculumItemDef(contentType: 'adhkar', titleAr: 'أذكار الصباح والمساء'),
       CurriculumItemDef(contentType: 'arbain', titleAr: 'الأربعون النووية'),
     ],
@@ -42,10 +51,10 @@ const curriculumLevels = [
     titleAr: 'المستوى الثاني: طالب علم',
     descriptionAr: 'توسيع الحفظ مع الفهم والتطبيق، وأول خطوات العقيدة والفقه.',
     items: [
-      CurriculumItemDef(contentType: 'quran_memorization', titleAr: 'حفظ ومراجعة أوسع بالقرآن'),
-      CurriculumItemDef(contentType: 'application', titleAr: 'فهم التفسير وتطبيقه يوميًا'),
-      CurriculumItemDef(contentType: 'wasitiyyah', titleAr: 'العقيدة الواسطية'),
-      CurriculumItemDef(contentType: 'fiqh_taharah_salah', titleAr: 'فقه الطهارة والصلاة'),
+      CurriculumItemDef(contentType: 'quran_memorization', titleAr: 'حفظ ومراجعة أوسع بالقرآن', prerequisites: ['juz_amma']),
+      CurriculumItemDef(contentType: 'application', titleAr: 'فهم التفسير وتطبيقه يوميًا', prerequisites: ['juz_amma']),
+      CurriculumItemDef(contentType: 'wasitiyyah', titleAr: 'العقيدة الواسطية', prerequisites: ['arbain']),
+      CurriculumItemDef(contentType: 'fiqh_taharah_salah', titleAr: 'فقه الطهارة والصلاة', prerequisites: ['adhkar']),
     ],
   ),
   CurriculumLevelDef(
@@ -53,10 +62,10 @@ const curriculumLevels = [
     titleAr: 'المستوى الثالث: تعمّق علمي',
     descriptionAr: 'إتقان وترسيخ، ونصوص علمية أعمق لمن أراد المزيد.',
     items: [
-      CurriculumItemDef(contentType: 'full_quran_mastery', titleAr: 'إتقان حفظ القرآن كاملًا'),
-      CurriculumItemDef(contentType: 'ajlan_tafsir', titleAr: 'شرح ابن كثير الصوتي المتعمّق (العجلان)'),
-      CurriculumItemDef(contentType: 'zad_almaad', titleAr: 'زاد المعاد'),
-      CurriculumItemDef(contentType: 'madarij', titleAr: 'مدارج السالكين'),
+      CurriculumItemDef(contentType: 'full_quran_mastery', titleAr: 'إتقان حفظ القرآن كاملًا', prerequisites: ['quran_memorization']),
+      CurriculumItemDef(contentType: 'ajlan_tafsir', titleAr: 'شرح ابن كثير الصوتي المتعمّق (العجلان)', prerequisites: ['application']),
+      CurriculumItemDef(contentType: 'zad_almaad', titleAr: 'زاد المعاد', prerequisites: ['wasitiyyah']),
+      CurriculumItemDef(contentType: 'madarij', titleAr: 'مدارج السالكين', prerequisites: ['zad_almaad']),
     ],
   ),
 ];

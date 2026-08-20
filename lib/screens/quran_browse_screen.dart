@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
 import '../repositories/memorization_repository.dart';
+import '../repositories/milestone_repository.dart';
 import '../theme/app_theme.dart';
+import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 
 /// "القرآن" — Phase 1 of QURAN_COMPANION_ROADMAP.md. Browse all 604 pages
@@ -23,6 +25,7 @@ class QuranBrowseScreen extends StatefulWidget {
 
 class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
   final _repo = MemorizationRepository();
+  final _milestoneRepo = MilestoneRepository();
   static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
   List<MemorizationUnit> _units = [];
@@ -74,6 +77,17 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     await _repo.markMemorized(unit.id);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('بارك الله فيك — صفحة ${unit.id} ضمن المراجعة الآن')));
+    // 2026-08-17 (Ismail: "عند اكمال الجزء... يجب أن يظهر [الاحتفال] في تلك
+    // اللحظة"): marking a page memorized here could just as easily complete
+    // a Surah/Juz/the whole Quran as reviewing one on `review_screen.dart`
+    // does (same `checkQuranMilestones`) — this screen just never checked,
+    // so that exact moment silently went uncelebrated until the student
+    // happened to open شهاداتي later.
+    final newlyEarned = await _milestoneRepo.checkQuranMilestones();
+    for (final milestone in newlyEarned) {
+      if (!mounted) return;
+      await showCelebration(context, milestone);
+    }
     _load();
   }
 

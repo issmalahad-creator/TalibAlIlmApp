@@ -43,6 +43,46 @@ class BookBookmark {
       );
 }
 
+/// One "دفتر الفوائد" entry for a PDF book — Ismail's 2026-08-16 request,
+/// mirroring `AudioReflection`'s shape (see `audio_library_repository.dart`)
+/// but with an optional page number instead of a resume note.
+class BookReflection {
+  final int id;
+  final String bookKey;
+  final int? page;
+  final String text;
+  final String createdDate;
+
+  BookReflection({required this.id, required this.bookKey, this.page, required this.text, required this.createdDate});
+
+  factory BookReflection.fromMap(Map<String, Object?> map) => BookReflection(
+        id: map['id'] as int,
+        bookKey: map['book_key'] as String,
+        page: map['page'] as int?,
+        text: map['reflection_text'] as String,
+        createdDate: map['created_date'] as String,
+      );
+}
+
+/// One "سجل التطبيق" entry — "ما الخُلق الذي طبّقته اليوم؟" — a self-reported
+/// note distinct from a دفتر الفوائد reading reflection (this is about real-
+/// life application, not about the text itself).
+class BookApplicationEntry {
+  final int id;
+  final String bookKey;
+  final String text;
+  final String createdDate;
+
+  BookApplicationEntry({required this.id, required this.bookKey, required this.text, required this.createdDate});
+
+  factory BookApplicationEntry.fromMap(Map<String, Object?> map) => BookApplicationEntry(
+        id: map['id'] as int,
+        bookKey: map['book_key'] as String,
+        text: map['application_text'] as String,
+        createdDate: map['created_date'] as String,
+      );
+}
+
 class QuizResult {
   final String month; // YYYY-MM
   final int scorePercent;

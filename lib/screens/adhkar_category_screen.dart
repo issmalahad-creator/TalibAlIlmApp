@@ -1,9 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../repositories/adhkar_repository.dart';
+import '../repositories/custom_adhkar_reminder_repository.dart';
+import '../repositories/knowledge_review_repository.dart';
 import '../repositories/milestone_repository.dart';
+import '../services/adhkar_reading_prefs.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
@@ -20,25 +25,36 @@ const _streakTrackedCategoryTitle = 'أذكار الصباح والمساء';
 /// unhurried worship-session feel instead of a busy list screen.
 const _readingBackground = Color(0xFFFBF6EE);
 
+/// Dark counterpart for the reading screen's own night toggle — Ismail's
+/// 2026-08-16 request after sharing a reference app's reading-screen
+/// controls (share / A- / A+ / crescent-moon icon). Scoped to just this
+/// screen (see `AdhkarReadingPrefs`'s doc comment) rather than a full
+/// app-wide theme switch.
+const _readingBackgroundDark = Color(0xFF1D2119);
+const _readingTextDark = Color(0xFFEDE7D6);
+const _readingHintDark = Color(0xFFB9B4A2);
+
 /// Continuous, one-dua-at-a-time reading flow for a single adhkar
 /// category — QURAN_COMPANION_ROADMAP.md Phase 5هـ, redesigned 2026-08-16
 /// per Ismail's detailed "تجربة عبادة متصلة" spec (inspired by studying
-/// Almosaly's UX, deliberately not copying its visuals), then adjusted the
-/// same day per his direct feedback ("السحب... من اليمين إلى اليسار أفضل"
-/// after trying the first version) to swipe horizontally instead of
-/// vertically.
+/// Almosaly's UX, deliberately not copying its visuals). The swipe
+/// direction itself went through three rounds of direct on-device feedback
+/// the same day: vertical → horizontal, right-to-left = next → left-to-
+/// right = next → back to right-to-left = next (his final call, "الحركة
+/// معكوسة اعكسها" after trying the left-to-right version).
 ///
-/// Navigation is a horizontal `PageView` — the app is locked to
-/// `TextDirection.rtl` globally (`main.dart`), so Flutter resolves a
-/// horizontal `PageView`'s page order against that automatically: dragging
-/// right-to-left (the natural "next" gesture in Arabic) moves to a higher
-/// page index, with no manual direction-flipping needed. This replaced an
-/// earlier vertical-swipe design that used scroll-*overscroll* to navigate
-/// specifically to avoid a same-axis conflict between page-swiping and
-/// reading-scroll (both vertical) — with paging now on the horizontal axis
-/// and reading-scroll on the vertical axis, that conflict doesn't exist:
+/// Navigation is a horizontal `PageView` with **no directionality
+/// override** — the app is locked to `TextDirection.rtl` globally
+/// (`main.dart`), and Flutter resolves a horizontal `PageView`'s page
+/// order against that ambient direction automatically, so right-to-left
+/// drag = next "just works" without any extra code. (An earlier revision
+/// briefly wrapped the `PageView` in a local `Directionality(ltr)`
+/// override to flip this — that's been removed now that right-to-left is
+/// the final, confirmed direction, since it's literally the default
+/// behavior with nothing to override.) Paging is on the horizontal axis
+/// and reading-scroll is on the vertical axis, so the two never conflict:
 /// each page is free to be an ordinary vertically-scrollable
-/// `SingleChildScrollView` for long duas, independent of the swipe gesture.
+/// `SingleChildScrollView` for long duas.
 ///
 /// The existing tap-to-decrement-repeat-count interaction and its one-shot
 /// golden glow flash (`_AdhkarItemCard`/`TweenSequence`, built earlier this
@@ -56,25 +72,83 @@ class AdhkarCategoryScreen extends StatefulWidget {
 class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
   final _repo = AdhkarRepository();
   final _milestoneRepo = MilestoneRepository();
+  final _readingPrefs = AdhkarReadingPrefs();
   List<AdhkarItem> _items = [];
   Map<int, int> _remaining = {};
   bool _loading = true;
   bool _alreadyDoneToday = false;
   int _currentIndex = 0;
   PageController? _pageController;
+  double _fontScale = 1.0;
+  bool _darkReading = false;
 
   Timer? _focusTimer;
   bool _chromeVisible = true;
+
+  /// Live countdown from the category's estimated reading time (Ismail's
+  /// 2026-08-17 "أريد عداد الوقت التنازلي... كي يحس أنه استغل الوقت"
+  /// request) — session-local, not persisted, resets each time the screen
+  /// opens. Reuses `AdhkarRepository.estimatedMinutes` built the same day
+  /// for the notification copy/home-card minute badges. Stops at zero
+  /// rather than going negative; hidden once today's reading is already
+  /// done (no time-pressure framing for a review pass).
+  Timer? _countdownTimer;
+  int _remainingSeconds = 0;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _loadReadingPrefs();
+  }
+
+  Future<void> _loadReadingPrefs() async {
+    final scale = await _readingPrefs.fontScale();
+    final dark = await _readingPrefs.darkMode();
+    if (!mounted) return;
+    setState(() {
+      _fontScale = scale;
+      _darkReading = dark;
+    });
+  }
+
+  void _adjustFont(double delta) {
+    final next = (_fontScale + delta).clamp(AdhkarReadingPrefs.minScale, AdhkarReadingPrefs.maxScale);
+    setState(() => _fontScale = next);
+    _readingPrefs.setFontScale(next);
+  }
+
+  void _toggleDarkReading() {
+    final next = !_darkReading;
+    setState(() => _darkReading = next);
+    _readingPrefs.setDarkMode(next);
+  }
+
+  void _shareCurrentDua() {
+    if (_currentIndex >= _items.length) return;
+    Share.share(_items[_currentIndex].text);
+  }
+
+  /// "🔔 أضف تذكيرًا" — Ismail's 2026-08-17 request to add a reminder for
+  /// any adhkar category, not just the 3 fixed morning/evening/sleep
+  /// slots, directly from the category's own reading screen.
+  Future<void> _addReminder() async {
+    final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 8, minute: 0));
+    if (picked == null || !mounted) return;
+    await CustomAdhkarReminderRepository().add(widget.category.id, picked.hour);
+    await NotificationService().scheduleCustomAdhkarReminder(
+      categoryId: widget.category.id,
+      categoryTitle: widget.category.title,
+      hour: picked.hour,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم إضافة تذكير يومي الساعة ${picked.hour}:00')));
   }
 
   @override
   void dispose() {
     _focusTimer?.cancel();
+    _countdownTimer?.cancel();
     _pageController?.dispose();
     super.dispose();
   }
@@ -83,6 +157,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     final items = await _repo.itemsFor(widget.category.id);
     final doneToday = await _repo.isCompletedToday(widget.category.id);
     final resumeIndex = doneToday ? 0 : (await _repo.resumePosition(widget.category.id)).clamp(0, items.length);
+    final minutes = await _repo.estimatedMinutes(widget.category.id);
     if (!mounted) return;
     setState(() {
       _items = items;
@@ -91,8 +166,28 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
       _currentIndex = resumeIndex;
       _pageController = PageController(initialPage: resumeIndex);
       _loading = false;
+      _remainingSeconds = minutes * 60;
     });
     _resetFocusTimer();
+    if (!doneToday) _startCountdown();
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      if (_remainingSeconds <= 0) {
+        _countdownTimer?.cancel();
+        return;
+      }
+      setState(() => _remainingSeconds--);
+    });
+  }
+
+  String _formatCountdown(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
   }
 
   void _onPageChanged(int index) {
@@ -133,11 +228,29 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     }
   }
 
+  /// Opts one dhikr into the generalized spaced-review engine — Ismail's
+  /// 2026-08-16 "أريد المستخدم أن يحفظ الأذكار أيضًا" request. Text-only,
+  /// same `KnowledgeReviewRepository` already built for hadith/Wasitiyyah
+  /// (Phase 44); audio for adhkar stays a separate, optional layer (see
+  /// `ADHKAR_AUDIO_SOURCES.md`) — this works today with zero audio content.
+  Future<void> _memorize(AdhkarItem item) async {
+    final alreadyIn = await KnowledgeReviewRepository().isUnderReview('adhkar', item.id);
+    if (alreadyIn) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('هذا الذكر مضاف بالفعل لمراجعة الحفظ')));
+      return;
+    }
+    await KnowledgeReviewRepository().startReviewing('adhkar', item.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُضيف — ستراجعه غدًا في "مراجعتك اليوم" 🌱')));
+  }
+
   @override
   Widget build(BuildContext context) {
     final pageController = _pageController;
+    final chromeMuted = _darkReading ? _readingHintDark : AppColors.textMuted;
     return Scaffold(
-      backgroundColor: _readingBackground,
+      backgroundColor: _darkReading ? _readingBackgroundDark : _readingBackground,
       body: _loading || pageController == null
           ? const AppLoadingView(icon: Icons.spa_outlined, message: 'جاري تحميل الأذكار...')
           : Listener(
@@ -145,6 +258,9 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
               child: Stack(
                 children: [
                   Positioned.fill(
+                    // No directionality override — right-to-left = next is
+                    // the ambient RTL app's default PageView behavior, so
+                    // this is just the plain widget (see class doc comment).
                     child: PageView.builder(
                       controller: pageController,
                       scrollDirection: Axis.horizontal,
@@ -155,10 +271,14 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                               item: _items[index],
                               remaining: _remaining[_items[index].id] ?? 0,
                               onTap: () => _tap(_items[index]),
+                              fontScale: _fontScale,
+                              dark: _darkReading,
+                              onMemorize: () => _memorize(_items[index]),
                             )
                           : _CompletionPage(
                               categoryTitle: widget.category.title,
                               onDone: () => Navigator.pop(context),
+                              dark: _darkReading,
                             ),
                     ),
                   ),
@@ -169,27 +289,49 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                       ignoring: !_chromeVisible,
                       child: SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                           child: Column(
                             children: [
                               Row(
                                 children: [
-                                  IconButton(icon: const Icon(Icons.arrow_back_ios_new, size: 18), onPressed: () => Navigator.pop(context)),
+                                  IconButton(icon: Icon(Icons.arrow_back_ios_new, size: 18, color: chromeMuted), onPressed: () => Navigator.pop(context)),
                                   Expanded(
-                                    child: Text(widget.category.title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+                                    child: Text(widget.category.title, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: chromeMuted)),
                                   ),
-                                  const SizedBox(width: 48),
+                                  _ChromeIconButton(icon: Icons.ios_share_outlined, color: chromeMuted, onPressed: _shareCurrentDua),
+                                  _ChromeIconButton(icon: Icons.text_decrease, color: chromeMuted, onPressed: () => _adjustFont(-0.1)),
+                                  _ChromeIconButton(icon: Icons.text_increase, color: chromeMuted, onPressed: () => _adjustFont(0.1)),
+                                  _ChromeIconButton(
+                                    icon: _darkReading ? Icons.light_mode_outlined : Icons.nightlight_round,
+                                    color: chromeMuted,
+                                    onPressed: _toggleDarkReading,
+                                  ),
+                                  _ChromeIconButton(icon: Icons.notifications_active_outlined, color: chromeMuted, onPressed: _addReminder),
                                 ],
                               ),
                               if (_items.isNotEmpty) ...[
                                 const SizedBox(height: 6),
                                 _ProgressBar(total: _items.length, current: _currentIndex),
                                 const SizedBox(height: 4),
-                                Text(
-                                  _alreadyDoneToday
-                                      ? 'مراجعة — ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}'
-                                      : 'الدعاء ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}',
-                                  style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontWeight: FontWeight.w600),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _alreadyDoneToday
+                                          ? 'مراجعة — ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}'
+                                          : 'الدعاء ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}',
+                                      style: TextStyle(fontSize: 10.5, color: chromeMuted, fontWeight: FontWeight.w600),
+                                    ),
+                                    if (!_alreadyDoneToday && _remainingSeconds > 0) ...[
+                                      const SizedBox(width: 8),
+                                      Text('·', style: TextStyle(fontSize: 10.5, color: chromeMuted)),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '⏱ ${_formatCountdown(_remainingSeconds)} متبقٍ',
+                                        style: TextStyle(fontSize: 10.5, color: chromeMuted, fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ],
@@ -201,6 +343,29 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+/// Compact icon button for the reading-screen chrome row — four of these
+/// (share/A-/A+/night toggle) need to fit next to the back button and title
+/// without overflowing narrow screens, so this trims the default
+/// `IconButton`'s minimum tap-target padding down to just enough to stay
+/// comfortably tappable.
+class _ChromeIconButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+  const _ChromeIconButton({required this.icon, required this.color, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 17, color: color),
+      onPressed: onPressed,
+      padding: const EdgeInsets.all(6),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      splashRadius: 18,
     );
   }
 }
@@ -240,13 +405,16 @@ class _DuaPage extends StatelessWidget {
   final AdhkarItem item;
   final int remaining;
   final VoidCallback onTap;
-  const _DuaPage({required this.item, required this.remaining, required this.onTap});
+  final double fontScale;
+  final bool dark;
+  final VoidCallback onMemorize;
+  const _DuaPage({required this.item, required this.remaining, required this.onTap, this.fontScale = 1.0, this.dark = false, required this.onMemorize});
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 110, 24, 150),
-      child: _AdhkarItemCard(item: item, remaining: remaining, onTap: onTap),
+      child: _AdhkarItemCard(item: item, remaining: remaining, onTap: onTap, fontScale: fontScale, dark: dark, onMemorize: onMemorize),
     );
   }
 }
@@ -255,7 +423,10 @@ class _AdhkarItemCard extends StatefulWidget {
   final AdhkarItem item;
   final int remaining;
   final VoidCallback onTap;
-  const _AdhkarItemCard({required this.item, required this.remaining, required this.onTap});
+  final double fontScale;
+  final bool dark;
+  final VoidCallback onMemorize;
+  const _AdhkarItemCard({required this.item, required this.remaining, required this.onTap, this.fontScale = 1.0, this.dark = false, required this.onMemorize});
 
   @override
   State<_AdhkarItemCard> createState() => _AdhkarItemCardState();
@@ -289,6 +460,8 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
 
   @override
   Widget build(BuildContext context) {
+    final textColor = widget.dark ? _readingTextDark : AppColors.textDark;
+    final hintColor = widget.dark ? _readingHintDark : AppColors.textMuted;
     return GestureDetector(
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
@@ -307,7 +480,7 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(widget.item.text, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, height: 2.0, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+            Text(widget.item.text, textAlign: TextAlign.center, style: TextStyle(fontSize: 22 * widget.fontScale, height: 2.0, fontWeight: FontWeight.w600, color: textColor)),
             const SizedBox(height: 28),
             Center(
               child: AnimatedContainer(
@@ -330,12 +503,21 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
             Text(
               _done ? 'تم — اسحب لليسار للمتابعة' : 'اضغط للتكرار',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: 11.5, color: hintColor, fontWeight: FontWeight.w600),
             ),
             if (widget.item.footnote != null) ...[
               const SizedBox(height: 22),
-              Text(widget.item.footnote!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+              Text(widget.item.footnote!, textAlign: TextAlign.center, style: TextStyle(fontSize: 10.5 * widget.fontScale, color: hintColor)),
             ],
+            const SizedBox(height: 18),
+            Center(
+              child: TextButton.icon(
+                onPressed: widget.onMemorize,
+                icon: const Icon(Icons.psychology_outlined, size: 16),
+                label: const Text('أضفه لحفظ الأذكار', style: TextStyle(fontSize: 11.5)),
+                style: TextButton.styleFrom(foregroundColor: hintColor, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
+              ),
+            ),
           ],
         ),
       ),
@@ -351,10 +533,13 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
 class _CompletionPage extends StatelessWidget {
   final String categoryTitle;
   final VoidCallback onDone;
-  const _CompletionPage({required this.categoryTitle, required this.onDone});
+  final bool dark;
+  const _CompletionPage({required this.categoryTitle, required this.onDone, this.dark = false});
 
   @override
   Widget build(BuildContext context) {
+    final textColor = dark ? _readingTextDark : AppColors.textDark;
+    final hintColor = dark ? _readingHintDark : AppColors.textMuted;
     return SingleChildScrollView(
       child: Center(
         child: Padding(
@@ -364,11 +549,11 @@ class _CompletionPage extends StatelessWidget {
             children: [
               const SizedBox(width: 72, height: 72, child: _SproutIllustration()),
               const SizedBox(height: 18),
-              const Text('ما شاء الله', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text('ما شاء الله', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textColor)),
               const SizedBox(height: 8),
-              Text('أتممت $categoryTitle', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppColors.textMuted)),
+              Text('أتممت $categoryTitle', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: hintColor)),
               const SizedBox(height: 6),
-              const Text('جزاك الله خيرًا 🌿', style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+              Text('جزاك الله خيرًا 🌿', style: TextStyle(fontSize: 13, color: hintColor)),
               const SizedBox(height: 28),
               SizedBox(width: double.infinity, child: FilledButton(onPressed: onDone, child: const Text('تم'))),
             ],

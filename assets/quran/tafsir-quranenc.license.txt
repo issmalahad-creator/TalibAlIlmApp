@@ -1,0 +1,62 @@
+Source: QuranEnc.com (Encyclopedia of the Noble Quran)
+Applies to: every tafsir-*.jsonl.gz asset in this folder except the original
+4 Arabic editions (tafsir-ibn-kathir-full/almukhtasar/muyassar/saadi.jsonl.gz,
+sourced separately from spa5k/tafsir_api — see quran_import_service.dart).
+
+Editions used (language — translator/publisher — translation key):
+- English — Rowwad Translation Center — english_rwwad
+- Amharic — Muhammad Sadiq — amharic_sadiq
+- French — Rachid Maach — french_rashid
+- Turkish — Rowwad Translation Center — turkish_rwwad
+- Indonesian — Sabiq Company — indonesian_sabiq
+- Urdu — Muhammad Junagarhi — urdu_junagarhi
+- Bengali — Dr. Abu Bakr Muhammad Zakaria — bengali_zakaria
+- Spanish — Muhammad Isa García — spanish_garcia
+- Portuguese — Helmi Nasr — portuguese_nasr
+- Greek — Rowwad Translation Center — greek_rwwad
+- German — Rowwad Translation Center — german_rwwad
+- Italian — Rowwad Translation Center — italian_rwwad
+- Bulgarian — bulgarian_translation
+- Romanian — romanian_project
+- Dutch — dutch_center
+- Swedish — Rowwad Translation Center — swedish_rwwad
+- Azerbaijani — Musayev — azeri_musayev
+- Georgian — Rowwad Translation Center — georgian_rwwad
+- Macedonian — macedonian_group
+- Albanian — Rowwad Translation Center — albanian_rwwad
+- Bosnian — Rowwad Translation Center — bosnian_rwwad
+- Russian — Rowwad Translation Center — russian_rwwad
+- Belarusian — Krivtsov — belarusian_krivtsov
+- Serbian — Rowwad Translation Center — serbian_rwwad
+- Croatian — Rowwad Translation Center — croatian_rwwad
+- Lithuanian — Rowwad Translation Center — lithuanian_rwwad
+- Ukrainian — Yakubovych — ukrainian_yakubovych
+- Kazakh — Altai — kazakh_altai
+- Uzbek — Rowwad Translation Center — uzbek_rwwad
+- Tajik — Arifi — tajik_arifi
+- Kyrgyz — Hakimov — kyrgyz_hakimov
+- Circassian — Rowwad Translation Center — circassian_rwwad
+- Tagalog — Rowwad Translation Center — tagalog_rwwad
+- Cebuano — Rowwad Translation Center — bisayan_rwwad
+- Iranun — Sarro — iranun_sarro
+- Maguindanaon — Rowwad Translation Center — maguindanao_rwwad
+- Malay — Abdullah Basumayyah — malay_basumayyah
+- Chinese — Suliman — chinese_suliman
+- Uyghur — Saleh — uyghur_saleh
+- Japanese — Saeed Sato — japanese_saeedsato
+- Somali — Mahmud Muhammad Abduh — somali_abduh
+- Hindi — Azizul Haq Al-Omari — hindi_omari
+- Luganda — African Institution for Development — luganda_foundation
+
+Fetched via QuranEnc's public API (https://quranenc.com/en/home/api/) on 2026-08-17.
+
+Terms (as published by QuranEnc.com, https://quranenc.com/en/home, at time of fetch):
+content may be downloaded and republished provided that: the content is not
+modified, added to, or deleted from; the publisher and source (QuranEnc.com)
+are clearly credited; the version number is mentioned when republishing;
+transcript/document information is preserved; QuranEnc.com is notified of
+any translation issues; and no inappropriate advertisements are shown
+alongside the translations.
+
+This data is imported unmodified (verbatim per-ayah translation text) into
+this app's local database — see lib/services/quran_import_service.dart.

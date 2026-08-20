@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/motion.dart';
+
 /// Colorful icon-grid navigation tile, replacing the plain outlined
 /// buttons that used to fill "الملف الشخصي" — Ismail's request 2026-08-16
 /// ("أريد أيقونات جذابة نفس هذا"), matching the solid-color-circle +
@@ -62,8 +64,8 @@ class NavTile extends StatelessWidget {
     final delay = (index * 0.06).clamp(0.0, 0.5);
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 550),
-      curve: Interval(delay, 1.0, curve: Curves.easeOutCubic),
+      duration: AppMotion.premium,
+      curve: Interval(delay, 1.0, curve: AppMotion.entranceCurve),
       builder: (context, value, child) => Opacity(
         opacity: value.clamp(0.0, 1.0),
         child: Transform.scale(scale: 0.85 + 0.15 * value, child: child),
@@ -85,7 +87,12 @@ class NavGrid extends StatelessWidget {
       crossAxisCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 0.78,
+      // 2026-08-17: was 0.78 — a screenshot caught a hairline
+      // "BOTTOM OVERFLOWED BY 0.179 PIXELS" debug banner on tiles whose
+      // 2-line label is close to the cell's fixed height (translated
+      // labels can run a hair longer than the Arabic original). A touch
+      // more height per cell removes the margin-of-error entirely.
+      childAspectRatio: 0.74,
       children: [for (var i = 0; i < items.length; i++) NavTile(data: items[i], index: i + 1)],
     );
   }

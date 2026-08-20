@@ -23,6 +23,13 @@ class JourneyStatus {
   final double masteryPercent;
   final MemorizationUnit? nextRecommendedUnit;
   final String? difficultyAdvisory;
+  final String? masteryGateAdvisory;
+  final double? reviewSuccessRate;
+  final int hizbCompleted;
+  final int hizbTotal;
+  final int pagesStarted30DaysAgo;
+  final int pagesStartedNow;
+  final int longestMemorizationStreak;
   JourneyStatus({
     required this.plan,
     required this.goal,
@@ -33,6 +40,13 @@ class JourneyStatus {
     required this.masteryPercent,
     required this.nextRecommendedUnit,
     required this.difficultyAdvisory,
+    required this.masteryGateAdvisory,
+    required this.reviewSuccessRate,
+    required this.hizbCompleted,
+    required this.hizbTotal,
+    required this.pagesStarted30DaysAgo,
+    required this.pagesStartedNow,
+    required this.longestMemorizationStreak,
   });
 }
 
@@ -111,6 +125,15 @@ class JourneyPlanRepository {
     await db.update('journey_plan', {'personal_commitment_text': text}, where: 'id = 1');
   }
 
+  /// Used by "رسالتي" to apply its suggested level — only ever called from
+  /// an explicit student confirmation tap, never silently. Requires an
+  /// existing plan row (a student with no plan yet is directed to create
+  /// one in رحلتي first, where target years must also be chosen).
+  Future<void> updateLevel(String level) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.update('journey_plan', {'level': level}, where: 'id = 1');
+  }
+
   /// "أكمل بالوتيرة الحالية" — keeps today's daily target, pushes the
   /// target date out to whatever it actually takes at that pace. No
   /// judgment language; this is just re-anchoring from today.
@@ -138,6 +161,12 @@ class JourneyPlanRepository {
         ) ??
         0;
     final nextUnit = await _memoRepo.nextRecommendedUnit();
+    final masteryGateAdvisory = await _memoRepo.masteryGateAdvisory();
+    final reviewSuccessRate = await _memoRepo.reviewSuccessRate();
+    final hizb = await _memoRepo.hizbProgress();
+    final pagesStarted30DaysAgo = await _memoRepo.pagesStartedAsOf(30);
+    final pagesStartedNow = await _memoRepo.pagesStartedAsOf(0);
+    final longestStreak = await _memoRepo.longestMemorizationStreak();
     final recentDifficulties = await _sessionRepo.recentDifficulties(limit: _advisoryTrendLength);
     String? advisory;
     if (recentDifficulties.length == _advisoryTrendLength) {
@@ -158,6 +187,13 @@ class JourneyPlanRepository {
       masteryPercent: mastered / _totalPages * 100,
       nextRecommendedUnit: nextUnit,
       difficultyAdvisory: advisory,
+      masteryGateAdvisory: masteryGateAdvisory,
+      reviewSuccessRate: reviewSuccessRate,
+      hizbCompleted: hizb.$1,
+      hizbTotal: hizb.$2,
+      pagesStarted30DaysAgo: pagesStarted30DaysAgo,
+      pagesStartedNow: pagesStartedNow,
+      longestMemorizationStreak: longestStreak,
     );
   }
 

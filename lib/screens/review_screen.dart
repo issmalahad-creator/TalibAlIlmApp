@@ -7,6 +7,7 @@ import '../repositories/memorization_repository.dart';
 import '../repositories/milestone_repository.dart';
 import '../repositories/personal_accountability_repository.dart';
 import '../theme/app_theme.dart';
+import '../theme/motion.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 
@@ -177,40 +178,46 @@ class _ReviewScreenState extends State<ReviewScreen> {
           Text('باقي ${_queue.length}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           const SizedBox(height: 12),
           Expanded(
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text('صفحة ${unit.id}', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
-                      if (unit.hifzCategory() != HifzCategory.notStarted) ...[
-                        const SizedBox(width: 8),
-                        Builder(builder: (context) {
-                          final (label, color) = _hifzCategoryLabels[unit.hifzCategory()]!;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-                            child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w800)),
-                          );
-                        }),
+            child: AnimatedSwitcher(
+              duration: AppMotion.normal,
+              switchInCurve: AppMotion.entranceCurve,
+              switchOutCurve: AppMotion.exitCurve,
+              child: Container(
+                key: ValueKey(unit.id),
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(18)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text('صفحة ${unit.id}', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                        if (unit.hifzCategory() != HifzCategory.notStarted) ...[
+                          const SizedBox(width: 8),
+                          Builder(builder: (context) {
+                            final (label, color) = _hifzCategoryLabels[unit.hifzCategory()]!;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                              child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w800)),
+                            );
+                          }),
+                        ],
                       ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'من سورة ${_surahNames[unit.surahStart] ?? unit.surahStart} آية ${unit.ayahStart} '
+                      'إلى سورة ${_surahNames[unit.surahEnd] ?? unit.surahEnd} آية ${unit.ayahEnd}',
+                      style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                    ),
+                    if (_startAyahPreview != null) ...[
+                      const SizedBox(height: 16),
+                      Text(_startAyahPreview!, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.0)),
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'من سورة ${_surahNames[unit.surahStart] ?? unit.surahStart} آية ${unit.ayahStart} '
-                    'إلى سورة ${_surahNames[unit.surahEnd] ?? unit.surahEnd} آية ${unit.ayahEnd}',
-                    style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
-                  ),
-                  if (_startAyahPreview != null) ...[
-                    const SizedBox(height: 16),
-                    Text(_startAyahPreview!, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.0)),
                   ],
-                ],
+                ),
               ),
             ),
           ),
