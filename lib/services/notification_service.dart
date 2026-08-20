@@ -241,7 +241,7 @@ class NotificationService {
         android: AndroidNotificationDetails(
           _taskChannelId,
           _taskChannelName,
-          channelDescription: 'تذكير بمهمة يومية حدّدها الداعية لنفسه',
+          channelDescription: 'تذكير بمهمة يومية حدّدها الطالب لنفسه',
           importance: Importance.high,
           priority: Priority.high,
         ),

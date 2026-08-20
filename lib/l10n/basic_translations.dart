@@ -371,7 +371,7 @@ const Map<String, Map<String, String>> basicTranslations = {
     'so': 'Waa la diyaarinayaa boggaaga hore...', 'fa': 'در حال آماده‌سازی صفحه اصلی شما...', 'ms': 'Menyediakan halaman utama anda...',
   },
   'default_user_name': {
-    'ar': 'الداعية', 'en': 'Student', 'am': 'ተማሪ', 'fr': 'Étudiant', 'sw': 'Mwanafunzi',
+    'ar': 'طالب العلم', 'en': 'Student', 'am': 'ተማሪ', 'fr': 'Étudiant', 'sw': 'Mwanafunzi',
     'ur': 'طالب علم', 'tr': 'Öğrenci', 'id': 'Pelajar', 'bn': 'শিক্ষার্থী', 'ha': 'Ɗalibi',
     'so': 'Ardayga', 'fa': 'دانش‌آموز', 'ms': 'Pelajar',
   },

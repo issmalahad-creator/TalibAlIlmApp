@@ -4,6 +4,7 @@ import '../l10n/basic_translations.dart';
 import '../services/language_preference_service.dart';
 import '../widgets/companion_chat_body.dart';
 import 'companion_debug_screen.dart';
+import 'diagnostics_test_screen.dart';
 
 /// "محادثة الرفيق" — QURAN_COMPANION_ROADMAP.md §4.36 step 2. Full-page
 /// wrapper around `CompanionChatBody` (pure keyword matching + real
@@ -25,6 +26,11 @@ class CompanionChatScreen extends StatelessWidget {
             tooltip: 'تشخيص',
             icon: const Icon(Icons.bug_report_outlined),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompanionDebugScreen())),
+          ),
+          IconButton(
+            tooltip: 'اختبار شامل للتطبيق',
+            icon: const Icon(Icons.health_and_safety_outlined),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiagnosticsTestScreen())),
           ),
         ],
       ),
