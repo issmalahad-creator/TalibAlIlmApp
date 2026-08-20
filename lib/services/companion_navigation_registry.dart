@@ -30,75 +30,79 @@ class CompanionNavigationTarget {
 /// tafsir-source picker, aren't things anyone says "افتح ال..." to).
 /// `names` are match candidates (checked via substring after
 /// normalization in `companion_chat_session.dart`); `displayName` is what
-/// gets echoed back in the confirmation reply.
+/// gets echoed back in the confirmation reply. Each list mixes Arabic and
+/// English names in one place (2026-08-21, universal language layer batch
+/// 2) rather than a parallel English-only list — matching intent match
+/// happens on whichever the student actually typed, regardless of the
+/// app's current UI language.
 const companionNavigationTargets = <CompanionNavigationTarget>[
   CompanionNavigationTarget(
-    names: ['القبلة', 'القبله', 'اتجاه القبلة'],
+    names: ['القبلة', 'القبله', 'اتجاه القبلة', 'qibla', 'qiblah'],
     displayName: 'القبلة',
     builder: _qibla,
   ),
   CompanionNavigationTarget(
-    names: ['مواقيت الصلاة', 'مواعيد الصلاة', 'اوقات الصلاة'],
+    names: ['مواقيت الصلاة', 'مواعيد الصلاة', 'اوقات الصلاة', 'prayer times'],
     displayName: 'مواقيت الصلاة',
     builder: _prayerTimes,
   ),
   CompanionNavigationTarget(
-    names: ['التسبيح', 'عداد التسبيح', 'المسبحة'],
+    names: ['التسبيح', 'عداد التسبيح', 'المسبحة', 'tasbih', 'dhikr counter'],
     displayName: 'التسبيح',
     builder: _tasbih,
   ),
   CompanionNavigationTarget(
-    names: ['الاحاديث', 'الحديث', 'الأربعين النووية'],
+    names: ['الاحاديث', 'الحديث', 'الأربعين النووية', 'hadith', 'nawawi'],
     displayName: 'الأحاديث',
     builder: _hadith,
   ),
   CompanionNavigationTarget(
-    names: ['التجويد', 'احكام التجويد'],
+    names: ['التجويد', 'احكام التجويد', 'tajweed'],
     displayName: 'التجويد',
     builder: _tajweed,
   ),
   CompanionNavigationTarget(
-    names: ['القران', 'المصحف', 'تصفح القران', 'فهرس السور'],
+    names: ['القران', 'المصحف', 'تصفح القران', 'فهرس السور', 'quran', 'mushaf'],
     displayName: 'القرآن',
     builder: _quranBrowse,
   ),
   CompanionNavigationTarget(
-    names: ['البحث في القران', 'ابحث في القران', 'بحث القران'],
+    names: ['البحث في القران', 'ابحث في القران', 'بحث القران', 'search quran', 'quran search'],
     displayName: 'البحث في القرآن',
     builder: _quranSearch,
   ),
   CompanionNavigationTarget(
-    names: ['المراجعة', 'مراجعتي', 'المستحقات'],
+    names: ['المراجعة', 'مراجعتي', 'المستحقات', 'review', 'my review'],
     displayName: 'المراجعة',
     builder: _knowledgeReview,
   ),
   CompanionNavigationTarget(
-    names: ['الاهداف', 'أهدافي', 'خطة الختم', 'اهداف الختم'],
+    names: ['الاهداف', 'أهدافي', 'خطة الختم', 'اهداف الختم', 'goals', 'completion plan'],
     displayName: 'الأهداف',
     builder: _completionGoals,
   ),
   CompanionNavigationTarget(
-    names: ['المكتبة', 'مكتبتي', 'كتبي'],
+    names: ['المكتبة', 'مكتبتي', 'كتبي', 'library', 'my books'],
     displayName: 'المكتبة',
     builder: _personalLibrary,
   ),
   CompanionNavigationTarget(
-    names: ['ملفي الشخصي', 'الملف الشخصي', 'الاعدادات', 'الإعدادات'],
+    names: ['ملفي الشخصي', 'الملف الشخصي', 'الاعدادات', 'الإعدادات', 'profile', 'settings'],
     displayName: 'الملف الشخصي',
     builder: _profile,
   ),
   CompanionNavigationTarget(
-    names: ['الانشطة', 'أنشطتي'],
+    names: ['الانشطة', 'أنشطتي', 'activities'],
     displayName: 'الأنشطة',
     builder: _activities,
   ),
   CompanionNavigationTarget(
-    names: ['الكتاب', 'الرئيسية للكتاب'],
+    names: ['الكتاب', 'الرئيسية للكتاب', 'book'],
     displayName: 'الكتاب',
     builder: _book,
   ),
   CompanionNavigationTarget(
-    names: ['اهدافي اليومية', 'الاهداف اليومية'],
+    names: ['اهدافي اليومية', 'الاهداف اليومية', 'daily goals'],
     displayName: 'الأهداف',
     builder: _goals,
   ),

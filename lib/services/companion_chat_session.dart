@@ -106,10 +106,19 @@ class CompanionChatSession {
   static const _tafsirTriggersOrdered = ['فسر لي', 'تفسير', 'اشرح', 'فسر'];
   static const _tafsirGenericRemainders = ['', 'ها', 'هذه الايه', 'هذه الآية', 'الايه', 'الآية', 'هذه', 'ايه', 'آية'];
 
-  static const _navigationTriggersOrdered = ['اذهب الى', 'خذني الى', 'وديني الى', 'افتح لي', 'روح الى', 'افتح', 'روح'];
+  static const _navigationTriggersOrderedAr = ['اذهب الى', 'خذني الى', 'وديني الى', 'افتح لي', 'روح الى', 'افتح', 'روح'];
+  // 2026-08-21 (universal language layer, batch 2): navigation/tafsir-source
+  // commands used to only be checked for Arabic input (`effectiveLang !=
+  // 'en'`), so an English-typing student lost these capabilities entirely —
+  // not because the underlying data/logic was Arabic-only, just because
+  // nobody had written the English trigger phrases yet. Added here rather
+  // than removing the feature's language awareness.
+  static const _navigationTriggersOrderedEn = ['take me to', 'go to', 'open'];
 
   static const _tafsirSourceCommandCuesAr = ['استخدم تفسير', 'غير التفسير', 'غيّر التفسير', 'اريد تفسير'];
+  static const _tafsirSourceCommandCuesEn = ['use tafsir', 'change tafsir', 'switch tafsir'];
   static const _tafsirSourceListCuesAr = ['ما هي التفاسير', 'ايش التفاسير المتوفرة', 'التفاسير المتوفرة'];
+  static const _tafsirSourceListCuesEn = ['what tafsirs are available', 'available tafsirs', 'which tafsirs'];
   static const _tafsirSourcePrefKey = 'companion_preferred_tafsir_source';
 
   /// In-memory only — "context" scoped to this screen's lifetime, not
@@ -161,12 +170,10 @@ class CompanionChatSession {
           : 'لم تخبرني باسمك بعد — قل "اسمي ..." وسأتذكره من الآن.');
     }
 
-    if (effectiveLang != 'en') {
-      final navigationReply = _tryNavigate(trimmed);
-      if (navigationReply != null) {
-        await _memory.logMessage(trimmed, 'navigation');
-        return navigationReply;
-      }
+    final navigationReply = _tryNavigate(trimmed);
+    if (navigationReply != null) {
+      await _memory.logMessage(trimmed, 'navigation');
+      return navigationReply;
     }
 
     if (_matchesProgressRequest(trimmed, effectiveLang)) {
@@ -176,12 +183,12 @@ class CompanionChatSession {
       return CompanionChatReply(reply);
     }
 
-    if (effectiveLang != 'en' && _tafsirSourceListCuesAr.any((c) => normalizeArabicForSearch(trimmed).contains(normalizeArabicForSearch(c)))) {
+    if ([..._tafsirSourceListCuesAr, ..._tafsirSourceListCuesEn].any((c) => _normalizeForNav(trimmed).contains(_normalizeForNav(c)))) {
       await _memory.logMessage(trimmed, 'tafsir_source_list');
       return CompanionChatReply(_listTafsirSources());
     }
 
-    if (effectiveLang != 'en' && _tafsirSourceCommandCuesAr.any((c) => normalizeArabicForSearch(trimmed).contains(normalizeArabicForSearch(c)))) {
+    if ([..._tafsirSourceCommandCuesAr, ..._tafsirSourceCommandCuesEn].any((c) => _normalizeForNav(trimmed).contains(_normalizeForNav(c)))) {
       final reply = await _trySetTafsirSource(trimmed);
       await _memory.logMessage(trimmed, 'tafsir_source_change');
       return CompanionChatReply(reply);
@@ -244,12 +251,18 @@ class CompanionChatSession {
   /// message fall through to normal matching) when the text doesn't start
   /// with a navigation trigger at all, so an ordinary sentence that happens
   /// to contain "افتح" isn't hijacked into a failed-navigation reply.
+  /// Normalizes for cross-script comparison: `normalizeArabicForSearch` is a
+  /// no-op on Latin text and `toLowerCase()` is a no-op on Arabic text, so
+  /// chaining both handles either script (or a mix) in one pass — no need
+  /// to detect which language a given string is in first.
+  String _normalizeForNav(String text) => normalizeArabicForSearch(text).toLowerCase();
+
   CompanionChatReply? _tryNavigate(String rawText) {
     final trimmed = rawText.trim();
-    final normalizedTrimmed = normalizeArabicForSearch(trimmed);
+    final normalizedTrimmed = _normalizeForNav(trimmed);
     String? remainder;
-    for (final trigger in _navigationTriggersOrdered) {
-      final normTrigger = normalizeArabicForSearch(trigger);
+    for (final trigger in [..._navigationTriggersOrderedAr, ..._navigationTriggersOrderedEn]) {
+      final normTrigger = _normalizeForNav(trigger);
       if (!normalizedTrimmed.startsWith(normTrigger)) continue;
       final triggerWordCount = trigger.split(RegExp(r'\s+')).length;
       final rawWords = trimmed.split(RegExp(r'\s+'));
@@ -258,10 +271,10 @@ class CompanionChatSession {
     }
     if (remainder == null || remainder.trim().isEmpty) return null;
 
-    final normalizedRemainder = normalizeArabicForSearch(remainder);
+    final normalizedRemainder = _normalizeForNav(remainder);
     for (final target in companionNavigationTargets) {
       final matches = target.names.any((name) {
-        final normName = normalizeArabicForSearch(name);
+        final normName = _normalizeForNav(name);
         return normalizedRemainder.contains(normName) || normName.contains(normalizedRemainder);
       });
       if (!matches) continue;
@@ -277,7 +290,7 @@ class CompanionChatSession {
     final remainderWords = normalizedRemainder.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
     for (final target in companionNavigationTargets) {
       final fuzzyMatches = target.names.any((name) {
-        final nameWords = normalizeArabicForSearch(name).split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+        final nameWords = _normalizeForNav(name).split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
         return nameWords.isNotEmpty && remainderWords.every((rw) => nameWords.any((nw) => fuzzy.isFuzzyMatch(nw, rw)));
       });
       if (fuzzyMatches) return _navigateTo(target);
