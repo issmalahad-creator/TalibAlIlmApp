@@ -1027,6 +1027,61 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'رفیق سے بات کریں', 'tr': 'Arkadaşla Sohbet Et', 'id': 'Ngobrol dengan Sahabat', 'bn': 'সঙ্গীর সাথে কথা বলুন', 'ha': 'Yi Hira da Aboki',
     'so': 'La Hadal Saaxiibka', 'fa': 'با همراه گفتگو کن', 'ms': 'Berbual dengan Rakan',
   },
+  'qibla_title': {
+    'ar': 'القبلة', 'en': 'Qibla', 'am': 'ቂብላ', 'fr': 'Qibla', 'sw': 'Kibla',
+    'ur': 'قبلہ', 'tr': 'Kıble', 'id': 'Kiblat', 'bn': 'কিবলা', 'ha': 'Kibla',
+    'so': 'Kibla', 'fa': 'قبله', 'ms': 'Kiblat',
+  },
+  'qibla_tab_compass': {
+    'ar': 'البوصلة', 'en': 'Compass', 'am': 'ኮምፓስ', 'fr': 'Boussole', 'sw': 'Dira',
+    'ur': 'قطب نما', 'tr': 'Pusula', 'id': 'Kompas', 'bn': 'কম্পাস', 'ha': 'Kamfas',
+    'so': 'Kamfas', 'fa': 'قطب‌نما', 'ms': 'Kompas',
+  },
+  'qibla_tab_map': {
+    'ar': 'المرئية', 'en': 'Map', 'am': 'ካርታ', 'fr': 'Carte', 'sw': 'Ramani',
+    'ur': 'نقشہ', 'tr': 'Harita', 'id': 'Peta', 'bn': 'মানচিত্র', 'ha': 'Taswira',
+    'so': 'Khariidad', 'fa': 'نقشه', 'ms': 'Peta',
+  },
+  'qibla_tab_ar': {
+    'ar': 'الواقع المعزز', 'en': 'Augmented Reality', 'am': 'የተጨመረ እውነታ', 'fr': 'Réalité augmentée', 'sw': 'Uhalisia Ulioboreshwa',
+    'ur': 'اگمینٹڈ رئیلٹی', 'tr': 'Artırılmış Gerçeklik', 'id': 'Realitas Tertambah', 'bn': 'অগমেন্টেড রিয়েলিটি', 'ha': 'Gaskiyar Da Aka Ƙara',
+    'so': 'Xaqiiqada La Xoojiyay', 'fa': 'واقعیت افزوده', 'ms': 'Realiti Ditambah',
+  },
+  'qibla_tab_sun': {
+    'ar': 'الشمس', 'en': 'Sun', 'am': 'ፀሐይ', 'fr': 'Soleil', 'sw': 'Jua',
+    'ur': 'سورج', 'tr': 'Güneş', 'id': 'Matahari', 'bn': 'সূর্য', 'ha': 'Rana',
+    'so': 'Qorax', 'fa': 'خورشید', 'ms': 'Matahari',
+  },
+  'qibla_ar_rug_help_tooltip': {
+    'ar': 'ما معنى السجادة في الواقع المعزز؟', 'en': 'What does the rug in AR mean?', 'am': 'በAR ውስጥ ያለው ምንጣፍ ምን ማለት ነው?', 'fr': 'Que signifie le tapis en RA ?', 'sw': 'Zulia katika AR lina maana gani?',
+    'ur': 'اے آر میں قالین کا کیا مطلب ہے؟', 'tr': 'AR\'daki halı ne anlama geliyor?', 'id': 'Apa arti sajadah di AR?', 'bn': 'AR-এ গালিচার অর্থ কী?', 'ha': 'Menene ma\'anar kafet a AR?',
+    'so': 'Waa maxay macnaha roogga AR?', 'fa': 'فرش در AR به چه معناست؟', 'ms': 'Apakah maksud permaidani dalam AR?',
+  },
+  'qibla_ar_rug_help_title': {
+    'ar': 'السجادة في الواقع المعزز', 'en': 'The Rug in Augmented Reality', 'am': 'ምንጣፉ በተጨመረ እውነታ', 'fr': 'Le tapis en réalité augmentée', 'sw': 'Zulia katika Uhalisia Ulioboreshwa',
+    'ur': 'اے آر میں قالین', 'tr': 'Artırılmış Gerçeklikte Halı', 'id': 'Sajadah di Realitas Tertambah', 'bn': 'AR-এ গালিচা', 'ha': 'Kafet a Gaskiyar Da Aka Ƙara',
+    'so': 'Rooga Xaqiiqada La Xoojiyay', 'fa': 'فرش در واقعیت افزوده', 'ms': 'Permaidani dalam Realiti Ditambah',
+  },
+  'qibla_ar_rug_help_body': {
+    'ar': 'الشكل الظاهر أسفل الشاشة يمثّل سجادة الصلاة — تدور تلقائيًا لتشير إلى نفس اتجاه الكعبة الذي تحدده الأيقونة العلوية، لتساعدك على معرفة أين تفرش سجادتك فعليًا.',
+    'en': 'The shape at the bottom of the screen represents a prayer rug — it rotates automatically to face the same Kaaba direction the icon above points to, helping you know where to actually lay your rug.',
+    'am': 'ከስክሪኑ ግርጌ ያለው ቅርጽ የጸሎት ምንጣፍን ይወክላል — ከላይ ያለው አዶ ወደሚያመለክተው ተመሳሳይ የካዕባ አቅጣጫ በራስ-ሰር ይሽከረከራል፣ ምንጣፍዎን በትክክል የት እንደሚያነጥፉ ለማወቅ ይረዳዎታል።',
+    'fr': 'La forme en bas de l\'écran représente un tapis de prière — elle pivote automatiquement pour indiquer la même direction de la Kaaba que l\'icône ci-dessus, vous aidant à savoir où poser réellement votre tapis.',
+    'sw': 'Umbo lililo chini ya skrini linawakilisha zulia la sala — linazunguka kiotomatiki kuelekea mwelekeo uleule wa Kaaba unaoonyeshwa na aikoni iliyo juu, likikusaidia kujua wapi hasa pa kutandika zulia lako.',
+    'ur': 'اسکرین کے نیچے موجود شکل نماز کے قالین کی نمائندگی کرتی ہے — یہ خودکار طور پر اسی کعبہ کی سمت کی طرف گھومتی ہے جو اوپر والا آئیکن ظاہر کرتا ہے، تاکہ آپ کو معلوم ہو کہ اپنا قالین اصل میں کہاں بچھانا ہے۔',
+    'tr': 'Ekranın altındaki şekil bir seccadeyi temsil eder — yukarıdaki simgenin işaret ettiği aynı Kâbe yönüne otomatik olarak döner, böylece seccadenizi gerçekte nereye sereceğinizi bilmenize yardımcı olur.',
+    'id': 'Bentuk di bagian bawah layar mewakili sajadah — berputar otomatis mengarah ke arah Ka\'bah yang sama seperti ditunjukkan ikon di atas, membantu Anda mengetahui di mana sebenarnya menggelar sajadah.',
+    'bn': 'স্ক্রিনের নিচের আকৃতিটি জায়নামাজ প্রতিনিধিত্ব করে — এটি স্বয়ংক্রিয়ভাবে ঘোরে একই কাবার দিকে যা উপরের আইকনটি নির্দেশ করে, আপনাকে জানতে সাহায্য করে যে আসলে কোথায় আপনার জায়নামাজ বিছাতে হবে।',
+    'ha': 'Siffar da ke ƙasan allon tana wakiltar kafet na sallah — tana juyawa ta atomatik zuwa wannan hanyar Ka\'aba wanda alamar da ke sama ke nunawa, tana taimaka maka sanin inda za ka shimfiɗa kafet ɗinka a zahiri.',
+    'so': 'Qaabka ku yaal hoosta shaashadda wuxuu matalayaa roogga salaadda — si toos ah ayuu ugu wareegaa jihada Kacbada ee ay tilmaamayso astaanta sare, taasoo kaa caawinaysa inaad ogaato meesha aad dhab ahaan u gogoshid roogaaga.',
+    'fa': 'شکل پایین صفحه نمایانگر سجاده است — به‌طور خودکار به همان جهت کعبه‌ای می‌چرخد که آیکون بالا نشان می‌دهد و به شما کمک می‌کند بدانید سجاده خود را واقعاً کجا پهن کنید.',
+    'ms': 'Bentuk di bahagian bawah skrin mewakili sejadah — ia berputar secara automatik menghadap arah Kaabah yang sama seperti yang ditunjukkan ikon di atas, membantu anda mengetahui di mana sebenarnya untuk membentangkan sejadah anda.',
+  },
+  'qibla_ar_rug_help_dismiss': {
+    'ar': 'فهمت', 'en': 'Got it', 'am': 'ገባኝ', 'fr': 'Compris', 'sw': 'Nimeelewa',
+    'ur': 'سمجھ گیا', 'tr': 'Anladım', 'id': 'Mengerti', 'bn': 'বুঝেছি', 'ha': 'Na Gane',
+    'so': 'Waan Fahmay', 'fa': 'فهمیدم', 'ms': 'Faham',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

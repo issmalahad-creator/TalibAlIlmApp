@@ -220,6 +220,24 @@ class _QiblaArViewState extends State<QiblaArView> with WidgetsBindingObserver {
           fit: StackFit.expand,
           children: [
             CameraPreview(controller),
+            // "فرش السجادة" (Ismail's 2026-08-21 request) — an original
+            // hand-drawn prayer-rug glyph (not a bundled/licensed image,
+            // same discipline as every other Qibla graphic in this app),
+            // sitting where the ground would be and rotated by [diff] so
+            // its mihrab arch always points toward the Kaaba direction —
+            // a visual "lay your rug facing this way" cue. Deliberately a
+            // flat rotated 2D overlay, not a true ground-plane-anchored
+            // 3D placement (this view intentionally avoids ARCore, see the
+            // class doc comment), so it doesn't claim more precision than
+            // the underlying compass bearing actually has.
+            Positioned(
+              bottom: 92,
+              left: constraints.maxWidth / 2 - 46,
+              child: Transform.rotate(
+                angle: diff * pi / 180,
+                child: CustomPaint(size: const Size(92, 92), painter: _PrayerRugPainter(color: facingQibla ? AppColors.primary : const Color(0xFFD9A441))),
+              ),
+            ),
             if (withinFov)
               Positioned(
                 top: constraints.maxHeight * 0.35 - offsetY,
@@ -307,6 +325,65 @@ class _TurnArrow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Public wrapper around `_PrayerRugPainter` so `QiblaScreen`'s AR-help
+/// dialog can show the same original glyph it explains, instead of
+/// duplicating the drawing code.
+class PrayerRugGlyph extends StatelessWidget {
+  final Color color;
+  final double size;
+  const PrayerRugGlyph({super.key, required this.color, this.size = 92});
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(size: Size(size, size), painter: _PrayerRugPainter(color: color));
+}
+
+/// Original prayer-rug glyph, hand-drawn with `Canvas` — a rounded
+/// rectangle body with a decorative double border and a mihrab-arch niche
+/// at the top (the pointed shape a real prayer rug's design faces toward
+/// the qibla), so its orientation reads clearly once rotated.
+class _PrayerRugPainter extends CustomPainter {
+  final Color color;
+  const _PrayerRugPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final bodyRect = Rect.fromLTWH(w * 0.12, h * 0.28, w * 0.76, h * 0.68);
+    final bodyRRect = RRect.fromRectAndRadius(bodyRect, const Radius.circular(6));
+
+    final fill = Paint()..color = color.withValues(alpha: 0.22);
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..color = color;
+    final innerStroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = color.withValues(alpha: 0.7);
+
+    canvas.drawRRect(bodyRRect, fill);
+    canvas.drawRRect(bodyRRect, stroke);
+    canvas.drawRRect(bodyRRect.deflate(6), innerStroke);
+
+    // Mihrab arch — a rounded-top niche at the rug's head end, pointing
+    // toward whichever way the whole glyph is rotated.
+    final archWidth = w * 0.4;
+    final archLeft = (w - archWidth) / 2;
+    final archTop = h * 0.02;
+    final archBottom = h * 0.3;
+    final archPath = Path()
+      ..moveTo(archLeft, archBottom)
+      ..lineTo(archLeft, archTop + archWidth / 2)
+      ..arcToPoint(Offset(archLeft + archWidth, archTop + archWidth / 2), radius: Radius.circular(archWidth / 2), clockwise: true)
+      ..lineTo(archLeft + archWidth, archBottom);
+    canvas.drawPath(archPath, fill);
+    canvas.drawPath(archPath, stroke);
+  }
+
+  @override
+  bool shouldRepaint(covariant _PrayerRugPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class _ArMessage extends StatelessWidget {

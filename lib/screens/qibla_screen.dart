@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/prayer_times_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/location_service.dart';
 import '../services/solar_position.dart';
 import '../theme/app_theme.dart';
@@ -152,18 +154,57 @@ class _QiblaScreenState extends State<QiblaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return Scaffold(
-      appBar: AppBar(title: const Text('القبلة')),
+      appBar: AppBar(
+        title: Text(basicText('qibla_title', lang)),
+        actions: [
+          if (_method == _QiblaMethod.ar)
+            IconButton(
+              tooltip: basicText('qibla_ar_rug_help_tooltip', lang),
+              icon: const Icon(Icons.info_outline),
+              onPressed: () => _showArRugHelp(context, lang),
+            ),
+        ],
+      ),
       body: _loading
           ? const AppLoadingView(icon: Icons.explore_outlined, message: 'جاري تحديد موقعك لحساب اتجاه القبلة بدقة...')
           : _noLocation
               ? _NoLocationView(onRetry: _load)
               : Column(
                   children: [
-                    _MethodTabs(current: _method, onChanged: (m) => setState(() => _method = m)),
+                    _MethodTabs(current: _method, onChanged: (m) => setState(() => _method = m), lang: lang),
                     Expanded(child: _buildBody()),
                   ],
                 ),
+    );
+  }
+
+  /// "اضف الصورة هاذي في الشرح ليفهم المستخدم ان هناك AR المعزز" (Ismail,
+  /// 2026-08-21) — explains the AR tab's rug indicator with the exact same
+  /// original glyph (`PrayerRugGlyph`) drawn inside that view, not a
+  /// bundled/licensed photo (the reference image he shared looks like
+  /// commercial product photography of unknown origin — same caution this
+  /// app applies to every other image asset).
+  Future<void> _showArRugHelp(BuildContext context, String lang) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(basicText('qibla_ar_rug_help_title', lang)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const PrayerRugGlyph(color: AppColors.primary, size: 96),
+            const SizedBox(height: 16),
+            Text(
+              basicText('qibla_ar_rug_help_body', lang),
+              textAlign: TextAlign.center,
+              style: const TextStyle(height: 1.6),
+            ),
+          ],
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(basicText('qibla_ar_rug_help_dismiss', lang)))],
+      ),
     );
   }
 
@@ -201,13 +242,14 @@ class _QiblaScreenState extends State<QiblaScreen> {
 class _MethodTabs extends StatelessWidget {
   final _QiblaMethod current;
   final ValueChanged<_QiblaMethod> onChanged;
-  const _MethodTabs({required this.current, required this.onChanged});
+  final String lang;
+  const _MethodTabs({required this.current, required this.onChanged, required this.lang});
 
   static const _tabs = [
-    (_QiblaMethod.compass, 'البوصلة', Icons.explore_outlined),
-    (_QiblaMethod.map, 'المرئية', Icons.map_outlined),
-    (_QiblaMethod.ar, 'الواقع المعزز', Icons.view_in_ar_outlined),
-    (_QiblaMethod.sun, 'الشمس', Icons.wb_sunny_outlined),
+    (_QiblaMethod.compass, 'qibla_tab_compass', Icons.explore_outlined),
+    (_QiblaMethod.map, 'qibla_tab_map', Icons.map_outlined),
+    (_QiblaMethod.ar, 'qibla_tab_ar', Icons.view_in_ar_outlined),
+    (_QiblaMethod.sun, 'qibla_tab_sun', Icons.wb_sunny_outlined),
   ];
 
   @override
@@ -216,7 +258,8 @@ class _MethodTabs extends StatelessWidget {
       color: AppColors.primaryDark,
       child: Row(
         children: _tabs.map((t) {
-          final (method, label, icon) = t;
+          final (method, labelKey, icon) = t;
+          final label = basicText(labelKey, lang);
           final selected = method == current;
           return Expanded(
             child: InkWell(
