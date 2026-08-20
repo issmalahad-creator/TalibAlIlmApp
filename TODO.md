@@ -919,8 +919,8 @@ Everything currently open across this whole session, gathered in one place so no
 - [ ] Home-screen quick-access language switcher (a button/icon directly on the home screen, not buried in profile settings) — Ismail's 2026-08-17 request, not yet built.
 
 **Bugs reported, not yet fixed**
-- [ ] Adhan test/preview screen's stop button doesn't work.
-- [ ] Quran reading screen's audio bar: pause/stop doesn't work (play does) — likely in `_AyahAudioBar`/`QuranAudioEngine`, needs investigation.
+- [x] Adhan test/preview screen's stop button doesn't work (2026-08-20) — root cause: there was no stop control at all, `_playTestAdhan` only ever restarted playback from the top; the only way to silence it was leaving the screen. `notification_settings_screen.dart` now tracks `_testPlaying` (set on `onPlayerComplete`) and the button toggles into a real "إيقاف" stop action while playing.
+- [x] Quran reading screen's audio bar: pause/stop doesn't work (play does) (2026-08-20) — root cause confirmed in the code's own doc comment: `_audioPaused` only blocked the *next* ayah's `playAyah` call from starting, it never silenced audio already playing, because `QuranAudioEngine` had no real pause/resume, only `stop()`. Added real `pause()`/`resume()` to `QuranAudioEngine` (`audioplayers`' own `_player.pause()`/`.resume()`) and wired `_playPauseAudio` in `quran_reading_screen.dart` to call them instead of relying on the busy-wait flag alone.
 - [ ] `goals_screen.dart`'s "+" button reportedly led to a blank/frozen screen even in Arabic (2026-08-17 report) — reviewed the whole path (model/repo/`showPremiumModal`/DB schema) with no bug found statically; added defensive try/catch + the app-wide `ErrorWidget.builder` fix so a recurrence will show a real error instead of blankness. Needs a fresh repro if it happens again.
 
 **New features requested, not yet started**

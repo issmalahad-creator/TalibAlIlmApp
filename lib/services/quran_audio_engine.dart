@@ -37,6 +37,12 @@ class QuranAudioEngine {
     _player.stop();
   }
 
+  /// Real mid-playback pause/resume (unlike the caller-side `_audioPaused`
+  /// flag pattern used before this, which only blocked the *next* ayah from
+  /// starting and never actually silenced audio already playing).
+  Future<void> pause() => _player.pause();
+  Future<void> resume() => _player.resume();
+
   Future<Source> _sourceFor(String reciterId, int surah, int ayah) async {
     final local = await _downloadService.localFileIfExists(reciterId, surah, ayah);
     if (local != null) return DeviceFileSource(local.path);

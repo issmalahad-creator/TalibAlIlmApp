@@ -108,10 +108,11 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   bool _pageFavorited = false;
 
   /// شريط الاستماع (الرواق الذهبي، 2026-08-17) — يبني على `QuranAudioEngine`
-  /// الموجود فعليًا (`playAyah`/`stop`)، يتحكم يدويًا بالتقدّم آية-بآية بدل
-  /// `playRange` الأعمى، لأن `stateStream` لا تُغذّى إلا من جلسة التحفيظ
-  /// المنفصلة. `_audioPaused` يمنع بدء الآية التالية فقط — لا يوقف صوتًا
-  /// منتصف التشغيل، قيد حقيقي في `QuranAudioEngine` موثَّق لا مُخفى.
+  /// الموجود فعليًا (`playAyah`/`stop`/`pause`/`resume`)، يتحكم يدويًا بالتقدّم
+  /// آية-بآية بدل `playRange` الأعمى، لأن `stateStream` لا تُغذّى إلا من جلسة
+  /// التحفيظ المنفصلة. `_audioPaused` يمنع بدء الآية التالية عبر حلقة الانتظار
+  /// وأيضًا يوقف الصوت الجاري فعليًا (`QuranAudioEngine.pause`) — أُصلح
+  /// 2026-08-20 بعد أن كان يوقف التسلسل فقط لا الصوت نفسه.
   final _audioEngine = QuranAudioEngine();
   bool _showAudioBar = false;
   bool _audioPlaying = false;
@@ -437,7 +438,13 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     if (!_audioPlaying) {
       _playFrom(_audioIndex);
     } else {
-      setState(() => _audioPaused = !_audioPaused);
+      final pausing = !_audioPaused;
+      setState(() => _audioPaused = pausing);
+      if (pausing) {
+        _audioEngine.pause();
+      } else {
+        _audioEngine.resume();
+      }
     }
   }
 

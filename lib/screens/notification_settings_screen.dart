@@ -47,11 +47,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   int _quietStart = 22;
   int _quietEnd = 6;
   bool _loading = true;
+  bool _testPlaying = false;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _testPlayer.onPlayerComplete.listen((_) {
+      if (mounted) setState(() => _testPlaying = false);
+    });
   }
 
   @override
@@ -64,7 +68,16 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   /// Ismail can preview it immediately — the real notification-channel
   /// sound is a separate native raw-resource copy of the same file (see
   /// `notification_service.dart`'s doc comment on why two copies exist).
+  /// Toggles into a real stop control while playing (previously the button
+  /// only ever restarted playback from the top — there was no way to
+  /// actually stop the preview short of leaving the screen).
   Future<void> _playTestAdhan() async {
+    if (_testPlaying) {
+      await _testPlayer.stop();
+      if (mounted) setState(() => _testPlaying = false);
+      return;
+    }
+    setState(() => _testPlaying = true);
     await _testPlayer.stop();
     await _testPlayer.play(AssetSource('audio/adhan_beautiful.ogg'));
   }
@@ -240,8 +253,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                             alignment: AlignmentDirectional.centerStart,
                             child: OutlinedButton.icon(
                               onPressed: _playTestAdhan,
-                              icon: const Icon(Icons.play_arrow),
-                              label: const Text('تجربة صوت الأذان'),
+                              icon: Icon(_testPlaying ? Icons.stop : Icons.play_arrow),
+                              label: Text(_testPlaying ? 'إيقاف' : 'تجربة صوت الأذان'),
                             ),
                           ),
                         ),
