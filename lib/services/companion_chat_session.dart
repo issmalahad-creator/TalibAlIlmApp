@@ -1,3 +1,4 @@
+import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +9,7 @@ import '../repositories/companion_memory_repository.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../repositories/quran_reading_repository.dart';
 import '../repositories/quran_reading_session_repository.dart';
+import '../repositories/prayer_times_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../screens/adhkar_category_screen.dart';
 import '../utils/arabic_normalize.dart';
@@ -16,6 +18,7 @@ import 'companion_chat_engine.dart';
 import 'companion_context_tracker.dart';
 import 'companion_navigation_registry.dart';
 import 'language_preference_service.dart';
+import 'location_service.dart';
 
 /// "اذا ضغط يفتح واذا لم اضغط... يكون طبيعي... ما يفتح تلقائي" (Ismail,
 /// 2026-08-18) — a reply can offer an "open the full screen" action, but
@@ -60,6 +63,8 @@ class CompanionChatSession {
   final QuranReadingSessionRepository _readingRepo;
   final QuranReadingRepository _quranRepo;
   final AdhkarRepository _adhkarRepo;
+  final PrayerTimesRepository _prayerTimesRepo;
+  final LocationService _locationService;
 
   CompanionChatSession({
     CompanionChatEngine? engine,
@@ -68,11 +73,15 @@ class CompanionChatSession {
     QuranReadingSessionRepository? readingRepo,
     QuranReadingRepository? quranRepo,
     AdhkarRepository? adhkarRepo,
+    PrayerTimesRepository? prayerTimesRepo,
+    LocationService? locationService,
   })  : _engine = engine ?? CompanionChatEngine(),
         _memory = memory ?? CompanionMemoryRepository(),
         _journeyRepo = journeyRepo ?? JourneyPlanRepository(),
         _readingRepo = readingRepo ?? QuranReadingSessionRepository(),
         _quranRepo = quranRepo ?? QuranReadingRepository(),
+        _prayerTimesRepo = prayerTimesRepo ?? PrayerTimesRepository(),
+        _locationService = locationService ?? LocationService(),
         _adhkarRepo = adhkarRepo ?? AdhkarRepository();
 
   static final _arNamePattern = RegExp('اسمي\\s+([؀-ۿ]{2,25})');
@@ -80,6 +89,14 @@ class CompanionChatSession {
 
   static const _progressKeywordsAr = ['انجازاتي', 'كم انجزت', 'تقدمي', 'وين وصلت', 'كم بقي', 'كم استثمرت'];
   static const _progressKeywordsEn = ['my progress', 'how much have i done', 'what\'s left', 'how much time have i'];
+
+  // 2026-08-21 (universal language layer, batch 2 — Ismail's "function
+  // calling" example verbatim: "متى صلاتي القادمة؟"): real data from
+  // PrayerTimesRepository + LocationService, never invented — same honest
+  // "no location available" fallback the standalone Qibla/prayer screens
+  // already use, not a silent guess.
+  static const _prayerTimeKeywordsAr = ['متى الصلاة', 'الصلاة القادمة', 'متى صلاتي', 'كم باقي على الصلاة', 'وقت الصلاة القادمة'];
+  static const _prayerTimeKeywordsEn = ['next prayer', 'when is prayer', 'prayer time', 'when is the next prayer'];
 
   static const _recognitionKeywordsAr = ['هل تعرفني', 'تعرفني', 'من انا', 'تتذكرني', 'هل تتذكرني'];
   static const _recognitionKeywordsEn = ['do you know me', 'who am i', 'do you remember me'];
@@ -174,6 +191,12 @@ class CompanionChatSession {
     if (navigationReply != null) {
       await _memory.logMessage(trimmed, 'navigation');
       return navigationReply;
+    }
+
+    if (_matchesKeywords(trimmed, effectiveLang, _prayerTimeKeywordsAr, _prayerTimeKeywordsEn)) {
+      final reply = await _buildPrayerTimesReply(effectiveLang);
+      await _memory.logMessage(trimmed, 'prayer_times');
+      return CompanionChatReply(reply);
     }
 
     if (_matchesProgressRequest(trimmed, effectiveLang)) {
@@ -616,6 +639,44 @@ class CompanionChatSession {
     final prefix = approximate ? 'Closest match — ${best.surahName}, ayah ${best.ayah}' : '${best.surahName}, ayah ${best.ayah}';
     if (text == null || text.isEmpty) return '$prefix — no translation available.';
     return '$prefix:\n\n$text';
+  }
+
+  static const _prayerNamesAr = {
+    Prayer.fajr: 'الفجر',
+    Prayer.sunrise: 'الشروق',
+    Prayer.dhuhr: 'الظهر',
+    Prayer.asr: 'العصر',
+    Prayer.maghrib: 'المغرب',
+    Prayer.isha: 'العشاء',
+  };
+  static const _prayerNamesEn = {
+    Prayer.fajr: 'Fajr',
+    Prayer.sunrise: 'Sunrise',
+    Prayer.dhuhr: 'Dhuhr',
+    Prayer.asr: 'Asr',
+    Prayer.maghrib: 'Maghrib',
+    Prayer.isha: 'Isha',
+  };
+
+  /// Real data only — `adhan_dart`'s own calculation (same engine/settings
+  /// the standalone "مواقيت الصلاة" screen uses), never invented. Honest
+  /// "no location" fallback rather than guessing a time, matching the
+  /// standalone screen's own `_NoLocationView` behavior.
+  Future<String> _buildPrayerTimesReply(String lang) async {
+    final coordinates = await _locationService.currentLocation();
+    if (coordinates == null) {
+      return lang == 'en'
+          ? 'I don\'t have your location yet — open "مواقيت الصلاة" once to set it, then ask me again.'
+          : 'ليس لدي موقعك بعد — افتح "مواقيت الصلاة" مرة واحدة لتحديده، ثم اسألني مجددًا.';
+    }
+    final times = await _prayerTimesRepo.prayerTimesFor(coordinates);
+    final next = times.nextPrayer();
+    final nextTime = times.timeForPrayer(next).toLocal();
+    final name = (lang == 'en' ? _prayerNamesEn : _prayerNamesAr)[next] ?? next.name;
+    final hour = nextTime.hour % 12 == 0 ? 12 : nextTime.hour % 12;
+    final minute = nextTime.minute.toString().padLeft(2, '0');
+    final period = lang == 'en' ? (nextTime.hour < 12 ? 'AM' : 'PM') : (nextTime.hour < 12 ? 'ص' : 'م');
+    return lang == 'en' ? 'Next prayer: $name at $hour:$minute $period.' : 'الصلاة القادمة: $name الساعة $hour:$minute $period.';
   }
 
   Future<String> _buildProgressReport(String lang) async {
