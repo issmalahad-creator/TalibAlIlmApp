@@ -142,15 +142,13 @@ flutter:
     - assets/quran/tafsir-iranun_sarro.jsonl.gz
     - assets/quran/tafsir-maguindanao_rwwad.jsonl.gz
     - assets/quran/tafsir-malay_basumayyah.jsonl.gz
-    # 2026-08-17: temporarily held out (still fetching in the background,
-    # see quran_import_service.dart's matching note) so this build isn't
-    # blocked on them — re-add the moment the 6 files land in assets/quran/.
-    # - assets/quran/tafsir-chinese_suliman.jsonl.gz
-    # - assets/quran/tafsir-uyghur_saleh.jsonl.gz
-    # - assets/quran/tafsir-japanese_saeedsato.jsonl.gz
-    # - assets/quran/tafsir-somali_abduh.jsonl.gz
-    # - assets/quran/tafsir-hindi_omari.jsonl.gz
-    # - assets/quran/tafsir-luganda_foundation.jsonl.gz
+    # 2026-08-21: re-enabled, see quran_import_service.dart's matching note.
+    - assets/quran/tafsir-chinese_suliman.jsonl.gz
+    - assets/quran/tafsir-uyghur_saleh.jsonl.gz
+    - assets/quran/tafsir-japanese_saeedsato.jsonl.gz
+    - assets/quran/tafsir-somali_abduh.jsonl.gz
+    - assets/quran/tafsir-hindi_omari.jsonl.gz
+    - assets/quran/tafsir-luganda_foundation.jsonl.gz
     - assets/hadith/nawawi40.json
     - assets/aqeedah/wasitiyyah.json
     - assets/fiqh_seerah/zad_almaad_vol1.json

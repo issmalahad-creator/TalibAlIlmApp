@@ -314,20 +314,18 @@ class QuranImportService {
     ('assets/quran/tafsir-iranun_sarro.jsonl.gz', 'iranun_sarro', 'iru'),
     ('assets/quran/tafsir-maguindanao_rwwad.jsonl.gz', 'maguindanao_rwwad', 'mdh'),
     ('assets/quran/tafsir-malay_basumayyah.jsonl.gz', 'malay_basumayyah', 'ms'),
-    // 2026-08-17: these 6 are still being fetched by the background script
-    // (`tool/fetch_quranenc_translations.dart`, resumable/idempotent — it
-    // skips any language whose file already exists) — temporarily
-    // commented out here + in pubspec.yaml so a build isn't blocked on
-    // them. Re-add both the moment the asset files land; nothing else
-    // needs to change (`_importTafsirEdition`'s per-edition self-heal
-    // picks up new editions on the very next app launch after an update,
-    // no fresh install required).
-    // ('assets/quran/tafsir-chinese_suliman.jsonl.gz', 'chinese_suliman', 'zh'),
-    // ('assets/quran/tafsir-uyghur_saleh.jsonl.gz', 'uyghur_saleh', 'ug'),
-    // ('assets/quran/tafsir-japanese_saeedsato.jsonl.gz', 'japanese_saeedsato', 'ja'),
-    // ('assets/quran/tafsir-somali_abduh.jsonl.gz', 'somali_abduh', 'so'),
-    // ('assets/quran/tafsir-hindi_omari.jsonl.gz', 'hindi_omari', 'hi'),
-    // ('assets/quran/tafsir-luganda_foundation.jsonl.gz', 'luganda_foundation', 'lg'),
+    // 2026-08-21: re-enabled — asset files landed, verified directly (not
+    // assumed): 6235 lines each, matching the rest of this batch, real
+    // translated text in the correct script for each language (checked the
+    // first line of each file). `_importTafsirEdition`'s per-edition
+    // self-heal picks these up on the next app launch after an update, no
+    // fresh install required.
+    ('assets/quran/tafsir-chinese_suliman.jsonl.gz', 'chinese_suliman', 'zh'),
+    ('assets/quran/tafsir-uyghur_saleh.jsonl.gz', 'uyghur_saleh', 'ug'),
+    ('assets/quran/tafsir-japanese_saeedsato.jsonl.gz', 'japanese_saeedsato', 'ja'),
+    ('assets/quran/tafsir-somali_abduh.jsonl.gz', 'somali_abduh', 'so'),
+    ('assets/quran/tafsir-hindi_omari.jsonl.gz', 'hindi_omari', 'hi'),
+    ('assets/quran/tafsir-luganda_foundation.jsonl.gz', 'luganda_foundation', 'lg'),
   ];
 
   Future<void> _importTafsirEdition(Database db, (String, String, String) edition) async {

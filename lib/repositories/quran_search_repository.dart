@@ -82,17 +82,13 @@ class QuranSearchRepository {
     ('iranun_sarro', 'Sarro', 'iru'),
     ('maguindanao_rwwad', 'Rowwad Translation Center', 'mdh'),
     ('malay_basumayyah', 'Abdullah Basumayyah', 'ms'),
-    // 2026-08-17: matching the temporary hold in quran_import_service.dart
-    // — these 6 aren't imported into this build yet (still fetching in
-    // the background), so left out of the picker rather than offering a
-    // language that would show an empty result. Re-add alongside the
-    // import list the moment the asset files land.
-    // ('chinese_suliman', 'Suliman', 'zh'),
-    // ('uyghur_saleh', 'Saleh', 'ug'),
-    // ('japanese_saeedsato', 'Saeed Sato', 'ja'),
-    // ('somali_abduh', 'Mahmud Muhammad Abduh', 'so'),
-    // ('hindi_omari', 'Azizul Haq Al-Omari', 'hi'),
-    // ('luganda_foundation', 'African Institution for Development', 'lg'),
+    // 2026-08-21: re-enabled alongside quran_import_service.dart's matching list.
+    ('chinese_suliman', 'Suliman', 'zh'),
+    ('uyghur_saleh', 'Saleh', 'ug'),
+    ('japanese_saeedsato', 'Saeed Sato', 'ja'),
+    ('somali_abduh', 'Mahmud Muhammad Abduh', 'so'),
+    ('hindi_omari', 'Azizul Haq Al-Omari', 'hi'),
+    ('luganda_foundation', 'African Institution for Development', 'lg'),
   ];
   static const defaultTafsirSource = 'almukhtasar';
 
