@@ -3135,6 +3135,58 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'مزید', 'tr': 'daha', 'id': 'lainnya', 'bn': 'আরও', 'ha': 'ƙari',
     'so': 'kale', 'fa': 'مورد دیگر', 'ms': 'lagi',
   },
+  // 2026-08-22: curriculum_map_screen.dart. Level/item titles+details come
+  // from curriculum_levels.dart / curriculum_repository.dart (content).
+  'curriculum_map_title': {
+    'ar': 'خريطتي التعليمية', 'en': 'My Learning Map', 'am': 'የትምህርት ካርታዬ', 'fr': "Ma carte d'apprentissage", 'sw': 'Ramani Yangu ya Kujifunza',
+    'ur': 'میرا تعلیمی نقشہ', 'tr': 'Öğrenme Haritam', 'id': 'Peta Belajar Saya', 'bn': 'আমার শেখার মানচিত্র', 'ha': 'Taswirar Karatuna',
+    'so': 'Khariiddayda Waxbarashada', 'fa': 'نقشه یادگیری من', 'ms': 'Peta Pembelajaran Saya',
+  },
+  'content_coming_soon_message': {
+    'ar': 'هذا المحتوى قيد التحضير', 'en': 'This content is being prepared', 'am': 'ይህ ይዘት በዝግጅት ላይ ነው', 'fr': 'Ce contenu est en préparation', 'sw': 'Maudhui haya yanaandaliwa',
+    'ur': 'یہ مواد تیار کیا جا رہا ہے', 'tr': 'Bu içerik hazırlanıyor', 'id': 'Konten ini sedang disiapkan', 'bn': 'এই বিষয়বস্তু প্রস্তুত করা হচ্ছে', 'ha': 'Ana shirya wannan abun ciki',
+    'so': 'Nuxurkan waa la diyaarinayaa', 'fa': 'این محتوا در حال آماده‌سازی است', 'ms': 'Kandungan ini sedang disediakan',
+  },
+  'your_path_header': {
+    'ar': 'مسارك: من الصفر إلى التعمّق', 'en': 'Your Path: From Zero to Deep Mastery', 'am': 'መንገድዎ፦ ከዜሮ ወደ ጥልቅ ብቃት', 'fr': "Votre parcours : du débutant à l'approfondissement", 'sw': 'Njia Yako: Kutoka Sifuri Hadi Kubobea',
+    'ur': 'آپ کا راستہ: صفر سے گہرائی تک', 'tr': 'Yolunuz: Sıfırdan Derinlemesine', 'id': 'Jalur Anda: Dari Nol hingga Mendalam', 'bn': 'আপনার পথ: শূন্য থেকে গভীরতা পর্যন্ত', 'ha': 'Hanyarka: Daga Sifili zuwa Zurfin Ilimi',
+    'so': 'Waddadaada: Eber ilaa Aqoon Dheer', 'fa': 'مسیر شما: از صفر تا تسلط عمیق', 'ms': 'Laluan Anda: Dari Sifar hingga Penguasaan Mendalam',
+  },
+  'stations_completed_suffix': {
+    'ar': 'محطة مكتملة', 'en': 'stations completed', 'am': 'ጣቢያዎች ተጠናቅቀዋል', 'fr': 'étapes terminées', 'sw': 'vituo vimekamilika',
+    'ur': 'مراحل مکمل', 'tr': 'durak tamamlandı', 'id': 'stasiun selesai', 'bn': 'ধাপ সম্পন্ন', 'ha': 'tashoshi sun cika',
+    'so': 'saldhig oo dhammaystiran', 'fa': 'ایستگاه تکمیل‌شده', 'ms': 'stesen selesai',
+  },
+  'no_lock_recommendation': {
+    'ar': 'توصية لا قفل — افتح ما تشاء بأي ترتيب', 'en': "A recommendation, not a lock — open whatever you like, in any order", 'am': 'ምክር እንጂ ቁልፍ አይደለም — የፈለጉትን በማንኛውም ቅደም ተከተል ይክፈቱ', 'fr': "Une recommandation, pas un verrou — ouvrez ce que vous voulez, dans n'importe quel ordre", 'sw': 'Ni pendekezo, si kufuli — fungua chochote unachotaka, kwa mpangilio wowote',
+    'ur': 'یہ سفارش ہے، تالا نہیں — کسی بھی ترتیب میں جو چاہیں کھولیں', 'tr': 'Bir öneridir, kilit değil — istediğiniz sırayla istediğinizi açın', 'id': 'Ini rekomendasi, bukan kunci — buka apa pun yang Anda inginkan, dalam urutan apa pun', 'bn': 'এটি একটি সুপারিশ, তালা নয় — যেকোনো ক্রমে যা ইচ্ছা খুলুন', 'ha': "Shawara ce, ba kulle ba — buɗe abin da kake so, cikin kowane tsari",
+    'so': 'Waa talo, ma aha xidhid — fur wixii aad doonayso, dartiib kasta', 'fa': 'این یک توصیه است، نه قفل — به هر ترتیبی که می‌خواهید باز کنید', 'ms': 'Ini cadangan, bukan kunci — buka apa sahaja yang anda mahu, dalam sebarang susunan',
+  },
+  'tag_completed_label': {
+    'ar': 'أُنجز', 'en': 'Done', 'am': 'ተጠናቋል', 'fr': 'Terminé', 'sw': 'Imekamilika',
+    'ur': 'مکمل', 'tr': 'Tamamlandı', 'id': 'Selesai', 'bn': 'সম্পন্ন', 'ha': 'An Gama',
+    'so': 'La Dhammeeyay', 'fa': 'انجام شد', 'ms': 'Selesai',
+  },
+  'tag_coming_soon_label': {
+    'ar': 'قريبًا', 'en': 'Soon', 'am': 'በቅርቡ', 'fr': 'Bientôt', 'sw': 'Hivi Karibuni',
+    'ur': 'جلد', 'tr': 'Yakında', 'id': 'Segera', 'bn': 'শীঘ্রই', 'ha': 'Nan Ba Da Jimawa Ba',
+    'so': 'Dhawaan', 'fa': 'به‌زودی', 'ms': 'Akan Datang',
+  },
+  'tag_continue_now_label': {
+    'ar': 'تابع الآن', 'en': 'Continue Now', 'am': 'አሁን ይቀጥሉ', 'fr': 'Continuer maintenant', 'sw': 'Endelea Sasa',
+    'ur': 'ابھی جاری رکھیں', 'tr': 'Şimdi Devam Et', 'id': 'Lanjutkan Sekarang', 'bn': 'এখন চালিয়ে যান', 'ha': 'Ci Gaba Yanzu',
+    'so': 'Sii Wad Hadda', 'fa': 'اکنون ادامه دهید', 'ms': 'Teruskan Sekarang',
+  },
+  'tag_open_label': {
+    'ar': 'افتح', 'en': 'Open', 'am': 'ክፈት', 'fr': 'Ouvrir', 'sw': 'Fungua',
+    'ur': 'کھولیں', 'tr': 'Aç', 'id': 'Buka', 'bn': 'খুলুন', 'ha': 'Buɗe',
+    'so': 'Fur', 'fa': 'باز کن', 'ms': 'Buka',
+  },
+  'you_are_here_badge': {
+    'ar': 'أنت هنا', 'en': 'You Are Here', 'am': 'እርስዎ እዚህ ነዎት', 'fr': 'Vous êtes ici', 'sw': 'Uko Hapa',
+    'ur': 'آپ یہاں ہیں', 'tr': 'Buradasınız', 'id': 'Anda di Sini', 'bn': 'আপনি এখানে আছেন', 'ha': 'Kana Nan',
+    'so': 'Halkan Ayaad Joogtaa', 'fa': 'شما اینجا هستید', 'ms': 'Anda Di Sini',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

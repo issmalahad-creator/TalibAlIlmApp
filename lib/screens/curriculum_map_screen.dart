@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../data/curriculum_levels.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/curriculum_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import 'adhkar_screen.dart';
@@ -93,7 +95,8 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
         break;
     }
     if (screen == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('هذا المحتوى قيد التحضير')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(basicText('content_coming_soon_message', LanguagePreferenceService.currentLanguage))));
       return;
     }
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen!)).then((_) => _load());
@@ -129,11 +132,13 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
   Widget build(BuildContext context) {
     final current = _currentContentType;
     final (completed, total) = _overallCounts;
-    return Scaffold(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('خريطتي التعليمية')),
+      appBar: AppBar(title: Text(basicText('curriculum_map_title', lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : ListView(
               padding: const EdgeInsets.only(bottom: 32),
               children: [
@@ -150,6 +155,7 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
                   ),
               ],
             ),
+      ),
     );
   }
 }
@@ -161,6 +167,7 @@ class _MapKpiHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     final percent = total == 0 ? 0.0 : completed / total;
     return Container(
       padding: const EdgeInsets.all(18),
@@ -195,11 +202,11 @@ class _MapKpiHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('مسارك: من الصفر إلى التعمّق', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
+                Text(basicText('your_path_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
                 const SizedBox(height: 4),
-                Text('$completed من $total محطة مكتملة', style: const TextStyle(fontSize: 12.5, color: Colors.white70)),
+                Text('$completed ${basicText('weekly_progress_middle', lang)} $total ${basicText('stations_completed_suffix', lang)}', style: const TextStyle(fontSize: 12.5, color: Colors.white70)),
                 const SizedBox(height: 2),
-                const Text('توصية لا قفل — افتح ما تشاء بأي ترتيب', style: TextStyle(fontSize: 10.5, color: Colors.white60)),
+                Text(basicText('no_lock_recommendation', lang), style: const TextStyle(fontSize: 10.5, color: Colors.white60)),
               ],
             ),
           ),
@@ -384,6 +391,7 @@ class _MapInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     final (icon, iconColor) = _stateVisual[status.state]!;
     final isCompleted = status.state == CurriculumItemState.completed;
     final isComingSoon = status.state == CurriculumItemState.comingSoon;
@@ -436,11 +444,14 @@ class _MapInfoCard extends StatelessWidget {
                   Row(
                     children: [
                       if (isCompleted)
-                        const _CardTag(text: 'أُنجز', color: AppColors.primary, textColor: Colors.white)
+                        _CardTag(text: basicText('tag_completed_label', lang), color: AppColors.primary, textColor: Colors.white)
                       else if (isComingSoon)
-                        const _CardTag(text: 'قريبًا', color: AppColors.divider, textColor: AppColors.textMuted)
+                        _CardTag(text: basicText('tag_coming_soon_label', lang), color: AppColors.divider, textColor: AppColors.textMuted)
                       else
-                        _CardTag(text: isCurrent ? 'تابع الآن' : 'افتح', color: AppColors.primaryLight, textColor: AppColors.primaryDark),
+                        _CardTag(
+                            text: basicText(isCurrent ? 'tag_continue_now_label' : 'tag_open_label', lang),
+                            color: AppColors.primaryLight,
+                            textColor: AppColors.primaryDark),
                       const Spacer(),
                       if (!isComingSoon) const Icon(Icons.chevron_left_rounded, size: 18, color: AppColors.textMuted),
                     ],
@@ -480,7 +491,7 @@ class _NowBadge extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: AppColors.primaryDark, borderRadius: BorderRadius.circular(20)),
-      child: const Text('أنت هنا', style: TextStyle(fontSize: 9.5, color: Colors.white, fontWeight: FontWeight.w800)),
+      child: Text(basicText('you_are_here_badge', LanguagePreferenceService.currentLanguage), style: const TextStyle(fontSize: 9.5, color: Colors.white, fontWeight: FontWeight.w800)),
     );
   }
 }
