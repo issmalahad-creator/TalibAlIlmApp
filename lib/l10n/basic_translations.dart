@@ -3259,6 +3259,127 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'ایک ویڈیو', 'tr': 'Tek Video', 'id': 'Video Tunggal', 'bn': 'একটি ভিডিও', 'ha': 'Bidiyo Ɗaya',
     'so': 'Fiidiyow Kaliya', 'fa': 'یک ویدیو', 'ms': 'Video Tunggal',
   },
+  // 2026-08-22: audio_player_screen.dart.
+  'episode_word_label': {
+    'ar': 'الحلقة', 'en': 'Episode', 'am': 'ክፍል', 'fr': 'Épisode', 'sw': 'Kipindi',
+    'ur': 'قسط', 'tr': 'Bölüm', 'id': 'Episode', 'bn': 'পর্ব', 'ha': 'Kashi',
+    'so': 'Qeybta', 'fa': 'قسمت', 'ms': 'Episod',
+  },
+  'resumed_from_saved_message': {
+    'ar': 'استؤنف من حيث توقفت آخر مرة', 'en': 'Resumed from where you last stopped', 'am': 'ካቆሙበት ተቀጠለ', 'fr': "Repris là où vous vous étiez arrêté", 'sw': 'Imeendelezwa kutoka ulipoishia mara ya mwisho',
+    'ur': 'وہاں سے جاری جہاں آپ نے آخری بار روکا تھا', 'tr': "Son bıraktığınız yerden devam edildi", 'id': 'Dilanjutkan dari terakhir Anda berhenti', 'bn': 'আপনি সর্বশেষ যেখানে থেমেছিলেন সেখান থেকে চালু হয়েছে', 'ha': "An ci gaba daga inda ka tsaya a karo na ƙarshe",
+    'so': 'Waxaa laga sii watay meeshii aad markii ugu dambeysay ka joogsatay', 'fa': 'از جایی که آخرین بار متوقف شدید ادامه یافت', 'ms': 'Diteruskan dari tempat anda berhenti kali terakhir',
+  },
+  'previous_episode_action': {
+    'ar': 'السابقة', 'en': 'Previous', 'am': 'የቀድሞው', 'fr': 'Précédent', 'sw': 'Iliyotangulia',
+    'ur': 'پچھلی', 'tr': 'Önceki', 'id': 'Sebelumnya', 'bn': 'পূর্ববর্তী', 'ha': 'Na Baya',
+    'so': 'Tii Hore', 'fa': 'قبلی', 'ms': 'Sebelumnya',
+  },
+  'next_episode_action': {
+    'ar': 'التالية', 'en': 'Next', 'am': 'ቀጣይ', 'fr': 'Suivant', 'sw': 'Ifuatayo',
+    'ur': 'اگلی', 'tr': 'Sonraki', 'id': 'Selanjutnya', 'bn': 'পরবর্তী', 'ha': 'Na Gaba',
+    'so': 'Tii Xigta', 'fa': 'بعدی', 'ms': 'Seterusnya',
+  },
+  'open_episode_in_youtube_action': {
+    'ar': 'افتح هذه الحلقة في يوتيوب', 'en': 'Open This Episode in YouTube', 'am': 'ይህን ክፍል በዩቲዩብ ይክፈቱ', 'fr': "Ouvrir cet épisode dans YouTube", 'sw': 'Fungua Kipindi Hiki katika YouTube',
+    'ur': 'یہ قسط یوٹیوب میں کھولیں', 'tr': "Bu Bölümü YouTube'da Aç", 'id': 'Buka Episode Ini di YouTube', 'bn': 'এই পর্বটি ইউটিউবে খুলুন', 'ha': "Buɗe Wannan Kashi a YouTube",
+    'so': 'Ku Fur Qeybtan YouTube', 'fa': 'باز کردن این قسمت در یوتیوب', 'ms': 'Buka Episod Ini di YouTube',
+  },
+  'from_beginning_action': {
+    'ar': 'من البداية', 'en': 'From the Beginning', 'am': 'ከመጀመሪያ', 'fr': 'Depuis le début', 'sw': 'Kutoka Mwanzo',
+    'ur': 'شروع سے', 'tr': 'Baştan', 'id': 'Dari Awal', 'bn': 'শুরু থেকে', 'ha': 'Daga Farko',
+    'so': 'Bilowga', 'fa': 'از ابتدا', 'ms': 'Dari Permulaan',
+  },
+  'open_full_playlist_action': {
+    'ar': 'افتح القائمة كاملة في يوتيوب', 'en': 'Open Full Playlist in YouTube', 'am': 'ሙሉ ማጫወቻ ዝርዝርን በዩቲዩብ ይክፈቱ', 'fr': "Ouvrir la playlist complète dans YouTube", 'sw': 'Fungua Orodha Kamili katika YouTube',
+    'ur': 'مکمل پلے لسٹ یوٹیوب میں کھولیں', 'tr': "Tam Oynatma Listesini YouTube'da Aç", 'id': 'Buka Playlist Lengkap di YouTube', 'bn': 'সম্পূর্ণ প্লেলিস্ট ইউটিউবে খুলুন', 'ha': "Buɗe Cikakken Jerin Kunnawa a YouTube",
+    'so': 'Ku Fur Liiska Oo Dhan YouTube', 'fa': 'باز کردن پلی‌لیست کامل در یوتیوب', 'ms': 'Buka Senarai Main Penuh di YouTube',
+  },
+  'episodes_header': {
+    'ar': 'الحلقات', 'en': 'Episodes', 'am': 'ክፍሎች', 'fr': 'Épisodes', 'sw': 'Vipindi',
+    'ur': 'اقساط', 'tr': 'Bölümler', 'id': 'Episode', 'bn': 'পর্বসমূহ', 'ha': 'Kashe-kashe',
+    'so': 'Qeybaha', 'fa': 'قسمت‌ها', 'ms': 'Episod-episod',
+  },
+  'reflection_notebook_header': {
+    'ar': 'دفتر الفوائد', 'en': 'Reflections Notebook', 'am': 'የማስታወሻ ደብተር', 'fr': 'Carnet de réflexions', 'sw': 'Daftari la Mafunzo',
+    'ur': 'فوائد کی نوٹ بک', 'tr': 'Notlar Defteri', 'id': 'Buku Catatan Manfaat', 'bn': 'শিক্ষার নোটবই', 'ha': "Littafin Fa'idodi",
+    'so': 'Buugga Faa\'iidooyinka', 'fa': 'دفترچه دستاوردها', 'ms': 'Buku Nota Manfaat',
+  },
+  'reflection_notebook_subtitle': {
+    'ar': 'اكتب ملخصًا أو فائدة استفدتها من هذه الحلقة — لنفسك، لا أحد غيرك سيراها', 'en': "Write a summary or benefit you took from this episode — for yourself, no one else will see it", 'am': 'ከዚህ ክፍል ያገኙትን ማጠቃለያ ወይም ጥቅም ይጻፉ — ለራስዎ ብቻ፣ ከእርስዎ በቀር ማንም አያየውም', 'fr': "Écrivez un résumé ou un bénéfice tiré de cet épisode — pour vous-même, personne d'autre ne le verra", 'sw': 'Andika muhtasari au faida uliyopata kutoka kipindi hiki — kwa ajili yako, hakuna mwingine atakayeona',
+    'ur': 'اس قسط سے حاصل کردہ خلاصہ یا فائدہ لکھیں — اپنے لیے، آپ کے سوا کوئی نہیں دیکھے گا', 'tr': "Bu bölümden aldığınız özeti veya faydayı yazın — kendiniz için, sizden başka kimse görmeyecek", 'id': 'Tulis ringkasan atau manfaat yang Anda ambil dari episode ini — untuk diri Anda sendiri, tidak ada yang lain akan melihatnya', 'bn': 'এই পর্ব থেকে পাওয়া সারাংশ বা উপকারিতা লিখুন — নিজের জন্য, আপনি ছাড়া কেউ এটি দেখবে না', 'ha': "Rubuta taƙaitawa ko fa'idar da ka samu daga wannan kashi — don kanka, babu wanda zai gan shi sai kai",
+    'so': 'Qor soo koobid ama faa\'iido aad ka heshay qeybtan — naftaada, ma jiro cid kale oo arki doonta', 'fa': 'خلاصه یا فایده‌ای که از این قسمت گرفتید بنویسید — برای خودتان، هیچ‌کس دیگری آن را نمی‌بیند', 'ms': 'Tulis ringkasan atau manfaat yang anda perolehi daripada episod ini — untuk diri sendiri, tiada siapa lain akan melihatnya',
+  },
+  'reflection_note_hint': {
+    'ar': 'اكتب ما استفدته هنا...', 'en': 'Write what you benefited from here...', 'am': 'ያገኙትን ጥቅም እዚህ ይጻፉ...', 'fr': 'Écrivez ici ce dont vous avez profité...', 'sw': 'Andika hapa ulichofaidika...',
+    'ur': 'یہاں لکھیں کہ آپ نے کیا فائدہ حاصل کیا...', 'tr': 'Buraya edindiğiniz faydayı yazın...', 'id': 'Tulis di sini apa yang Anda dapatkan...', 'bn': 'আপনি যা উপকার পেয়েছেন তা এখানে লিখুন...', 'ha': "Rubuta abin da ka amfana a nan...",
+    'so': 'Halkan ku qor waxa aad ka faa\'iidaysatay...', 'fa': 'آنچه از آن بهره بردید اینجا بنویسید...', 'ms': 'Tulis di sini apa yang anda perolehi...',
+  },
+  'resume_point_hint_full': {
+    'ar': 'أين توقفت؟ (رابط أو الوقت) — احتياطًا إن تعطّل الفيديو', 'en': "Where did you stop? (link or time) — just in case the video breaks", 'am': 'የት ደረሱ? (አገናኝ ወይም ሰዓት) — ቪዲዮ ችግር ቢፈጠር ለጥንቃቄ', 'fr': "Où vous êtes-vous arrêté ? (lien ou heure) — au cas où la vidéo se casserait", 'sw': 'Uliishia wapi? (kiungo au wakati) — ikiwa video itaharibika',
+    'ur': 'آپ کہاں رکے؟ (لنک یا وقت) — احتیاطاً اگر ویڈیو خراب ہو جائے', 'tr': "Nerede kaldınız? (bağlantı veya zaman) — video bozulursa diye", 'id': 'Di mana Anda berhenti? (tautan atau waktu) — jaga-jaga jika video rusak', 'bn': 'আপনি কোথায় থেমেছেন? (লিঙ্ক বা সময়) — ভিডিও নষ্ট হলে সতর্কতাস্বরূপ', 'ha': "Ina ka tsaya? (hanya ko lokaci) — idan bidiyon ya lalace",
+    'so': 'Xagee ka joogsatay? (xiriir ama waqti) — taxaddar ahaan haddii fiidiyowga jabo', 'fa': 'کجا متوقف شدید؟ (لینک یا زمان) — احتیاطاً اگر ویدیو خراب شود', 'ms': 'Di mana anda berhenti? (pautan atau masa) — sekiranya video rosak',
+  },
+  'save_note_action': {
+    'ar': 'حفظ الملاحظة', 'en': 'Save Note', 'am': 'ማስታወሻ አስቀምጥ', 'fr': 'Enregistrer la note', 'sw': 'Hifadhi Ujumbe',
+    'ur': 'نوٹ محفوظ کریں', 'tr': 'Notu Kaydet', 'id': 'Simpan Catatan', 'bn': 'নোট সংরক্ষণ করুন', 'ha': 'Ajiye Bayanin',
+    'so': 'Kaydi Faallada', 'fa': 'ذخیره یادداشت', 'ms': 'Simpan Nota',
+  },
+  'note_saved_message': {
+    'ar': 'تم حفظ ملاحظتك', 'en': 'Your note was saved', 'am': 'ማስታወሻዎ ተቀምጧል', 'fr': 'Votre note a été enregistrée', 'sw': 'Ujumbe wako umehifadhiwa',
+    'ur': 'آپ کا نوٹ محفوظ ہو گیا', 'tr': 'Notunuz kaydedildi', 'id': 'Catatan Anda telah disimpan', 'bn': 'আপনার নোট সংরক্ষিত হয়েছে', 'ha': 'An Ajiye Bayaninka',
+    'so': 'Faalladaadii waa la kaydiyay', 'fa': 'یادداشت شما ذخیره شد', 'ms': 'Nota anda telah disimpan',
+  },
+  'your_notes_on_episode_header': {
+    'ar': 'ملاحظاتك على هذه الحلقة', 'en': 'Your Notes on This Episode', 'am': 'በዚህ ክፍል ላይ ያሉ ማስታወሻዎችዎ', 'fr': 'Vos notes sur cet épisode', 'sw': 'Ujumbe Wako kwa Kipindi Hiki',
+    'ur': 'اس قسط پر آپ کے نوٹس', 'tr': 'Bu Bölümdeki Notlarınız', 'id': 'Catatan Anda tentang Episode Ini', 'bn': 'এই পর্বে আপনার নোট', 'ha': "Bayaninka Kan Wannan Kashi",
+    'so': 'Faalladaada Qeybtan', 'fa': 'یادداشت‌های شما درباره این قسمت', 'ms': 'Nota Anda tentang Episod Ini',
+  },
+  'stopped_at_prefix': {
+    'ar': 'توقفت عند:', 'en': 'Stopped at:', 'am': 'ያቆሙት፦', 'fr': 'Arrêté à :', 'sw': 'Umeishia:',
+    'ur': 'رک گئے:', 'tr': 'Kaldığınız yer:', 'id': 'Berhenti di:', 'bn': 'থেমেছেন:', 'ha': 'Ka Tsaya:',
+    'so': 'Ku Joogsaday:', 'fa': 'متوقف شده در:', 'ms': 'Berhenti di:',
+  },
+  'edit_note_title': {
+    'ar': 'تعديل الملاحظة', 'en': 'Edit Note', 'am': 'ማስታወሻ አርትዕ', 'fr': 'Modifier la note', 'sw': 'Hariri Ujumbe',
+    'ur': 'نوٹ میں ترمیم کریں', 'tr': 'Notu Düzenle', 'id': 'Ubah Catatan', 'bn': 'নোট সম্পাদনা করুন', 'ha': 'Gyara Bayanin',
+    'so': 'Wax ka beddel Faallada', 'fa': 'ویرایش یادداشت', 'ms': 'Edit Nota',
+  },
+  'resume_point_label_short': {
+    'ar': 'أين توقفت؟ (رابط أو الوقت)', 'en': 'Where did you stop? (link or time)', 'am': 'የት ደረሱ? (አገናኝ ወይም ሰዓት)', 'fr': 'Où vous êtes-vous arrêté ? (lien ou heure)', 'sw': 'Uliishia wapi? (kiungo au wakati)',
+    'ur': 'آپ کہاں رکے؟ (لنک یا وقت)', 'tr': 'Nerede kaldınız? (bağlantı veya zaman)', 'id': 'Di mana Anda berhenti? (tautan atau waktu)', 'bn': 'আপনি কোথায় থেমেছেন? (লিঙ্ক বা সময়)', 'ha': "Ina ka tsaya? (hanya ko lokaci)",
+    'so': 'Xagee ka joogsatay? (xiriir ama waqti)', 'fa': 'کجا متوقف شدید؟ (لینک یا زمان)', 'ms': 'Di mana anda berhenti? (pautan atau masa)',
+  },
+  'delete_note_title': {
+    'ar': 'مسح الملاحظة؟', 'en': 'Delete this note?', 'am': 'ማስታወሻውን ይሰርዙ?', 'fr': 'Supprimer cette note ?', 'sw': 'Futa ujumbe huu?',
+    'ur': 'کیا یہ نوٹ حذف کریں؟', 'tr': 'Bu not silinsin mi?', 'id': 'Hapus catatan ini?', 'bn': 'এই নোটটি মুছবেন?', 'ha': 'Share wannan bayanin?',
+    'so': 'Ma tirtirtaa faalladan?', 'fa': 'این یادداشت حذف شود؟', 'ms': 'Padam nota ini?',
+  },
+  'cannot_undo_message': {
+    'ar': 'لا يمكن التراجع عن هذا.', 'en': "This can't be undone.", 'am': 'ይህ ሊቀለበስ አይችልም።', 'fr': 'Cette action est irréversible.', 'sw': 'Hii haiwezi kutenguliwa.',
+    'ur': 'اسے واپس نہیں لیا جا سکتا۔', 'tr': 'Bu geri alınamaz.', 'id': 'Ini tidak dapat dibatalkan.', 'bn': 'এটি পূর্বাবস্থায় ফেরানো যাবে না।', 'ha': 'Ba za a iya soke wannan ba.',
+    'so': 'Tan lama celin karo.', 'fa': 'این عمل قابل بازگشت نیست.', 'ms': 'Ini tidak boleh dibuat asal.',
+  },
+  'reflection_prompt_1': {
+    'ar': 'ما الفكرة التي لفتت انتباهك في هذا المقطع؟', 'en': 'What idea caught your attention in this clip?', 'am': 'በዚህ ክሊፕ ውስጥ ትኩረትዎን የሳበው ሐሳብ ምንድን ነው?', 'fr': "Quelle idée a attiré votre attention dans cet extrait ?", 'sw': 'Wazo lipi lilikuvutia katika klipu hii?',
+    'ur': 'اس کلپ میں کس خیال نے آپ کی توجہ حاصل کی؟', 'tr': "Bu klipte hangi fikir dikkatinizi çekti?", 'id': 'Ide apa yang menarik perhatian Anda dalam klip ini?', 'bn': 'এই ক্লিপে কোন ধারণা আপনার নজর কাড়ল?', 'ha': "Wace fikira ce ta jawo hankalinka a wannan gutsuren?",
+    'so': 'Fikirradee ayaa dareenkaaga soo jiitay jajabkan?', 'fa': 'چه ایده‌ای در این کلیپ توجه شما را جلب کرد؟', 'ms': 'Idea apakah yang menarik perhatian anda dalam klip ini?',
+  },
+  'reflection_prompt_2': {
+    'ar': 'كيف يمكن أن تطبّق هذا في حياتك اليوم؟', 'en': 'How could you apply this in your life today?', 'am': 'ይህንን በዛሬው ህይወትዎ እንዴት ተግባራዊ ማድረግ ይችላሉ?', 'fr': "Comment pourriez-vous appliquer cela dans votre vie aujourd'hui ?", 'sw': 'Unawezaje kutekeleza hili katika maisha yako leo?',
+    'ur': 'آپ آج اسے اپنی زندگی میں کیسے لاگو کر سکتے ہیں؟', 'tr': "Bunu bugün hayatınıza nasıl uygulayabilirsiniz?", 'id': 'Bagaimana Anda bisa menerapkan ini dalam hidup Anda hari ini?', 'bn': 'আজ আপনার জীবনে এটি কীভাবে প্রয়োগ করতে পারেন?', 'ha': "Ta yaya za ka aiwatar da wannan a rayuwarka yau?",
+    'so': 'Sideed ku dhaqan gelin kartaa tan noloshaada maanta?', 'fa': 'چگونه می‌توانید امروز این را در زندگی خود به کار ببرید؟', 'ms': 'Bagaimana anda boleh mengamalkan ini dalam hidup anda hari ini?',
+  },
+  'reflection_prompt_3': {
+    'ar': 'ما سؤال بقي عندك تريد البحث عنه لاحقًا؟', 'en': "What question do you still want to look up later?", 'am': 'በኋላ ለመፈለግ የሚፈልጉት ጥያቄ ምንድን ነው?', 'fr': "Quelle question voulez-vous encore approfondir plus tard ?", 'sw': 'Ni swali gani bado unataka kutafuta baadaye?',
+    'ur': 'کون سا سوال باقی رہ گیا جسے آپ بعد میں تلاش کرنا چاہتے ہیں؟', 'tr': "Daha sonra araştırmak istediğiniz hangi soru kaldı?", 'id': 'Pertanyaan apa yang masih ingin Anda cari tahu nanti?', 'bn': 'পরে খুঁজে দেখতে চান এমন কোন প্রশ্ন রয়ে গেছে?', 'ha': "Wace tambaya ce ta rage wadda kake son bincika daga baya?",
+    'so': 'Su\'aal kee ayaa kaa hadhay oo aad rabto inaad baadho goor dambe?', 'fa': 'چه سؤالی برایتان باقی مانده که بعداً می‌خواهید جستجو کنید؟', 'ms': 'Soalan apakah yang masih anda mahu cari kemudian?',
+  },
+  'reflection_prompt_4': {
+    'ar': 'ما عبارة أو موقف أثّر فيك؟', 'en': 'What phrase or moment affected you?', 'am': 'የነካዎት ሐረግ ወይም ሁኔታ ምንድን ነው?', 'fr': "Quelle phrase ou quel moment vous a marqué ?", 'sw': 'Ni maneno au wakati gani ulikugusa?',
+    'ur': 'کون سا جملہ یا لمحہ آپ کو متاثر کر گیا؟', 'tr': "Sizi hangi ifade ya da an etkiledi?", 'id': 'Frasa atau momen apa yang memengaruhi Anda?', 'bn': 'কোন বাক্য বা মুহূর্ত আপনাকে প্রভাবিত করেছিল?', 'ha': "Wace jimla ko lokaci ne ya shafe ka?",
+    'so': 'Weerkee ama xaaladdee ayaa ku saameysay?', 'fa': 'چه عبارت یا لحظه‌ای بر شما تأثیر گذاشت؟', 'ms': 'Frasa atau detik apakah yang menyentuh anda?',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

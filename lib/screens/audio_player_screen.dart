@@ -4,17 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/audio_library_repository.dart';
 import '../repositories/milestone_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 
-const _reflectionPrompts = [
-  'ما الفكرة التي لفتت انتباهك في هذا المقطع؟',
-  'كيف يمكن أن تطبّق هذا في حياتك اليوم؟',
-  'ما سؤال بقي عندك تريد البحث عنه لاحقًا؟',
-  'ما عبارة أو موقف أثّر فيك؟',
+const _reflectionPromptKeys = [
+  'reflection_prompt_1',
+  'reflection_prompt_2',
+  'reflection_prompt_3',
+  'reflection_prompt_4',
 ];
 
 /// Streams audio/video through YouTube's own official embedded player
@@ -198,7 +200,8 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     if (newlyEarned.isNotEmpty) {
       await showCelebration(context, newlyEarned.first);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ ملاحظتك')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(basicText('note_saved_message', LanguagePreferenceService.currentLanguage))));
     }
   }
 
@@ -206,12 +209,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   /// دفتر الفوائد previously only supported adding, never fixing a typo or
   /// removing an entry.
   Future<void> _editReflection(AudioReflection r) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final textCtrl = TextEditingController(text: r.text);
     final resumeCtrl = TextEditingController(text: r.resumeNote ?? '');
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تعديل الملاحظة'),
+        title: Text(basicText('edit_note_title', lang)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -220,14 +224,14 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
               const SizedBox(height: 10),
               TextField(
                 controller: resumeCtrl,
-                decoration: const InputDecoration(labelText: 'أين توقفت؟ (رابط أو الوقت)', border: OutlineInputBorder(), isDense: true),
+                decoration: InputDecoration(labelText: basicText('resume_point_label_short', lang), border: const OutlineInputBorder(), isDense: true),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('cancel', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('save', lang))),
         ],
       ),
     );
@@ -240,14 +244,15 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   }
 
   Future<void> _deleteReflection(AudioReflection r) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('مسح الملاحظة؟'),
-        content: const Text('لا يمكن التراجع عن هذا.'),
+        title: Text(basicText('delete_note_title', lang)),
+        content: Text(basicText('cannot_undo_message', lang)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('مسح')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('undo_action', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('delete', lang))),
         ],
       ),
     );
@@ -279,6 +284,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => _buildScaffold(context, lang),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, String lang) {
     final episodeNumber = _currentVideoId == null ? -1 : _episodeIds.indexOf(_currentVideoId!);
     return Scaffold(
       appBar: AppBar(title: Text(widget.titleAr, overflow: TextOverflow.ellipsis)),
@@ -291,7 +303,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
             Text(widget.authorAr!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
           if (episodeNumber >= 0) ...[
             const SizedBox(height: 4),
-            Text('الحلقة ${episodeNumber + 1} من ${_episodeIds.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            Text('${basicText('episode_word_label', lang)} ${episodeNumber + 1} ${basicText('weekly_progress_middle', lang)} ${_episodeIds.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
           ],
           if (_currentVideoTitle.isNotEmpty) ...[
             const SizedBox(height: 4),
@@ -299,7 +311,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           ],
           if (_resumedFromSaved) ...[
             const SizedBox(height: 4),
-            const Text('استؤنف من حيث توقفت آخر مرة', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+            Text(basicText('resumed_from_saved_message', lang), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
           ],
           const SizedBox(height: 10),
           if (_episodeIds.length > 1)
@@ -309,7 +321,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                   child: OutlinedButton.icon(
                     onPressed: episodeNumber > 0 ? () => _playRelativeEpisode(-1) : null,
                     icon: const Icon(Icons.skip_previous_outlined, size: 18),
-                    label: const Text('السابقة'),
+                    label: Text(basicText('previous_episode_action', lang)),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -317,7 +329,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                   child: OutlinedButton.icon(
                     onPressed: episodeNumber >= 0 && episodeNumber < _episodeIds.length - 1 ? () => _playRelativeEpisode(1) : null,
                     icon: const Icon(Icons.skip_next_outlined, size: 18),
-                    label: const Text('التالية'),
+                    label: Text(basicText('next_episode_action', lang)),
                   ),
                 ),
               ],
@@ -329,7 +341,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _openEpisodeInYoutube,
                   icon: const Icon(Icons.open_in_new, size: 16),
-                  label: const Text('افتح هذه الحلقة في يوتيوب'),
+                  label: Text(basicText('open_episode_in_youtube_action', lang)),
                 ),
               ),
               const SizedBox(width: 8),
@@ -337,21 +349,21 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _restartFromBeginning,
                   icon: const Icon(Icons.restart_alt, size: 16),
-                  label: const Text('من البداية'),
+                  label: Text(basicText('from_beginning_action', lang)),
                 ),
               ),
             ],
           ),
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton(onPressed: _openPlaylistInYoutube, child: const Text('افتح القائمة كاملة في يوتيوب', style: TextStyle(fontSize: 11.5))),
+            child: TextButton(onPressed: _openPlaylistInYoutube, child: Text(basicText('open_full_playlist_action', lang), style: const TextStyle(fontSize: 11.5))),
           ),
           if (_loadingEpisodes) ...[
             const SizedBox(height: 10),
-            const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'),
+            AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang)),
           ] else if (_episodeIds.length > 1) ...[
             const SizedBox(height: 12),
-            const Text('الحلقات', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+            Text(basicText('episodes_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             ...List.generate(_episodeIds.length, (i) {
               final id = _episodeIds[i];
@@ -371,7 +383,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                     children: [
                       Icon(isCurrent ? Icons.play_circle_fill : Icons.play_circle_outline, size: 20, color: isCurrent ? AppColors.primaryDark : AppColors.textMuted),
                       const SizedBox(width: 10),
-                      Text('الحلقة ${i + 1}', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: isCurrent ? AppColors.primaryDark : AppColors.textDark)),
+                      Text('${basicText('episode_word_label', lang)} ${i + 1}', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: isCurrent ? AppColors.primaryDark : AppColors.textDark)),
                     ],
                   ),
                 ),
@@ -379,14 +391,15 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
             }),
           ],
           const SizedBox(height: 20),
-          const Text('دفتر الفوائد', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+          Text(basicText('reflection_notebook_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          const Text('اكتب ملخصًا أو فائدة استفدتها من هذه الحلقة — لنفسك، لا أحد غيرك سيراها', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+          Text(basicText('reflection_notebook_subtitle', lang), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: _reflectionPrompts
+            children: _reflectionPromptKeys
+                .map((k) => basicText(k, lang))
                 .map((p) => ActionChip(
                       label: Text(p, style: const TextStyle(fontSize: 11)),
                       onPressed: () {
@@ -400,17 +413,17 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           TextField(
             controller: _noteCtrl,
             maxLines: 4,
-            decoration: const InputDecoration(
-              hintText: 'اكتب ما استفدته هنا...',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: basicText('reflection_note_hint', lang),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _resumeCtrl,
-            decoration: const InputDecoration(
-              labelText: 'أين توقفت؟ (رابط أو الوقت) — احتياطًا إن تعطّل الفيديو',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: basicText('resume_point_hint_full', lang),
+              border: const OutlineInputBorder(),
               isDense: true,
             ),
           ),
@@ -420,14 +433,14 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
             child: FilledButton.icon(
               onPressed: _saveReflection,
               icon: const Icon(Icons.save_outlined, size: 18),
-              label: const Text('حفظ الملاحظة'),
+              label: Text(basicText('save_note_action', lang)),
             ),
           ),
           const SizedBox(height: 20),
           if (_loadingReflections)
-            const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+            AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           else if (_reflections.isNotEmpty) ...[
-            const Text('ملاحظاتك على هذه الحلقة', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+            Text(basicText('your_notes_on_episode_header', lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             ..._reflections.map((r) => Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -448,7 +461,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                             const Icon(Icons.bookmark_outline, size: 13, color: AppColors.primaryDark),
                             const SizedBox(width: 4),
                             Expanded(
-                              child: Text('توقفت عند: ${r.resumeNote}',
+                              child: Text('${basicText('stopped_at_prefix', lang)} ${r.resumeNote}',
                                   style: const TextStyle(fontSize: 11.5, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
                             ),
                           ],
