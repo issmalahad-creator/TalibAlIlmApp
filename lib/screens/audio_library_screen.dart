@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../data/audio_series_seed.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/audio_library_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'audio_player_screen.dart';
 import '../widgets/loading_view.dart';
@@ -40,39 +42,40 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   }
 
   Future<void> _addCustomSeries() async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final titleCtrl = TextEditingController();
     final urlCtrl = TextEditingController();
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('أضف سلسلة صوتية'),
+        title: Text(basicText('add_audio_series_title', lang)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: titleCtrl,
-              decoration: const InputDecoration(labelText: 'اسم السلسلة أو الدرس'),
+              decoration: InputDecoration(labelText: basicText('series_or_lesson_name_label', lang)),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: urlCtrl,
-              decoration: const InputDecoration(labelText: 'رابط يوتيوب (فيديو أو قائمة تشغيل)'),
+              decoration: InputDecoration(labelText: basicText('youtube_link_label', lang)),
               keyboardType: TextInputType.url,
             ),
             const SizedBox(height: 6),
-            const Align(
+            Align(
               alignment: Alignment.centerRight,
               child: Text(
-                'يُشغَّل عبر مشغّل يوتيوب الرسمي داخل التطبيق — لا يُحمَّل أي شيء على جهازك',
-                style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                basicText('youtube_no_download_disclaimer', lang),
+                style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
                 textAlign: TextAlign.right,
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('إضافة')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('cancel', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('add', lang))),
         ],
       ),
     );
@@ -81,7 +84,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
     if (!parsed.isValid || titleCtrl.text.trim().isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تأكد من إدخال الاسم ورابط يوتيوب صحيح')),
+        SnackBar(content: Text(basicText('series_validation_error', lang))),
       );
       return;
     }
@@ -90,14 +93,16 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
   }
 
   Future<void> _deleteCustomSeries(CustomAudioSeries s) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف السلسلة'),
-        content: Text('حذف "${s.titleAr}"؟ هذا لا يحذف الفيديو من يوتيوب، فقط من قائمتك هنا.'),
+        title: Text(basicText('delete_series_title', lang)),
+        content: Text(
+            '${basicText('delete_series_confirm_prefix', lang)} "${s.titleAr}"${basicText('delete_series_confirm_suffix', lang)}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('cancel', lang))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('delete', lang))),
         ],
       ),
     );
@@ -108,21 +113,23 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
       appBar: AppBar(
-        title: const Text('كتب صوتية من اليوتيوب'),
+        title: Text(basicText('audio_library_title', lang)),
         actions: [
-          IconButton(icon: const Icon(Icons.add), tooltip: 'أضف سلسلة', onPressed: _addCustomSeries),
+          IconButton(icon: const Icon(Icons.add), tooltip: basicText('add_series_tooltip', lang), onPressed: _addCustomSeries),
         ],
       ),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text(
-                  'تُبَث هذه المقاطع مباشرة من يوتيوب عبر مشغّله الرسمي — لا يُحمَّل أو يُعاد استضافة أي صوت داخل التطبيق، ويحتاج التشغيل اتصالًا بالإنترنت.',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                Text(
+                  basicText('audio_stream_disclaimer', lang),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 16),
                 ...audioSeries.map((s) => _SeriesCard(
@@ -145,11 +152,11 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                     )),
                 if (_custom.isNotEmpty) ...[
                   const SizedBox(height: 20),
-                  const Text('سلاسلي الخاصة', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                  Text(basicText('my_own_series_header', lang), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
                   ..._custom.map((c) => _SeriesCard(
                         titleAr: c.titleAr,
-                        subtitleAr: c.playlistId != null ? 'قائمة تشغيل' : 'فيديو واحد',
+                        subtitleAr: c.playlistId != null ? basicText('playlist_subtitle_label', lang) : basicText('single_video_subtitle_label', lang),
                         descriptionAr: null,
                         onTap: () => Navigator.push(
                           context,
@@ -170,6 +177,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                 ],
               ],
             ),
+      ),
     );
   }
 }

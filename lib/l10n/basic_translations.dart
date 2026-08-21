@@ -3187,6 +3187,78 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'آپ یہاں ہیں', 'tr': 'Buradasınız', 'id': 'Anda di Sini', 'bn': 'আপনি এখানে আছেন', 'ha': 'Kana Nan',
     'so': 'Halkan Ayaad Joogtaa', 'fa': 'شما اینجا هستید', 'ms': 'Anda Di Sini',
   },
+  // 2026-08-22: audio_library_screen.dart. Series titles/author/category
+  // come from audio_series_seed.dart (curated content), out of scope.
+  'audio_library_title': {
+    'ar': 'كتب صوتية من اليوتيوب', 'en': 'Audiobooks from YouTube', 'am': 'ከዩቲዩብ የድምጽ መጻሕፍት', 'fr': 'Livres audio depuis YouTube', 'sw': 'Vitabu vya Sauti kutoka YouTube',
+    'ur': 'یوٹیوب سے آڈیو بکس', 'tr': "YouTube'dan Sesli Kitaplar", 'id': 'Buku Audio dari YouTube', 'bn': 'ইউটিউব থেকে অডিওবুক', 'ha': 'Littattafan Murya daga YouTube',
+    'so': 'Buugaagta Codka ee YouTube', 'fa': 'کتاب‌های صوتی از یوتیوب', 'ms': 'Buku Audio dari YouTube',
+  },
+  'add_series_tooltip': {
+    'ar': 'أضف سلسلة', 'en': 'Add a Series', 'am': 'ተከታታይ ጨምር', 'fr': 'Ajouter une série', 'sw': 'Ongeza Mfululizo',
+    'ur': 'سلسلہ شامل کریں', 'tr': 'Seri Ekle', 'id': 'Tambah Seri', 'bn': 'সিরিজ যোগ করুন', 'ha': 'Ƙara Jerin',
+    'so': 'Ku dar Taxane', 'fa': 'افزودن مجموعه', 'ms': 'Tambah Siri',
+  },
+  'add_audio_series_title': {
+    'ar': 'أضف سلسلة صوتية', 'en': 'Add an Audio Series', 'am': 'የድምጽ ተከታታይ ጨምር', 'fr': 'Ajouter une série audio', 'sw': 'Ongeza Mfululizo wa Sauti',
+    'ur': 'آڈیو سلسلہ شامل کریں', 'tr': 'Sesli Seri Ekle', 'id': 'Tambah Seri Audio', 'bn': 'অডিও সিরিজ যোগ করুন', 'ha': 'Ƙara Jerin Murya',
+    'so': 'Ku dar Taxane Cod ah', 'fa': 'افزودن مجموعه صوتی', 'ms': 'Tambah Siri Audio',
+  },
+  'series_or_lesson_name_label': {
+    'ar': 'اسم السلسلة أو الدرس', 'en': 'Series or Lesson Name', 'am': 'የተከታታይ ወይም ትምህርት ስም', 'fr': 'Nom de la série ou de la leçon', 'sw': 'Jina la Mfululizo au Somo',
+    'ur': 'سلسلہ یا سبق کا نام', 'tr': 'Seri veya Ders Adı', 'id': 'Nama Seri atau Pelajaran', 'bn': 'সিরিজ বা পাঠের নাম', 'ha': 'Sunan Jerin ko Darasi',
+    'so': 'Magaca Taxanaha ama Casharka', 'fa': 'نام مجموعه یا درس', 'ms': 'Nama Siri atau Pelajaran',
+  },
+  'youtube_link_label': {
+    'ar': 'رابط يوتيوب (فيديو أو قائمة تشغيل)', 'en': 'YouTube Link (video or playlist)', 'am': 'የዩቲዩብ አገናኝ (ቪዲዮ ወይም ማጫወቻ ዝርዝር)', 'fr': 'Lien YouTube (vidéo ou playlist)', 'sw': 'Kiungo cha YouTube (video au orodha ya kucheza)',
+    'ur': 'یوٹیوب لنک (ویڈیو یا پلے لسٹ)', 'tr': 'YouTube Bağlantısı (video veya oynatma listesi)', 'id': 'Tautan YouTube (video atau playlist)', 'bn': 'ইউটিউব লিঙ্ক (ভিডিও বা প্লেলিস্ট)', 'ha': 'Hanyar YouTube (bidiyo ko jerin kunnawa)',
+    'so': 'Xiriirka YouTube (fiidiyow ama liiska ciyaarista)', 'fa': 'لینک یوتیوب (ویدیو یا پلی‌لیست)', 'ms': 'Pautan YouTube (video atau senarai main)',
+  },
+  'youtube_no_download_disclaimer': {
+    'ar': 'يُشغَّل عبر مشغّل يوتيوب الرسمي داخل التطبيق — لا يُحمَّل أي شيء على جهازك', 'en': "Played via YouTube's official player inside the app — nothing is downloaded to your device", 'am': 'በመተግበሪያው ውስጥ ባለው ኦፊሴላዊ የዩቲዩብ አጫዋች ይጫወታል — ምንም ነገር ወደ መሳሪያዎ አይወርድም', 'fr': "Lu via le lecteur officiel de YouTube dans l'application — rien n'est téléchargé sur votre appareil", 'sw': 'Inachezwa kupitia kicheza sauti rasmi cha YouTube ndani ya programu — hakuna kinachopakuliwa kwenye kifaa chako',
+    'ur': 'ایپ کے اندر یوٹیوب کے آفیشل پلیئر کے ذریعے چلایا جاتا ہے — آپ کے آلے پر کچھ بھی ڈاؤن لوڈ نہیں ہوتا', 'tr': "Uygulama içindeki resmi YouTube oynatıcısı ile çalınır — cihazınıza hiçbir şey indirilmez", 'id': 'Diputar melalui pemutar resmi YouTube di dalam aplikasi — tidak ada yang diunduh ke perangkat Anda', 'bn': 'অ্যাপের ভেতরে ইউটিউবের অফিসিয়াল প্লেয়ারের মাধ্যমে চালানো হয় — আপনার ডিভাইসে কিছুই ডাউনলোড হয় না', 'ha': "Ana kunna shi ta hanyar mai kunnawa na hukuma na YouTube a cikin manhajar — babu wani abu da ake sauke wa na'urarka",
+    'so': 'Waxaa lagu ciyaaraa cayaartoyga rasmiga ah ee YouTube ee ku jira app-ka — waxba lagama soo dejinayo qalabkaaga', 'fa': 'از طریق پخش‌کننده رسمی یوتیوب در برنامه پخش می‌شود — چیزی روی دستگاه شما دانلود نمی‌شود', 'ms': 'Dimainkan melalui pemain rasmi YouTube dalam aplikasi — tiada apa-apa dimuat turun ke peranti anda',
+  },
+  'series_validation_error': {
+    'ar': 'تأكد من إدخال الاسم ورابط يوتيوب صحيح', 'en': 'Make sure you entered a name and a valid YouTube link', 'am': 'ስም እና ትክክለኛ የዩቲዩብ አገናኝ ማስገባትዎን ያረጋግጡ', 'fr': "Assurez-vous d'avoir saisi un nom et un lien YouTube valide", 'sw': 'Hakikisha umeweka jina na kiungo sahihi cha YouTube',
+    'ur': 'یقینی بنائیں کہ آپ نے نام اور درست یوٹیوب لنک درج کیا ہے', 'tr': "Bir ad ve geçerli bir YouTube bağlantısı girdiğinizden emin olun", 'id': 'Pastikan Anda memasukkan nama dan tautan YouTube yang valid', 'bn': 'নিশ্চিত করুন যে আপনি একটি নাম এবং সঠিক ইউটিউব লিঙ্ক লিখেছেন', 'ha': "Ka tabbatar ka shigar da suna da hanyar YouTube mai inganci",
+    'so': 'Hubi inaad gelisay magac iyo xiriir YouTube oo sax ah', 'fa': 'مطمئن شوید نام و لینک یوتیوب معتبری وارد کرده‌اید', 'ms': 'Pastikan anda memasukkan nama dan pautan YouTube yang sah',
+  },
+  'delete_series_title': {
+    'ar': 'حذف السلسلة', 'en': 'Delete Series', 'am': 'ተከታታይ ሰርዝ', 'fr': 'Supprimer la série', 'sw': 'Futa Mfululizo',
+    'ur': 'سلسلہ حذف کریں', 'tr': 'Seriyi Sil', 'id': 'Hapus Seri', 'bn': 'সিরিজ মুছুন', 'ha': 'Share Jerin',
+    'so': 'Tirtir Taxanaha', 'fa': 'حذف مجموعه', 'ms': 'Padam Siri',
+  },
+  'delete_series_confirm_prefix': {
+    'ar': 'حذف', 'en': 'Delete', 'am': 'ሰርዝ', 'fr': 'Supprimer', 'sw': 'Futa',
+    'ur': 'حذف کریں', 'tr': 'Sil', 'id': 'Hapus', 'bn': 'মুছুন', 'ha': 'Share',
+    'so': 'Tirtir', 'fa': 'حذف', 'ms': 'Padam',
+  },
+  'delete_series_confirm_suffix': {
+    'ar': '؟ هذا لا يحذف الفيديو من يوتيوب، فقط من قائمتك هنا.', 'en': "? This won't delete the video from YouTube, only from your list here.", 'am': '? ይህ ቪዲዮውን ከዩቲዩብ አይሰርዝም፣ ከዚህ ካለው ዝርዝርዎ ብቻ ነው።', 'fr': " ? Cela ne supprime pas la vidéo de YouTube, seulement de votre liste ici.", 'sw': '? Hii haifuti video kutoka YouTube, ni kutoka orodha yako hapa tu.',
+    'ur': '؟ یہ ویڈیو کو یوٹیوب سے حذف نہیں کرے گا، صرف یہاں آپ کی فہرست سے۔', 'tr': "? Bu, videoyu YouTube'dan silmez, yalnızca buradaki listenizden siler.", 'id': '? Ini tidak menghapus video dari YouTube, hanya dari daftar Anda di sini.', 'bn': '? এটি ইউটিউব থেকে ভিডিও মুছবে না, শুধু এখানে আপনার তালিকা থেকে।', 'ha': "? Wannan ba ya share bidiyon daga YouTube, sai daga jerinka a nan kawai.",
+    'so': '? Tani kama tirtirto fiidiyowga YouTube, waxay ka tirtirtaa kaliya liiskaaga halkan.', 'fa': '؟ این ویدیو را از یوتیوب حذف نمی‌کند، فقط از فهرست شما در اینجا حذف می‌شود.', 'ms': '? Ini tidak memadam video daripada YouTube, hanya daripada senarai anda di sini.',
+  },
+  'audio_stream_disclaimer': {
+    'ar': 'تُبَث هذه المقاطع مباشرة من يوتيوب عبر مشغّله الرسمي — لا يُحمَّل أو يُعاد استضافة أي صوت داخل التطبيق، ويحتاج التشغيل اتصالًا بالإنترنت.', 'en': "These clips stream directly from YouTube via its official player — no audio is downloaded or rehosted inside the app, and playback needs an internet connection.", 'am': 'እነዚህ ክሊፖች በኦፊሴላዊ አጫዋቹ በኩል በቀጥታ ከዩቲዩብ ይተላለፋሉ — በመተግበሪያው ውስጥ ምንም ድምጽ አይወርድም ወይም እንደገና አይስተናገድም፣ መልሶ ማጫወት የኢንተርኔት ግንኙነት ይፈልጋል።', 'fr': "Ces extraits sont diffusés directement depuis YouTube via son lecteur officiel — aucun audio n'est téléchargé ou réhébergé dans l'application, et la lecture nécessite une connexion internet.", 'sw': 'Klipu hizi zinatiririka moja kwa moja kutoka YouTube kupitia kicheza chake rasmi — hakuna sauti inayopakuliwa au kuhifadhiwa upya ndani ya programu, na uchezaji unahitaji muunganisho wa mtandao.',
+    'ur': 'یہ کلپس براہ راست یوٹیوب کے آفیشل پلیئر کے ذریعے سٹریم ہوتے ہیں — ایپ کے اندر کوئی آڈیو ڈاؤن لوڈ یا دوبارہ ہوسٹ نہیں ہوتی، اور چلانے کے لیے انٹرنیٹ کنکشن درکار ہے۔', 'tr': "Bu klipler resmi oynatıcısı aracılığıyla doğrudan YouTube'dan akışa alınır — uygulama içinde hiçbir ses indirilmez veya yeniden barındırılmaz ve oynatma için internet bağlantısı gerekir.", 'id': 'Klip ini di-streaming langsung dari YouTube melalui pemutar resminya — tidak ada audio yang diunduh atau di-hosting ulang di dalam aplikasi, dan pemutaran memerlukan koneksi internet.', 'bn': 'এই ক্লিপগুলো সরাসরি ইউটিউবের অফিসিয়াল প্লেয়ারের মাধ্যমে স্ট্রিম হয় — অ্যাপের ভেতরে কোনো অডিও ডাউনলোড বা পুনরায় হোস্ট করা হয় না, এবং প্লেব্যাকের জন্য ইন্টারনেট সংযোগ প্রয়োজন।', 'ha': "Waɗannan gutsuttsura ana yin streaming kai tsaye daga YouTube ta hanyar mai kunnawa na hukuma — babu wani sauti da ake saukewa ko sake watsawa a cikin manhajar, kuma kunnawa yana buƙatar haɗin intanet.",
+    'so': 'Jajabkan waxaa laga sii daayaa si toos ah YouTube iyada oo la adeegsanayo cayaartoygeeda rasmiga ah — cod lagama soo dejiyo ama dib looma martigelin app-ka gudihiisa, ciyaarintuna waxay u baahan tahay xiriir internet ah.', 'fa': 'این کلیپ‌ها مستقیماً از یوتیوب از طریق پخش‌کننده رسمی آن پخش می‌شوند — هیچ صدایی در برنامه دانلود یا بازمیزبانی نمی‌شود و پخش نیاز به اتصال اینترنت دارد.', 'ms': 'Klip ini distrim terus daripada YouTube melalui pemain rasminya — tiada audio dimuat turun atau dihoskan semula dalam aplikasi, dan main balik memerlukan sambungan internet.',
+  },
+  'my_own_series_header': {
+    'ar': 'سلاسلي الخاصة', 'en': 'My Own Series', 'am': 'የራሴ ተከታታዮች', 'fr': 'Mes propres séries', 'sw': 'Mifululizo Yangu Mwenyewe',
+    'ur': 'میرے اپنے سلسلے', 'tr': 'Kendi Serilerim', 'id': 'Seri Saya Sendiri', 'bn': 'আমার নিজস্ব সিরিজ', 'ha': 'Jerina na Kaina',
+    'so': 'Taxanahayga Gaarka ah', 'fa': 'مجموعه‌های خودم', 'ms': 'Siri Saya Sendiri',
+  },
+  'playlist_subtitle_label': {
+    'ar': 'قائمة تشغيل', 'en': 'Playlist', 'am': 'ማጫወቻ ዝርዝር', 'fr': 'Playlist', 'sw': 'Orodha ya Kucheza',
+    'ur': 'پلے لسٹ', 'tr': 'Oynatma Listesi', 'id': 'Playlist', 'bn': 'প্লেলিস্ট', 'ha': 'Jerin Kunnawa',
+    'so': 'Liiska Ciyaarista', 'fa': 'پلی‌لیست', 'ms': 'Senarai Main',
+  },
+  'single_video_subtitle_label': {
+    'ar': 'فيديو واحد', 'en': 'Single Video', 'am': 'ነጠላ ቪዲዮ', 'fr': 'Vidéo unique', 'sw': 'Video Moja',
+    'ur': 'ایک ویڈیو', 'tr': 'Tek Video', 'id': 'Video Tunggal', 'bn': 'একটি ভিডিও', 'ha': 'Bidiyo Ɗaya',
+    'so': 'Fiidiyow Kaliya', 'fa': 'یک ویدیو', 'ms': 'Video Tunggal',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to
