@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/checklist_item.dart';
 import '../models/daily_task.dart';
 import '../repositories/daily_task_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
@@ -54,6 +56,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
   }
 
   Future<void> _showCompletionChecklist(DailyTask task) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     var checklist = List<ChecklistItem>.from(task.checklist);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -64,7 +67,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('راجع النقاط التالية قبل إكمال المهمة:', style: TextStyle(fontSize: 13)),
+              Text(basicText('review_checklist_before_complete', lang), style: const TextStyle(fontSize: 13)),
               const SizedBox(height: 8),
               ...checklist.asMap().entries.map((entry) => CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
@@ -79,8 +82,8 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('تم — إكمال المهمة')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('cancel', lang))),
+            FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('mark_task_complete', lang))),
           ],
         ),
       ),
@@ -97,40 +100,43 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
     final todayTasks = _tasks.where((t) => t.date == today).toList();
     final futureTasks = _tasks.where((t) => t.date != today).toList();
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('المهام')),
-      body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
-          : _tasks.isEmpty
-              ? const Center(child: Text('لا توجد مهام بعد — اضغط + لإضافة مهمة', style: TextStyle(color: AppColors.textMuted)))
-              : ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
-                  children: [
-                    if (todayTasks.isNotEmpty) ...[
-                      Text('اليوم', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      ...todayTasks.map(_taskCard),
-                      const SizedBox(height: 20),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+        appBar: AppBar(title: Text(basicText('tasks_title', lang))),
+        body: _loading
+            ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+            : _tasks.isEmpty
+                ? Center(child: Text(basicText('no_tasks_yet', lang), style: const TextStyle(color: AppColors.textMuted)))
+                : ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+                    children: [
+                      if (todayTasks.isNotEmpty) ...[
+                        Text(basicText('today_label', lang), style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        ...todayTasks.map((t) => _taskCard(t, lang)),
+                        const SizedBox(height: 20),
+                      ],
+                      if (futureTasks.isNotEmpty) ...[
+                        Text(basicText('upcoming_label', lang), style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        ...futureTasks.map((t) => _taskCard(t, lang)),
+                      ],
                     ],
-                    if (futureTasks.isNotEmpty) ...[
-                      Text('القادمة', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      ...futureTasks.map(_taskCard),
-                    ],
-                  ],
-                ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final added = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddTaskScreen()));
-          if (added == true) _load();
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('مهمة جديدة'),
+                  ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () async {
+            final added = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddTaskScreen()));
+            if (added == true) _load();
+          },
+          icon: const Icon(Icons.add),
+          label: Text(basicText('new_task_title', lang)),
+        ),
       ),
     );
   }
 
-  Widget _taskCard(DailyTask task) {
+  Widget _taskCard(DailyTask task, String lang) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -144,7 +150,8 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
           [
             '${task.date}${task.time != null ? ' · ${task.time}' : ''}',
             if (task.reminderEnabled) '🔔',
-            if (task.checklist.isNotEmpty) '${task.checklist.where((c) => c.done).length}/${task.checklist.length} نقطة تحقق',
+            if (task.checklist.isNotEmpty)
+              '${task.checklist.where((c) => c.done).length}/${task.checklist.length} ${basicText('checklist_points_suffix', lang)}',
           ].join('  '),
           style: const TextStyle(fontSize: 11.5),
         ),

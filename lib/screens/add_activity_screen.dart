@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/activity_entry.dart';
 import '../repositories/activity_repository.dart';
+import '../services/language_preference_service.dart';
 import '../utils/hijri_date.dart';
 
 class AddActivityScreen extends StatefulWidget {
@@ -44,8 +46,8 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
 
   Future<void> _save() async {
     if (_titleCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('يرجى إدخال العنوان/الوصف')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(basicText('title_desc_required', LanguagePreferenceService.currentLanguage))));
       return;
     }
     final entry = ActivityEntry(
@@ -68,14 +70,15 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   }
 
   Future<void> _delete() async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف النشاط'),
-        content: const Text('هل تريد حذف هذا النشاط؟'),
+        title: Text(basicText('delete_activity_title', lang)),
+        content: Text(basicText('delete_activity_confirm', lang)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('cancel', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('delete', lang))),
         ],
       ),
     );
@@ -95,63 +98,65 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? 'تعديل نشاط' : 'إضافة نشاط'),
-        actions: [
-          if (_isEdit) IconButton(icon: const Icon(Icons.delete_outline), onPressed: _delete),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          DropdownButtonFormField<ActivityCategory>(
-            initialValue: _category,
-            decoration: const InputDecoration(labelText: 'نوع النشاط', border: OutlineInputBorder()),
-            items: ActivityCategory.values
-                .map((c) => DropdownMenuItem(value: c, child: Text(c.label)))
-                .toList(),
-            onChanged: (v) => setState(() => _category = v ?? _category),
-          ),
-          const SizedBox(height: 14),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('التاريخ الهجري: $_hijriDateLabel'),
-            subtitle: const Text('اضغط لاختيار تاريخ آخر (يظهر التقويم الميلادي للاختيار فقط)',
-                style: TextStyle(fontSize: 11)),
-            trailing: const Icon(Icons.calendar_month),
-            onTap: _pickDate,
-          ),
-          const SizedBox(height: 14),
-          TextField(
-            controller: _titleCtrl,
-            decoration: InputDecoration(
-              labelText: _category == ActivityCategory.newMuslim ? 'اسم/تفاصيل' : 'العنوان / الوصف',
-              border: const OutlineInputBorder(),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+        appBar: AppBar(
+          title: Text(basicText(_isEdit ? 'edit_activity_title' : 'add_activity_title', lang)),
+          actions: [
+            if (_isEdit) IconButton(icon: const Icon(Icons.delete_outline), onPressed: _delete),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            DropdownButtonFormField<ActivityCategory>(
+              initialValue: _category,
+              decoration: InputDecoration(labelText: basicText('activity_type_label', lang), border: const OutlineInputBorder()),
+              items: ActivityCategory.values
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c.label)))
+                  .toList(),
+              onChanged: (v) => setState(() => _category = v ?? _category),
             ),
-            maxLines: 2,
-          ),
-          if (_category.hasBeneficiaries) ...[
+            const SizedBox(height: 14),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text('${basicText('hijri_date_label_prefix', lang)}: $_hijriDateLabel'),
+              subtitle: Text(basicText('date_picker_subtitle', lang), style: const TextStyle(fontSize: 11)),
+              trailing: const Icon(Icons.calendar_month),
+              onTap: _pickDate,
+            ),
             const SizedBox(height: 14),
             TextField(
-              controller: _beneficiariesCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'عدد المستفيدين (تقريبي)', border: OutlineInputBorder()),
+              controller: _titleCtrl,
+              decoration: InputDecoration(
+                labelText: basicText(_category == ActivityCategory.newMuslim ? 'name_details_label' : 'title_desc_label', lang),
+                border: const OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+            if (_category.hasBeneficiaries) ...[
+              const SizedBox(height: 14),
+              TextField(
+                controller: _beneficiariesCtrl,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: basicText('beneficiaries_count_label', lang), border: const OutlineInputBorder()),
+              ),
+            ],
+            const SizedBox(height: 14),
+            TextField(
+              controller: _notesCtrl,
+              decoration: InputDecoration(labelText: basicText('notes_optional_label', lang), border: const OutlineInputBorder()),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _save,
+              icon: Icon(_isEdit ? Icons.save : Icons.add),
+              label: Text(basicText(_isEdit ? 'save_changes_action' : 'add', lang)),
             ),
           ],
-          const SizedBox(height: 14),
-          TextField(
-            controller: _notesCtrl,
-            decoration: const InputDecoration(labelText: 'ملاحظات (اختياري)', border: OutlineInputBorder()),
-            maxLines: 2,
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: _save,
-            icon: Icon(_isEdit ? Icons.save : Icons.add),
-            label: Text(_isEdit ? 'حفظ التعديلات' : 'إضافة'),
-          ),
-        ],
+        ),
       ),
     );
   }

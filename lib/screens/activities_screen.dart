@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/activity_entry.dart';
 import '../repositories/activity_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import '../widgets/category_pill.dart';
@@ -43,12 +45,14 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('أنشطة ${monthLabel(currentMonth())}')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text('${basicText('activities_title_word', lang)} ${monthLabel(currentMonth())}')),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : _entries.isEmpty
-              ? const Center(child: Text('لا توجد أنشطة مسجلة هذا الشهر بعد', style: TextStyle(color: AppColors.textMuted)))
+              ? Center(child: Text(basicText('no_activities_yet', lang), style: const TextStyle(color: AppColors.textMuted)))
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                   itemCount: _entries.length,
@@ -87,7 +91,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
                                           style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark)),
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${e.date}${e.beneficiaries != null ? ' · مستفيدون: ${e.beneficiaries}' : ''}',
+                                        '${e.date}${e.beneficiaries != null ? ' · ${basicText('beneficiaries_label', lang)}: ${e.beneficiaries}' : ''}',
                                         style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                                       ),
                                     ],
@@ -110,7 +114,8 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
           if (added == true) _load();
         },
         icon: const Icon(Icons.add),
-        label: const Text('إضافة نشاط'),
+        label: Text(basicText('add_activity_title', lang)),
+      ),
       ),
     );
   }

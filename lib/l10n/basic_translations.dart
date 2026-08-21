@@ -1082,6 +1082,332 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'سمجھ گیا', 'tr': 'Anladım', 'id': 'Mengerti', 'bn': 'বুঝেছি', 'ha': 'Na Gane',
     'so': 'Waan Fahmay', 'fa': 'فهمیدم', 'ms': 'Faham',
   },
+  // 2026-08-22: onboarding_screen.dart, first-launch tutorial — flagged by
+  // Ismail's "everything must change with the language" audit as still
+  // 100% hardcoded Arabic.
+  'onboarding_skip': {
+    'ar': 'تخطي', 'en': 'Skip', 'am': 'ዝለል', 'fr': 'Passer', 'sw': 'Ruka',
+    'ur': 'نظرانداز کریں', 'tr': 'Geç', 'id': 'Lewati', 'bn': 'বাদ দিন', 'ha': 'Tsallake',
+    'so': 'Ka Bood', 'fa': 'رد کردن', 'ms': 'Langkau',
+  },
+  'onboarding_next': {
+    'ar': 'التالي', 'en': 'Next', 'am': 'ቀጣይ', 'fr': 'Suivant', 'sw': 'Ifuatayo',
+    'ur': 'اگلا', 'tr': 'İleri', 'id': 'Selanjutnya', 'bn': 'পরবর্তী', 'ha': 'Na Gaba',
+    'so': 'Xiga', 'fa': 'بعدی', 'ms': 'Seterusnya',
+  },
+  'onboarding_start_now': {
+    'ar': 'ابدأ الآن', 'en': 'Start Now', 'am': 'አሁን ጀምር', 'fr': 'Commencer maintenant', 'sw': 'Anza Sasa',
+    'ur': 'ابھی شروع کریں', 'tr': 'Şimdi Başla', 'id': 'Mulai Sekarang', 'bn': 'এখনই শুরু করুন', 'ha': 'Fara Yanzu',
+    'so': 'Bilow Hadda', 'fa': 'اکنون شروع کن', 'ms': 'Mula Sekarang',
+  },
+  'onboarding_close': {
+    'ar': 'إغلاق', 'en': 'Close', 'am': 'ዝጋ', 'fr': 'Fermer', 'sw': 'Funga',
+    'ur': 'بند کریں', 'tr': 'Kapat', 'id': 'Tutup', 'bn': 'বন্ধ করুন', 'ha': 'Rufe',
+    'so': 'Xir', 'fa': 'بستن', 'ms': 'Tutup',
+  },
+  'onboarding_slide1_title': {
+    'ar': 'مرحباً بك في طالب العلم 👋', 'en': 'Welcome to Talib al-Ilm 👋', 'am': 'እንኳን ወደ ጣሊብ አል-ዒልም በደህና መጡ 👋', 'fr': 'Bienvenue dans Talib al-Ilm 👋', 'sw': 'Karibu Talib al-Ilm 👋',
+    'ur': 'طالب العلم میں خوش آمدید 👋', 'tr': 'Talib al-Ilm\'e Hoş Geldiniz 👋', 'id': 'Selamat Datang di Talib al-Ilm 👋', 'bn': 'তালিবুল ইলম-এ স্বাগতম 👋', 'ha': 'Barka da Zuwa Talib al-Ilm 👋',
+    'so': 'Ku Soo Dhowow Talib al-Ilm 👋', 'fa': 'به طالب العلم خوش آمدید 👋', 'ms': 'Selamat Datang ke Talib al-Ilm 👋',
+  },
+  'onboarding_slide1_body': {
+    'ar': 'رفيقك في حفظ القرآن وفهمه وتطبيقه — مع الحديث والعقيدة والأذكار والتجويد وأكثر، كل ذلك بلا إنترنت ولا إعلانات.',
+    'en': 'Your companion for memorizing, understanding, and living the Qur\'an — with hadith, aqeedah, adhkar, tajweed, and more, all fully offline and ad-free.',
+    'am': 'ቁርኣንን ለማጥናት፣ ለመረዳት እና በተግባር ላዋሉ አጋርዎ — ከሐዲስ፣ ዐቂዳ፣ አዝካር እና ተጅዊድ ጋር፣ ሁሉም ያለ ኢንተርኔት እና ያለ ማስታወቂያ።',
+    'fr': 'Votre compagnon pour mémoriser, comprendre et vivre le Coran — avec le hadith, l\'aqida, les adhkar, le tajwid et plus encore, entièrement hors ligne et sans publicité.',
+    'sw': 'Rafiki yako wa kuhifadhi, kuelewa, na kutekeleza Qur\'an — pamoja na hadithi, aqidah, adhkar, tajwid na zaidi, yote bila mtandao na bila matangazo.',
+    'ur': 'قرآن کو حفظ کرنے، سمجھنے اور اس پر عمل کرنے میں آپ کا ساتھی — حدیث، عقیدہ، اذکار، تجوید اور مزید کے ساتھ، یہ سب بغیر انٹرنیٹ اور بغیر اشتہارات کے۔',
+    'tr': 'Kur\'an\'ı ezberleme, anlama ve yaşama yolunda arkadaşınız — hadis, akide, ezkâr, tecvid ve daha fazlasıyla, tamamen çevrimdışı ve reklamsız.',
+    'id': 'Sahabat Anda dalam menghafal, memahami, dan mengamalkan Al-Qur\'an — dengan hadits, akidah, adzkar, tajwid, dan lainnya, semuanya offline penuh dan tanpa iklan.',
+    'bn': 'কুরআন হিফজ, বোঝা ও জীবনে প্রয়োগ করার সঙ্গী — হাদিস, আকিদা, আজকার, তাজবিদ ও আরও অনেক কিছু নিয়ে, সবকিছু সম্পূর্ণ অফলাইনে এবং বিজ্ঞাপনমুক্ত।',
+    'ha': 'Abokinka wajen haddace, fahimta, da aiwatar da Alkur\'ani — tare da hadisi, akida, azkari, tajwidi da ƙari, duk babu intanet kuma babu talla.',
+    'so': 'Saaxiibkaaga xifdhinta, fahamka, iyo dhaqan-galinta Qur\'aanka — oo wata xadiiska, caqiidada, adkaarka, tajwiidka iyo wax badan, dhammaantoodna aan lahayn internet ama xayaysiisyo.',
+    'fa': 'همراه شما در حفظ، فهم و عمل به قرآن — همراه با حدیث، عقیده، اذکار، تجوید و بیشتر، همگی به‌طور کامل آفلاین و بدون تبلیغات.',
+    'ms': 'Sahabat anda dalam menghafal, memahami, dan mengamalkan Al-Quran — bersama hadis, akidah, zikir, tajwid dan banyak lagi, semuanya luar talian sepenuhnya dan bebas iklan.',
+  },
+  'onboarding_slide2_title': {
+    'ar': 'حفظ القرآن ومراجعته', 'en': 'Memorizing & Reviewing the Qur\'an', 'am': 'ቁርኣንን ማጥናት እና መከለስ', 'fr': 'Mémoriser et réviser le Coran', 'sw': 'Kuhifadhi na Kupitia Qur\'an',
+    'ur': 'قرآن حفظ کرنا اور دہرانا', 'tr': 'Kur\'an\'ı Ezberleme ve Tekrar', 'id': 'Menghafal & Mengulang Al-Qur\'an', 'bn': 'কুরআন হিফজ ও পুনরাবৃত্তি', 'ha': 'Haddace da Sake Nazarin Alkur\'ani',
+    'so': 'Xifdhinta iyo Dib-u-eegista Qur\'aanka', 'fa': 'حفظ و مرور قرآن', 'ms': 'Menghafal & Mengulangkaji Al-Quran',
+  },
+  'onboarding_slide2_body': {
+    'ar': 'اقرأ المصحف صفحة بصفحة برسم عثماني حقيقي، احفظ بوتيرتك الخاصة، وراجع بمحرك مراجعة ذكي (6 محطات) يذكّرك بالوقت الأمثل لكل صفحة قبل أن تُنسى.',
+    'en': 'Read the Mushaf page by page in authentic Uthmani script, memorize at your own pace, and review with a smart 6-stage review engine that reminds you of the ideal time for each page before it\'s forgotten.',
+    'am': 'ሙስሐፉን ገጽ በገጽ በእውነተኛ ዑስማኒ ጽሑፍ ያንብቡ፣ በራስዎ ፍጥነት ያጥኑ፣ እና ገጹ ከመረሳቱ በፊት ትክክለኛውን ጊዜ የሚያስታውስዎ ብልህ የ6-ደረጃ መከለሻ ሞተር ይጠቀሙ።',
+    'fr': 'Lisez le Moushaf page par page en véritable écriture othmanie, mémorisez à votre rythme, et révisez avec un moteur de révision intelligent à 6 étapes qui vous rappelle le moment idéal pour chaque page avant qu\'elle ne soit oubliée.',
+    'sw': 'Soma Msahafu ukurasa kwa ukurasa kwa maandishi halisi ya Kiuthmani, hifadhi kwa kasi yako mwenyewe, na pitia kwa injini ya kupitia yenye hatua 6 zenye akili inayokukumbusha wakati bora wa kila ukurasa kabla haujasahaulika.',
+    'ur': 'مصحف کو صفحہ بہ صفحہ اصل عثمانی رسم الخط میں پڑھیں، اپنی رفتار سے حفظ کریں، اور 6 مراحل پر مشتمل ذہین دہرانے کے انجن سے دہرائیں جو بھولنے سے پہلے ہر صفحے کے بہترین وقت کی یاد دہانی کراتا ہے۔',
+    'tr': 'Mushaf\'ı sayfa sayfa gerçek Osmanlı hattıyla okuyun, kendi hızınızda ezberleyin ve her sayfa unutulmadan önce ideal tekrar zamanını hatırlatan akıllı 6 aşamalı tekrar motoruyla tekrar edin.',
+    'id': 'Baca Mushaf halaman demi halaman dengan rasm Utsmani yang otentik, hafalkan sesuai kecepatan Anda sendiri, dan ulangi dengan mesin pengulangan cerdas 6 tahap yang mengingatkan Anda waktu ideal untuk setiap halaman sebelum terlupakan.',
+    'bn': 'আসল উসমানি রসমে মুসহাফ পাতায় পাতায় পড়ুন, নিজের গতিতে হিফজ করুন, এবং ৬-ধাপের বুদ্ধিমান পুনরাবৃত্তি ইঞ্জিন দিয়ে দোহরান, যা প্রতিটি পাতা ভুলে যাওয়ার আগে সঠিক সময় স্মরণ করিয়ে দেয়।',
+    'ha': 'Karanta Mushafi shafi-shafi da rubutun Usmani na gaskiya, ka haddace da saurin da ya dace da kai, kuma ka sake nazari da injin sake-nazari mai matakai 6 mai basira wanda ke tunatar da kai lokacin da ya dace na kowane shafi kafin a manta shi.',
+    'so': 'Akhri Mushafka bog-bog ah oo qoraal Cusmaani ah oo dhab ah, xifdhi si u dhaqso ah oo kuu gaar ah, oo dib-u-eeg matoor dib-u-eegis xikmad leh oo 6 marxaladood ah oo kuu xasuusiya waqtiga ku habboon bog kasta ka hor inta aan la illoobin.',
+    'fa': 'مصحف را صفحه به صفحه با رسم‌الخط اصیل عثمانی بخوانید، با سرعت خودتان حفظ کنید و با موتور مرور هوشمند ۶ مرحله‌ای که زمان ایده‌آل هر صفحه را پیش از فراموشی به شما یادآوری می‌کند، مرور کنید.',
+    'ms': 'Baca Mushaf halaman demi halaman dengan rasm Uthmani yang tulen, hafal mengikut kelajuan anda sendiri, dan ulangkaji dengan enjin ulangkaji pintar 6 peringkat yang mengingatkan anda masa terbaik untuk setiap halaman sebelum ia dilupakan.',
+  },
+  'onboarding_slide3_title': {
+    'ar': 'رحلتك ومدرّب الحفظ', 'en': 'Your Journey & Memorization Coach', 'am': 'ጉዞዎ እና የማጥናት አሰልጣኝ', 'fr': 'Votre parcours et votre coach de mémorisation', 'sw': 'Safari Yako na Kocha wa Kuhifadhi',
+    'ur': 'آپ کا سفر اور حفظ کوچ', 'tr': 'Yolculuğunuz ve Ezber Koçu', 'id': 'Perjalanan Anda & Pelatih Hafalan', 'bn': 'আপনার যাত্রা ও হিফজ কোচ', 'ha': 'Tafiyarka da Kocin Haddacewa',
+    'so': 'Safarkaaga iyo Tababarahaaga Xifdhinta', 'fa': 'مسیر شما و مربی حفظ', 'ms': 'Perjalanan Anda & Jurulatih Hafazan',
+  },
+  'onboarding_slide3_body': {
+    'ar': 'من "رحلتي" حدّد هدف ختمك وتابع وتيرتك المتكيفة يومًا بيوم — بالموعد أو متأخر أو متقدم — بلا ضغط ولا معاقبة عند الانقطاع.',
+    'en': 'From "My Journey" set your completion goal and track your pace day by day — on schedule, behind, or ahead — with no pressure and no penalty when you miss a day.',
+    'am': 'ከ"ጉዞዬ" የማጠናቀቂያ ግብዎን ያዘጋጁ እና ፍጥነትዎን ቀን በቀን ይከታተሉ — በጊዜ፣ ዘግይቶ፣ ወይም ቀድሞ — ያለ ጫና እና ያለ ቅጣት ቀን ሲያመልጥዎ።',
+    'fr': 'Dans "Mon parcours", fixez votre objectif de complétion et suivez votre rythme jour après jour — à l\'heure, en retard, ou en avance — sans pression et sans pénalité si vous manquez un jour.',
+    'sw': 'Kutoka "Safari Yangu" weka lengo lako la kukamilisha na fuatilia kasi yako siku kwa siku — kwa wakati, umechelewa, au umetangulia — bila shinikizo na bila adhabu unapokosa siku.',
+    'ur': '"میرا سفر" میں اپنا تکمیل کا ہدف مقرر کریں اور روز بروز اپنی رفتار دیکھیں — وقت پر، پیچھے، یا آگے — بغیر کسی دباؤ اور بغیر کسی سزا کے جب کوئی دن چھوٹ جائے۔',
+    'tr': '"Yolculuğum"dan hatim hedefinizi belirleyin ve gün gün hızınızı takip edin — zamanında, geride veya önde — bir günü kaçırdığınızda baskı ya da ceza olmadan.',
+    'id': 'Dari "Perjalananku" tetapkan target khatam Anda dan pantau kecepatan Anda hari demi hari — sesuai jadwal, tertinggal, atau lebih cepat — tanpa tekanan dan tanpa hukuman saat melewatkan satu hari.',
+    'bn': '"আমার যাত্রা" থেকে আপনার খতম লক্ষ্য নির্ধারণ করুন এবং দিনে দিনে আপনার গতি অনুসরণ করুন — নির্ধারিত সময়ে, পিছিয়ে, বা এগিয়ে — কোনো চাপ ছাড়া এবং একদিন বাদ পড়লে কোনো শাস্তি ছাড়াই।',
+    'ha': 'Daga "Tafiyata" ka saita burin kammala karatun ka, ka kuma bibiyi saurin ka kullum — kana kan lokaci, a baya, ko a gaba — babu matsin lamba kuma babu hukunci idan ka rasa yini.',
+    'so': 'Ka "Safarkayga" dooro yoolkaaga dhammaystirka oo la soco xawaaraaga maalin walba — waqtiga saxda ah, dib maray, ama hore u socda — cadaadis la\'aan iyo ciqaab la\'aan haddii aad maalin ka maqnaato.',
+    'fa': 'از "سفر من" هدف ختم خود را تعیین کنید و روند خود را روز به روز دنبال کنید — طبق برنامه، عقب‌مانده یا جلوتر — بدون فشار و بدون جریمه در صورت جا ماندن یک روز.',
+    'ms': 'Daripada "Perjalanan Saya" tetapkan sasaran khatam anda dan jejaki kadar anda hari demi hari — mengikut jadual, ketinggalan, atau lebih awal — tanpa tekanan dan tanpa hukuman apabila anda terlepas satu hari.',
+  },
+  'onboarding_slide4_title': {
+    'ar': 'أبعد من القرآن', 'en': 'Beyond the Qur\'an', 'am': 'ከቁርኣን ባሻገር', 'fr': 'Au-delà du Coran', 'sw': 'Zaidi ya Qur\'an',
+    'ur': 'قرآن سے آگے', 'tr': 'Kur\'an\'ın Ötesinde', 'id': 'Lebih dari Al-Qur\'an', 'bn': 'কুরআনের বাইরেও', 'ha': 'Bayan Alkur\'ani',
+    'so': 'Waxa ka Baxsan Qur\'aanka', 'fa': 'فراتر از قرآن', 'ms': 'Melangkaui Al-Quran',
+  },
+  'onboarding_slide4_body': {
+    'ar': 'الأربعون النووية، العقيدة الواسطية، أحكام التجويد، حصن المسلم للأذكار، ودروس تطبيقية — كل علم له مكانه ومراجعته الخاصة.',
+    'en': 'The 40 Hadith of an-Nawawi, al-Aqeedah al-Wasitiyyah, tajweed rules, Hisn al-Muslim for adhkar, and practical lessons — each subject with its own place and its own review track.',
+    'am': 'የነወዊ 40 ሐዲሶች፣ ዐቂዳ ዋሲጢያ፣ የተጅዊድ ሕጎች፣ ለአዝካር ሂስን አል-ሙስሊም፣ እና ተግባራዊ ትምህርቶች — እያንዳንዱ ትምህርት የራሱ ቦታ እና የራሱ መከለሻ አለው።',
+    'fr': 'Les 40 hadiths d\'an-Nawawi, al-Aqida al-Wasitiyya, les règles du tajwid, Hisn al-Muslim pour les adhkar, et des leçons pratiques — chaque matière a sa propre place et son propre suivi de révision.',
+    'sw': 'Hadithi 40 za an-Nawawi, al-Aqidah al-Wasitiyyah, kanuni za tajwid, Hisn al-Muslim kwa adhkar, na masomo ya vitendo — kila somo lina nafasi yake na njia yake ya kupitia.',
+    'ur': 'امام نووی کی چالیس احادیث، عقیدہ واسطیہ، تجوید کے احکام، اذکار کے لیے حصن المسلم، اور عملی اسباق — ہر علم کی اپنی جگہ اور اپنا دہرانے کا نظام ہے۔',
+    'tr': 'Nevevi\'nin 40 hadisi, el-Akidetü\'l-Vasıtiyye, tecvid kuralları, ezkâr için Hısnü\'l-Müslim ve pratik dersler — her ilmin kendi yeri ve kendi tekrar sistemi var.',
+    'id': '40 Hadits Nawawi, Aqidah Wasitiyah, hukum tajwid, Hisnul Muslim untuk adzkar, dan pelajaran praktis — setiap ilmu memiliki tempat dan jalur pengulangannya sendiri.',
+    'bn': 'নববীর ৪০ হাদিস, আকিদাতুল ওয়াসিতিয়্যাহ, তাজবিদের বিধান, আজকারের জন্য হিসনুল মুসলিম, এবং ব্যবহারিক পাঠ — প্রতিটি বিষয়ের নিজস্ব স্থান ও নিজস্ব পুনরাবৃত্তি ব্যবস্থা রয়েছে।',
+    'ha': 'Hadisai 40 na Nawawi, Aqeedah al-Wasitiyyah, ka\'idojin tajwidi, Hisn al-Muslim na azkari, da darussan aiki — kowane ilimi yana da wurinsa da tsarin sake-nazarinsa na musamman.',
+    'so': 'Afartankii Xadiith ee Imaam Nawawi, Caqiidada Waasidiyada, xeerarka Tajwiidka, Hisnul-Muslim ee adkaarka, iyo casharrada wax ku ool ah — cilmi kastaa wuxuu leeyahay meel iyo hab dib-u-eegis oo isaga u gaar ah.',
+    'fa': 'چهل حدیث نووی، عقیده واسطیه، احکام تجوید، حصن المسلم برای اذکار، و درس‌های کاربردی — هر علمی جایگاه و مسیر مرور خاص خود را دارد.',
+    'ms': '40 Hadis an-Nawawi, Aqidah al-Wasitiyyah, hukum tajwid, Hisnul Muslim untuk zikir, dan pelajaran praktikal — setiap ilmu mempunyai tempat dan laluan ulangkajinya sendiri.',
+  },
+  'onboarding_slide5_title': {
+    'ar': 'جلسة اليوم ورفيقك', 'en': 'Today\'s Session & Your Companion', 'am': 'የዛሬው ክፍለ ጊዜ እና አጋርዎ', 'fr': 'La séance du jour et votre compagnon', 'sw': 'Kipindi cha Leo na Rafiki Yako',
+    'ur': 'آج کا سیشن اور آپ کا ساتھی', 'tr': 'Bugünkü Oturum ve Arkadaşınız', 'id': 'Sesi Hari Ini & Sahabat Anda', 'bn': 'আজকের সেশন ও আপনার সঙ্গী', 'ha': 'Zaman Yau da Abokinka',
+    'so': 'Fadhiga Maanta iyo Saaxiibkaaga', 'fa': 'جلسه امروز و همراه شما', 'ms': 'Sesi Hari Ini & Sahabat Anda',
+  },
+  'onboarding_slide5_body': {
+    'ar': 'ابدأ "جلسة اليوم" لخطة موجّهة بالوقت المتاح لديك، ورفيق طالب العلم معك يشجعك ويذكّرك — كل هذا يعمل بالكامل دون اتصال بالإنترنت.',
+    'en': 'Start "Today\'s Session" for a plan guided by the time you have available, with your Talib al-Ilm companion by your side to encourage and remind you — all of it working fully offline.',
+    'am': '"የዛሬው ክፍለ ጊዜ" ይጀምሩ ላሉት ጊዜ በተመራ እቅድ፣ እና ጣሊብ አል-ዒልም አጋርዎ ከጎንዎ ያበረታታዎታል እና ያስታውስዎታል — ይህ ሁሉ ያለ ኢንተርኔት ሙሉ በሙሉ ይሰራል።',
+    'fr': 'Lancez la "Séance du jour" pour un plan guidé selon le temps dont vous disposez, avec votre compagnon Talib al-Ilm à vos côtés pour vous encourager et vous rappeler — le tout fonctionnant entièrement hors ligne.',
+    'sw': 'Anza "Kipindi cha Leo" kwa mpango unaoongozwa na muda ulio nao, akiwa na rafiki yako wa Talib al-Ilm karibu yako kukutia moyo na kukukumbusha — yote yakifanya kazi bila mtandao kabisa.',
+    'ur': '"آج کا سیشن" شروع کریں تاکہ آپ کے دستیاب وقت کے مطابق رہنمائی ملے، اور طالب العلم کا ساتھی آپ کے ساتھ حوصلہ افزائی اور یاد دہانی کرائے — یہ سب کچھ مکمل طور پر بغیر انٹرنیٹ کے کام کرتا ہے۔',
+    'tr': 'Elinizdeki zamana göre yönlendirilen bir plan için "Bugünkü Oturum"u başlatın; Talib al-Ilm arkadaşınız yanınızda sizi teşvik eder ve hatırlatır — tüm bunlar tamamen çevrimdışı çalışır.',
+    'id': 'Mulai "Sesi Hari Ini" untuk rencana yang disesuaikan dengan waktu yang Anda miliki, dengan sahabat Talib al-Ilm di sisi Anda untuk menyemangati dan mengingatkan — semuanya berjalan sepenuhnya offline.',
+    'bn': 'আপনার হাতে থাকা সময় অনুযায়ী পরিচালিত পরিকল্পনার জন্য "আজকের সেশন" শুরু করুন, এবং আপনার তালিবুল ইলম সঙ্গী পাশে থেকে উৎসাহ দেয় ও মনে করিয়ে দেয় — এসব কিছুই সম্পূর্ণ অফলাইনে কাজ করে।',
+    'ha': 'Fara "Zaman Yau" don shirin da aka jagoranta bisa lokacin da kake da shi, tare da abokinka na Talib al-Ilm a gefenka don ƙarfafa ka da tunatar da kai — duk wannan yana aiki gaba ɗaya ba tare da intanet ba.',
+    'so': 'Bilow "Fadhiga Maanta" si aad u hesho qorshe ku salaysan waqtiga aad haysato, adigoo wata saaxiibkaaga Talib al-Ilm oo ku dhiirigelinaya oo ku xasuusinaya — dhammaan kuwan waxay si buuxda u shaqeeyaan iyaga oo aan lahayn internet.',
+    'fa': '"جلسه امروز" را برای برنامه‌ای متناسب با زمان در دسترستان شروع کنید، در حالی که همراه طالب العلم شما را تشویق و یادآوری می‌کند — همه اینها کاملاً به‌صورت آفلاین کار می‌کند.',
+    'ms': 'Mulakan "Sesi Hari Ini" untuk pelan yang dipandu mengikut masa yang anda ada, dengan sahabat Talib al-Ilm di sisi anda untuk memberi semangat dan mengingatkan — semuanya berfungsi sepenuhnya luar talian.',
+  },
+  // 2026-08-22: activities_screen.dart + add_activity_screen.dart — the
+  // "الأنشطة" tab and its add/edit form, found still 100% hardcoded Arabic
+  // during the app-wide UI-chrome translation sweep. AppBar title reuses
+  // 'nav_activities' as the prefix before the interpolated month label
+  // (same pattern already used by goals_screen.dart with 'nav_goals').
+  'no_activities_yet': {
+    'ar': 'لا توجد أنشطة مسجلة هذا الشهر بعد', 'en': 'No activities recorded this month yet', 'am': 'እስካሁን በዚህ ወር የተመዘገበ እንቅስቃሴ የለም', 'fr': "Aucune activité enregistrée ce mois-ci pour l'instant", 'sw': 'Bado hakuna shughuli zilizorekodiwa mwezi huu',
+    'ur': 'اس مہینے ابھی تک کوئی سرگرمی درج نہیں ہوئی', 'tr': 'Bu ay henüz kaydedilmiş etkinlik yok', 'id': 'Belum ada aktivitas yang tercatat bulan ini', 'bn': 'এই মাসে এখনও কোনো কার্যক্রম রেকর্ড করা হয়নি', 'ha': 'Babu ayyukan da aka rubuta a wannan watan tukuna',
+    'so': 'Wali hawlo lagu diiwaan geliyay bishan lama helin', 'fa': 'هنوز فعالیتی برای این ماه ثبت نشده است', 'ms': 'Belum ada aktiviti direkodkan bulan ini',
+  },
+  'beneficiaries_label': {
+    'ar': 'مستفيدون', 'en': 'Beneficiaries', 'am': 'ተጠቃሚዎች', 'fr': 'Bénéficiaires', 'sw': 'Wanufaika',
+    'ur': 'مستفیدین', 'tr': 'Yararlananlar', 'id': 'Penerima Manfaat', 'bn': 'সুবিধাভোগী', 'ha': 'Masu Amfana',
+    'so': "Faa'iidaystayaasha", 'fa': 'بهره‌مندان', 'ms': 'Penerima Manfaat',
+  },
+  'add_activity_title': {
+    'ar': 'إضافة نشاط', 'en': 'Add Activity', 'am': 'እንቅስቃሴ ጨምር', 'fr': 'Ajouter une activité', 'sw': 'Ongeza Shughuli',
+    'ur': 'سرگرمی شامل کریں', 'tr': 'Etkinlik Ekle', 'id': 'Tambah Aktivitas', 'bn': 'কার্যক্রম যোগ করুন', 'ha': 'Ƙara Aiki',
+    'so': 'Ku dar Hawl', 'fa': 'افزودن فعالیت', 'ms': 'Tambah Aktiviti',
+  },
+  'edit_activity_title': {
+    'ar': 'تعديل نشاط', 'en': 'Edit Activity', 'am': 'እንቅስቃሴ አርትዕ', 'fr': "Modifier l'activité", 'sw': 'Hariri Shughuli',
+    'ur': 'سرگرمی میں ترمیم کریں', 'tr': 'Etkinliği Düzenle', 'id': 'Ubah Aktivitas', 'bn': 'কার্যক্রম সম্পাদনা করুন', 'ha': 'Gyara Aiki',
+    'so': 'Wax ka Beddel Hawsha', 'fa': 'ویرایش فعالیت', 'ms': 'Edit Aktiviti',
+  },
+  'title_desc_required': {
+    'ar': 'يرجى إدخال العنوان/الوصف', 'en': 'Please enter the title/description', 'am': 'እባክዎ ርዕስ/መግለጫ ያስገቡ', 'fr': 'Veuillez saisir le titre/la description', 'sw': 'Tafadhali weka kichwa/maelezo',
+    'ur': 'براہ کرم عنوان/تفصیل درج کریں', 'tr': 'Lütfen başlık/açıklama girin', 'id': 'Silakan masukkan judul/deskripsi', 'bn': 'অনুগ্রহ করে শিরোনাম/বিবরণ লিখুন', 'ha': 'Da fatan za a shigar da take/bayani',
+    'so': 'Fadlan geli cinwaanka/sharaxaadda', 'fa': 'لطفاً عنوان/توضیحات را وارد کنید', 'ms': 'Sila masukkan tajuk/penerangan',
+  },
+  'delete_activity_title': {
+    'ar': 'حذف النشاط', 'en': 'Delete Activity', 'am': 'እንቅስቃሴ ሰርዝ', 'fr': "Supprimer l'activité", 'sw': 'Futa Shughuli',
+    'ur': 'سرگرمی حذف کریں', 'tr': 'Etkinliği Sil', 'id': 'Hapus Aktivitas', 'bn': 'কার্যক্রম মুছুন', 'ha': 'Share Aiki',
+    'so': 'Tirtir Hawsha', 'fa': 'حذف فعالیت', 'ms': 'Padam Aktiviti',
+  },
+  'delete_activity_confirm': {
+    'ar': 'هل تريد حذف هذا النشاط؟', 'en': 'Do you want to delete this activity?', 'am': 'ይህን እንቅስቃሴ መሰረዝ ይፈልጋሉ?', 'fr': 'Voulez-vous supprimer cette activité ?', 'sw': 'Je, unataka kufuta shughuli hii?',
+    'ur': 'کیا آپ یہ سرگرمی حذف کرنا چاہتے ہیں؟', 'tr': 'Bu etkinliği silmek istiyor musunuz?', 'id': 'Apakah Anda ingin menghapus aktivitas ini?', 'bn': 'আপনি কি এই কার্যক্রমটি মুছতে চান?', 'ha': 'Kana son share wannan aikin?',
+    'so': 'Ma rabtaa inaad tirtirto hawshan?', 'fa': 'آیا می‌خواهید این فعالیت را حذف کنید؟', 'ms': 'Adakah anda ingin memadam aktiviti ini?',
+  },
+  'delete': {
+    'ar': 'حذف', 'en': 'Delete', 'am': 'ሰርዝ', 'fr': 'Supprimer', 'sw': 'Futa',
+    'ur': 'حذف کریں', 'tr': 'Sil', 'id': 'Hapus', 'bn': 'মুছুন', 'ha': 'Share',
+    'so': 'Tirtir', 'fa': 'حذف', 'ms': 'Padam',
+  },
+  'activity_type_label': {
+    'ar': 'نوع النشاط', 'en': 'Activity Type', 'am': 'የእንቅስቃሴ ዓይነት', 'fr': "Type d'activité", 'sw': 'Aina ya Shughuli',
+    'ur': 'سرگرمی کی قسم', 'tr': 'Etkinlik Türü', 'id': 'Jenis Aktivitas', 'bn': 'কার্যক্রমের ধরন', 'ha': "Nau'in Aiki",
+    'so': 'Nooca Hawsha', 'fa': 'نوع فعالیت', 'ms': 'Jenis Aktiviti',
+  },
+  'hijri_date_label_prefix': {
+    'ar': 'التاريخ الهجري', 'en': 'Hijri Date', 'am': 'የሂጅሪ ቀን', 'fr': 'Date hégirienne', 'sw': 'Tarehe ya Hijri',
+    'ur': 'ہجری تاریخ', 'tr': 'Hicri Tarih', 'id': 'Tanggal Hijriah', 'bn': 'হিজরি তারিখ', 'ha': 'Kwanan Hijira',
+    'so': 'Taariikhda Hijriga', 'fa': 'تاریخ هجری', 'ms': 'Tarikh Hijrah',
+  },
+  'date_picker_subtitle': {
+    'ar': 'اضغط لاختيار تاريخ آخر (يظهر التقويم الميلادي للاختيار فقط)', 'en': 'Tap to choose another date (the Gregorian calendar is shown for selection only)', 'am': 'ሌላ ቀን ለመምረጥ ተጫን (ጎርጎርያን ካላንደር ለምርጫ ብቻ ይታያል)', 'fr': "Appuyez pour choisir une autre date (le calendrier grégorien s'affiche uniquement pour la sélection)", 'sw': 'Bonyeza kuchagua tarehe nyingine (kalenda ya Kigregori inaonyeshwa kwa uchaguzi tu)',
+    'ur': 'دوسری تاریخ چننے کے لیے دبائیں (عیسوی کیلنڈر صرف انتخاب کے لیے دکھایا جاتا ہے)', 'tr': 'Başka bir tarih seçmek için dokunun (Miladi takvim yalnızca seçim için gösterilir)', 'id': 'Ketuk untuk memilih tanggal lain (kalender Masehi hanya ditampilkan untuk pemilihan)', 'bn': 'অন্য তারিখ বেছে নিতে চাপুন (গ্রেগরিয়ান ক্যালেন্ডার শুধুমাত্র নির্বাচনের জন্য দেখানো হয়)', 'ha': 'Danna don zaɓar wata rana (ana nuna kalandar Miladiyya don zaɓi kawai)',
+    'so': 'Taabo si aad u doorato taariikh kale (kalandarka Miilaadiga waxaa loo muujiyaa doorasho kaliya)', 'fa': 'برای انتخاب تاریخ دیگر ضربه بزنید (تقویم میلادی فقط برای انتخاب نمایش داده می‌شود)', 'ms': 'Ketik untuk memilih tarikh lain (kalendar Masihi dipaparkan untuk pemilihan sahaja)',
+  },
+  'name_details_label': {
+    'ar': 'اسم/تفاصيل', 'en': 'Name/Details', 'am': 'ስም/ዝርዝሮች', 'fr': 'Nom/Détails', 'sw': 'Jina/Maelezo',
+    'ur': 'نام/تفصیلات', 'tr': 'İsim/Detaylar', 'id': 'Nama/Detail', 'bn': 'নাম/বিবরণ', 'ha': 'Suna/Bayani',
+    'so': 'Magaca/Faahfaahin', 'fa': 'نام/جزئیات', 'ms': 'Nama/Butiran',
+  },
+  'title_desc_label': {
+    'ar': 'العنوان / الوصف', 'en': 'Title / Description', 'am': 'ርዕስ / መግለጫ', 'fr': 'Titre / Description', 'sw': 'Kichwa / Maelezo',
+    'ur': 'عنوان / تفصیل', 'tr': 'Başlık / Açıklama', 'id': 'Judul / Deskripsi', 'bn': 'শিরোনাম / বিবরণ', 'ha': 'Take / Bayani',
+    'so': 'Cinwaanka / Sharaxaadda', 'fa': 'عنوان / توضیحات', 'ms': 'Tajuk / Penerangan',
+  },
+  'beneficiaries_count_label': {
+    'ar': 'عدد المستفيدين (تقريبي)', 'en': 'Number of Beneficiaries (approx.)', 'am': 'የተጠቃሚዎች ብዛት (ግምት)', 'fr': 'Nombre de bénéficiaires (approximatif)', 'sw': 'Idadi ya Wanufaika (takriban)',
+    'ur': 'مستفیدین کی تعداد (تخمینی)', 'tr': 'Yararlanan Sayısı (yaklaşık)', 'id': 'Jumlah Penerima Manfaat (perkiraan)', 'bn': 'সুবিধাভোগীর সংখ্যা (আনুমানিক)', 'ha': 'Adadin Masu Amfana (kimanin)',
+    'so': "Tirada Faa'iidaystayaasha (qiyaas)", 'fa': 'تعداد بهره‌مندان (تقریبی)', 'ms': 'Bilangan Penerima Manfaat (anggaran)',
+  },
+  'notes_optional_label': {
+    'ar': 'ملاحظات (اختياري)', 'en': 'Notes (optional)', 'am': 'ማስታወሻዎች (አማራጭ)', 'fr': 'Remarques (facultatif)', 'sw': 'Maelezo (si lazima)',
+    'ur': 'نوٹس (اختیاری)', 'tr': 'Notlar (isteğe bağlı)', 'id': 'Catatan (opsional)', 'bn': 'নোট (ঐচ্ছিক)', 'ha': 'Bayanai (na zaɓi)',
+    'so': 'Fiiro gaar ah (ikhtiyaari)', 'fa': 'یادداشت‌ها (اختیاری)', 'ms': 'Nota (pilihan)',
+  },
+  'save_changes_action': {
+    'ar': 'حفظ التعديلات', 'en': 'Save Changes', 'am': 'ለውጦችን አስቀምጥ', 'fr': 'Enregistrer les modifications', 'sw': 'Hifadhi Mabadiliko',
+    'ur': 'تبدیلیاں محفوظ کریں', 'tr': 'Değişiklikleri Kaydet', 'id': 'Simpan Perubahan', 'bn': 'পরিবর্তন সংরক্ষণ করুন', 'ha': 'Ajiye Canje-canje',
+    'so': 'Kaydi Isbeddelada', 'fa': 'ذخیره تغییرات', 'ms': 'Simpan Perubahan',
+  },
+  // 2026-08-22: add_task_screen.dart + daily_tasks_screen.dart — the daily
+  // tasks list, its add/edit form, and the completion-checklist dialog,
+  // found still 100% hardcoded Arabic during the same sweep.
+  'task_title_required': {
+    'ar': 'يرجى إدخال عنوان المهمة', 'en': 'Please enter the task title', 'am': 'እባክዎ የተግባር ርዕስ ያስገቡ', 'fr': 'Veuillez saisir le titre de la tâche', 'sw': 'Tafadhali weka kichwa cha kazi',
+    'ur': 'براہ کرم ٹاسک کا عنوان درج کریں', 'tr': 'Lütfen görev başlığını girin', 'id': 'Silakan masukkan judul tugas', 'bn': 'অনুগ্রহ করে কাজের শিরোনাম লিখুন', 'ha': 'Da fatan za a shigar da take na aiki',
+    'so': 'Fadlan geli cinwaanka hawsha', 'fa': 'لطفاً عنوان وظیفه را وارد کنید', 'ms': 'Sila masukkan tajuk tugasan',
+  },
+  'delete_task_title': {
+    'ar': 'حذف المهمة', 'en': 'Delete Task', 'am': 'ተግባር ሰርዝ', 'fr': 'Supprimer la tâche', 'sw': 'Futa Kazi',
+    'ur': 'ٹاسک حذف کریں', 'tr': 'Görevi Sil', 'id': 'Hapus Tugas', 'bn': 'কাজ মুছুন', 'ha': 'Share Aiki',
+    'so': 'Tirtir Hawsha', 'fa': 'حذف وظیفه', 'ms': 'Padam Tugasan',
+  },
+  'delete_task_confirm': {
+    'ar': 'هل تريد حذف هذه المهمة؟', 'en': 'Do you want to delete this task?', 'am': 'ይህን ተግባር መሰረዝ ይፈልጋሉ?', 'fr': 'Voulez-vous supprimer cette tâche ?', 'sw': 'Je, unataka kufuta kazi hii?',
+    'ur': 'کیا آپ یہ ٹاسک حذف کرنا چاہتے ہیں؟', 'tr': 'Bu görevi silmek istiyor musunuz?', 'id': 'Apakah Anda ingin menghapus tugas ini?', 'bn': 'আপনি কি এই কাজটি মুছতে চান?', 'ha': 'Kana son share wannan aikin?',
+    'so': 'Ma rabtaa inaad tirtirto hawshan?', 'fa': 'آیا می‌خواهید این وظیفه را حذف کنید؟', 'ms': 'Adakah anda ingin memadam tugasan ini?',
+  },
+  'edit_task_title': {
+    'ar': 'تعديل مهمة', 'en': 'Edit Task', 'am': 'ተግባር አርትዕ', 'fr': 'Modifier la tâche', 'sw': 'Hariri Kazi',
+    'ur': 'ٹاسک میں ترمیم کریں', 'tr': 'Görevi Düzenle', 'id': 'Ubah Tugas', 'bn': 'কাজ সম্পাদনা করুন', 'ha': 'Gyara Aiki',
+    'so': 'Wax ka Beddel Hawsha', 'fa': 'ویرایش وظیفه', 'ms': 'Edit Tugasan',
+  },
+  'new_task_title': {
+    'ar': 'مهمة جديدة', 'en': 'New Task', 'am': 'አዲስ ተግባር', 'fr': 'Nouvelle tâche', 'sw': 'Kazi Mpya',
+    'ur': 'نیا ٹاسک', 'tr': 'Yeni Görev', 'id': 'Tugas Baru', 'bn': 'নতুন কাজ', 'ha': 'Sabon Aiki',
+    'so': 'Hawl Cusub', 'fa': 'وظیفه جدید', 'ms': 'Tugasan Baharu',
+  },
+  'task_title_label': {
+    'ar': 'عنوان المهمة', 'en': 'Task Title', 'am': 'የተግባር ርዕስ', 'fr': 'Titre de la tâche', 'sw': 'Kichwa cha Kazi',
+    'ur': 'ٹاسک کا عنوان', 'tr': 'Görev Başlığı', 'id': 'Judul Tugas', 'bn': 'কাজের শিরোনাম', 'ha': 'Take na Aiki',
+    'so': 'Cinwaanka Hawsha', 'fa': 'عنوان وظیفه', 'ms': 'Tajuk Tugasan',
+  },
+  'no_time_set': {
+    'ar': 'بدون وقت محدد', 'en': 'No time set', 'am': 'የተወሰነ ሰዓት የለም', 'fr': 'Aucune heure définie', 'sw': 'Hakuna wakati uliowekwa',
+    'ur': 'کوئی وقت مقرر نہیں', 'tr': 'Belirlenmiş saat yok', 'id': 'Tidak ada waktu yang ditentukan', 'bn': 'কোনো সময় নির্ধারণ করা হয়নি', 'ha': 'Babu lokacin da aka saita',
+    'so': 'Waqti la\'aan', 'fa': 'زمانی تعیین نشده', 'ms': 'Tiada masa ditetapkan',
+  },
+  'time_label_prefix': {
+    'ar': 'الوقت', 'en': 'Time', 'am': 'ሰዓት', 'fr': 'Heure', 'sw': 'Wakati',
+    'ur': 'وقت', 'tr': 'Saat', 'id': 'Waktu', 'bn': 'সময়', 'ha': 'Lokaci',
+    'so': 'Waqtiga', 'fa': 'زمان', 'ms': 'Masa',
+  },
+  'reminder_notification_title': {
+    'ar': 'تذكير عبر إشعار', 'en': 'Notification Reminder', 'am': 'በማሳወቂያ ማስታወሻ', 'fr': 'Rappel par notification', 'sw': 'Ukumbusho kwa Arifa',
+    'ur': 'اطلاع کے ذریعے یاد دہانی', 'tr': 'Bildirimle Hatırlatma', 'id': 'Pengingat melalui Notifikasi', 'bn': 'বিজ্ঞপ্তির মাধ্যমে অনুস্মারক', 'ha': 'Tunatarwa ta Sanarwa',
+    'so': 'Xasuusin Ogeysiis ah', 'fa': 'یادآوری از طریق اعلان', 'ms': 'Peringatan melalui Notifikasi',
+  },
+  'reminder_notification_subtitle': {
+    'ar': 'يصلك إشعار في هذا الوقت لهذه المهمة', 'en': "You'll get a notification at this time for this task", 'am': 'በዚህ ሰዓት ለዚህ ተግባር ማሳወቂያ ይደርስዎታል', 'fr': 'Vous recevrez une notification à cette heure pour cette tâche', 'sw': 'Utapata arifa wakati huu kwa kazi hii',
+    'ur': 'اس وقت پر آپ کو اس ٹاسک کے لیے اطلاع ملے گی', 'tr': 'Bu görev için bu saatte bir bildirim alacaksınız', 'id': 'Anda akan menerima notifikasi pada waktu ini untuk tugas ini', 'bn': 'এই সময়ে এই কাজের জন্য আপনি একটি বিজ্ঞপ্তি পাবেন', 'ha': 'Za ka sami sanarwa a wannan lokacin domin wannan aikin',
+    'so': 'Waqtigan waxaad heli doontaa ogeysiis hawshan la xiriira', 'fa': 'در این زمان برای این وظیفه اعلانی دریافت خواهید کرد', 'ms': 'Anda akan menerima notifikasi pada masa ini untuk tugasan ini',
+  },
+  'completion_checklist_title': {
+    'ar': 'قائمة التحقق عند الإكمال (اختياري)', 'en': 'Completion Checklist (optional)', 'am': 'የማጠናቀቂያ ማረጋገጫ ዝርዝር (አማራጭ)', 'fr': "Liste de vérification à l'achèvement (facultatif)", 'sw': 'Orodha ya Ukaguzi ya Kukamilisha (si lazima)',
+    'ur': 'تکمیل کے وقت چیک لسٹ (اختیاری)', 'tr': 'Tamamlama Kontrol Listesi (isteğe bağlı)', 'id': 'Daftar Periksa Penyelesaian (opsional)', 'bn': 'সমাপ্তি চেকলিস্ট (ঐচ্ছিক)', 'ha': 'Jerin Duba na Kammalawa (na zaɓi)',
+    'so': 'Liiska Hubinta Dhamaystirka (ikhtiyaari)', 'fa': 'چک‌لیست تکمیل (اختیاری)', 'ms': 'Senarai Semak Penyelesaian (pilihan)',
+  },
+  'completion_checklist_desc': {
+    'ar': 'تظهر لك هذه النقاط لمراجعتها عند وضع علامة "مكتملة" على المهمة.', 'en': 'These points appear for you to review when you mark the task "completed."', 'am': 'ተግባሩን "የተጠናቀቀ" ብለው ሲያመልክቱ እነዚህ ነጥቦች ለክለሳ ይታያሉ።', 'fr': 'Ces points s\'affichent pour être vérifiés lorsque vous marquez la tâche comme "terminée".', 'sw': 'Vipengele hivi vinaonekana kwa ajili ya kukagua unapoweka alama "imekamilika" kwenye kazi.',
+    'ur': 'جب آپ ٹاسک کو "مکمل" کا نشان لگاتے ہیں تو یہ نکات جائزے کے لیے ظاہر ہوتے ہیں۔', 'tr': 'Görevi "tamamlandı" olarak işaretlediğinizde bu maddeler gözden geçirmeniz için görünür.', 'id': 'Poin-poin ini muncul untuk Anda tinjau saat menandai tugas sebagai "selesai".', 'bn': 'কাজটিকে "সম্পন্ন" চিহ্নিত করার সময় এই পয়েন্টগুলো পর্যালোচনার জন্য দেখানো হয়।', 'ha': 'Waɗannan abubuwa suna bayyana don ka duba lokacin da ka sanya alamar "an kammala" akan aikin.',
+    'so': 'Dhibcahan waxay kuu soo baxaan si aad u dib-u-eegto marka aad calaamadeyso hawsha "la dhammeeyay."', 'fa': 'این نکات هنگام علامت‌گذاری وظیفه به‌عنوان "تکمیل‌شده" برای بازبینی نمایش داده می‌شوند.', 'ms': 'Perkara-perkara ini dipaparkan untuk semakan anda apabila anda menandakan tugasan sebagai "selesai".',
+  },
+  'checklist_item_hint': {
+    'ar': 'تأكد من...', 'en': 'Make sure to...', 'am': 'ያረጋግጡ...', 'fr': 'Assurez-vous de...', 'sw': 'Hakikisha...',
+    'ur': 'یقینی بنائیں کہ...', 'tr': 'Şundan emin olun...', 'id': 'Pastikan untuk...', 'bn': 'নিশ্চিত করুন যে...', 'ha': 'Ka tabbatar...',
+    'so': 'Hubi in...', 'fa': 'مطمئن شوید که...', 'ms': 'Pastikan...',
+  },
+  'add_checklist_point': {
+    'ar': 'إضافة نقطة تحقق', 'en': 'Add Checklist Item', 'am': 'የማረጋገጫ ነጥብ ጨምር', 'fr': 'Ajouter un point de vérification', 'sw': 'Ongeza Kipengele cha Ukaguzi',
+    'ur': 'چیک لسٹ آئٹم شامل کریں', 'tr': 'Kontrol Listesi Maddesi Ekle', 'id': 'Tambah Item Periksa', 'bn': 'চেকলিস্ট আইটেম যোগ করুন', 'ha': 'Ƙara Abin Dubawa',
+    'so': 'Ku dar Qodob Hubin', 'fa': 'افزودن مورد چک‌لیست', 'ms': 'Tambah Item Semakan',
+  },
+  'add_task_action': {
+    'ar': 'إضافة المهمة', 'en': 'Add Task', 'am': 'ተግባር ጨምር', 'fr': 'Ajouter la tâche', 'sw': 'Ongeza Kazi',
+    'ur': 'ٹاسک شامل کریں', 'tr': 'Görev Ekle', 'id': 'Tambah Tugas', 'bn': 'কাজ যোগ করুন', 'ha': 'Ƙara Aiki',
+    'so': 'Ku dar Hawsha', 'fa': 'افزودن وظیفه', 'ms': 'Tambah Tugasan',
+  },
+  'tasks_title': {
+    'ar': 'المهام', 'en': 'Tasks', 'am': 'ተግባራት', 'fr': 'Tâches', 'sw': 'Kazi',
+    'ur': 'کام', 'tr': 'Görevler', 'id': 'Tugas', 'bn': 'কাজসমূহ', 'ha': 'Ayyuka',
+    'so': 'Hawlaha', 'fa': 'وظایف', 'ms': 'Tugasan',
+  },
+  'no_tasks_yet': {
+    'ar': 'لا توجد مهام بعد — اضغط + لإضافة مهمة', 'en': 'No tasks yet — tap + to add one', 'am': 'እስካሁን ተግባራት የሉም — + ተጫን አንድ ለመጨመር', 'fr': 'Aucune tâche pour le moment — appuyez sur + pour en ajouter une', 'sw': 'Bado hakuna kazi — bonyeza + kuongeza',
+    'ur': 'ابھی تک کوئی ٹاسک نہیں — شامل کرنے کے لیے + دبائیں', 'tr': 'Henüz görev yok — eklemek için + dokun', 'id': 'Belum ada tugas — ketuk + untuk menambahkan', 'bn': 'এখনও কোনো কাজ নেই — যোগ করতে + চাপুন', 'ha': 'Babu ayyuka tukuna — danna + don ƙarawa',
+    'so': 'Wali hawlo ma jiraan — taabo + si aad u darto mid', 'fa': 'هنوز وظیفه‌ای نیست — برای افزودن + را بزنید', 'ms': 'Belum ada tugasan — ketik + untuk menambah',
+  },
+  'today_label': {
+    'ar': 'اليوم', 'en': 'Today', 'am': 'ዛሬ', 'fr': "Aujourd'hui", 'sw': 'Leo',
+    'ur': 'آج', 'tr': 'Bugün', 'id': 'Hari Ini', 'bn': 'আজ', 'ha': 'Yau',
+    'so': 'Maanta', 'fa': 'امروز', 'ms': 'Hari Ini',
+  },
+  'upcoming_label': {
+    'ar': 'القادمة', 'en': 'Upcoming', 'am': 'የሚመጡ', 'fr': 'À venir', 'sw': 'Zijazo',
+    'ur': 'آنے والے', 'tr': 'Yaklaşan', 'id': 'Mendatang', 'bn': 'আসন্ন', 'ha': 'Masu Zuwa',
+    'so': 'Kuwa Soo Socda', 'fa': 'پیش رو', 'ms': 'Akan Datang',
+  },
+  'review_checklist_before_complete': {
+    'ar': 'راجع النقاط التالية قبل إكمال المهمة:', 'en': 'Review the following points before completing the task:', 'am': 'ተግባሩን ከማጠናቀቅዎ በፊት የሚከተሉትን ነጥቦች ይከልሱ፦', 'fr': 'Vérifiez les points suivants avant de terminer la tâche :', 'sw': 'Kagua vipengele vifuatavyo kabla ya kukamilisha kazi:',
+    'ur': 'ٹاسک مکمل کرنے سے پہلے درج ذیل نکات کا جائزہ لیں:', 'tr': 'Görevi tamamlamadan önce aşağıdaki maddeleri gözden geçirin:', 'id': 'Tinjau poin-poin berikut sebelum menyelesaikan tugas:', 'bn': 'কাজটি সম্পন্ন করার আগে নিম্নলিখিত পয়েন্টগুলো পর্যালোচনা করুন:', 'ha': 'Duba waɗannan abubuwa kafin ka kammala aikin:',
+    'so': 'Dib u eeg dhibcahan hoos ku qoran ka hor inta aadan hawsha dhammaystirin:', 'fa': 'پیش از تکمیل وظیفه، نکات زیر را بررسی کنید:', 'ms': 'Semak perkara berikut sebelum menyelesaikan tugasan:',
+  },
+  'mark_task_complete': {
+    'ar': 'تم — إكمال المهمة', 'en': 'Done — Complete Task', 'am': 'ተጠናቅቋል — ተግባርን ጨርስ', 'fr': 'Terminé — Achever la tâche', 'sw': 'Imekamilika — Kamilisha Kazi',
+    'ur': 'ہو گیا — ٹاسک مکمل کریں', 'tr': 'Tamam — Görevi Tamamla', 'id': 'Selesai — Selesaikan Tugas', 'bn': 'সম্পন্ন — কাজ সম্পন্ন করুন', 'ha': 'An Gama — Kammala Aiki',
+    'so': 'Waa la Dhammeeyay — Dhammayso Hawsha', 'fa': 'انجام شد — تکمیل وظیفه', 'ms': 'Selesai — Lengkapkan Tugasan',
+  },
+  'checklist_points_suffix': {
+    'ar': 'نقطة تحقق', 'en': 'checkpoints', 'am': 'የማረጋገጫ ነጥቦች', 'fr': 'points de vérification', 'sw': 'vipengele vya ukaguzi',
+    'ur': 'چیک پوائنٹس', 'tr': 'kontrol maddesi', 'id': 'item periksa', 'bn': 'চেকপয়েন্ট', 'ha': 'wuraren dubawa',
+    'so': 'dhibco hubin', 'fa': 'مورد بررسی', 'ms': 'item semakan',
+  },
+  'activities_title_word': {
+    'ar': 'أنشطة', 'en': 'Activities', 'am': 'እንቅስቃሴዎች', 'fr': 'Activités', 'sw': 'Shughuli',
+    'ur': 'سرگرمیاں', 'tr': 'Etkinlikler', 'id': 'Aktivitas', 'bn': 'কার্যক্রম', 'ha': 'Ayyuka',
+    'so': 'Hawlaha', 'fa': 'فعالیت‌ها', 'ms': 'Aktiviti',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

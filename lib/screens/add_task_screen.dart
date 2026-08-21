@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/checklist_item.dart';
 import '../models/daily_task.dart';
 import '../repositories/daily_task_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
@@ -71,7 +73,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Future<void> _save() async {
     if (_titleCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى إدخال عنوان المهمة')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(basicText('task_title_required', LanguagePreferenceService.currentLanguage))));
       return;
     }
     final timeStr = _pickedTime == null
@@ -120,14 +123,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Future<void> _delete() async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final confirmed = await showPremiumModal<bool>(
       context,
-      title: 'حذف المهمة',
+      title: basicText('delete_task_title', lang),
       icon: Icons.delete_outline,
-      child: const Text('هل تريد حذف هذه المهمة؟', textAlign: TextAlign.center, style: AppTextStyles.body),
+      child: Text(basicText('delete_task_confirm', lang), textAlign: TextAlign.center, style: AppTextStyles.body),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('cancel', lang))),
+        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('delete', lang))),
       ],
     );
     if (confirmed != true) return;
@@ -148,70 +152,76 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEdit ? 'تعديل مهمة' : 'مهمة جديدة'),
-        actions: [
-          if (_isEdit) IconButton(icon: const Icon(Icons.delete_outline), onPressed: _delete),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _titleCtrl,
-            decoration: const InputDecoration(labelText: 'عنوان المهمة', border: OutlineInputBorder()),
-          ),
-          const SizedBox(height: 14),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text('التاريخ الهجري: $_hijriDateLabel'),
-            trailing: const Icon(Icons.calendar_month),
-            onTap: _pickDate,
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(_pickedTime == null ? 'بدون وقت محدد' : 'الوقت: ${_pickedTime!.format(context)}'),
-            trailing: const Icon(Icons.access_time),
-            onTap: _pickTime,
-          ),
-          if (_pickedTime != null)
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('تذكير عبر إشعار'),
-              subtitle: const Text('يصلك إشعار في هذا الوقت لهذه المهمة', style: TextStyle(fontSize: 11.5)),
-              value: _reminderEnabled,
-              onChanged: (v) => setState(() => _reminderEnabled = v),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+        appBar: AppBar(
+          title: Text(basicText(_isEdit ? 'edit_task_title' : 'new_task_title', lang)),
+          actions: [
+            if (_isEdit) IconButton(icon: const Icon(Icons.delete_outline), onPressed: _delete),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            TextField(
+              controller: _titleCtrl,
+              decoration: InputDecoration(labelText: basicText('task_title_label', lang), border: const OutlineInputBorder()),
             ),
-          const SizedBox(height: 12),
-          Text('قائمة التحقق عند الإكمال (اختياري)', style: Theme.of(context).textTheme.titleSmall),
-          const Text('تظهر لك هذه النقاط لمراجعتها عند وضع علامة "مكتملة" على المهمة.',
-              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-          const SizedBox(height: 8),
-          ..._checklistCtrls.asMap().entries.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: entry.value,
-                        decoration: InputDecoration(hintText: 'تأكد من...', isDense: true, border: const OutlineInputBorder()),
+            const SizedBox(height: 14),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text('${basicText('hijri_date_label_prefix', lang)}: $_hijriDateLabel'),
+              trailing: const Icon(Icons.calendar_month),
+              onTap: _pickDate,
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(_pickedTime == null
+                  ? basicText('no_time_set', lang)
+                  : '${basicText('time_label_prefix', lang)}: ${_pickedTime!.format(context)}'),
+              trailing: const Icon(Icons.access_time),
+              onTap: _pickTime,
+            ),
+            if (_pickedTime != null)
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(basicText('reminder_notification_title', lang)),
+                subtitle: Text(basicText('reminder_notification_subtitle', lang), style: const TextStyle(fontSize: 11.5)),
+                value: _reminderEnabled,
+                onChanged: (v) => setState(() => _reminderEnabled = v),
+              ),
+            const SizedBox(height: 12),
+            Text(basicText('completion_checklist_title', lang), style: Theme.of(context).textTheme.titleSmall),
+            Text(basicText('completion_checklist_desc', lang),
+                style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+            const SizedBox(height: 8),
+            ..._checklistCtrls.asMap().entries.map((entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: entry.value,
+                          decoration: InputDecoration(
+                              hintText: basicText('checklist_item_hint', lang), isDense: true, border: const OutlineInputBorder()),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                        icon: const Icon(Icons.remove_circle_outline), onPressed: () => _removeChecklistField(entry.key)),
-                  ],
-                ),
-              )),
-          TextButton.icon(
-              onPressed: _addChecklistField, icon: const Icon(Icons.add), label: const Text('إضافة نقطة تحقق')),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: _save,
-            icon: Icon(_isEdit ? Icons.save : Icons.add),
-            label: Text(_isEdit ? 'حفظ التعديلات' : 'إضافة المهمة'),
-          ),
-        ],
+                      IconButton(
+                          icon: const Icon(Icons.remove_circle_outline), onPressed: () => _removeChecklistField(entry.key)),
+                    ],
+                  ),
+                )),
+            TextButton.icon(
+                onPressed: _addChecklistField, icon: const Icon(Icons.add), label: Text(basicText('add_checklist_point', lang))),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: _save,
+              icon: Icon(_isEdit ? Icons.save : Icons.add),
+              label: Text(basicText(_isEdit ? 'save_changes_action' : 'add_task_action', lang)),
+            ),
+          ],
+        ),
       ),
     );
   }
