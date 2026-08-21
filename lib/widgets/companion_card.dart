@@ -62,6 +62,7 @@ class _CompanionCardState extends State<CompanionCard> {
   Widget build(BuildContext context) {
     final message = _message;
     if (_loading || message == null) return const SizedBox.shrink();
+    final lang = LanguagePreferenceService.currentLanguage;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -79,7 +80,7 @@ class _CompanionCardState extends State<CompanionCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('رفيق طالب العلم ${message.icon}', style: AppTextStyles.caption),
+            Text('${basicText('companion_caption_prefix', lang)} ${message.icon}', style: AppTextStyles.caption),
             const SizedBox(height: 6),
             Text(message.title, style: AppTextStyles.headline),
             const SizedBox(height: 4),
@@ -90,14 +91,14 @@ class _CompanionCardState extends State<CompanionCard> {
                 Expanded(
                   child: FilledButton(
                     onPressed: _onStart,
-                    child: Text(basicText('companion_start_now', LanguagePreferenceService.currentLanguage)),
+                    child: Text(basicText('companion_start_now', lang)),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton(
                     onPressed: _onChat,
-                    child: Text(basicText('companion_chat_with_him', LanguagePreferenceService.currentLanguage)),
+                    child: Text(basicText('companion_chat_with_him', lang)),
                   ),
                 ),
               ],

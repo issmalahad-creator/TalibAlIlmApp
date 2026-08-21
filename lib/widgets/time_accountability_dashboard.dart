@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/time_awareness_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 
 /// "محاسبة الوقت" home-screen dashboard (Ismail's request 2026-08-16: put
@@ -48,6 +50,7 @@ class _TimeAccountabilityDashboardState extends State<TimeAccountabilityDashboar
   @override
   Widget build(BuildContext context) {
     if (_loading) return const SizedBox.shrink();
+    final lang = LanguagePreferenceService.currentLanguage;
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () {
@@ -64,7 +67,7 @@ class _TimeAccountabilityDashboardState extends State<TimeAccountabilityDashboar
               children: [
                 const Icon(Icons.hourglass_bottom_rounded, size: 18, color: AppColors.primaryDark),
                 const SizedBox(width: 6),
-                const Text('محاسبة الوقت', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                Text(basicText('time_accountability_title', lang), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
               ],
@@ -72,17 +75,17 @@ class _TimeAccountabilityDashboardState extends State<TimeAccountabilityDashboar
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(child: _PeriodTile(label: 'اليوم', countdown: '${_repo.hoursRemainingToday()} س', totals: _day)),
+                Expanded(child: _PeriodTile(label: basicText('today_label', lang), countdown: '${_repo.hoursRemainingToday()} ${basicText('hour_short_unit', lang)}', totals: _day)),
                 const SizedBox(width: 8),
-                Expanded(child: _PeriodTile(label: 'الأسبوع', countdown: '${_repo.daysRemainingThisWeek()} ي', totals: _week)),
+                Expanded(child: _PeriodTile(label: basicText('week_label', lang), countdown: '${_repo.daysRemainingThisWeek()} ${basicText('day_short_unit', lang)}', totals: _week)),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _PeriodTile(label: 'الشهر', countdown: '${_repo.daysRemainingThisMonth()} ي', totals: _month)),
+                Expanded(child: _PeriodTile(label: basicText('month_label', lang), countdown: '${_repo.daysRemainingThisMonth()} ${basicText('day_short_unit', lang)}', totals: _month)),
                 const SizedBox(width: 8),
-                Expanded(child: _PeriodTile(label: 'السنة', countdown: '${_repo.daysRemainingThisYear()} ي', totals: _year)),
+                Expanded(child: _PeriodTile(label: basicText('year_label', lang), countdown: '${_repo.daysRemainingThisYear()} ${basicText('day_short_unit', lang)}', totals: _year)),
               ],
             ),
           ],
@@ -100,6 +103,7 @@ class _PeriodTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(color: AppColors.primaryLight.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(14)),
@@ -110,20 +114,20 @@ class _PeriodTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-              Text('باقي $countdown', style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+              Text('${basicText('remaining_count_prefix', lang)} $countdown', style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
             ],
           ),
           const SizedBox(height: 6),
           if (totals.benefitedHours == 0 && totals.wastedHours == 0)
-            const Text('لم تُسجَّل بعد', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted))
+            Text(basicText('not_recorded_yet_feminine', lang), style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted))
           else
             Row(
               children: [
                 const Icon(Icons.trending_up_rounded, size: 13, color: AppColors.primary),
-                Text(' ${totals.benefitedHours.toStringAsFixed(0)}س', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                Text(' ${totals.benefitedHours.toStringAsFixed(0)}${basicText('hour_short_unit', lang)}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
                 const SizedBox(width: 8),
                 const Icon(Icons.trending_down_rounded, size: 13, color: Colors.redAccent),
-                Text(' ${totals.wastedHours.toStringAsFixed(0)}س', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.redAccent)),
+                Text(' ${totals.wastedHours.toStringAsFixed(0)}${basicText('hour_short_unit', lang)}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.redAccent)),
               ],
             ),
         ],

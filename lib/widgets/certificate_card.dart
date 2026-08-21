@@ -3,6 +3,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_display.dart';
 
@@ -41,6 +43,7 @@ class CertificateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = grand ? _goldLight : _gold;
+    final lang = LanguagePreferenceService.currentLanguage;
     return Container(
       width: 360,
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
@@ -72,7 +75,7 @@ class CertificateCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   border: Border(top: BorderSide(color: accent, width: 1), bottom: BorderSide(color: accent, width: 1)),
                 ),
-                child: Text('شهادة تقدير', style: TextStyle(fontSize: 15, color: accent, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                child: Text(basicText('certificate_of_appreciation_title', lang), style: TextStyle(fontSize: 15, color: accent, fontWeight: FontWeight.w800, letterSpacing: 2)),
               ),
               const SizedBox(height: 18),
               Text(
@@ -81,10 +84,10 @@ class CertificateCard extends StatelessWidget {
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Colors.white),
               ),
               const SizedBox(height: 18),
-              const Text('تُمنح هذه الشهادة إلى', style: TextStyle(fontSize: 12, color: Colors.white60)),
+              Text(basicText('certificate_awarded_to_label', lang), style: const TextStyle(fontSize: 12, color: Colors.white60)),
               const SizedBox(height: 6),
               Text(
-                studentName.trim().isEmpty ? 'طالب العلم' : studentName,
+                studentName.trim().isEmpty ? basicText('default_user_name', lang) : studentName,
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: accent),
               ),
@@ -94,18 +97,18 @@ class CertificateCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('التوقيع', style: TextStyle(fontSize: 10, color: Colors.white54)),
-                      SizedBox(height: 2),
-                      Text('تطبيق طالب العلم', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
+                      Text(basicText('signature_label', lang), style: const TextStyle(fontSize: 10, color: Colors.white54)),
+                      const SizedBox(height: 2),
+                      Text(basicText('app_signature_name', lang), style: const TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
                     ],
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text('التاريخ', style: TextStyle(fontSize: 10, color: Colors.white54)),
+                      Text(basicText('date_label', lang), style: const TextStyle(fontSize: 10, color: Colors.white54)),
                       const SizedBox(height: 2),
                       Text(formatDateForDisplay(hijriDate), style: const TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
                     ],

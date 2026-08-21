@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/worship_coach_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 
 /// "مدرب العبادة" home-screen card (Ismail's request 2026-08-16) — shows
@@ -35,6 +37,7 @@ class _WorshipCoachCardState extends State<WorshipCoachCard> {
   Widget build(BuildContext context) {
     final status = _status;
     if (status == null) return const SizedBox.shrink();
+    final lang = LanguagePreferenceService.currentLanguage;
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () {
@@ -64,11 +67,11 @@ class _WorshipCoachCardState extends State<WorshipCoachCard> {
             const SizedBox(height: 14),
             Row(
               children: [
-                Expanded(child: _ConsistencyBar(label: 'الصلاة', value: status.prayerConsistency, weak: status.focus == CoachFocusArea.prayer)),
+                Expanded(child: _ConsistencyBar(label: basicText('consistency_prayer_label', lang), value: status.prayerConsistency, weak: status.focus == CoachFocusArea.prayer)),
                 const SizedBox(width: 8),
-                Expanded(child: _ConsistencyBar(label: 'القرآن', value: status.quranConsistency, weak: status.focus == CoachFocusArea.quran)),
+                Expanded(child: _ConsistencyBar(label: basicText('consistency_quran_label', lang), value: status.quranConsistency, weak: status.focus == CoachFocusArea.quran)),
                 const SizedBox(width: 8),
-                Expanded(child: _ConsistencyBar(label: 'الأذكار', value: status.dhikrConsistency, weak: status.focus == CoachFocusArea.dhikr)),
+                Expanded(child: _ConsistencyBar(label: basicText('consistency_dhikr_label', lang), value: status.dhikrConsistency, weak: status.focus == CoachFocusArea.dhikr)),
               ],
             ),
           ],

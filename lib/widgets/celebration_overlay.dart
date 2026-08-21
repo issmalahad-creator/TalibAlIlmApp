@@ -1,9 +1,11 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/milestone_repository.dart';
 import '../repositories/profile_repository.dart';
 import '../services/certificate_service.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import 'certificate_card.dart';
@@ -73,6 +75,7 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
   Widget build(BuildContext context) {
     final tier = widget.milestone.celebrationTier;
     final grand = widget.milestone.milestoneType == 'full_quran';
+    final lang = LanguagePreferenceService.currentLanguage;
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -105,10 +108,10 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
-                'أحسنت 🌱 تقدّمت خطوة أخرى في رحلتك',
+              Text(
+                basicText('celebration_progress_message', lang),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
               ),
               const SizedBox(height: 12),
               Row(
@@ -117,13 +120,13 @@ class _CelebrationDialogState extends State<_CelebrationDialog> {
                   FilledButton.icon(
                     onPressed: _sharing ? null : _share,
                     icon: const Icon(Icons.share_outlined, size: 18),
-                    label: Text(_sharing ? 'جارٍ التجهيز...' : 'مشاركة الشهادة'),
+                    label: Text(basicText(_sharing ? 'preparing_share_message' : 'share_certificate_action', lang)),
                   ),
                   const SizedBox(width: 12),
                   OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white54)),
-                    child: const Text('إغلاق'),
+                    child: Text(basicText('onboarding_close', lang)),
                   ),
                 ],
               ),

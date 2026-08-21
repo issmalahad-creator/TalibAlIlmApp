@@ -3007,6 +3007,92 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'مکمل ایپ سیلف ٹیسٹ', 'tr': 'Kapsamlı Uygulama Kendi Kendini Testi', 'id': 'Uji Mandiri Aplikasi Lengkap', 'bn': 'অ্যাপের সম্পূর্ণ স্ব-পরীক্ষা', 'ha': 'Cikakken Gwajin Kai na Manhajar',
     'so': 'Tijaabinta Buuxda ee App-ka', 'fa': 'خودآزمایی کامل برنامه', 'ms': 'Ujian Diri Aplikasi Penuh',
   },
+  // 2026-08-22: celebration_overlay.dart.
+  'celebration_progress_message': {
+    'ar': 'أحسنت 🌱 تقدّمت خطوة أخرى في رحلتك', 'en': "Well done 🌱 you've taken another step on your journey", 'am': 'መልካም 🌱 በጉዞዎ ሌላ እርምጃ ወስደዋል', 'fr': "Bien joué 🌱 vous avez fait un pas de plus dans votre parcours", 'sw': 'Hongera 🌱 umepiga hatua nyingine katika safari yako',
+    'ur': 'شاباش 🌱 آپ نے اپنے سفر میں ایک اور قدم بڑھایا', 'tr': 'Aferin 🌱 yolculuğunuzda bir adım daha attınız', 'id': 'Bagus 🌱 Anda telah mengambil langkah lain dalam perjalanan Anda', 'bn': 'সাবাশ 🌱 আপনি আপনার যাত্রায় আরেকটি পদক্ষেপ নিয়েছেন', 'ha': 'Madalla 🌱 ka ɗauki wani mataki a tafiyarka',
+    'so': 'Waad ku mahadsan tahay 🌱 waxaad qaadday tallaabo kale oo safarkaaga ah', 'fa': 'آفرین 🌱 قدم دیگری در مسیرتان برداشتید', 'ms': 'Syabas 🌱 anda telah mengambil satu lagi langkah dalam perjalanan anda',
+  },
+  'preparing_share_message': {
+    'ar': 'جارٍ التجهيز...', 'en': 'Preparing...', 'am': 'በማዘጋጀት ላይ...', 'fr': 'Préparation en cours...', 'sw': 'Inaandaa...',
+    'ur': 'تیار کیا جا رہا ہے...', 'tr': 'Hazırlanıyor...', 'id': 'Menyiapkan...', 'bn': 'প্রস্তুত করা হচ্ছে...', 'ha': 'Ana Shirye-shirye...',
+    'so': 'Waa la diyaarinayaa...', 'fa': 'در حال آماده‌سازی...', 'ms': 'Menyediakan...',
+  },
+  'share_certificate_action': {
+    'ar': 'مشاركة الشهادة', 'en': 'Share Certificate', 'am': 'የምስክር ወረቀት ያጋሩ', 'fr': 'Partager le certificat', 'sw': 'Shiriki Cheti',
+    'ur': 'سرٹیفکیٹ شیئر کریں', 'tr': 'Sertifikayı Paylaş', 'id': 'Bagikan Sertifikat', 'bn': 'সনদ শেয়ার করুন', 'ha': 'Raba Takardar Shaida',
+    'so': 'La Wadaag Shahaadada', 'fa': 'اشتراک‌گذاری گواهی', 'ms': 'Kongsi Sijil',
+  },
+  // 2026-08-22: certificate_card.dart — the shareable certificate image.
+  'certificate_of_appreciation_title': {
+    'ar': 'شهادة تقدير', 'en': 'Certificate of Appreciation', 'am': 'የአድናቆት ምስክር ወረቀት', 'fr': "Certificat d'appréciation", 'sw': 'Cheti cha Shukrani',
+    'ur': 'اعزازی سند', 'tr': 'Takdir Belgesi', 'id': 'Sertifikat Penghargaan', 'bn': 'প্রশংসাপত্র', 'ha': 'Takardar Godiya',
+    'so': 'Shahaadada Sharaftiin', 'fa': 'گواهی تقدیر', 'ms': 'Sijil Penghargaan',
+  },
+  'certificate_awarded_to_label': {
+    'ar': 'تُمنح هذه الشهادة إلى', 'en': 'This certificate is awarded to', 'am': 'ይህ የምስክር ወረቀት ለ ተሰጥቷል', 'fr': 'Ce certificat est décerné à', 'sw': 'Cheti hiki kimetunukiwa',
+    'ur': 'یہ سند اس کے نام کی گئی', 'tr': 'Bu belge şu kişiye verilmiştir:', 'id': 'Sertifikat ini diberikan kepada', 'bn': 'এই সনদ প্রদান করা হয়েছে', 'ha': 'An bai wa wannan takardar shaida',
+    'so': 'Shahaadadan waxaa la siiyay', 'fa': 'این گواهی به این شخص اهدا می‌شود', 'ms': 'Sijil ini dianugerahkan kepada',
+  },
+  'signature_label': {
+    'ar': 'التوقيع', 'en': 'Signature', 'am': 'ፊርማ', 'fr': 'Signature', 'sw': 'Sahihi',
+    'ur': 'دستخط', 'tr': 'İmza', 'id': 'Tanda Tangan', 'bn': 'স্বাক্ষর', 'ha': 'Sa Hannu',
+    'so': 'Saxeexa', 'fa': 'امضا', 'ms': 'Tandatangan',
+  },
+  'app_signature_name': {
+    'ar': 'تطبيق طالب العلم', 'en': 'Talib al-Ilm App', 'am': 'የጣሊብ አል-ዒልም መተግበሪያ', 'fr': "Application Talib al-Ilm", 'sw': 'Programu ya Talib al-Ilm',
+    'ur': 'طالب العلم ایپ', 'tr': "Talib al-Ilm Uygulaması", 'id': 'Aplikasi Talib al-Ilm', 'bn': 'তালিবুল ইলম অ্যাপ', 'ha': 'Manhajar Talib al-Ilm',
+    'so': 'Barnaamijka Talib al-Ilm', 'fa': 'برنامه طالب العلم', 'ms': 'Aplikasi Talib al-Ilm',
+  },
+  'date_label': {
+    'ar': 'التاريخ', 'en': 'Date', 'am': 'ቀን', 'fr': 'Date', 'sw': 'Tarehe',
+    'ur': 'تاریخ', 'tr': 'Tarih', 'id': 'Tanggal', 'bn': 'তারিখ', 'ha': 'Kwanan Wata',
+    'so': 'Taariikhda', 'fa': 'تاریخ', 'ms': 'Tarikh',
+  },
+  // 2026-08-22: companion_card.dart caption. message.title/body come from
+  // companion_engine.dart's rule catalog (Arabic-only content), out of
+  // scope for this sweep.
+  'companion_caption_prefix': {
+    'ar': 'رفيق طالب العلم', 'en': "Talib al-Ilm's Companion", 'am': 'የጣሊብ አል-ዒልም ጓደኛ', 'fr': 'Le compagnon de Talib al-Ilm', 'sw': 'Rafiki wa Talib al-Ilm',
+    'ur': 'طالب العلم کا ساتھی', 'tr': "Talib al-Ilm'in Arkadaşı", 'id': 'Sahabat Talib al-Ilm', 'bn': 'তালিবুল ইলমের সঙ্গী', 'ha': 'Abokin Talib al-Ilm',
+    'so': 'Saaxiibka Talib al-Ilm', 'fa': 'همراه طالب العلم', 'ms': 'Sahabat Talib al-Ilm',
+  },
+  // 2026-08-22: time_accountability_dashboard.dart + worship_coach_card.dart.
+  'time_accountability_title': {
+    'ar': 'محاسبة الوقت', 'en': 'Time Accountability', 'am': 'የጊዜ ተጠያቂነት', 'fr': 'Redevabilité du temps', 'sw': 'Uwajibikaji wa Muda',
+    'ur': 'وقت کی جوابدہی', 'tr': 'Zaman Hesabı', 'id': 'Akuntabilitas Waktu', 'bn': 'সময়ের জবাবদিহিতা', 'ha': 'Lissafin Lokaci',
+    'so': 'Xisaabinta Waqtiga', 'fa': 'محاسبه وقت', 'ms': 'Akauntabiliti Masa',
+  },
+  'week_label': {
+    'ar': 'الأسبوع', 'en': 'Week', 'am': 'ሳምንት', 'fr': 'Semaine', 'sw': 'Wiki',
+    'ur': 'ہفتہ', 'tr': 'Hafta', 'id': 'Minggu', 'bn': 'সপ্তাহ', 'ha': 'Mako',
+    'so': 'Toddobaad', 'fa': 'هفته', 'ms': 'Minggu',
+  },
+  'month_label': {
+    'ar': 'الشهر', 'en': 'Month', 'am': 'ወር', 'fr': 'Mois', 'sw': 'Mwezi',
+    'ur': 'مہینہ', 'tr': 'Ay', 'id': 'Bulan', 'bn': 'মাস', 'ha': 'Wata',
+    'so': 'Bil', 'fa': 'ماه', 'ms': 'Bulan',
+  },
+  'year_label': {
+    'ar': 'السنة', 'en': 'Year', 'am': 'ዓመት', 'fr': 'Année', 'sw': 'Mwaka',
+    'ur': 'سال', 'tr': 'Yıl', 'id': 'Tahun', 'bn': 'বছর', 'ha': 'Shekara',
+    'so': 'Sanad', 'fa': 'سال', 'ms': 'Tahun',
+  },
+  'hour_short_unit': {
+    'ar': 'س', 'en': 'h', 'am': 'ሰ', 'fr': 'h', 'sw': 's',
+    'ur': 'گھ', 'tr': 's', 'id': 'j', 'bn': 'ঘ', 'ha': 'a',
+    'so': 's', 'fa': 'س', 'ms': 'j',
+  },
+  'day_short_unit': {
+    'ar': 'ي', 'en': 'd', 'am': 'ቀ', 'fr': 'j', 'sw': 's',
+    'ur': 'د', 'tr': 'g', 'id': 'h', 'bn': 'দি', 'ha': 'r',
+    'so': 'm', 'fa': 'ر', 'ms': 'h',
+  },
+  'not_recorded_yet_feminine': {
+    'ar': 'لم تُسجَّل بعد', 'en': 'Not recorded yet', 'am': 'እስካሁን አልተመዘገበም', 'fr': 'Pas encore enregistré', 'sw': 'Bado haijarekodiwa',
+    'ur': 'ابھی تک درج نہیں ہوا', 'tr': 'Henüz kaydedilmedi', 'id': 'Belum tercatat', 'bn': 'এখনও রেকর্ড করা হয়নি', 'ha': 'Ba a rubuta ba tukuna',
+    'so': 'Wali lama diiwaan gelin', 'fa': 'هنوز ثبت نشده', 'ms': 'Belum direkodkan',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to
