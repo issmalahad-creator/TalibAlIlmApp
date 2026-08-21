@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/personal_book.dart';
 import '../repositories/book_repository.dart';
 import '../repositories/completion_goal_repository.dart';
 import '../repositories/personal_book_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_display.dart';
@@ -24,14 +26,19 @@ class CompletionGoalsScreen extends StatefulWidget {
 /// content this planner currently knows how to track. Add a row here when
 /// a new book pillar ships. Personal-library books are appended
 /// dynamically (see `_openNewGoalSheet`) since they vary per student.
+// Labels starting with '@' are translation keys resolved via basicText() at
+// display time (see `_resolveOptionLabel`); the rest are book/curriculum
+// proper nouns that stay Arabic — real classical-text titles, not chrome.
 const _fixedGoalOptions = [
-  ('quran_reading', null, 'ختمة قراءة القرآن', 604),
-  ('quran_memorization', null, 'ختم حفظ القرآن', 604),
+  ('quran_reading', null, '@goal_quran_reading_label', 604),
+  ('quran_memorization', null, '@goal_quran_memorization_label', 604),
   ('book', 'zad_almaad', 'زاد المعاد', 65),
   ('book', 'madarij', 'مدارج السالكين', 71),
   ('book', 'wasitiyyah', 'العقيدة الواسطية', 82),
   ('book', 'nawawi_hadith', 'الأربعين النووية', 42),
 ];
+
+String _resolveOptionLabel(String label, String lang) => label.startsWith('@') ? basicText(label.substring(1), lang) : label;
 
 class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
   final _repo = CompletionGoalRepository();
@@ -63,6 +70,7 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
   /// wording never goes stale after a reschedule. Safe to call on every
   /// load — scheduling is idempotent (cancel-then-schedule under the same id).
   Future<void> _syncReminders(List<CompletionGoalStatus> statuses) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     for (final s in statuses) {
       final doneToday = s.remaining == 0 || await _repo.hasProgressedToday(s.goal);
       if (doneToday) {
@@ -71,8 +79,8 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
         final target = s.recalculatedDailyTarget.ceil().clamp(1, 1 << 30);
         await _notificationService.scheduleGoalReminder(
           goalId: s.goal.id,
-          goalTitle: s.goal.displayLabel,
-          dailyTargetLabel: '$target ${s.goal.unitLabel} اليوم',
+          goalTitle: s.goal.displayLabelFor(lang),
+          dailyTargetLabel: '$target ${s.goal.unitLabel} ${basicText('today_label', lang)}',
         );
       }
     }
@@ -83,7 +91,7 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
   /// `BookViewerScreen`'s existing flutter_pdfview callbacks, not built new
   /// here). Books never opened yet are silently excluded rather than shown
   /// with a guessed page count.
-  Future<List<(String, String?, String, int)>> _personalBookOptions() async {
+  Future<List<(String, String?, String, int)>> _personalBookOptions(String lang) async {
     final books = await PersonalBookRepository().all();
     final bookRepo = BookRepository();
     final options = <(String, String?, String, int)>[];
@@ -91,14 +99,15 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
       if (book.id == null) continue;
       final bookmark = await bookRepo.getBookmark('personal_${book.id}');
       if (bookmark != null && bookmark.totalPages > 0) {
-        options.add(('personal_book', book.id.toString(), 'من مكتبتي: ${book.title}', bookmark.totalPages));
+        options.add(('personal_book', book.id.toString(), '${basicText('from_my_library_prefix', lang)} ${book.title}', bookmark.totalPages));
       }
     }
     return options;
   }
 
   Future<void> _openNewGoalSheet() async {
-    final personalOptions = await _personalBookOptions();
+    final lang = LanguagePreferenceService.currentLanguage;
+    final personalOptions = await _personalBookOptions(lang);
     final allOptions = [..._fixedGoalOptions, ...personalOptions];
     var selected = allOptions.first;
     DateTime targetDate = DateTime.now().add(const Duration(days: 30));
@@ -119,28 +128,28 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('خطة ختم جديدة', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+              Text(basicText('new_completion_plan_title', lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
               const SizedBox(height: 16),
               DropdownButton<(String, String?, String, int)>(
                 isExpanded: true,
                 value: selected,
                 items: allOptions
-                    .map((o) => DropdownMenuItem(value: o, child: Text(o.$3, overflow: TextOverflow.ellipsis)))
+                    .map((o) => DropdownMenuItem(value: o, child: Text(_resolveOptionLabel(o.$3, lang), overflow: TextOverflow.ellipsis)))
                     .toList(),
                 onChanged: (v) => setSheetState(() => selected = v!),
               ),
               if (personalOptions.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(top: 6),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
                   child: Text(
-                    'لإضافة كتاب من مكتبتك: افتحه مرة واحدة من "مكتبتي" أولًا حتى يُعرف عدد صفحاته',
-                    style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    basicText('add_library_book_hint', lang),
+                    style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                   ),
                 ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 icon: const Icon(Icons.calendar_today_outlined, size: 18),
-                label: Text('الموعد المستهدف: ${formatDateForDisplay(hijriDateStringForDate(targetDate))}'),
+                label: Text('${basicText('target_date_prefix', lang)} ${formatDateForDisplay(hijriDateStringForDate(targetDate))}'),
                 onPressed: () async {
                   final picked = await showDatePicker(
                     context: context,
@@ -164,7 +173,7 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
                   if (context.mounted) Navigator.pop(context);
                   _load();
                 },
-                child: const Text('إنشاء الخطة'),
+                child: Text(basicText('create_plan_action', lang)),
               ),
             ],
           ),
@@ -192,14 +201,16 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
   /// untouched — only the plan/target itself goes away. Confirmed first
   /// since there's no UI path back to an abandoned goal.
   Future<void> _confirmAndDelete(CompletionGoalStatus s) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('مسح الخطة؟'),
-        content: Text('سيُمسح "${s.goal.displayLabel}" ولن تُذكَّر بها بعد الآن. تقدّمك المُسجَّل لن يتأثر — يمكنك إنشاء خطة جديدة في أي وقت.'),
+        title: Text(basicText('delete_plan_title', lang)),
+        content: Text(
+            '${basicText('delete_plan_confirm_prefix', lang)} "${s.goal.displayLabelFor(lang)}" ${basicText('delete_plan_confirm_suffix', lang)}'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('مسح')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('undo_action', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('delete', lang))),
         ],
       ),
     );
@@ -211,16 +222,18 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('خطط ختمي')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('completion_goals_title', lang))),
       floatingActionButton: FloatingActionButton(onPressed: _openNewGoalSheet, child: const Icon(Icons.add)),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : _statuses.isEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text('لا توجد خطط نشطة — أنشئ خطة جديدة بالزر أسفل الشاشة', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+                    padding: const EdgeInsets.all(24),
+                    child: Text(basicText('no_active_plans_message', lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
                   ),
                 )
               : ListView.builder(
@@ -232,6 +245,7 @@ class _CompletionGoalsScreenState extends State<CompletionGoalsScreen> {
                     onDelete: () => _confirmAndDelete(_statuses[i]),
                   ),
                 ),
+      ),
     );
   }
 }
@@ -242,15 +256,16 @@ class _GoalCard extends StatelessWidget {
   final VoidCallback onDelete;
   const _GoalCard({required this.status, required this.onReschedule, required this.onDelete});
 
-  (Color, String) get _badge => switch (status.scheduleStatus) {
-        ScheduleStatus.ahead => (AppColors.primary, 'متقدم عن الخطة 🌱'),
-        ScheduleStatus.onTrack => (AppColors.primaryDark, 'بالضبط حسب الخطة'),
-        ScheduleStatus.behind => (AppColors.textMuted, 'متأخر قليلًا عن الخطة'),
+  (Color, String) _badge(String lang) => switch (status.scheduleStatus) {
+        ScheduleStatus.ahead => (AppColors.primary, basicText('ahead_of_plan_badge', lang)),
+        ScheduleStatus.onTrack => (AppColors.primaryDark, basicText('on_track_badge', lang)),
+        ScheduleStatus.behind => (AppColors.textMuted, basicText('behind_plan_badge', lang)),
       };
 
   @override
   Widget build(BuildContext context) {
-    final (color, label) = _badge;
+    final lang = LanguagePreferenceService.currentLanguage;
+    final (color, label) = _badge(lang);
     final g = status.goal;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -270,23 +285,24 @@ class _GoalCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text('${status.currentPosition} من ${g.totalUnits} — باقي ${status.remaining}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+          Text('${status.currentPosition} ${basicText('weekly_progress_middle', lang)} ${g.totalUnits} — ${basicText('remaining_count_prefix', lang)} ${status.remaining}',
+              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           const SizedBox(height: 4),
           Text(
             status.daysLeft > 0
-                ? 'باقي ${status.daysLeft} يومًا — بمعدل ${status.recalculatedDailyTarget.toStringAsFixed(1)} يوميًا لإتمامها بالموعد'
-                : 'انتهى الموعد المستهدف',
+                ? '${basicText('days_left_rate_message_prefix', lang)} ${status.daysLeft} ${basicText('day_word_label', lang)} — ${basicText('days_left_rate_message_suffix', lang)} ${status.recalculatedDailyTarget.toStringAsFixed(1)} ${basicText('daily_to_finish_on_time_suffix', lang)}'
+                : basicText('target_date_passed_message', lang),
             style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
           ),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextButton(onPressed: onReschedule, child: const Text('أعِد جدولة الخطة', style: TextStyle(fontSize: 12))),
+              TextButton(onPressed: onReschedule, child: Text(basicText('reschedule_plan_action', lang), style: const TextStyle(fontSize: 12))),
               TextButton.icon(
                 onPressed: onDelete,
                 icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
-                label: const Text('مسح الخطة', style: TextStyle(fontSize: 12, color: Colors.redAccent)),
+                label: Text(basicText('delete_plan_action', lang), style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
               ),
             ],
           ),
@@ -306,18 +322,19 @@ class _GoalTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     const style = TextStyle(fontWeight: FontWeight.w800, fontSize: 14);
     if (goal.contentType != 'personal_book') {
-      return Text(goal.displayLabel, style: style);
+      return Text(goal.displayLabelFor(lang), style: style);
     }
     return FutureBuilder<List<PersonalBook>>(
       future: PersonalBookRepository().all(),
       builder: (context, snapshot) {
         final books = snapshot.data;
-        if (books == null) return Text(goal.displayLabel, style: style);
+        if (books == null) return Text(goal.displayLabelFor(lang), style: style);
         final match = books.where((b) => b.id.toString() == goal.bookRef);
-        final title = match.isEmpty ? 'كتاب محذوف من مكتبتي' : match.first.title;
-        return Text('من مكتبتي: $title', style: style, overflow: TextOverflow.ellipsis);
+        final title = match.isEmpty ? basicText('deleted_library_book_label', lang) : match.first.title;
+        return Text('${basicText('from_my_library_prefix', lang)} $title', style: style, overflow: TextOverflow.ellipsis);
       },
     );
   }

@@ -2626,6 +2626,119 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'شروع کریں', 'tr': 'Başla', 'id': 'Mulai', 'bn': 'শুরু করুন', 'ha': 'Fara',
     'so': 'Bilow', 'fa': 'شروع', 'ms': 'Mula',
   },
+  // 2026-08-22: completion_goals_screen.dart. Specific book/curriculum
+  // titles (Zad al-Ma'ad, Madarij, al-Wasitiyyah, al-Arbain) stay Arabic —
+  // proper nouns naming actual classical texts, not UI chrome.
+  'completion_goals_title': {
+    'ar': 'خطط ختمي', 'en': 'My Completion Plans', 'am': 'የማጠናቀቂያ እቅዶቼ', 'fr': "Mes plans d'achèvement", 'sw': 'Mipango Yangu ya Kukamilisha',
+    'ur': 'میرے تکمیل کے منصوبے', 'tr': 'Tamamlama Planlarım', 'id': 'Rencana Khatam Saya', 'bn': 'আমার সমাপ্তি পরিকল্পনা', 'ha': 'Tsare-tsaren Kammalawata',
+    'so': 'Qorshayaashayda Dhammaystirka', 'fa': 'برنامه‌های ختم من', 'ms': 'Rancangan Khatam Saya',
+  },
+  'goal_quran_reading_label': {
+    'ar': 'ختمة قراءة القرآن', 'en': "Qur'an Reading Khatma", 'am': 'የቁርኣን ንባብ ኻትማ', 'fr': 'Khatma de lecture du Coran', 'sw': 'Khatma ya Kusoma Qur\'an',
+    'ur': 'قرآن پڑھنے کا ختم', 'tr': "Kur'an Okuma Hatmi", 'id': 'Khatam Membaca Al-Qur\'an', 'bn': 'কুরআন পাঠ খতম', 'ha': "Khatmul Karatun Alkur'ani",
+    'so': "Khatmiga Akhriska Qur'aanka", 'fa': 'ختم قرائت قرآن', 'ms': 'Khatam Membaca Al-Quran',
+  },
+  'goal_quran_memorization_label': {
+    'ar': 'ختم حفظ القرآن', 'en': "Qur'an Memorization Khatma", 'am': 'የቁርኣን ጥናት ኻትማ', 'fr': 'Khatma de mémorisation du Coran', 'sw': 'Khatma ya Kuhifadhi Qur\'an',
+    'ur': 'قرآن حفظ کا ختم', 'tr': "Kur'an Ezber Hatmi", 'id': 'Khatam Hafalan Al-Qur\'an', 'bn': 'কুরআন হিফজ খতম', 'ha': "Khatmul Haddace Alkur'ani",
+    'so': "Khatmiga Xifdhinta Qur'aanka", 'fa': 'ختم حفظ قرآن', 'ms': 'Khatam Hafalan Al-Quran',
+  },
+  'from_my_library_prefix': {
+    'ar': 'من مكتبتي:', 'en': 'From my library:', 'am': 'ከቤተ መጻሕፍቴ፦', 'fr': 'De ma bibliothèque :', 'sw': 'Kutoka maktaba yangu:',
+    'ur': 'میری لائبریری سے:', 'tr': 'Kütüphanemden:', 'id': 'Dari perpustakaan saya:', 'bn': 'আমার গ্রন্থাগার থেকে:', 'ha': 'Daga laburare na:',
+    'so': 'Maktabadayda:', 'fa': 'از کتابخانه من:', 'ms': 'Dari perpustakaan saya:',
+  },
+  'add_library_book_hint': {
+    'ar': 'لإضافة كتاب من مكتبتك: افتحه مرة واحدة من "مكتبتي" أولًا حتى يُعرف عدد صفحاته', 'en': 'To add a book from your library: open it once from "My Library" first so its page count is known', 'am': 'ከቤተ መጻሕፍትዎ መጽሐፍ ለመጨመር፦ የገጽ ብዛቱ እንዲታወቅ መጀመሪያ ከ"ቤተ መጻሕፍቴ" አንድ ጊዜ ይክፈቱት', 'fr': 'Pour ajouter un livre de votre bibliothèque : ouvrez-le une fois depuis "Ma bibliothèque" pour que son nombre de pages soit connu', 'sw': 'Kuongeza kitabu kutoka maktaba yako: kifungue mara moja kutoka "Maktaba Yangu" kwanza ili idadi ya kurasa zake ijulikane',
+    'ur': 'اپنی لائبریری سے کتاب شامل کرنے کے لیے: پہلے اسے "میری لائبریری" سے ایک بار کھولیں تاکہ اس کے صفحات کی تعداد معلوم ہو جائے', 'tr': 'Kütüphanenizden bir kitap eklemek için: sayfa sayısının bilinmesi için önce "Kütüphanem"den bir kez açın', 'id': 'Untuk menambahkan buku dari perpustakaan Anda: buka sekali dari "Perpustakaan Saya" dulu agar jumlah halamannya diketahui', 'bn': 'আপনার গ্রন্থাগার থেকে একটি বই যোগ করতে: প্রথমে "আমার গ্রন্থাগার" থেকে একবার খুলুন যাতে এর পাতার সংখ্যা জানা যায়', 'ha': 'Don ƙara littafi daga laburarenka: fara buɗe shi sau ɗaya daga "Laburare Na" don a san adadin shafukansa',
+    'so': 'Si aad buug uga darto maktabaddaada: marka hore hal mar ka fur "Maktabadayda" si loo ogaado tirada bogagiisa', 'fa': 'برای افزودن کتابی از کتابخانه‌تان: ابتدا یک‌بار آن را از "کتابخانه من" باز کنید تا تعداد صفحاتش مشخص شود', 'ms': 'Untuk menambah buku daripada perpustakaan anda: buka sekali daripada "Perpustakaan Saya" dahulu supaya bilangan halamannya diketahui',
+  },
+  'target_date_prefix': {
+    'ar': 'الموعد المستهدف:', 'en': 'Target date:', 'am': 'ዒላማ ቀን፦', 'fr': 'Date cible :', 'sw': 'Tarehe lengwa:',
+    'ur': 'ہدف کی تاریخ:', 'tr': 'Hedef tarih:', 'id': 'Tanggal target:', 'bn': 'লক্ষ্য তারিখ:', 'ha': 'Ranar Manufa:',
+    'so': 'Taariikhda Bartilmaameedka:', 'fa': 'تاریخ هدف:', 'ms': 'Tarikh sasaran:',
+  },
+  'create_plan_action': {
+    'ar': 'إنشاء الخطة', 'en': 'Create Plan', 'am': 'እቅድ ፍጠር', 'fr': 'Créer le plan', 'sw': 'Unda Mpango',
+    'ur': 'منصوبہ بنائیں', 'tr': 'Plan Oluştur', 'id': 'Buat Rencana', 'bn': 'পরিকল্পনা তৈরি করুন', 'ha': 'Ƙirƙiri Tsari',
+    'so': 'Samee Qorshaha', 'fa': 'ایجاد برنامه', 'ms': 'Cipta Rancangan',
+  },
+  'new_completion_plan_title': {
+    'ar': 'خطة ختم جديدة', 'en': 'New Completion Plan', 'am': 'አዲስ የማጠናቀቂያ እቅድ', 'fr': "Nouveau plan d'achèvement", 'sw': 'Mpango Mpya wa Kukamilisha',
+    'ur': 'نیا تکمیل کا منصوبہ', 'tr': 'Yeni Tamamlama Planı', 'id': 'Rencana Khatam Baru', 'bn': 'নতুন সমাপ্তি পরিকল্পনা', 'ha': 'Sabon Tsarin Kammalawa',
+    'so': 'Qorshe Dhammaystir Cusub', 'fa': 'برنامه ختم جدید', 'ms': 'Rancangan Khatam Baharu',
+  },
+  'delete_plan_title': {
+    'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
+    'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',
+    'so': 'Ma tirtirtaa qorshahan?', 'fa': 'این برنامه حذف شود؟', 'ms': 'Padam rancangan ini?',
+  },
+  'delete_plan_confirm_prefix': {
+    'ar': 'سيُمسح', 'en': 'This will delete', 'am': 'ይህ ይሰርዛል', 'fr': 'Ceci supprimera', 'sw': 'Hii itafuta',
+    'ur': 'یہ حذف کر دے گا', 'tr': 'Bu silecek:', 'id': 'Ini akan menghapus', 'bn': 'এটি মুছে ফেলবে', 'ha': 'Wannan zai share',
+    'so': 'Tan waxay tirtiri doontaa', 'fa': 'این کار حذف می‌کند', 'ms': 'Ini akan memadam',
+  },
+  'delete_plan_confirm_suffix': {
+    'ar': 'ولن تُذكَّر بها بعد الآن. تقدّمك المُسجَّل لن يتأثر — يمكنك إنشاء خطة جديدة في أي وقت.', 'en': "and you won't be reminded of it anymore. Your recorded progress won't be affected — you can create a new plan anytime.", 'am': 'እና ከእንግዲህ አይታወሱም። የተመዘገበ እድገትዎ አይነካም — በማንኛውም ጊዜ አዲስ እቅድ መፍጠር ይችላሉ።', 'fr': "et vous ne recevrez plus de rappels à ce sujet. Votre progression enregistrée ne sera pas affectée — vous pouvez créer un nouveau plan à tout moment.", 'sw': 'na hutakumbushwa tena kuihusu. Maendeleo yako yaliyorekodiwa hayataathiriwa — unaweza kuunda mpango mpya wakati wowote.',
+    'ur': 'اور اب آپ کو اس کی یاد نہیں دلائی جائے گی۔ آپ کی درج شدہ پیشرفت متاثر نہیں ہوگی — آپ کسی بھی وقت نیا منصوبہ بنا سکتے ہیں۔', 'tr': 've artık bu konuda hatırlatılmayacaksınız. Kayıtlı ilerlemeniz etkilenmeyecek — istediğiniz zaman yeni bir plan oluşturabilirsiniz.', 'id': 'dan Anda tidak akan diingatkan lagi tentangnya. Kemajuan tercatat Anda tidak akan terpengaruh — Anda dapat membuat rencana baru kapan saja.', 'bn': 'এবং আপনাকে আর এর কথা মনে করিয়ে দেওয়া হবে না। আপনার রেকর্ড করা অগ্রগতি প্রভাবিত হবে না — আপনি যেকোনো সময় নতুন পরিকল্পনা তৈরি করতে পারেন।', 'ha': 'kuma ba za a ƙara tunatar da kai da shi ba. Ci gaban ka da aka rubuta ba zai shafa ba — za ka iya ƙirƙirar sabon tsari a kowane lokaci.',
+    'so': 'mana ku xasuusin doono mar dambe. Horumarkaaga la diiwaan geliyay ma saameyn doono — waqti kasta waxaad samayn kartaa qorshe cusub.', 'fa': 'و دیگر به شما یادآوری نخواهد شد. پیشرفت ثبت‌شده شما تحت تأثیر قرار نمی‌گیرد — می‌توانید هر زمان برنامه جدیدی ایجاد کنید.', 'ms': 'dan anda tidak akan diingatkan lagi mengenainya. Kemajuan direkodkan anda tidak akan terjejas — anda boleh mencipta rancangan baharu pada bila-bila masa.',
+  },
+  'no_active_plans_message': {
+    'ar': 'لا توجد خطط نشطة — أنشئ خطة جديدة بالزر أسفل الشاشة', 'en': 'No active plans — create a new one with the button below', 'am': 'ንቁ እቅድ የለም — ከታች ባለው ቁልፍ አዲስ እቅድ ይፍጠሩ', 'fr': "Aucun plan actif — créez-en un nouveau avec le bouton ci-dessous", 'sw': 'Hakuna mipango hai — unda mpya kwa kitufe kilicho chini',
+    'ur': 'کوئی فعال منصوبہ نہیں — نیچے دیے گئے بٹن سے نیا بنائیں', 'tr': 'Aktif plan yok — aşağıdaki düğmeyle yeni bir tane oluşturun', 'id': 'Tidak ada rencana aktif — buat yang baru dengan tombol di bawah', 'bn': 'কোনো সক্রিয় পরিকল্পনা নেই — নিচের বোতাম দিয়ে নতুন তৈরি করুন', 'ha': 'Babu tsare-tsare masu aiki — ƙirƙiri sabo da maɓallin ƙasa',
+    'so': 'Ma jiraan qorshayaal firfircoon — mid cusub ku samee badhanka hoose', 'fa': 'هیچ برنامه فعالی نیست — با دکمه پایین یکی جدید بسازید', 'ms': 'Tiada rancangan aktif — cipta yang baharu dengan butang di bawah',
+  },
+  'ahead_of_plan_badge': {
+    'ar': 'متقدم عن الخطة 🌱', 'en': 'Ahead of plan 🌱', 'am': 'ከእቅድ ቀድሞ 🌱', 'fr': "En avance sur le plan 🌱", 'sw': 'Umetangulia mpango 🌱',
+    'ur': 'منصوبے سے آگے 🌱', 'tr': 'Plandan önde 🌱', 'id': 'Lebih cepat dari rencana 🌱', 'bn': 'পরিকল্পনার চেয়ে এগিয়ে 🌱', 'ha': 'Gaba da Tsari 🌱',
+    'so': 'Ka Horreeya Qorshaha 🌱', 'fa': 'جلوتر از برنامه 🌱', 'ms': 'Mendahului rancangan 🌱',
+  },
+  'on_track_badge': {
+    'ar': 'بالضبط حسب الخطة', 'en': 'Exactly on track', 'am': 'በትክክል በእቅዱ መሠረት', 'fr': "Exactement selon le plan", 'sw': 'Sawasawa na mpango',
+    'ur': 'بالکل منصوبے کے مطابق', 'tr': 'Tam olarak plana göre', 'id': 'Persis sesuai rencana', 'bn': 'ঠিক পরিকল্পনা অনুযায়ী', 'ha': 'Daidai da Tsari',
+    'so': 'Si Sax ah U Socda Qorshaha', 'fa': 'دقیقاً طبق برنامه', 'ms': 'Tepat mengikut rancangan',
+  },
+  'behind_plan_badge': {
+    'ar': 'متأخر قليلًا عن الخطة', 'en': 'A bit behind plan', 'am': 'ከእቅድ ትንሽ ወደኋላ', 'fr': "Un peu en retard sur le plan", 'sw': 'Umechelewa kidogo kwenye mpango',
+    'ur': 'منصوبے سے تھوڑا پیچھے', 'tr': 'Plandan biraz geride', 'id': 'Sedikit tertinggal dari rencana', 'bn': 'পরিকল্পনার চেয়ে সামান্য পিছিয়ে', 'ha': 'Kadan a Baya da Tsari',
+    'so': 'Wax Yar Ka Dib Maray Qorshaha', 'fa': 'کمی عقب‌تر از برنامه', 'ms': 'Sedikit ketinggalan daripada rancangan',
+  },
+  'days_left_rate_message_prefix': {
+    'ar': 'باقي', 'en': 'Remaining:', 'am': 'ቀሪ', 'fr': 'Restant :', 'sw': 'Zilizobaki:',
+    'ur': 'باقی', 'tr': 'Kalan:', 'id': 'Sisa:', 'bn': 'বাকি', 'ha': 'Sauran:',
+    'so': 'Ku hadhay:', 'fa': 'باقی‌مانده:', 'ms': 'Baki:',
+  },
+  'days_left_rate_message_suffix': {
+    'ar': 'بمعدل', 'en': 'at a rate of', 'am': 'በመጠን', 'fr': 'à un rythme de', 'sw': 'kwa kiwango cha',
+    'ur': 'بمعدل', 'tr': 'oranında', 'id': 'dengan laju', 'bn': 'হারে', 'ha': 'a kan adadin',
+    'so': 'heerka', 'fa': 'با نرخ', 'ms': 'pada kadar',
+  },
+  'daily_to_finish_on_time_suffix': {
+    'ar': 'يوميًا لإتمامها بالموعد', 'en': 'daily to finish on time', 'am': 'በየቀኑ በጊዜው ለማጠናቀቅ', 'fr': "par jour pour terminer à temps", 'sw': 'kila siku ili kumaliza kwa wakati',
+    'ur': 'روزانہ وقت پر مکمل کرنے کے لیے', 'tr': 'zamanında bitirmek için günlük', 'id': 'setiap hari untuk selesai tepat waktu', 'bn': 'প্রতিদিন সময়মতো শেষ করতে', 'ha': 'kullum don kammalawa a kan lokaci',
+    'so': 'maalin kasta si loogu dhammeeyo waqtiga', 'fa': 'روزانه برای اتمام به‌موقع', 'ms': 'setiap hari untuk selesai tepat masa',
+  },
+  'target_date_passed_message': {
+    'ar': 'انتهى الموعد المستهدف', 'en': 'Target date has passed', 'am': 'ዒላማ ቀኑ አልፏል', 'fr': 'La date cible est passée', 'sw': 'Tarehe lengwa imepita',
+    'ur': 'ہدف کی تاریخ گزر چکی ہے', 'tr': 'Hedef tarih geçti', 'id': 'Tanggal target telah berlalu', 'bn': 'লক্ষ্য তারিখ পার হয়ে গেছে', 'ha': 'Ranar Manufa Ta Wuce',
+    'so': 'Taariikhda Bartilmaameedku Way Dhaafeen', 'fa': 'تاریخ هدف گذشته است', 'ms': 'Tarikh sasaran telah berlalu',
+  },
+  'reschedule_plan_action': {
+    'ar': 'أعِد جدولة الخطة', 'en': 'Reschedule Plan', 'am': 'እቅድ እንደገና ያስይዙ', 'fr': 'Replanifier le plan', 'sw': 'Panga Upya Mpango',
+    'ur': 'منصوبہ دوبارہ ترتیب دیں', 'tr': 'Planı Yeniden Zamanla', 'id': 'Jadwalkan Ulang Rencana', 'bn': 'পরিকল্পনা পুনঃনির্ধারণ করুন', 'ha': 'Sake Tsara Tsari',
+    'so': 'Dib u Jadwali Qorshaha', 'fa': 'زمان‌بندی مجدد برنامه', 'ms': 'Jadual Semula Rancangan',
+  },
+  'delete_plan_action': {
+    'ar': 'مسح الخطة', 'en': 'Delete Plan', 'am': 'እቅድ ሰርዝ', 'fr': 'Supprimer le plan', 'sw': 'Futa Mpango',
+    'ur': 'منصوبہ حذف کریں', 'tr': 'Planı Sil', 'id': 'Hapus Rencana', 'bn': 'পরিকল্পনা মুছুন', 'ha': 'Share Tsari',
+    'so': 'Tirtir Qorshaha', 'fa': 'حذف برنامه', 'ms': 'Padam Rancangan',
+  },
+  'deleted_library_book_label': {
+    'ar': 'كتاب محذوف من مكتبتي', 'en': 'A book deleted from my library', 'am': 'ከቤተ መጻሕፍቴ የተሰረዘ መጽሐፍ', 'fr': 'Un livre supprimé de ma bibliothèque', 'sw': 'Kitabu kilichofutwa kutoka maktaba yangu',
+    'ur': 'میری لائبریری سے حذف شدہ کتاب', 'tr': 'Kütüphanemden silinen bir kitap', 'id': 'Buku yang dihapus dari perpustakaan saya', 'bn': 'আমার গ্রন্থাগার থেকে মোছা একটি বই', 'ha': 'Littafi da aka share daga laburare na',
+    'so': 'Buug laga tirtiray maktabadayda', 'fa': 'کتابی که از کتابخانه من حذف شده', 'ms': 'Buku dipadam daripada perpustakaan saya',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

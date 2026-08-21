@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
+import '../l10n/basic_translations.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 
@@ -37,6 +38,16 @@ class CompletionGoal {
         (_, 'nawawi_hadith') => 'الأربعين النووية',
         ('personal_book', _) => 'كتاب من مكتبتي',
         _ => bookRef ?? contentType,
+      };
+
+  /// Same as [displayLabel] but translated for the two Quran plan types
+  /// (UI-chrome feature names). Specific book/curriculum titles (Zad
+  /// al-Ma'ad, Madarij, al-Wasitiyyah, al-Arbain) stay Arabic — they're
+  /// real classical-text titles, not chrome.
+  String displayLabelFor(String lang) => switch ((contentType, bookRef)) {
+        ('quran_reading', _) => basicText('goal_quran_reading_label', lang),
+        ('quran_memorization', _) => basicText('goal_quran_memorization_label', lang),
+        _ => displayLabel,
       };
 
   /// The unit this goal's daily target is counted in — used to render the
