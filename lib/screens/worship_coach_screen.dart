@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/memorization_repository.dart';
 import '../repositories/worship_coach_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'adhkar_screen.dart';
 import 'quran_browse_screen.dart';
@@ -73,10 +75,12 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
   @override
   Widget build(BuildContext context) {
     final status = _status;
-    return Scaffold(
-      appBar: AppBar(title: const Text('مدرب العبادة')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('worship_coach_title', lang))),
       body: status == null
-          ? const AppLoadingView(icon: Icons.route_outlined, message: 'جاري تحليل انتظامك لتحديد مهمتك...')
+          ? AppLoadingView(icon: Icons.route_outlined, message: basicText('analyzing_consistency_message', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -97,25 +101,25 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
                         FilledButton(
                           onPressed: _openTaskScreen,
                           style: FilledButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppColors.primaryDark),
-                          child: const Text('ابدأ الآن'),
+                          child: Text(basicText('onboarding_start_now', lang)),
                         ),
                       ],
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text('كيف نحدد مهمتك؟', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                Text(basicText('how_we_determine_task_header', lang), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                const Text(
-                  'قاعدة بسيطة وواضحة، بلا ذكاء اصطناعي: نحسب مدى انتظامك في آخر 7 أيام لكل مجال، ونركّز على أول مجال أقل من 70% — الصلاة أولًا، ثم القرآن، ثم الأذكار. إن كانت الثلاثة مستقرة، نقترح المرحلة التالية بدل إزعاجك بما هو متقن أصلًا.',
-                  style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.6),
+                Text(
+                  basicText('coach_rule_explanation', lang),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.6),
                 ),
                 const SizedBox(height: 16),
-                _ConsistencyRow(label: 'الصلاة', value: status.prayerConsistency, isFocus: status.focus == CoachFocusArea.prayer),
+                _ConsistencyRow(label: basicText('consistency_prayer_label', lang), value: status.prayerConsistency, isFocus: status.focus == CoachFocusArea.prayer),
                 const SizedBox(height: 10),
-                _ConsistencyRow(label: 'القرآن', value: status.quranConsistency, isFocus: status.focus == CoachFocusArea.quran),
+                _ConsistencyRow(label: basicText('consistency_quran_label', lang), value: status.quranConsistency, isFocus: status.focus == CoachFocusArea.quran),
                 const SizedBox(height: 10),
-                _ConsistencyRow(label: 'الأذكار', value: status.dhikrConsistency, isFocus: status.focus == CoachFocusArea.dhikr),
+                _ConsistencyRow(label: basicText('consistency_dhikr_label', lang), value: status.dhikrConsistency, isFocus: status.focus == CoachFocusArea.dhikr),
                 if (_manzilPortion > 0) ...[
                   const SizedBox(height: 20),
                   Container(
@@ -129,10 +133,10 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('منزل — حصتك الأسبوعية', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                              Text(basicText('manzil_weekly_portion_title', lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                               const SizedBox(height: 2),
                               Text(
-                                'لتغطية كل محفوظك الراسخ مرة كل أسبوع، راجع نحو $_manzilPortion صفحة يوميًا',
+                                '${basicText('manzil_weekly_portion_prefix', lang)} $_manzilPortion ${basicText('manzil_weekly_portion_suffix', lang)}',
                                 style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.5),
                               ),
                             ],
@@ -144,9 +148,9 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
                 ],
                 if (_weakSpots.isNotEmpty) ...[
                   const SizedBox(height: 20),
-                  const Text('نقاط تحتاج تركيزًا إضافيًا', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                  Text(basicText('weak_spots_header', lang), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 4),
-                  const Text('الصفحات التي تكرر فيها "يحتاج مراجعة" مؤخرًا — آخر 30 يومًا', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                  Text(basicText('weak_spots_subtitle', lang), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                   const SizedBox(height: 10),
                   ..._weakSpots.map((w) {
                     final (unit, mistakeCount) = w;
@@ -158,11 +162,11 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              'صفحة ${unit.id} — من سورة ${_surahNames[unit.surahStart] ?? unit.surahStart}',
+                              '${basicText('page_word_prefix', lang)} ${unit.id} — ${basicText('from_surah_prefix', lang)} ${_surahNames[unit.surahStart] ?? unit.surahStart}',
                               style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
                             ),
                           ),
-                          Text('$mistakeCount مرات', style: const TextStyle(fontSize: 11, color: Colors.redAccent, fontWeight: FontWeight.w700)),
+                          Text('$mistakeCount ${basicText('times_count_suffix', lang)}', style: const TextStyle(fontSize: 11, color: Colors.redAccent, fontWeight: FontWeight.w700)),
                         ],
                       ),
                     );
@@ -172,20 +176,21 @@ class _WorshipCoachScreenState extends State<WorshipCoachScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('أعمال إضافية — قريبًا', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                      SizedBox(height: 4),
+                      Text(basicText('additional_tasks_soon_title', lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 4),
                       Text(
-                        'قيام الليل والوتر والصدقة وصيام التطوع لم تُضَف بعد لأنها تحتاج تتبعًا جديدًا لم يُبنَ في التطبيق حتى الآن — ستُضاف تدريجيًا بعد استقرار الصلاة والقرآن والأذكار، بنفس مبدأ عدم البدء بكل شيء دفعة واحدة.',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.6),
+                        basicText('additional_tasks_soon_body', lang),
+                        style: const TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.6),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
+      ),
     );
   }
 }
@@ -227,7 +232,7 @@ class _ConsistencyRow extends StatelessWidget {
             child: LinearProgressIndicator(value: value.clamp(0, 1), minHeight: 8, backgroundColor: AppColors.divider, valueColor: AlwaysStoppedAnimation(color)),
           ),
           const SizedBox(height: 4),
-          const Text('آخر 7 أيام', style: TextStyle(fontSize: 10, color: AppColors.textMuted)),
+          Text(basicText('last_7_days_label', LanguagePreferenceService.currentLanguage), style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
         ],
       ),
     );
@@ -263,7 +268,7 @@ class _PulsingFocusBadgeState extends State<_PulsingFocusBadge> with SingleTicke
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(color: widget.color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-        child: Text('التركيز الآن', style: TextStyle(fontSize: 9.5, color: widget.color, fontWeight: FontWeight.w800)),
+        child: Text(basicText('focus_now_badge_label', LanguagePreferenceService.currentLanguage), style: TextStyle(fontSize: 9.5, color: widget.color, fontWeight: FontWeight.w800)),
       ),
     );
   }

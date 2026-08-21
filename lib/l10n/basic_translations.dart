@@ -2129,6 +2129,133 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'خود کو ایمانداری سے پرکھیں — یہ آپ کے سوا کوئی نہیں دیکھے گا', 'tr': 'Kendinizi dürüstçe değerlendirin — bunu sizden başka kimse görmeyecek', 'id': 'Nilai diri Anda dengan jujur — tidak ada yang akan melihatnya selain Anda', 'bn': 'নিজেকে সততার সাথে মূল্যায়ন করুন — আপনি ছাড়া কেউ এটি দেখবে না', 'ha': 'Ka tantance kanka da gaskiya — babu wanda zai gan shi sai kai',
     'so': 'Si daacad ah isu qiimee — ma jiro cid arki doonta tan adiga mooyee', 'fa': 'خودتان را صادقانه ارزیابی کنید — جز شما کسی این را نمی‌بیند', 'ms': 'Nilai diri anda dengan jujur — tiada siapa akan melihat ini selain anda',
   },
+  // 2026-08-22: worship_coach_screen.dart.
+  'worship_coach_title': {
+    'ar': 'مدرب العبادة', 'en': 'Worship Coach', 'am': 'የአምልኮ አሰልጣኝ', 'fr': "Coach d'adoration", 'sw': 'Kocha wa Ibada',
+    'ur': 'عبادت کوچ', 'tr': 'İbadet Koçu', 'id': 'Pelatih Ibadah', 'bn': 'ইবাদত কোচ', 'ha': 'Kocin Ibada',
+    'so': 'Tababaraha Cibaadada', 'fa': 'مربی عبادت', 'ms': 'Jurulatih Ibadah',
+  },
+  'analyzing_consistency_message': {
+    'ar': 'جاري تحليل انتظامك لتحديد مهمتك...', 'en': 'Analyzing your consistency to determine your task...', 'am': 'ተግባርዎን ለመወሰን ወጥነትዎን በመተንተን ላይ...', 'fr': 'Analyse de votre régularité pour déterminer votre tâche...', 'sw': 'Inachambua uthabiti wako kubaini kazi yako...',
+    'ur': 'آپ کا کام طے کرنے کے لیے آپ کی مستقل مزاجی کا تجزیہ کیا جا رہا ہے...', 'tr': 'Göreviniz belirlenmek için sürekliliğiniz analiz ediliyor...', 'id': 'Menganalisis konsistensi Anda untuk menentukan tugas Anda...', 'bn': 'আপনার কাজ নির্ধারণ করতে আপনার ধারাবাহিকতা বিশ্লেষণ করা হচ্ছে...', 'ha': 'Ana nazarin daidaiton ka don tantance aikinka...',
+    'so': 'Waxaa la falanqeynayaa joogtaynta si loo go\'aamiyo hawshaada...', 'fa': 'در حال تحلیل ثبات شما برای تعیین وظیفه‌تان...', 'ms': 'Menganalisis konsistensi anda untuk menentukan tugas anda...',
+  },
+  'how_we_determine_task_header': {
+    'ar': 'كيف نحدد مهمتك؟', 'en': 'How do we determine your task?', 'am': 'ተግባርዎን እንዴት እንወስናለን?', 'fr': 'Comment déterminons-nous votre tâche ?', 'sw': 'Tunabainije kazi yako?',
+    'ur': 'ہم آپ کا کام کیسے طے کرتے ہیں؟', 'tr': 'Göreviniz nasıl belirleniyor?', 'id': 'Bagaimana kami menentukan tugas Anda?', 'bn': 'আমরা আপনার কাজ কীভাবে নির্ধারণ করি?', 'ha': 'Ta yaya muke tantance aikinka?',
+    'so': 'Sideen u go\'aaminaa hawshaada?', 'fa': 'چگونه وظیفه شما را تعیین می‌کنیم؟', 'ms': 'Bagaimana kami menentukan tugas anda?',
+  },
+  'coach_rule_explanation': {
+    'ar': 'قاعدة بسيطة وواضحة، بلا ذكاء اصطناعي: نحسب مدى انتظامك في آخر 7 أيام لكل مجال، ونركّز على أول مجال أقل من 70% — الصلاة أولًا، ثم القرآن، ثم الأذكار. إن كانت الثلاثة مستقرة، نقترح المرحلة التالية بدل إزعاجك بما هو متقن أصلًا.',
+    'en': "A simple, transparent rule, no AI involved: we calculate your consistency over the last 7 days for each area, and focus on the first area under 70% — prayer first, then Qur'an, then adhkar. If all three are stable, we suggest the next stage instead of bothering you about something already solid.",
+    'am': 'ቀላል እና ግልጽ ደንብ፣ ያለ ሰው ሠራሽ አስተውሎት፦ ላለፉት 7 ቀናት ለእያንዳንዱ ዘርፍ ወጥነትዎን እናሰላለን፣ እና ከ70% በታች ባለው መጀመሪያ ዘርፍ ላይ እናተኩራለን — መጀመሪያ ጸሎት፣ ከዚያ ቁርኣን፣ ከዚያ አዝካር። ሦስቱም የተረጋጉ ከሆኑ፣ ቀድሞውኑ የተካኑበትን በማወክ ፈንታ ቀጣዩን ደረጃ እንጠቁማለን።',
+    'fr': "Une règle simple et transparente, sans IA : nous calculons votre régularité sur les 7 derniers jours pour chaque domaine, et nous nous concentrons sur le premier domaine sous 70 % — la prière d'abord, puis le Coran, puis les adhkar. Si les trois sont stables, nous suggérons l'étape suivante plutôt que de vous déranger avec ce qui est déjà solide.",
+    'sw': 'Kanuni rahisi na wazi, bila AI: tunahesabu uthabiti wako wa siku 7 zilizopita kwa kila eneo, na kuzingatia eneo la kwanza lililo chini ya 70% — sala kwanza, kisha Qur\'an, kisha adhkar. Ikiwa yote matatu ni thabiti, tunapendekeza hatua inayofuata badala ya kukusumbua na kitu ambacho tayari kimeimarika.',
+    'ur': 'ایک آسان اور واضح اصول، بغیر مصنوعی ذہانت کے: ہم ہر شعبے کے لیے پچھلے 7 دنوں کی آپ کی مستقل مزاجی کا حساب لگاتے ہیں، اور 70% سے کم پہلے شعبے پر توجہ دیتے ہیں — پہلے نماز، پھر قرآن، پھر اذکار۔ اگر تینوں مستحکم ہوں، تو ہم آپ کو پہلے سے مضبوط چیز سے پریشان کرنے کے بجائے اگلا مرحلہ تجویز کرتے ہیں۔',
+    'tr': "Basit ve şeffaf bir kural, yapay zeka yok: her alan için son 7 gündeki sürekliliğinizi hesaplıyoruz ve %70'in altındaki ilk alana odaklanıyoruz — önce namaz, sonra Kur'an, sonra ezkâr. Üçü de istikrarlıysa, zaten sağlam olan bir şeyle sizi rahatsız etmek yerine bir sonraki aşamayı öneriyoruz.",
+    'id': 'Aturan sederhana dan transparan, tanpa AI: kami menghitung konsistensi Anda selama 7 hari terakhir untuk setiap bidang, dan fokus pada bidang pertama di bawah 70% — salat dulu, lalu Al-Qur\'an, lalu dzikir. Jika ketiganya stabil, kami menyarankan tahap berikutnya alih-alih mengganggu Anda dengan sesuatu yang sudah kuat.',
+    'bn': 'একটি সহজ ও স্বচ্ছ নিয়ম, কোনো এআই ছাড়াই: আমরা প্রতিটি ক্ষেত্রের জন্য গত ৭ দিনের ধারাবাহিকতা গণনা করি এবং ৭০%-এর নিচে থাকা প্রথম ক্ষেত্রে মনোযোগ দিই — প্রথমে নামাজ, তারপর কুরআন, তারপর আজকার। তিনটিই স্থিতিশীল হলে, ইতিমধ্যে মজবুত কিছু নিয়ে আপনাকে বিরক্ত না করে পরবর্তী ধাপ প্রস্তাব করি।',
+    'ha': "Ka'ida mai sauƙi kuma bayyananna, ba tare da AI ba: muna lissafin daidaitonka na kwanaki 7 da suka gabata don kowane fanni, muna mai da hankali kan fannin farko da ya kai ƙasa da 70% — sallah tukuna, sannan Alkur'ani, sannan azkari. Idan dukkan ukun sun tabbata, muna ba da shawarar matakin gaba maimakon dama'ka da abin da ya riga ya kwanta.",
+    'so': 'Xeer fudud oo cad, oo aan lahayn AI: waxaan xisaabinaa joogtaynta 7-dii maalmood ee ugu dambeeyay qayb kasta, oo waxaan diirada saarnaa qaybta ugu horreysa ee ka hooseysa 70% — salaadda marka hore, ka dib Qur\'aanka, ka dibna adkaarka. Haddii saddexdaba ay xasilloon yihiin, waxaan soo jeedinaa marxaladda xigta halkii aan kugu dhib gelin wax mar hore adkaaday.',
+    'fa': 'قاعده‌ای ساده و شفاف، بدون هوش مصنوعی: ثبات شما را در ۷ روز گذشته برای هر حوزه محاسبه می‌کنیم و روی اولین حوزه‌ای که زیر ۷۰٪ است تمرکز می‌کنیم — ابتدا نماز، سپس قرآن، سپس اذکار. اگر هر سه پایدار باشند، به‌جای مزاحم شدن با چیزی که از قبل مستحکم است، مرحله بعدی را پیشنهاد می‌دهیم.',
+    'ms': "Peraturan mudah dan telus, tanpa AI: kami mengira konsistensi anda dalam 7 hari lepas bagi setiap bidang, dan memberi tumpuan kepada bidang pertama di bawah 70% — solat dahulu, kemudian Al-Quran, kemudian zikir. Jika ketiga-tiganya stabil, kami mencadangkan peringkat seterusnya dan bukannya mengganggu anda dengan sesuatu yang sudah kukuh.",
+  },
+  'consistency_prayer_label': {
+    'ar': 'الصلاة', 'en': 'Prayer', 'am': 'ጸሎት', 'fr': 'La prière', 'sw': 'Sala',
+    'ur': 'نماز', 'tr': 'Namaz', 'id': 'Salat', 'bn': 'নামাজ', 'ha': 'Sallah',
+    'so': 'Salaadda', 'fa': 'نماز', 'ms': 'Solat',
+  },
+  'consistency_quran_label': {
+    'ar': 'القرآن', 'en': "Qur'an", 'am': 'ቁርኣን', 'fr': 'Le Coran', 'sw': 'Qur\'an',
+    'ur': 'قرآن', 'tr': "Kur'an", 'id': 'Al-Qur\'an', 'bn': 'কুরআন', 'ha': "Alkur'ani",
+    'so': "Qur'aanka", 'fa': 'قرآن', 'ms': 'Al-Quran',
+  },
+  'consistency_dhikr_label': {
+    'ar': 'الأذكار', 'en': 'Adhkar', 'am': 'አዝካር', 'fr': 'Les adhkar', 'sw': 'Adhkar',
+    'ur': 'اذکار', 'tr': 'Ezkâr', 'id': 'Dzikir', 'bn': 'আজকার', 'ha': 'Azkari',
+    'so': 'Adkaarka', 'fa': 'اذکار', 'ms': 'Zikir',
+  },
+  'manzil_weekly_portion_title': {
+    'ar': 'منزل — حصتك الأسبوعية', 'en': 'Manzil — Your Weekly Portion', 'am': 'መንዚል — ሳምንታዊ ድርሻዎ', 'fr': 'Manzil — Votre part hebdomadaire', 'sw': 'Manzil — Sehemu Yako ya Wiki',
+    'ur': 'منزل — آپ کا ہفتہ وار حصہ', 'tr': 'Menzil — Haftalık Payınız', 'id': 'Manzil — Porsi Mingguan Anda', 'bn': 'মানজিল — আপনার সাপ্তাহিক অংশ', 'ha': 'Manzil — Rabonka na Mako',
+    'so': 'Manzil — Qaybtaada Toddobaadlaha ah', 'fa': 'منزل — سهم هفتگی شما', 'ms': 'Manzil — Bahagian Mingguan Anda',
+  },
+  'manzil_weekly_portion_prefix': {
+    'ar': 'لتغطية كل محفوظك الراسخ مرة كل أسبوع، راجع نحو', 'en': "To cover all your solid memorization once a week, review around", 'am': 'ጠንካራውን ሁሉንም ጥናትዎን በሳምንት አንድ ጊዜ ለመሸፈን፣ በግምት ይከልሱ', 'fr': "Pour couvrir toute votre mémorisation solide une fois par semaine, révisez environ", 'sw': 'Ili kufunika hifadhi yako yote thabiti mara moja kwa wiki, pitia karibu',
+    'ur': 'اپنے تمام مضبوط حفظ کو ہفتے میں ایک بار مکمل کرنے کے لیے، تقریباً دہرائیں', 'tr': "Sağlam ezberinizin tamamını haftada bir kez kapsamak için yaklaşık şunu tekrar edin:", 'id': 'Untuk mencakup semua hafalan Anda yang kuat sekali seminggu, ulangi sekitar', 'bn': 'আপনার সমস্ত মজবুত হিফজ সপ্তাহে একবার আবৃত্তি করতে, প্রায় দোহরান',
+    'ha': "Don rufe duk haddace naka mai ƙarfi sau ɗaya a mako, sake dubi kusan", 'so': 'Si aad u dabooshid dhammaan xifdhintaada adkaatay hal mar toddobaadkii, dib-u-eeg qiyaastii', 'fa': 'برای پوشش کامل حفظیات محکم شما یک‌بار در هفته، حدود این مقدار مرور کنید:', 'ms': 'Untuk meliputi semua hafalan kukuh anda sekali seminggu, ulangkaji kira-kira',
+  },
+  'manzil_weekly_portion_suffix': {
+    'ar': 'صفحة يوميًا', 'en': 'pages daily', 'am': 'ገጾች በየቀኑ', 'fr': 'pages par jour', 'sw': 'kurasa kila siku',
+    'ur': 'صفحات روزانہ', 'tr': 'sayfa günlük', 'id': 'halaman setiap hari', 'bn': 'পাতা প্রতিদিন', 'ha': 'shafuka kullum',
+    'so': 'bog maalin kasta', 'fa': 'صفحه در روز', 'ms': 'halaman setiap hari',
+  },
+  'weak_spots_header': {
+    'ar': 'نقاط تحتاج تركيزًا إضافيًا', 'en': 'Spots That Need Extra Focus', 'am': 'ተጨማሪ ትኩረት የሚያስፈልጋቸው ነጥቦች', 'fr': "Points qui nécessitent plus d'attention", 'sw': 'Sehemu Zinazohitaji Umakini Zaidi',
+    'ur': 'اضافی توجہ کی ضرورت والے نکات', 'tr': 'Ekstra Odak Gerektiren Noktalar', 'id': 'Titik yang Butuh Fokus Ekstra', 'bn': 'অতিরিক্ত মনোযোগ প্রয়োজন এমন পয়েন্ট', 'ha': 'Wuraren da Ke Buƙatar Ƙarin Kulawa',
+    'so': 'Dhibcaha U Baahan Diirada Dheeraadka ah', 'fa': 'نقاطی که نیاز به تمرکز بیشتر دارند', 'ms': 'Titik Memerlukan Fokus Tambahan',
+  },
+  'weak_spots_subtitle': {
+    'ar': 'الصفحات التي تكرر فيها "يحتاج مراجعة" مؤخرًا — آخر 30 يومًا', 'en': 'Pages recently marked "needs review" repeatedly — last 30 days', 'am': '"ክለሳ ይፈልጋል" ተብለው በተደጋጋሚ የተመዘገቡ ገጾች — ያለፉት 30 ቀናት', 'fr': 'Pages récemment marquées "à réviser" de manière répétée — 30 derniers jours', 'sw': 'Kurasa zilizowekwa alama "inahitaji kupitiwa" mara kwa mara hivi karibuni — siku 30 zilizopita',
+    'ur': 'وہ صفحات جن پر حال ہی میں بار بار "دہرانے کی ضرورت" کا نشان لگا — پچھلے 30 دن', 'tr': 'Son zamanlarda tekrar tekrar "gözden geçirilmeli" olarak işaretlenen sayfalar — son 30 gün', 'id': 'Halaman yang baru-baru ini berulang kali ditandai "perlu diulang" — 30 hari terakhir', 'bn': 'সম্প্রতি বারবার "পুনরাবৃত্তি প্রয়োজন" চিহ্নিত পাতা — গত ৩০ দিন', 'ha': 'Shafukan da aka sanya alamar "yana buƙatar sake nazari" akai-akai kwanan nan — kwanaki 30 na ƙarshe',
+    'so': 'Bogagga dhawaan si isdaba joog ah loo calaamadeeyay "u baahan dib-u-eegis" — 30kii maalmood ee ugu dambeeyay', 'fa': 'صفحاتی که اخیراً به‌طور مکرر "نیاز به مرور" علامت‌گذاری شده‌اند — ۳۰ روز گذشته', 'ms': 'Halaman yang baru-baru ini kerap ditanda "perlu ulangkaji" — 30 hari lepas',
+  },
+  'page_word_prefix': {
+    'ar': 'صفحة', 'en': 'Page', 'am': 'ገጽ', 'fr': 'Page', 'sw': 'Ukurasa',
+    'ur': 'صفحہ', 'tr': 'Sayfa', 'id': 'Halaman', 'bn': 'পাতা', 'ha': 'Shafi',
+    'so': 'Bogga', 'fa': 'صفحه', 'ms': 'Halaman',
+  },
+  'from_surah_prefix': {
+    'ar': 'من سورة', 'en': 'from Surah', 'am': 'ከሱራ', 'fr': 'de la sourate', 'sw': 'kutoka Sura',
+    'ur': 'سورۃ سے', 'tr': "Suresinden", 'id': 'dari Surah', 'bn': 'সূরা থেকে', 'ha': 'daga Suratu',
+    'so': 'Suuradda', 'fa': 'از سوره', 'ms': 'daripada Surah',
+  },
+  'times_count_suffix': {
+    'ar': 'مرات', 'en': 'times', 'am': 'ጊዜ', 'fr': 'fois', 'sw': 'mara',
+    'ur': 'بار', 'tr': 'kez', 'id': 'kali', 'bn': 'বার', 'ha': 'sau',
+    'so': 'jeer', 'fa': 'بار', 'ms': 'kali',
+  },
+  'additional_tasks_soon_title': {
+    'ar': 'أعمال إضافية — قريبًا', 'en': 'Additional Acts — Coming Soon', 'am': 'ተጨማሪ ተግባራት — በቅርቡ', 'fr': 'Actes supplémentaires — bientôt', 'sw': 'Matendo Zaidi — Hivi Karibuni',
+    'ur': 'اضافی اعمال — جلد آ رہا ہے', 'tr': 'Ek Ameller — Yakında', 'id': 'Amalan Tambahan — Segera Hadir', 'bn': 'অতিরিক্ত আমল — শীঘ্রই আসছে', 'ha': 'Ƙarin Ayyuka — Nan Ba Da Jimawa Ba',
+    'so': 'Camallo Dheeraad ah — Dhawaan', 'fa': 'اعمال بیشتر — به‌زودی', 'ms': 'Amalan Tambahan — Akan Datang',
+  },
+  'additional_tasks_soon_body': {
+    'ar': 'قيام الليل والوتر والصدقة وصيام التطوع لم تُضَف بعد لأنها تحتاج تتبعًا جديدًا لم يُبنَ في التطبيق حتى الآن — ستُضاف تدريجيًا بعد استقرار الصلاة والقرآن والأذكار، بنفس مبدأ عدم البدء بكل شيء دفعة واحدة.',
+    'en': "Qiyam al-Layl, Witr, charity, and voluntary fasting haven't been added yet because they need new tracking not yet built into the app — they'll be added gradually once prayer, Qur'an, and adhkar are stable, following the same principle of not starting everything at once.",
+    'am': 'የሌሊት ጸሎት፣ ውትር፣ ምጽዋት እና በፈቃደኝነት ጾም እስካሁን አልታከሉም ምክንያቱም እስካሁን በመተግበሪያው ውስጥ ያልተገነባ አዲስ ክትትል ስለሚያስፈልጋቸው — ጸሎት፣ ቁርኣን እና አዝካር ከተረጋጉ በኋላ ቀስ በቀስ ይታከላሉ፣ ሁሉንም በአንድ ጊዜ ካለመጀመር ጋር ተመሳሳይ መርህ በመከተል።',
+    'fr': "Qiyam al-Layl, le Witr, l'aumône et le jeûne volontaire n'ont pas encore été ajoutés car ils nécessitent un nouveau suivi non encore intégré à l'application — ils seront ajoutés progressivement une fois la prière, le Coran et les adhkar stabilisés, selon le même principe de ne pas tout commencer à la fois.",
+    'sw': 'Qiyam al-Layl, Witr, sadaka, na saumu ya hiari havijaongezwa bado kwa sababu vinahitaji ufuatiliaji mpya ambao haujajengwa katika programu hadi sasa — vitaongezwa hatua kwa hatua baada ya sala, Qur\'an, na adhkar kuwa thabiti, kufuata kanuni ile ile ya kutoanza kila kitu mara moja.',
+    'ur': 'قیام اللیل، وتر، صدقہ اور نفلی روزے ابھی شامل نہیں کیے گئے کیونکہ انہیں نئی ٹریکنگ کی ضرورت ہے جو ابھی تک ایپ میں نہیں بنائی گئی — نماز، قرآن اور اذکار مستحکم ہونے کے بعد بتدریج شامل کیے جائیں گے، اسی اصول پر عمل کرتے ہوئے کہ سب کچھ ایک ساتھ شروع نہ کیا جائے۔',
+    'tr': "Kıyamu'l-Leyl, Vitir, sadaka ve nafile oruç henüz eklenmedi çünkü uygulamada henüz oluşturulmamış yeni bir takip gerektiriyorlar — namaz, Kur'an ve ezkâr istikrar kazandıktan sonra, her şeyi bir anda başlatmama ilkesiyle kademeli olarak eklenecekler.",
+    'id': 'Qiyamul Lail, Witir, sedekah, dan puasa sunnah belum ditambahkan karena memerlukan pelacakan baru yang belum dibangun di aplikasi — akan ditambahkan secara bertahap setelah salat, Al-Qur\'an, dan dzikir stabil, mengikuti prinsip yang sama untuk tidak memulai semuanya sekaligus.',
+    'bn': 'কিয়ামুল লাইল, বিতর, সদকা এবং নফল রোজা এখনও যোগ করা হয়নি কারণ এগুলোর জন্য নতুন ট্র্যাকিং দরকার যা এখনও অ্যাপে তৈরি হয়নি — নামাজ, কুরআন ও আজকার স্থিতিশীল হওয়ার পর ধীরে ধীরে যোগ করা হবে, একসাথে সবকিছু শুরু না করার একই নীতি অনুসরণ করে।',
+    'ha': "Qiyam al-Layl, Witr, sadaka, da azumin nafila ba a ƙara su ba tukuna domin suna buƙatar sabon bibiya wanda ba a gina shi a cikin manhajar ba tukuna — za a ƙara su kaɗan-kaɗan bayan sallah, Alkur'ani, da azkari sun tabbata, bin ka'idar rashin fara komai lokaci guda.",
+    'so': 'Qiyaamul-Layl, Witrka, sadaqada, iyo soonka ikhtiyaarka ah wali lama darin sababtoo ah waxay u baahan yihiin la socod cusub oo aan weli lagu dhisin app-ka — waxaa lagu dari doonaa si tartiib ah marka salaadda, Qur\'aanka, iyo adkaarku ay xasillaan, iyadoo la raacayo mabda\'a isku mid ah ee aan wax walba mar keliya la bilaabin.',
+    'fa': 'قیام‌اللیل، وتر، صدقه و روزه مستحب هنوز اضافه نشده‌اند زیرا نیاز به پیگیری جدیدی دارند که هنوز در برنامه ساخته نشده — پس از تثبیت نماز، قرآن و اذکار، به‌تدریج اضافه خواهند شد، با همان اصل عدم شروع همه‌چیز به‌یکباره.',
+    'ms': 'Qiyamullail, Witir, sedekah, dan puasa sunat belum ditambah kerana ia memerlukan penjejakan baharu yang belum dibina dalam aplikasi — ia akan ditambah secara beransur-ansur selepas solat, Al-Quran, dan zikir stabil, mengikut prinsip yang sama iaitu tidak memulakan semuanya sekali gus.',
+  },
+  'last_7_days_label': {
+    'ar': 'آخر 7 أيام', 'en': 'Last 7 Days', 'am': 'ያለፉት 7 ቀናት', 'fr': '7 derniers jours', 'sw': 'Siku 7 Zilizopita',
+    'ur': 'گزشتہ 7 دن', 'tr': 'Son 7 Gün', 'id': '7 Hari Terakhir', 'bn': 'গত ৭ দিন', 'ha': 'Kwanaki 7 na Ƙarshe',
+    'so': '7-dii Maalmood ee Ugu Dambeeyay', 'fa': '۷ روز گذشته', 'ms': '7 Hari Lepas',
+  },
+  'focus_now_badge_label': {
+    'ar': 'التركيز الآن', 'en': 'Focus Now', 'am': 'አሁን ትኩረት', 'fr': 'Focus actuel', 'sw': 'Lengo Sasa',
+    'ur': 'ابھی توجہ', 'tr': 'Şimdi Odak', 'id': 'Fokus Sekarang', 'bn': 'এখনকার মনোযোগ', 'ha': 'Kulawa Yanzu',
+    'so': 'Diiradda Hadda', 'fa': 'تمرکز اکنون', 'ms': 'Fokus Sekarang',
+  },
+  // 2026-08-22: daily_companion_card.dart — home-screen hero card.
+  'after_prayer_suffix': {
+    'ar': 'بعد', 'en': 'in', 'am': 'በኋላ', 'fr': 'dans', 'sw': 'baada ya',
+    'ur': 'میں', 'tr': 'sonra', 'id': 'dalam', 'bn': 'পরে', 'ha': 'bayan',
+    'so': 'kaddib', 'fa': 'تا', 'ms': 'dalam',
+  },
+  'qibla_word_label': {
+    'ar': 'القبلة', 'en': 'Qibla', 'am': 'ቂብላ', 'fr': 'Qibla', 'sw': 'Kibla',
+    'ur': 'قبلہ', 'tr': 'Kıble', 'id': 'Kiblat', 'bn': 'কিবলা', 'ha': 'Alkibla',
+    'so': 'Qiblada', 'fa': 'قبله', 'ms': 'Kiblat',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

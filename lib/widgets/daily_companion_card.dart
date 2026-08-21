@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/prayer_times_repository.dart';
 import '../repositories/wird_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 
@@ -86,11 +88,11 @@ class _DailyCompanionCardState extends State<DailyCompanionCard> {
   }
 
   /// `adhan_dart` builds prayer times as UTC `DateTime`s internally.
-  String _formatTime(DateTime t) {
+  String _formatTime(DateTime t, String lang) {
     final local = t.toLocal();
     final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
     final minute = local.minute.toString().padLeft(2, '0');
-    final period = local.hour < 12 ? 'ص' : 'م';
+    final period = basicText(local.hour < 12 ? 'am_period_short' : 'pm_period_short', lang);
     return '$hour:$minute $period';
   }
 
@@ -101,20 +103,24 @@ class _DailyCompanionCardState extends State<DailyCompanionCard> {
     return '$h:$m:$s';
   }
 
-  String _prayerNameAr(Prayer p) => switch (p) {
-        Prayer.fajr => 'الفجر',
-        Prayer.sunrise => 'الشروق',
-        Prayer.dhuhr => 'الظهر',
-        Prayer.asr => 'العصر',
-        Prayer.maghrib => 'المغرب',
-        Prayer.isha => 'العشاء',
-        _ => 'الصلاة القادمة',
-      };
+  String _prayerNameFor(Prayer p, String lang) {
+    final key = switch (p) {
+      Prayer.fajr => 'prayer_fajr',
+      Prayer.sunrise => 'prayer_sunrise',
+      Prayer.dhuhr => 'prayer_dhuhr',
+      Prayer.asr => 'prayer_asr',
+      Prayer.maghrib => 'prayer_maghrib',
+      Prayer.isha => 'prayer_isha',
+      _ => null,
+    };
+    return key == null ? basicText('next_prayer_generic', lang) : basicText(key, lang);
+  }
 
   @override
   Widget build(BuildContext context) {
     if (_loading || !_available) return const SizedBox.shrink();
 
+    final lang = LanguagePreferenceService.currentLanguage;
     final t = _times!;
     final next = t.nextPrayer();
     final nextTime = t.timeForPrayer(next);
@@ -155,7 +161,7 @@ class _DailyCompanionCardState extends State<DailyCompanionCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${_prayerNameAr(next)} بعد', style: const TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w700)),
+                      Text('${_prayerNameFor(next, lang)} ${basicText('after_prayer_suffix', lang)}', style: const TextStyle(fontSize: 13, color: Colors.white70, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -164,7 +170,7 @@ class _DailyCompanionCardState extends State<DailyCompanionCard> {
                             style: const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 1),
                           ),
                           const SizedBox(width: 10),
-                          Text('(${_formatTime(nextTime)})', style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                          Text('(${_formatTime(nextTime, lang)})', style: const TextStyle(fontSize: 13, color: Colors.white70)),
                         ],
                       ),
                     ],
@@ -173,21 +179,21 @@ class _DailyCompanionCardState extends State<DailyCompanionCard> {
                 const SizedBox(height: 14),
                 Row(
                   children: [
-                    _StatusChip(icon: Icons.menu_book_outlined, label: 'القرآن', done: _quranDone),
+                    _StatusChip(icon: Icons.menu_book_outlined, label: basicText('consistency_quran_label', lang), done: _quranDone),
                     const SizedBox(width: 8),
-                    _StatusChip(icon: Icons.nights_stay_outlined, label: 'الأذكار', done: _adhkarDone),
+                    _StatusChip(icon: Icons.nights_stay_outlined, label: basicText('consistency_dhikr_label', lang), done: _adhkarDone),
                     const Spacer(),
                     InkWell(
                       onTap: widget.onOpenQibla,
                       borderRadius: BorderRadius.circular(10),
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.explore_outlined, size: 16, color: Colors.white),
-                            SizedBox(width: 4),
-                            Text('القبلة', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
+                            const Icon(Icons.explore_outlined, size: 16, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(basicText('qibla_word_label', lang), style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
                           ],
                         ),
                       ),
