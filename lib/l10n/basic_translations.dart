@@ -2525,6 +2525,107 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'واجب علمی دہرائیاں', 'tr': 'Bekleyen Bilgi Tekrarları', 'id': 'Ulangan Pengetahuan Jatuh Tempo', 'bn': 'বাকি জ্ঞানভিত্তিক পুনরাবৃত্তি', 'ha': 'Sake-nazarin Ilimi da Ake Bukata',
     'so': 'Dib-u-eegis Aqoon ah oo Sugaya', 'fa': 'مرور دانش سررسیده', 'ms': 'Ulangkaji Pengetahuan Perlu Dilakukan',
   },
+  // 2026-08-22: daily_session_screen.dart — the 6 session-step cards.
+  'daily_session_title': {
+    'ar': 'جلسة اليوم', 'en': "Today's Session", 'am': 'የዛሬው ክፍለ ጊዜ', 'fr': "Séance du jour", 'sw': 'Kipindi cha Leo',
+    'ur': 'آج کا سیشن', 'tr': 'Bugünkü Oturum', 'id': 'Sesi Hari Ini', 'bn': 'আজকের সেশন', 'ha': 'Zaman Yau',
+    'so': 'Fadhiga Maanta', 'fa': 'جلسه امروز', 'ms': 'Sesi Hari Ini',
+  },
+  'guided_session_by_time_action': {
+    'ar': 'جلسة موجّهة بالوقت', 'en': 'Time-Guided Session', 'am': 'በጊዜ የተመራ ክፍለ ጊዜ', 'fr': 'Séance guidée par le temps', 'sw': 'Kipindi Kinachoongozwa na Muda',
+    'ur': 'وقت کے مطابق رہنمائی شدہ سیشن', 'tr': 'Zamana Göre Yönlendirilen Oturum', 'id': 'Sesi Dipandu Waktu', 'bn': 'সময়-নির্দেশিত সেশন', 'ha': 'Zaman da Aka Jagoranta bisa Lokaci',
+    'so': 'Fadhi Waqti ku Hagaya', 'fa': 'جلسه هدایت‌شده با زمان', 'ms': 'Sesi Dipandu Masa',
+  },
+  'session_all_done_message': {
+    'ar': 'أحسنت 🌱 أنجزت جلسة اليوم', 'en': "Well done 🌱 you've completed today's session", 'am': 'መልካም 🌱 የዛሬውን ክፍለ ጊዜ አጠናቀዋል', 'fr': "Bien joué 🌱 vous avez terminé la séance du jour", 'sw': 'Hongera 🌱 umekamilisha kipindi cha leo',
+    'ur': 'شاباش 🌱 آپ نے آج کا سیشن مکمل کر لیا', 'tr': 'Aferin 🌱 bugünkü oturumu tamamladınız', 'id': 'Bagus 🌱 Anda telah menyelesaikan sesi hari ini', 'bn': 'সাবাশ 🌱 আপনি আজকের সেশন সম্পন্ন করেছেন', 'ha': 'Madalla 🌱 ka kammala zaman yau',
+    'so': 'Waad ku mahadsan tahay 🌱 waad dhammaysay fadhiga maanta', 'fa': 'آفرین 🌱 جلسه امروز را کامل کردید', 'ms': 'Syabas 🌱 anda telah melengkapkan sesi hari ini',
+  },
+  'step_reading_title': {
+    'ar': 'قراءة', 'en': 'Reading', 'am': 'ንባብ', 'fr': 'Lecture', 'sw': 'Kusoma',
+    'ur': 'تلاوت', 'tr': 'Okuma', 'id': 'Membaca', 'bn': 'পাঠ', 'ha': 'Karatu',
+    'so': 'Akhriska', 'fa': 'خواندن', 'ms': 'Membaca',
+  },
+  'step_reading_subtitle': {
+    'ar': 'اقرأ ولو صفحة واحدة اليوم', 'en': 'Read even just one page today', 'am': 'ዛሬ አንድ ገጽ እንኳ ያንብቡ', 'fr': "Lisez ne serait-ce qu'une page aujourd'hui", 'sw': 'Soma hata ukurasa mmoja leo',
+    'ur': 'آج کم از کم ایک صفحہ پڑھیں', 'tr': 'Bugün en az bir sayfa okuyun', 'id': 'Baca setidaknya satu halaman hari ini', 'bn': 'আজ অন্তত একটি পাতা পড়ুন', 'ha': 'Karanta ko da shafi ɗaya a yau',
+    'so': 'Akhri ugu yaraan hal bog maanta', 'fa': 'حداقل یک صفحه امروز بخوانید', 'ms': 'Baca sekurang-kurangnya satu halaman hari ini',
+  },
+  'step_reading_action': {
+    'ar': 'أنجزتها', 'en': 'Done', 'am': 'ጨርሻለሁ', 'fr': 'Fait', 'sw': 'Nimekamilisha',
+    'ur': 'مکمل کر لیا', 'tr': 'Tamamladım', 'id': 'Selesai', 'bn': 'সম্পন্ন করেছি', 'ha': 'Na Gama',
+    'so': 'Waan Dhammeeyay', 'fa': 'انجام دادم', 'ms': 'Selesai',
+  },
+  'step_new_memo_title': {
+    'ar': 'الحفظ الجديد', 'en': 'New Memorization', 'am': 'አዲስ ጥናት', 'fr': 'Nouvelle mémorisation', 'sw': 'Hifadhi Mpya',
+    'ur': 'نیا حفظ', 'tr': 'Yeni Ezber', 'id': 'Hafalan Baru', 'bn': 'নতুন হিফজ', 'ha': 'Sabon Haddacewa',
+    'so': 'Xifdhinta Cusub', 'fa': 'حفظ جدید', 'ms': 'Hafalan Baharu',
+  },
+  'step_new_memo_subtitle': {
+    'ar': 'احفظ صفحة جديدة أو راجع ما تصفّحته', 'en': 'Memorize a new page or review what you browsed', 'am': 'አዲስ ገጽ ያጥኑ ወይም ያሰሱትን ይከልሱ', 'fr': 'Mémorisez une nouvelle page ou révisez ce que vous avez parcouru', 'sw': 'Hifadhi ukurasa mpya au pitia uliochunguza',
+    'ur': 'نیا صفحہ حفظ کریں یا جو دیکھا اسے دہرائیں', 'tr': 'Yeni bir sayfa ezberleyin veya göz attığınızı tekrar edin', 'id': 'Hafalkan halaman baru atau ulangi yang Anda jelajahi', 'bn': 'নতুন পাতা হিফজ করুন বা যা দেখেছেন তা পুনরাবৃত্তি করুন', 'ha': 'Haddace sabon shafi ko sake nazarin abin da ka duba',
+    'so': 'Xifdhi bog cusub ama dib-u-eeg waxa aad daalacatay', 'fa': 'صفحه جدیدی حفظ کنید یا آنچه مرور کردید را بازبینی کنید', 'ms': 'Hafal halaman baharu atau ulangkaji apa yang anda semak imbas',
+  },
+  'step_new_memo_action': {
+    'ar': 'تصفّح القرآن', 'en': 'Browse the Qur\'an', 'am': 'ቁርኣንን ያስሱ', 'fr': 'Parcourir le Coran', 'sw': 'Vinjari Qur\'an',
+    'ur': 'قرآن دیکھیں', 'tr': "Kur'an'a Göz At", 'id': 'Jelajahi Al-Qur\'an', 'bn': 'কুরআন দেখুন', 'ha': "Bincika Alkur'ani",
+    'so': "Daalac Qur'aanka", 'fa': 'مرور قرآن', 'ms': 'Semak Imbas Al-Quran',
+  },
+  'step_review_subtitle': {
+    'ar': 'راجع ما استحق المراجعة اليوم', 'en': "Review what's due today", 'am': 'ዛሬ የሚገባውን ይከልሱ', 'fr': "Révisez ce qui est dû aujourd'hui", 'sw': 'Pitia yaliyostahili leo',
+    'ur': 'آج جو دہرانا واجب ہے اسے دہرائیں', 'tr': 'Bugün için gereken tekrarı yapın', 'id': 'Ulangi apa yang jatuh tempo hari ini', 'bn': 'আজ যা বাকি তা পুনরাবৃত্তি করুন', 'ha': 'Sake nazarin abin da ake bukata yau',
+    'so': 'Dib-u-eeg waxa maanta la sugayo', 'fa': 'آنچه امروز موعدش رسیده مرور کنید', 'ms': 'Ulangkaji apa yang perlu dilakukan hari ini',
+  },
+  'step_review_action': {
+    'ar': 'ابدأ المراجعة', 'en': 'Start Review', 'am': 'ክለሳ ጀምር', 'fr': 'Commencer la révision', 'sw': 'Anza Kupitia',
+    'ur': 'دہرائی شروع کریں', 'tr': 'Tekrara Başla', 'id': 'Mulai Ulangan', 'bn': 'পুনরাবৃত্তি শুরু করুন', 'ha': 'Fara Sake Nazari',
+    'so': 'Bilow Dib-u-eegista', 'fa': 'شروع مرور', 'ms': 'Mula Ulangkaji',
+  },
+  'step_understanding_title': {
+    'ar': 'الفهم', 'en': 'Understanding', 'am': 'ግንዛቤ', 'fr': 'Compréhension', 'sw': 'Uelewa',
+    'ur': 'فہم', 'tr': 'Anlama', 'id': 'Pemahaman', 'bn': 'বোঝাপড়া', 'ha': 'Fahimta',
+    'so': 'Faham', 'fa': 'فهم', 'ms': 'Kefahaman',
+  },
+  'step_understanding_subtitle': {
+    'ar': 'تفسير ما حفظته', 'en': "Tafsir of what you memorized", 'am': 'ያጠኑትን ትርጓሜ', 'fr': 'Tafsir de ce que vous avez mémorisé', 'sw': 'Tafsiri ya ulichohifadhi',
+    'ur': 'جو حفظ کیا اس کی تفسیر', 'tr': 'Ezberlediğinizin tefsiri', 'id': 'Tafsir dari yang Anda hafalkan', 'bn': 'যা হিফজ করেছেন তার তাফসীর', 'ha': "Tafsirin abin da ka haddace",
+    'so': 'Tafsiirka waxa aad xifdhisay', 'fa': 'تفسیر آنچه حفظ کردید', 'ms': 'Tafsir bagi apa yang anda hafal',
+  },
+  'step_understanding_action': {
+    'ar': 'ابدأ الفهم', 'en': 'Start Understanding', 'am': 'ግንዛቤ ጀምር', 'fr': 'Commencer la compréhension', 'sw': 'Anza Kuelewa',
+    'ur': 'فہم شروع کریں', 'tr': 'Anlamaya Başla', 'id': 'Mulai Memahami', 'bn': 'বোঝা শুরু করুন', 'ha': 'Fara Fahimta',
+    'so': 'Bilow Fahamka', 'fa': 'شروع فهم', 'ms': 'Mula Memahami',
+  },
+  'step_application_title': {
+    'ar': 'التطبيق 🌱', 'en': 'Application 🌱', 'am': 'ተግባራዊነት 🌱', 'fr': 'Mise en pratique 🌱', 'sw': 'Utekelezaji 🌱',
+    'ur': 'اطلاق 🌱', 'tr': 'Uygulama 🌱', 'id': 'Penerapan 🌱', 'bn': 'প্রয়োগ 🌱', 'ha': 'Aiwatarwa 🌱',
+    'so': 'Dhaqan-galinta 🌱', 'fa': 'کاربرد 🌱', 'ms': 'Amalan 🌱',
+  },
+  'step_application_subtitle': {
+    'ar': 'درس تطبيقي من محفوظك', 'en': 'A practical lesson from what you memorized', 'am': 'ካጠኑት ተግባራዊ ትምህርት', 'fr': 'Une leçon pratique de ce que vous avez mémorisé', 'sw': 'Somo la vitendo kutoka ulichohifadhi',
+    'ur': 'آپ کے حفظ سے ایک عملی سبق', 'tr': 'Ezberinizden pratik bir ders', 'id': 'Pelajaran praktis dari yang Anda hafalkan', 'bn': 'আপনার হিফজ থেকে একটি ব্যবহারিক পাঠ', 'ha': "Darasi na aiki daga abin da ka haddace",
+    'so': 'Cashar wax ku ool ah oo ka socda xifdhintaada', 'fa': 'درسی کاربردی از حفظیات شما', 'ms': 'Pelajaran praktikal daripada hafalan anda',
+  },
+  'step_application_action': {
+    'ar': 'درس اليوم', 'en': "Today's Lesson", 'am': 'የዛሬ ትምህርት', 'fr': 'Leçon du jour', 'sw': 'Somo la Leo',
+    'ur': 'آج کا سبق', 'tr': 'Bugünkü Ders', 'id': 'Pelajaran Hari Ini', 'bn': 'আজকের পাঠ', 'ha': 'Darasin Yau',
+    'so': 'Casharka Maanta', 'fa': 'درس امروز', 'ms': 'Pelajaran Hari Ini',
+  },
+  'step_quiz_title': {
+    'ar': 'اختبر نفسك', 'en': 'Test Yourself', 'am': 'ራስዎን ይፈትሹ', 'fr': 'Testez-vous', 'sw': 'Jijaribu',
+    'ur': 'خود کو آزمائیں', 'tr': 'Kendinizi Test Edin', 'id': 'Uji Diri Anda', 'bn': 'নিজেকে পরীক্ষা করুন', 'ha': 'Gwada Kanka',
+    'so': 'Isku Tijaabi', 'fa': 'خودت را بیازما', 'ms': 'Uji Diri Anda',
+  },
+  'step_quiz_subtitle': {
+    'ar': 'ما الآية التالية؟', 'en': "What's the next ayah?", 'am': 'ቀጣዩ አንቀጽ ምንድን ነው?', 'fr': 'Quel est le verset suivant ?', 'sw': 'Aya ijayo ni ipi?',
+    'ur': 'اگلی آیت کیا ہے؟', 'tr': 'Bir sonraki ayet nedir?', 'id': 'Apa ayat selanjutnya?', 'bn': 'পরবর্তী আয়াত কী?', 'ha': 'Wace aya ce ta gaba?',
+    'so': 'Waa maxay aayadda xigta?', 'fa': 'آیه بعدی چیست؟', 'ms': 'Apakah ayat seterusnya?',
+  },
+  'step_quiz_action': {
+    'ar': 'ابدأ', 'en': 'Start', 'am': 'ጀምር', 'fr': 'Commencer', 'sw': 'Anza',
+    'ur': 'شروع کریں', 'tr': 'Başla', 'id': 'Mulai', 'bn': 'শুরু করুন', 'ha': 'Fara',
+    'so': 'Bilow', 'fa': 'شروع', 'ms': 'Mula',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to
