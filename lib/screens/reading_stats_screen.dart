@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/book_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -60,10 +62,12 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('إحصائياتي في القراءة')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('reading_stats_title', lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -71,11 +75,11 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
                   children: [
                     Expanded(
                         child: _StatCard(
-                            icon: Icons.menu_book_rounded, value: '$_booksOpened', label: 'كتاب فُتح')),
+                            icon: Icons.menu_book_rounded, value: '$_booksOpened', label: basicText('books_opened_label', lang))),
                     const SizedBox(width: 12),
                     Expanded(
                         child: _StatCard(
-                            icon: Icons.check_circle_rounded, value: '$_booksFinished', label: 'كتاب أُنهي')),
+                            icon: Icons.check_circle_rounded, value: '$_booksFinished', label: basicText('books_finished_label', lang))),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -83,26 +87,27 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
                   children: [
                     Expanded(
                         child: _StatCard(
-                            icon: Icons.auto_stories_rounded, value: '$_totalPagesRead', label: 'صفحة قُرئت')),
+                            icon: Icons.auto_stories_rounded, value: '$_totalPagesRead', label: basicText('pages_read_label', lang))),
                     const SizedBox(width: 12),
                     Expanded(
                         child: _StatCard(
-                            icon: Icons.quiz_rounded, value: '$_quizzesPassed/$_quizzesTaken', label: 'اختبار ناجح')),
+                            icon: Icons.quiz_rounded, value: '$_quizzesPassed/$_quizzesTaken', label: basicText('quiz_passed_label', lang))),
                   ],
                 ),
                 const SizedBox(height: 12),
                 _StatCard(
                   icon: Icons.percent_rounded,
                   value: _quizzesTaken == 0 ? '—' : '${_avgQuizScore.round()}%',
-                  label: 'متوسط نتائج الاختبارات',
+                  label: basicText('average_quiz_results_label', lang),
                   wide: true,
                 ),
                 const SizedBox(height: 20),
                 if (_booksOpened == 0)
-                  const Text('ابدأ بقراءة أي كتاب من "الكتاب" أو "مكتبتي" لترى إحصائياتك هنا.',
-                      textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+                  Text(basicText('reading_stats_empty_message', lang),
+                      textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
               ],
             ),
+      ),
     );
   }
 }

@@ -2882,6 +2882,42 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'دوبارہ جانچیں', 'tr': 'Yeniden Değerlendir', 'id': 'Nilai Ulang', 'bn': 'পুনর্মূল্যায়ন করুন', 'ha': 'Sake Kimantawa',
     'so': 'Dib u Qiimee', 'fa': 'ارزیابی مجدد', 'ms': 'Nilai Semula',
   },
+  // 2026-08-22: reading_stats_screen.dart.
+  'reading_stats_title': {
+    'ar': 'إحصائياتي في القراءة', 'en': 'My Reading Stats', 'am': 'የንባብ ስታትስቲክሶቼ', 'fr': 'Mes statistiques de lecture', 'sw': 'Takwimu Zangu za Kusoma',
+    'ur': 'میرے مطالعے کے اعداد و شمار', 'tr': 'Okuma İstatistiklerim', 'id': 'Statistik Membaca Saya', 'bn': 'আমার পড়ার পরিসংখ্যান', 'ha': 'Kididdigar Karatuna',
+    'so': 'Tirakoobkayga Akhriska', 'fa': 'آمار مطالعه من', 'ms': 'Statistik Bacaan Saya',
+  },
+  'books_opened_label': {
+    'ar': 'كتاب فُتح', 'en': 'Books Opened', 'am': 'የተከፈቱ መጻሕፍት', 'fr': 'Livres ouverts', 'sw': 'Vitabu Vilivyofunguliwa',
+    'ur': 'کھولی گئی کتابیں', 'tr': 'Açılan Kitap', 'id': 'Buku Dibuka', 'bn': 'খোলা বই', 'ha': 'Littattafan da Aka Buɗe',
+    'so': 'Buugag La Furay', 'fa': 'کتاب باز شده', 'ms': 'Buku Dibuka',
+  },
+  'books_finished_label': {
+    'ar': 'كتاب أُنهي', 'en': 'Books Finished', 'am': 'የተጠናቀቁ መጻሕፍት', 'fr': 'Livres terminés', 'sw': 'Vitabu Vilivyokamilika',
+    'ur': 'مکمل کی گئی کتابیں', 'tr': 'Tamamlanan Kitap', 'id': 'Buku Selesai', 'bn': 'শেষ করা বই', 'ha': 'Littattafan da Aka Gama',
+    'so': 'Buugag Dhammaystiran', 'fa': 'کتاب تمام‌شده', 'ms': 'Buku Selesai',
+  },
+  'pages_read_label': {
+    'ar': 'صفحة قُرئت', 'en': 'Pages Read', 'am': 'የተነበቡ ገጾች', 'fr': 'Pages lues', 'sw': 'Kurasa Zilizosomwa',
+    'ur': 'پڑھے گئے صفحات', 'tr': 'Okunan Sayfa', 'id': 'Halaman Dibaca', 'bn': 'পড়া পাতা', 'ha': 'Shafukan da Aka Karanta',
+    'so': 'Bogag La Akhriyay', 'fa': 'صفحه خوانده‌شده', 'ms': 'Halaman Dibaca',
+  },
+  'quiz_passed_label': {
+    'ar': 'اختبار ناجح', 'en': 'Quizzes Passed', 'am': 'ያለፉ ፈተናዎች', 'fr': 'Quiz réussis', 'sw': 'Majaribio Yaliyopita',
+    'ur': 'کامیاب کوئز', 'tr': 'Geçilen Sınav', 'id': 'Kuis Lulus', 'bn': 'পাস করা কুইজ', 'ha': 'Jarrabawar da Aka Ci',
+    'so': 'Imtixaannada La Gudbay', 'fa': 'آزمون قبول‌شده', 'ms': 'Kuiz Lulus',
+  },
+  'average_quiz_results_label': {
+    'ar': 'متوسط نتائج الاختبارات', 'en': 'Average Quiz Score', 'am': 'አማካይ የፈተና ውጤት', 'fr': 'Score moyen aux quiz', 'sw': 'Wastani wa Matokeo ya Majaribio',
+    'ur': 'اوسط کوئز نتیجہ', 'tr': 'Ortalama Sınav Sonucu', 'id': 'Rata-rata Nilai Kuis', 'bn': 'গড় কুইজ ফলাফল', 'ha': 'Matsakaicin Sakamakon Jarrabawa',
+    'so': 'Celceliska Natiijooyinka Imtixaanka', 'fa': 'میانگین نتایج آزمون', 'ms': 'Purata Keputusan Kuiz',
+  },
+  'reading_stats_empty_message': {
+    'ar': 'ابدأ بقراءة أي كتاب من "الكتاب" أو "مكتبتي" لترى إحصائياتك هنا.', 'en': 'Start reading any book from "Library" or "My Library" to see your stats here.', 'am': 'ስታትስቲክሶችዎን እዚህ ለማየት ከ"ቤተ መጻሕፍት" ወይም "ቤተ መጻሕፍቴ" ማንኛውንም መጽሐፍ ማንበብ ይጀምሩ።', 'fr': 'Commencez à lire un livre depuis "Bibliothèque" ou "Ma bibliothèque" pour voir vos statistiques ici.', 'sw': 'Anza kusoma kitabu chochote kutoka "Maktaba" au "Maktaba Yangu" ili kuona takwimu zako hapa.',
+    'ur': 'یہاں اپنے اعداد و شمار دیکھنے کے لیے "کتب خانہ" یا "میری لائبریری" سے کوئی کتاب پڑھنا شروع کریں۔', 'tr': "İstatistiklerinizi burada görmek için \"Kütüphane\" veya \"Kütüphanem\"den herhangi bir kitap okumaya başlayın.", 'id': 'Mulailah membaca buku apa pun dari "Perpustakaan" atau "Perpustakaan Saya" untuk melihat statistik Anda di sini.', 'bn': 'এখানে আপনার পরিসংখ্যান দেখতে "লাইব্রেরি" বা "আমার লাইব্রেরি" থেকে যেকোনো বই পড়া শুরু করুন।', 'ha': 'Fara karanta duk wani littafi daga "Laburare" ko "Laburare Na" don ganin kididdigarka a nan.',
+    'so': 'Ka bilow akhrinta buug kasta oo ka mid ah "Maktabadda" ama "Maktabadayda" si aad halkan uga aragto tirakoobkaaga.', 'fa': 'برای دیدن آمار خود در اینجا، خواندن هر کتابی را از "کتابخانه" یا "کتابخانه من" شروع کنید.', 'ms': 'Mula membaca mana-mana buku daripada "Perpustakaan" atau "Perpustakaan Saya" untuk melihat statistik anda di sini.',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to
