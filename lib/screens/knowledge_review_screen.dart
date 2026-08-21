@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/adhkar_repository.dart';
 import '../repositories/hadith_repository.dart';
 import '../repositories/knowledge_review_repository.dart';
 import '../repositories/memorization_repository.dart';
 import '../repositories/wasitiyyah_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 import 'adhkar_quiz_screen.dart';
@@ -66,10 +68,12 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('مراجعتك اليوم')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('knowledge_review_title', lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.fact_check_outlined, message: 'جاري تجميع مراجعتك...')
+          ? AppLoadingView(icon: Icons.fact_check_outlined, message: basicText('assembling_review_message', lang))
           : (_quranDue == 0 && _hadithDueTexts.isEmpty && _wasitiyyahDueTexts.isEmpty && _adhkarDueTexts.isEmpty)
               ? const _EmptyState()
               : RefreshIndicator(
@@ -80,7 +84,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
                       if (_quranDue > 0)
                         _PillarSection(
                           icon: Icons.menu_book_outlined,
-                          title: 'القرآن',
+                          title: basicText('consistency_quran_label', lang),
                           count: _quranDue,
                           previewLines: const [],
                           onTap: () async {
@@ -91,7 +95,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
                       if (_hadithDueTexts.isNotEmpty)
                         _PillarSection(
                           icon: Icons.menu_book_rounded,
-                          title: 'الحديث — الأربعين النووية',
+                          title: basicText('hadith_section_title', lang),
                           count: _hadithDueTexts.length,
                           previewLines: _hadithDueTexts,
                           onTap: () async {
@@ -102,7 +106,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
                       if (_wasitiyyahDueTexts.isNotEmpty)
                         _PillarSection(
                           icon: Icons.shield_outlined,
-                          title: 'العقيدة — الواسطية',
+                          title: basicText('aqeedah_section_title', lang),
                           count: _wasitiyyahDueTexts.length,
                           previewLines: _wasitiyyahDueTexts,
                           onTap: () async {
@@ -113,7 +117,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
                       if (_adhkarDueTexts.isNotEmpty)
                         _PillarSection(
                           icon: Icons.spa_outlined,
-                          title: 'الأذكار — حصن المسلم',
+                          title: basicText('adhkar_section_title', lang),
                           count: _adhkarDueTexts.length,
                           previewLines: _adhkarDueTexts,
                           onTap: () async {
@@ -124,6 +128,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
                     ],
                   ),
                 ),
+      ),
     );
   }
 }
@@ -133,15 +138,15 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.self_improvement, size: 48, color: AppColors.textMuted),
-            SizedBox(height: 12),
-            Text('لا شيء يستحق المراجعة الآن — أحسنت', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+            const Icon(Icons.self_improvement, size: 48, color: AppColors.textMuted),
+            const SizedBox(height: 12),
+            Text(basicText('nothing_to_review_message', LanguagePreferenceService.currentLanguage), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
           ],
         ),
       ),
@@ -159,6 +164,7 @@ class _PillarSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
@@ -198,7 +204,9 @@ class _PillarSection extends StatelessWidget {
                 if (previewLines.length > 2)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Text('و${previewLines.length - 2} غيرها', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                    child: Text(
+                        '${basicText('and_conjunction_prefix', lang)}${previewLines.length - 2} ${basicText('others_more_suffix', lang)}',
+                        style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                   ),
               ],
             ],

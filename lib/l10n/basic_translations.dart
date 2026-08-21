@@ -3093,6 +3093,48 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'ابھی تک درج نہیں ہوا', 'tr': 'Henüz kaydedilmedi', 'id': 'Belum tercatat', 'bn': 'এখনও রেকর্ড করা হয়নি', 'ha': 'Ba a rubuta ba tukuna',
     'so': 'Wali lama diiwaan gelin', 'fa': 'هنوز ثبت نشده', 'ms': 'Belum direkodkan',
   },
+  // 2026-08-22: knowledge_review_screen.dart. Book/source proper nouns
+  // (al-Arbain al-Nawawiyyah, al-Wasitiyyah, Hisn al-Muslim) stay Arabic.
+  'knowledge_review_title': {
+    'ar': 'مراجعتك اليوم', 'en': "Today's Review", 'am': 'የዛሬ ክለሳዎ', 'fr': 'Votre révision du jour', 'sw': 'Marudio Yako ya Leo',
+    'ur': 'آج کی آپ کی دہرائی', 'tr': 'Bugünkü Tekrarınız', 'id': 'Ulangan Anda Hari Ini', 'bn': 'আজকের আপনার পুনরাবৃত্তি', 'ha': 'Sake Nazarinka na Yau',
+    'so': 'Dib-u-eegistaada Maanta', 'fa': 'مرور امروز شما', 'ms': 'Ulangkaji Anda Hari Ini',
+  },
+  'assembling_review_message': {
+    'ar': 'جاري تجميع مراجعتك...', 'en': 'Assembling your review...', 'am': 'ክለሳዎን በማዘጋጀት ላይ...', 'fr': 'Préparation de votre révision...', 'sw': 'Inakusanya marudio yako...',
+    'ur': 'آپ کی دہرائی جمع کی جا رہی ہے...', 'tr': 'Tekrarınız hazırlanıyor...', 'id': 'Menyusun ulangan Anda...', 'bn': 'আপনার পুনরাবৃত্তি একত্র করা হচ্ছে...', 'ha': 'Ana tara sake-nazarinka...',
+    'so': 'Waxaa la ururinayaa dib-u-eegistaada...', 'fa': 'در حال آماده‌سازی مرور شما...', 'ms': 'Menyusun ulangkaji anda...',
+  },
+  'nothing_to_review_message': {
+    'ar': 'لا شيء يستحق المراجعة الآن — أحسنت', 'en': "Nothing due for review right now — well done", 'am': 'አሁን የሚገባ ክለሳ የለም — መልካም', 'fr': "Rien à réviser pour le moment — bien joué", 'sw': 'Hakuna kinachohitaji kupitiwa sasa — hongera',
+    'ur': 'ابھی کچھ بھی دہرانے کے لائق نہیں — شاباش', 'tr': 'Şu anda tekrar edilecek bir şey yok — aferin', 'id': 'Tidak ada yang perlu diulang sekarang — bagus', 'bn': 'এখন পুনরাবৃত্তির কিছু নেই — সাবাশ', 'ha': "Babu wani abu da ake bukatar sake-nazari yanzu — madalla",
+    'so': 'Hadda wax dib-u-eegis ku habboon ma jiraan — waad ku mahadsan tahay', 'fa': 'الان چیزی برای مرور نیست — آفرین', 'ms': 'Tiada apa-apa perlu diulangkaji sekarang — syabas',
+  },
+  'hadith_section_title': {
+    'ar': 'الحديث — الأربعين النووية', 'en': 'Hadith — al-Arbain al-Nawawiyyah', 'am': 'ሐዲስ — አል-አርበዒን አን-ነወዊያ', 'fr': "Le hadith — al-Arbain al-Nawawiyya", 'sw': 'Hadithi — al-Arbain al-Nawawiyyah',
+    'ur': 'حدیث — اربعین نوویہ', 'tr': "Hadis — el-Erbaîn en-Neveviyye", 'id': 'Hadits — al-Arbain al-Nawawiyyah', 'bn': 'হাদিস — আরবাঈন নববী', 'ha': "Hadisi — al-Arbain al-Nawawiyyah",
+    'so': "Xadiiska — al-Arbain al-Nawawiyyah", 'fa': 'حدیث — اربعین نوویه', 'ms': 'Hadis — al-Arbain al-Nawawiyyah',
+  },
+  'aqeedah_section_title': {
+    'ar': 'العقيدة — الواسطية', 'en': 'Aqeedah — al-Wasitiyyah', 'am': 'ዐቂዳ — አል-ዋሲጢያ', 'fr': "L'aqida — al-Wasitiyya", 'sw': 'Aqidah — al-Wasitiyyah',
+    'ur': 'عقیدہ — واسطیہ', 'tr': "Akide — el-Vasıtıyye", 'id': 'Akidah — al-Wasitiyyah', 'bn': 'আকিদা — ওয়াসিতিয়্যাহ', 'ha': "Akida — al-Wasitiyyah",
+    'so': 'Caqiidada — al-Wasitiyyah', 'fa': 'عقیده — واسطیه', 'ms': 'Akidah — al-Wasitiyyah',
+  },
+  'adhkar_section_title': {
+    'ar': 'الأذكار — حصن المسلم', 'en': 'Adhkar — Hisn al-Muslim', 'am': 'አዝካር — ሂስን አል-ሙስሊም', 'fr': "Les adhkar — Hisn al-Muslim", 'sw': 'Adhkar — Hisn al-Muslim',
+    'ur': 'اذکار — حصن المسلم', 'tr': "Ezkâr — Hısnü'l-Müslim", 'id': 'Dzikir — Hisnul Muslim', 'bn': 'আজকার — হিসনুল মুসলিম', 'ha': "Azkari — Hisn al-Muslim",
+    'so': 'Adkaarka — Hisn al-Muslim', 'fa': 'اذکار — حصن المسلم', 'ms': 'Zikir — Hisnul Muslim',
+  },
+  'and_conjunction_prefix': {
+    'ar': 'و', 'en': 'and ', 'am': 'እና ', 'fr': 'et ', 'sw': 'na ',
+    'ur': 'اور ', 'tr': 've ', 'id': 'dan ', 'bn': 'এবং ', 'ha': 'da ',
+    'so': 'iyo ', 'fa': 'و ', 'ms': 'dan ',
+  },
+  'others_more_suffix': {
+    'ar': 'غيرها', 'en': 'more', 'am': 'ተጨማሪ', 'fr': 'de plus', 'sw': 'zaidi',
+    'ur': 'مزید', 'tr': 'daha', 'id': 'lainnya', 'bn': 'আরও', 'ha': 'ƙari',
+    'so': 'kale', 'fa': 'مورد دیگر', 'ms': 'lagi',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to
