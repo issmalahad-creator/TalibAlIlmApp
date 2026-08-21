@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../data/salah_content.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/salah_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'salah_assessment_screen.dart';
 import 'salah_library_screen.dart';
@@ -9,19 +11,19 @@ import 'salah_stories_screen.dart';
 import 'salah_resources_screen.dart';
 import '../widgets/loading_view.dart';
 
-const _prayerLabels = {
-  'fajr': 'الفجر',
-  'dhuhr': 'الظهر',
-  'asr': 'العصر',
-  'maghrib': 'المغرب',
-  'isha': 'العشاء',
+const _prayerLabelKeys = {
+  'fajr': 'prayer_fajr',
+  'dhuhr': 'prayer_dhuhr',
+  'asr': 'prayer_asr',
+  'maghrib': 'prayer_maghrib',
+  'isha': 'prayer_isha',
 };
 
-const _statusLabels = {
-  PrayerStatus.onTime: ('صليتها في وقتها', Icons.check_circle_outline),
-  PrayerStatus.jamaah: ('صليتها جماعة', Icons.groups_outlined),
-  PrayerStatus.late: ('صليتها متأخرًا', Icons.schedule_outlined),
-  PrayerStatus.missed: ('لم أصلها', Icons.remove_circle_outline),
+const _statusLabelKeys = {
+  PrayerStatus.onTime: ('prayed_on_time_status', Icons.check_circle_outline),
+  PrayerStatus.jamaah: ('prayed_jamaah_status', Icons.groups_outlined),
+  PrayerStatus.late: ('prayed_late_status', Icons.schedule_outlined),
+  PrayerStatus.missed: ('prayer_missed_status', Icons.remove_circle_outline),
 };
 
 /// "إقامة الصلاة" — Ismail's request 2026-08-16: not just prayer times,
@@ -57,6 +59,7 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
   }
 
   Future<void> _pickStatus(String prayer) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final chosen = await showModalBottomSheet<PrayerStatus>(
       context: context,
       builder: (context) => SafeArea(
@@ -65,12 +68,13 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text('${_prayerLabels[prayer]} — هل صليت؟', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              child: Text('${basicText(_prayerLabelKeys[prayer]!, lang)} — ${basicText('prayer_status_question_suffix', lang)}',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
             for (final status in PrayerStatus.values)
               ListTile(
-                leading: Icon(_statusLabels[status]!.$2, color: AppColors.primaryDark),
-                title: Text(_statusLabels[status]!.$1),
+                leading: Icon(_statusLabelKeys[status]!.$2, color: AppColors.primaryDark),
+                title: Text(basicText(_statusLabelKeys[status]!.$1, lang)),
                 onTap: () => Navigator.pop(context, status),
               ),
           ],
@@ -84,31 +88,33 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
       appBar: AppBar(
-        title: const Text('إقامة الصلاة'),
+        title: Text(basicText('salah_tracker_title', lang)),
         actions: [
           IconButton(
             icon: const Icon(Icons.bar_chart_outlined),
-            tooltip: 'تقييمي الأسبوعي',
+            tooltip: basicText('weekly_assessment_tooltip', lang),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahAssessmentScreen())),
           ),
         ],
       ),
       body: _loading
-          ? const AppLoadingView(icon: Icons.mosque_outlined, message: 'جاري تحميل سجل صلاتك...')
+          ? AppLoadingView(icon: Icons.mosque_outlined, message: basicText('loading_salah_log', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 _TodaysMissionCard(onOpenLibrary: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahLibraryScreen()))),
                 const SizedBox(height: 16),
-                const Text('صلواتي اليوم', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(basicText('todays_prayers_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 6),
-                const Text('سجّل بصدق — هذا لك أنت، لا حكم عليك من أحد', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                Text(basicText('log_honestly_subtitle', lang), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                 const SizedBox(height: 14),
-                ..._prayerLabels.entries.map((entry) {
+                ..._prayerLabelKeys.entries.map((entry) {
                   final status = _statuses[entry.key];
-                  final labelInfo = status == null ? null : _statusLabels[status];
+                  final labelInfo = status == null ? null : _statusLabelKeys[status];
                   return InkWell(
                     onTap: () => _pickStatus(entry.key),
                     borderRadius: BorderRadius.circular(14),
@@ -124,8 +130,9 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
                         children: [
                           Icon(labelInfo?.$2 ?? Icons.circle_outlined, size: 20, color: status != null ? AppColors.primaryDark : AppColors.textMuted),
                           const SizedBox(width: 10),
-                          Expanded(child: Text(entry.value, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700))),
-                          Text(labelInfo?.$1 ?? 'لم يُسجَّل بعد', style: TextStyle(fontSize: 12, color: status != null ? AppColors.primaryDark : AppColors.textMuted)),
+                          Expanded(child: Text(basicText(entry.value, lang), style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700))),
+                          Text(labelInfo == null ? basicText('not_recorded_yet_label', lang) : basicText(labelInfo.$1, lang),
+                              style: TextStyle(fontSize: 12, color: status != null ? AppColors.primaryDark : AppColors.textMuted)),
                         ],
                       ),
                     ),
@@ -135,22 +142,23 @@ class _SalahTrackerScreenState extends State<SalahTrackerScreen> {
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahLibraryScreen())),
                   icon: const Icon(Icons.menu_book_outlined),
-                  label: const Text('مكتبة إقامة الصلاة'),
+                  label: Text(basicText('salah_library_action', lang)),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahStoriesScreen())),
                   icon: const Icon(Icons.auto_stories_outlined),
-                  label: const Text('قصص الأولين في الصلاة'),
+                  label: Text(basicText('salah_stories_action', lang)),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SalahResourcesScreen())),
                   icon: const Icon(Icons.library_books_outlined),
-                  label: const Text('مصادر موصى بها'),
+                  label: Text(basicText('salah_resources_action', lang)),
                 ),
               ],
             ),
+      ),
     );
   }
 }
@@ -167,6 +175,7 @@ class _TodaysMissionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lesson = todaysSalahMission();
+    final lang = LanguagePreferenceService.currentLanguage;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
@@ -174,10 +183,10 @@ class _TodaysMissionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.today_outlined, size: 16, color: AppColors.primaryDark),
-              SizedBox(width: 6),
-              Text('مهمة اليوم', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+            children: [
+              const Icon(Icons.today_outlined, size: 16, color: AppColors.primaryDark),
+              const SizedBox(width: 6),
+              Text(basicText('todays_mission_label', lang), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
             ],
           ),
           const SizedBox(height: 8),
@@ -187,7 +196,7 @@ class _TodaysMissionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: TextButton(onPressed: onOpenLibrary, child: const Text('عرض المكتبة كاملة', style: TextStyle(fontSize: 12))),
+            child: TextButton(onPressed: onOpenLibrary, child: Text(basicText('view_full_library_action', lang), style: const TextStyle(fontSize: 12))),
           ),
         ],
       ),

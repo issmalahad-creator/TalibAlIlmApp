@@ -1,7 +1,9 @@
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/prayer_times_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
@@ -65,6 +67,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   Future<void> _showManualLocationSheet() async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final latController = TextEditingController();
     final lngController = TextEditingController();
     await showModalBottomSheet(
@@ -76,20 +79,20 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('أدخل موقعك يدويًا', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            Text(basicText('enter_location_manually_title', lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
-            const Text('يُستخدم فقط إذا تعذّر الوصول لموقعك عبر GPS', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+            Text(basicText('enter_location_manually_subtitle', lang), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
             const SizedBox(height: 16),
             TextField(
               controller: latController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-              decoration: const InputDecoration(labelText: 'خط العرض (Latitude)', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: basicText('latitude_field_label', lang), border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: lngController,
               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-              decoration: const InputDecoration(labelText: 'خط الطول (Longitude)', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: basicText('longitude_field_label', lang), border: const OutlineInputBorder()),
             ),
             const SizedBox(height: 20),
             FilledButton(
@@ -101,7 +104,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 if (context.mounted) Navigator.pop(context);
                 _load();
               },
-              child: const Text('حفظ الموقع'),
+              child: Text(basicText('save_location_action', lang)),
             ),
           ],
         ),
@@ -124,51 +127,54 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     _load();
   }
 
-  static const _highLatitudeRuleLabels = {
-    'auto': 'تلقائي (موصى به)',
-    'middleOfTheNight': 'منتصف الليل',
-    'seventhOfTheNight': 'سُبع الليل',
-    'twilightAngle': 'زاوية الشفق',
+  static const _highLatitudeRuleKeys = {
+    'auto': 'hlr_auto_label',
+    'middleOfTheNight': 'hlr_middle_of_night_label',
+    'seventhOfTheNight': 'hlr_seventh_of_night_label',
+    'twilightAngle': 'hlr_twilight_angle_label',
   };
 
-  static const _methodLabels = {
-    'muslimWorldLeague': 'رابطة العالم الإسلامي',
-    'egyptian': 'الهيئة المصرية العامة للمساحة',
-    'karachi': 'جامعة العلوم الإسلامية، كراتشي',
-    'ummAlQura': 'أم القرى، مكة المكرمة',
-    'dubai': 'دبي',
-    'qatar': 'قطر',
-    'kuwait': 'الكويت',
-    'moonsightingCommittee': 'لجنة رؤية الهلال',
-    'singapore': 'سنغافورة',
-    'turkiye': 'تركيا (ديانت)',
-    'tehran': 'طهران',
-    'northAmerica': 'أمريكا الشمالية (ISNA)',
-    'morocco': 'المغرب',
+  static const _methodKeys = {
+    'muslimWorldLeague': 'method_muslim_world_league',
+    'egyptian': 'method_egyptian',
+    'karachi': 'method_karachi',
+    'ummAlQura': 'method_umm_al_qura',
+    'dubai': 'method_dubai',
+    'qatar': 'method_qatar',
+    'kuwait': 'method_kuwait',
+    'moonsightingCommittee': 'method_moonsighting_committee',
+    'singapore': 'method_singapore',
+    'turkiye': 'method_turkiye',
+    'tehran': 'method_tehran',
+    'northAmerica': 'method_north_america',
+    'morocco': 'method_morocco',
   };
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
       appBar: AppBar(
-        title: const Text('أوقات الصلاة'),
+        title: Text(basicText('prayer_times', lang)),
         actions: [
           IconButton(
             icon: const Icon(Icons.tune),
-            tooltip: 'طريقة الحساب',
+            tooltip: basicText('calc_method_tooltip', lang),
             onPressed: () => _openSettingsSheet(context),
           ),
         ],
       ),
       body: _loading
-          ? const AppLoadingView(icon: Icons.access_time_outlined, message: 'جاري حساب مواقيت الصلاة لموقعك...')
+          ? AppLoadingView(icon: Icons.access_time_outlined, message: basicText('calculating_prayer_times_message', lang))
           : _noLocation
               ? _NoLocationView(onManualEntry: _showManualLocationSheet, onRetry: _load)
-              : _buildTimes(),
+              : _buildTimes(lang),
+    ),
     );
   }
 
-  Widget _buildTimes() {
+  Widget _buildTimes(String lang) {
     final t = _times!;
     final current = t.currentPrayer(date: DateTime.now());
     final next = t.nextPrayer();
@@ -182,55 +188,64 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-            child: const Text('يُستخدم موقع مُدخَل يدويًا', style: TextStyle(fontSize: 11.5, color: AppColors.primaryDark)),
+            child: Text(basicText('manual_location_used_banner', lang), style: const TextStyle(fontSize: 11.5, color: AppColors.primaryDark)),
           ),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(18)),
           child: Column(
             children: [
-              Text(_prayerNameAr(next), style: const TextStyle(fontSize: 14, color: Colors.white70)),
+              Text(_prayerNameFor(next, lang), style: const TextStyle(fontSize: 14, color: Colors.white70)),
               const SizedBox(height: 4),
               Text(_formatTime(nextTime), style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: Colors.white)),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        _PrayerRow(label: 'الفجر', time: t.fajr, active: current == Prayer.fajr),
-        _PrayerRow(label: 'الشروق', time: t.sunrise, active: false),
-        _PrayerRow(label: 'الظهر', time: t.dhuhr, active: current == Prayer.dhuhr),
-        _PrayerRow(label: 'العصر', time: t.asr, active: current == Prayer.asr),
-        _PrayerRow(label: 'المغرب', time: t.maghrib, active: current == Prayer.maghrib),
-        _PrayerRow(label: 'العشاء', time: t.isha, active: current == Prayer.isha),
+        _PrayerRow(label: basicText('prayer_fajr', lang), time: t.fajr, active: current == Prayer.fajr),
+        _PrayerRow(label: basicText('prayer_sunrise', lang), time: t.sunrise, active: false),
+        _PrayerRow(label: basicText('prayer_dhuhr', lang), time: t.dhuhr, active: current == Prayer.dhuhr),
+        _PrayerRow(label: basicText('prayer_asr', lang), time: t.asr, active: current == Prayer.asr),
+        _PrayerRow(label: basicText('prayer_maghrib', lang), time: t.maghrib, active: current == Prayer.maghrib),
+        _PrayerRow(label: basicText('prayer_isha', lang), time: t.isha, active: current == Prayer.isha),
         const SizedBox(height: 16),
-        Text('طريقة الحساب: ${_methodLabels[_method] ?? _method}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-        Text('مذهب العصر: ${_madhab == Madhab.hanafi ? "حنفي" : "الجمهور (شافعي/مالكي/حنبلي)"}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+        Text('${basicText('calc_method_label_prefix', lang)}: ${basicText(_methodKeys[_method] ?? '', lang).isEmpty ? _method : basicText(_methodKeys[_method] ?? '', lang)}',
+            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+        Text(
+            '${basicText('asr_madhab_label_prefix', lang)}: ${_madhab == Madhab.hanafi ? basicText('hanafi_label', lang) : basicText('jumhoor_madhab_label', lang)}',
+            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
       ],
     );
   }
 
-  String _prayerNameAr(Prayer p) => switch (p) {
-        Prayer.fajr => 'الفجر القادم',
-        Prayer.sunrise => 'الشروق القادم',
-        Prayer.dhuhr => 'الظهر القادم',
-        Prayer.asr => 'العصر القادم',
-        Prayer.maghrib => 'المغرب القادم',
-        Prayer.isha => 'العشاء القادم',
-        _ => 'الصلاة القادمة',
-      };
+  String _prayerNameFor(Prayer p, String lang) {
+    final key = switch (p) {
+      Prayer.fajr => 'prayer_fajr',
+      Prayer.sunrise => 'prayer_sunrise',
+      Prayer.dhuhr => 'prayer_dhuhr',
+      Prayer.asr => 'prayer_asr',
+      Prayer.maghrib => 'prayer_maghrib',
+      Prayer.isha => 'prayer_isha',
+      _ => null,
+    };
+    if (key == null) return basicText('next_prayer_generic', lang);
+    return '${basicText(key, lang)} ${basicText('next_prayer_suffix', lang)}';
+  }
 
   /// `adhan_dart` builds every prayer time as a UTC `DateTime` internally
   /// — reading `.hour`/`.minute` straight off it (as this used to) shows
   /// the UTC clock time, not the phone's local time. `.toLocal()` first.
   String _formatTime(DateTime t) {
+    final lang = LanguagePreferenceService.currentLanguage;
     final local = t.toLocal();
     final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
     final minute = local.minute.toString().padLeft(2, '0');
-    final period = local.hour < 12 ? 'ص' : 'م';
+    final period = basicText(local.hour < 12 ? 'am_period_short' : 'pm_period_short', lang);
     return '$hour:$minute $period';
   }
 
   Future<void> _openSettingsSheet(BuildContext context) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -241,13 +256,13 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('طريقة حساب أوقات الصلاة', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              Text(basicText('calc_method_sheet_title', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
               const SizedBox(height: 10),
               DropdownButton<String>(
                 isExpanded: true,
                 value: _method,
                 items: PrayerTimesRepository.methodNames
-                    .map((m) => DropdownMenuItem(value: m, child: Text(_methodLabels[m] ?? m)))
+                    .map((m) => DropdownMenuItem(value: m, child: Text(basicText(_methodKeys[m] ?? '', lang).isEmpty ? m : basicText(_methodKeys[m] ?? '', lang))))
                     .toList(),
                 onChanged: (v) {
                   if (v == null) return;
@@ -256,10 +271,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text('مذهب حساب العصر', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              Text(basicText('asr_madhab_sheet_title', lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
               _BorderedOptionTile(
-                label: 'الجمهور (شافعي/مالكي/حنبلي)',
+                label: basicText('jumhoor_madhab_label', lang),
                 selected: _madhab == Madhab.shafi,
                 onTap: () {
                   setSheetState(() => _madhab = Madhab.shafi);
@@ -267,7 +282,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 },
               ),
               _BorderedOptionTile(
-                label: 'حنفي',
+                label: basicText('hanafi_label', lang),
                 selected: _madhab == Madhab.hanafi,
                 onTap: () {
                   setSheetState(() => _madhab = Madhab.hanafi);
@@ -275,17 +290,18 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text('قاعدة خطوط العرض العالية', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              const Text(
-                'يظهر تأثيرها فقط في المناطق البعيدة عن خط الاستواء (فوق ٤٨° تقريبًا) حيث لا يُظلم الشفق كفاية لحساب الفجر/العشاء عاديًا',
-                style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+              Text(basicText('high_latitude_rule_title', lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              Text(
+                basicText('high_latitude_rule_desc', lang),
+                style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
               ),
               const SizedBox(height: 6),
               DropdownButton<String>(
                 isExpanded: true,
                 value: _highLatitudeRule,
                 items: PrayerTimesRepository.highLatitudeRuleNames
-                    .map((r) => DropdownMenuItem(value: r, child: Text(_highLatitudeRuleLabels[r] ?? r)))
+                    .map((r) => DropdownMenuItem(
+                        value: r, child: Text(basicText(_highLatitudeRuleKeys[r] ?? '', lang).isEmpty ? r : basicText(_highLatitudeRuleKeys[r] ?? '', lang))))
                     .toList(),
                 onChanged: (v) {
                   if (v == null) return;
@@ -300,7 +316,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                   _showManualLocationSheet();
                 },
                 icon: const Icon(Icons.edit_location_alt_outlined),
-                label: const Text('تعديل الموقع يدويًا'),
+                label: Text(basicText('edit_location_manually_action', lang)),
               ),
             ],
           ),
@@ -317,10 +333,11 @@ class _PrayerRow extends StatelessWidget {
   const _PrayerRow({required this.label, required this.time, required this.active});
 
   String _formatTime(DateTime t) {
+    final lang = LanguagePreferenceService.currentLanguage;
     final local = t.toLocal();
     final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
     final minute = local.minute.toString().padLeft(2, '0');
-    final period = local.hour < 12 ? 'ص' : 'م';
+    final period = basicText(local.hour < 12 ? 'am_period_short' : 'pm_period_short', lang);
     return '$hour:$minute $period';
   }
 
@@ -352,6 +369,7 @@ class _NoLocationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -360,17 +378,17 @@ class _NoLocationView extends StatelessWidget {
           children: [
             const Icon(Icons.location_off_outlined, size: 44, color: AppColors.textMuted),
             const SizedBox(height: 12),
-            const Text('لم نتمكن من تحديد موقعك', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+            Text(basicText('no_location_title', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            const Text(
-              'تحتاج أوقات الصلاة والقبلة إلى موقعك — فعّل خدمة الموقع أو أدخله يدويًا',
-              style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+            Text(
+              basicText('no_location_desc', lang),
+              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            FilledButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
+            FilledButton(onPressed: onRetry, child: Text(basicText('retry_action', lang))),
             const SizedBox(height: 10),
-            OutlinedButton(onPressed: onManualEntry, child: const Text('إدخال الموقع يدويًا')),
+            OutlinedButton(onPressed: onManualEntry, child: Text(basicText('enter_location_manually_action', lang))),
           ],
         ),
       ),

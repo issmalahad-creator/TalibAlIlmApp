@@ -1701,6 +1701,434 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'ابھی تک کوئی عمومی سوال موجود نہیں۔', 'tr': 'Henüz sık sorulan soru yok.', 'id': 'Belum ada pertanyaan yang sering diajukan.', 'bn': 'এখনও কোনো প্রশ্নোত্তর নেই।', 'ha': 'Babu tambayoyin da ake yawan yi tukuna.',
     'so': 'Wali ma jiraan su\'aalo badanaa la isweydiiyo.', 'fa': 'هنوز پرسش متداولی وجود ندارد.', 'ms': 'Belum ada soalan lazim.',
   },
+  // 2026-08-22: shared prayer-name keys — used by prayer_times_screen.dart,
+  // salah_tracker_screen.dart, salah_assessment_screen.dart,
+  // worship_coach_screen.dart, and daily_companion_card.dart, which each
+  // hardcoded their own copy of these five/six names independently.
+  'prayer_fajr': {
+    'ar': 'الفجر', 'en': 'Fajr', 'am': 'ፈጅር', 'fr': 'Fajr', 'sw': 'Alfajiri',
+    'ur': 'فجر', 'tr': 'İmsak', 'id': 'Subuh', 'bn': 'ফজর', 'ha': 'Asuba',
+    'so': 'Subax', 'fa': 'فجر', 'ms': 'Subuh',
+  },
+  'prayer_sunrise': {
+    'ar': 'الشروق', 'en': 'Sunrise', 'am': 'ፀሐይ መውጫ', 'fr': 'Lever du soleil', 'sw': 'Macheo',
+    'ur': 'طلوعِ آفتاب', 'tr': 'Güneş Doğuşu', 'id': 'Terbit Matahari', 'bn': 'সূর্যোদয়', 'ha': 'Fitowar Rana',
+    'so': 'Qorrax Ka Soo Baxa', 'fa': 'طلوع آفتاب', 'ms': 'Matahari Terbit',
+  },
+  'prayer_dhuhr': {
+    'ar': 'الظهر', 'en': 'Dhuhr', 'am': 'ዙህር', 'fr': 'Dhuhr', 'sw': 'Adhuhuri',
+    'ur': 'ظہر', 'tr': 'Öğle', 'id': 'Zuhur', 'bn': 'জোহর', 'ha': 'Azahar',
+    'so': 'Duhur', 'fa': 'ظهر', 'ms': 'Zohor',
+  },
+  'prayer_asr': {
+    'ar': 'العصر', 'en': 'Asr', 'am': 'ዐስር', 'fr': 'Asr', 'sw': 'Alasiri',
+    'ur': 'عصر', 'tr': 'İkindi', 'id': 'Asar', 'bn': 'আসর', 'ha': "La'asar",
+    'so': 'Casar', 'fa': 'عصر', 'ms': 'Asar',
+  },
+  'prayer_maghrib': {
+    'ar': 'المغرب', 'en': 'Maghrib', 'am': 'መግሪብ', 'fr': 'Maghrib', 'sw': 'Magharibi',
+    'ur': 'مغرب', 'tr': 'Akşam', 'id': 'Maghrib', 'bn': 'মাগরিব', 'ha': 'Magariba',
+    'so': 'Maghrib', 'fa': 'مغرب', 'ms': 'Maghrib',
+  },
+  'prayer_isha': {
+    'ar': 'العشاء', 'en': 'Isha', 'am': 'ዒሻ', 'fr': 'Isha', 'sw': 'Isha',
+    'ur': 'عشاء', 'tr': 'Yatsı', 'id': 'Isya', 'bn': 'এশা', 'ha': "Isha'i",
+    'so': 'Cisha', 'fa': 'عشاء', 'ms': 'Isyak',
+  },
+  'next_prayer_suffix': {
+    'ar': 'القادم', 'en': 'Upcoming', 'am': 'የሚቀጥለው', 'fr': 'à venir', 'sw': 'Ijayo',
+    'ur': 'اگلی', 'tr': 'Sıradaki', 'id': 'Berikutnya', 'bn': 'পরবর্তী', 'ha': 'Mai Zuwa',
+    'so': 'Xigta', 'fa': 'بعدی', 'ms': 'Seterusnya',
+  },
+  'next_prayer_generic': {
+    'ar': 'الصلاة القادمة', 'en': 'Next Prayer', 'am': 'የሚቀጥለው ጸሎት', 'fr': 'Prochaine prière', 'sw': 'Sala Ijayo',
+    'ur': 'اگلی نماز', 'tr': 'Sıradaki Namaz', 'id': 'Salat Berikutnya', 'bn': 'পরবর্তী নামাজ', 'ha': 'Sallar Mai Zuwa',
+    'so': 'Salaadda Xigta', 'fa': 'نماز بعدی', 'ms': 'Solat Seterusnya',
+  },
+  // 2026-08-22: weekday names — used by salah_assessment_screen.dart.
+  'weekday_sunday': {
+    'ar': 'الأحد', 'en': 'Sunday', 'am': 'እሁድ', 'fr': 'Dimanche', 'sw': 'Jumapili',
+    'ur': 'اتوار', 'tr': 'Pazar', 'id': 'Minggu', 'bn': 'রবিবার', 'ha': 'Lahadi',
+    'so': 'Axad', 'fa': 'یکشنبه', 'ms': 'Ahad',
+  },
+  'weekday_monday': {
+    'ar': 'الاثنين', 'en': 'Monday', 'am': 'ሰኞ', 'fr': 'Lundi', 'sw': 'Jumatatu',
+    'ur': 'پیر', 'tr': 'Pazartesi', 'id': 'Senin', 'bn': 'সোমবার', 'ha': 'Litinin',
+    'so': 'Isniin', 'fa': 'دوشنبه', 'ms': 'Isnin',
+  },
+  'weekday_tuesday': {
+    'ar': 'الثلاثاء', 'en': 'Tuesday', 'am': 'ማክሰኞ', 'fr': 'Mardi', 'sw': 'Jumanne',
+    'ur': 'منگل', 'tr': 'Salı', 'id': 'Selasa', 'bn': 'মঙ্গলবার', 'ha': 'Talata',
+    'so': 'Talaado', 'fa': 'سه‌شنبه', 'ms': 'Selasa',
+  },
+  'weekday_wednesday': {
+    'ar': 'الأربعاء', 'en': 'Wednesday', 'am': 'ረቡዕ', 'fr': 'Mercredi', 'sw': 'Jumatano',
+    'ur': 'بدھ', 'tr': 'Çarşamba', 'id': 'Rabu', 'bn': 'বুধবার', 'ha': 'Laraba',
+    'so': 'Arbaco', 'fa': 'چهارشنبه', 'ms': 'Rabu',
+  },
+  'weekday_thursday': {
+    'ar': 'الخميس', 'en': 'Thursday', 'am': 'ሐሙስ', 'fr': 'Jeudi', 'sw': 'Alhamisi',
+    'ur': 'جمعرات', 'tr': 'Perşembe', 'id': 'Kamis', 'bn': 'বৃহস্পতিবার', 'ha': 'Alhamis',
+    'so': 'Khamiis', 'fa': 'پنجشنبه', 'ms': 'Khamis',
+  },
+  'weekday_friday': {
+    'ar': 'الجمعة', 'en': 'Friday', 'am': 'ዓርብ', 'fr': 'Vendredi', 'sw': 'Ijumaa',
+    'ur': 'جمعہ', 'tr': 'Cuma', 'id': 'Jumat', 'bn': 'শুক্রবার', 'ha': "Jumma'a",
+    'so': 'Jimce', 'fa': 'جمعه', 'ms': 'Jumaat',
+  },
+  'weekday_saturday': {
+    'ar': 'السبت', 'en': 'Saturday', 'am': 'ቅዳሜ', 'fr': 'Samedi', 'sw': 'Jumamosi',
+    'ur': 'ہفتہ', 'tr': 'Cumartesi', 'id': 'Sabtu', 'bn': 'শনিবার', 'ha': 'Asabar',
+    'so': 'Sabti', 'fa': 'شنبه', 'ms': 'Sabtu',
+  },
+  // 2026-08-22: prayer_times_screen.dart.
+  'calc_method_tooltip': {
+    'ar': 'طريقة الحساب', 'en': 'Calculation Method', 'am': 'የስሌት ዘዴ', 'fr': 'Méthode de calcul', 'sw': 'Njia ya Hesabu',
+    'ur': 'حساب کا طریقہ', 'tr': 'Hesaplama Yöntemi', 'id': 'Metode Perhitungan', 'bn': 'গণনার পদ্ধতি', 'ha': 'Hanyar Lissafi',
+    'so': 'Habka Xisaabinta', 'fa': 'روش محاسبه', 'ms': 'Kaedah Pengiraan',
+  },
+  'calculating_prayer_times_message': {
+    'ar': 'جاري حساب مواقيت الصلاة لموقعك...', 'en': 'Calculating prayer times for your location...', 'am': 'ለአካባቢዎ የጸሎት ሰዓቶችን በማስላት ላይ...', 'fr': 'Calcul des heures de prière pour votre position...', 'sw': 'Inahesabu nyakati za sala kwa eneo lako...',
+    'ur': 'آپ کے مقام کے لیے نماز کے اوقات کا حساب لگایا جا رہا ہے...', 'tr': 'Konumunuz için namaz vakitleri hesaplanıyor...', 'id': 'Menghitung waktu salat untuk lokasi Anda...', 'bn': 'আপনার অবস্থানের জন্য নামাজের সময় গণনা করা হচ্ছে...', 'ha': 'Ana lissafin lokutan sallah don wurinka...',
+    'so': 'Waxaa la xisaabinayaa waqtiyada salaadda ee goobtaada...', 'fa': 'در حال محاسبه اوقات نماز برای موقعیت شما...', 'ms': 'Mengira waktu solat untuk lokasi anda...',
+  },
+  'manual_location_used_banner': {
+    'ar': 'يُستخدم موقع مُدخَل يدويًا', 'en': 'Using a manually entered location', 'am': 'በእጅ የገባ አካባቢ ጥቅም ላይ ውሏል', 'fr': 'Utilisation d\'un emplacement saisi manuellement', 'sw': 'Inatumia mahali palipowekwa mwenyewe',
+    'ur': 'دستی طور پر درج کردہ مقام استعمال ہو رہا ہے', 'tr': 'Manuel girilen konum kullanılıyor', 'id': 'Menggunakan lokasi yang dimasukkan secara manual', 'bn': 'ম্যানুয়ালি প্রবেশ করানো অবস্থান ব্যবহৃত হচ্ছে', 'ha': 'Ana amfani da wurin da aka shigar da hannu',
+    'so': 'Waxaa la isticmaalayaa goob gacanta lagu geliyay', 'fa': 'از موقعیت وارد شده به‌صورت دستی استفاده می‌شود', 'ms': 'Menggunakan lokasi dimasukkan secara manual',
+  },
+  'enter_location_manually_title': {
+    'ar': 'أدخل موقعك يدويًا', 'en': 'Enter Your Location Manually', 'am': 'አካባቢዎን በእጅ ያስገቡ', 'fr': 'Saisissez votre emplacement manuellement', 'sw': 'Weka Mahali Pako Mwenyewe',
+    'ur': 'اپنا مقام دستی طور پر درج کریں', 'tr': 'Konumunuzu Manuel Girin', 'id': 'Masukkan Lokasi Anda Secara Manual', 'bn': 'নিজে আপনার অবস্থান লিখুন', 'ha': 'Shigar da Wurinka da Hannu',
+    'so': 'Gacanta ku geli Goobtaada', 'fa': 'موقعیت خود را به‌صورت دستی وارد کنید', 'ms': 'Masukkan Lokasi Anda Secara Manual',
+  },
+  'enter_location_manually_subtitle': {
+    'ar': 'يُستخدم فقط إذا تعذّر الوصول لموقعك عبر GPS', 'en': "Only used if your GPS location can't be reached", 'am': 'የGPS አካባቢዎ ላይ መድረስ ካልተቻለ ብቻ ጥቅም ላይ ይውላል', 'fr': "Utilisé uniquement si votre position GPS ne peut pas être atteinte", 'sw': 'Inatumika tu ikiwa mahali pako pa GPS hapawezi kufikiwa',
+    'ur': 'صرف اس وقت استعمال ہوتا ہے جب آپ کے GPS مقام تک رسائی ممکن نہ ہو', 'tr': 'Yalnızca GPS konumunuza ulaşılamadığında kullanılır', 'id': 'Hanya digunakan jika lokasi GPS Anda tidak dapat dijangkau', 'bn': 'শুধুমাত্র তখনই ব্যবহৃত হয় যখন আপনার জিপিএস অবস্থান পাওয়া যায় না', 'ha': 'Ana amfani da shi ne kawai idan ba a iya samun wurin GPS ɗinka ba',
+    'so': 'Waxaa loo isticmaalaa kaliya haddii aan la gaarin karin goobtaada GPS-ka', 'fa': 'فقط در صورتی استفاده می‌شود که به موقعیت GPS شما دسترسی نباشد', 'ms': 'Hanya digunakan jika lokasi GPS anda tidak dapat dicapai',
+  },
+  'latitude_field_label': {
+    'ar': 'خط العرض (Latitude)', 'en': 'Latitude', 'am': 'ኬክሮስ (Latitude)', 'fr': 'Latitude', 'sw': 'Latitudo',
+    'ur': 'عرض البلد (Latitude)', 'tr': 'Enlem (Latitude)', 'id': 'Lintang (Latitude)', 'bn': 'অক্ষাংশ (Latitude)', 'ha': 'Latitude',
+    'so': 'Latitude', 'fa': 'عرض جغرافیایی (Latitude)', 'ms': 'Latitud',
+  },
+  'longitude_field_label': {
+    'ar': 'خط الطول (Longitude)', 'en': 'Longitude', 'am': 'ኬንትሮስ (Longitude)', 'fr': 'Longitude', 'sw': 'Longitudo',
+    'ur': 'طول البلد (Longitude)', 'tr': 'Boylam (Longitude)', 'id': 'Bujur (Longitude)', 'bn': 'দ্রাঘিমাংশ (Longitude)', 'ha': 'Longitude',
+    'so': 'Longitude', 'fa': 'طول جغرافیایی (Longitude)', 'ms': 'Longitud',
+  },
+  'save_location_action': {
+    'ar': 'حفظ الموقع', 'en': 'Save Location', 'am': 'አካባቢ አስቀምጥ', 'fr': "Enregistrer l'emplacement", 'sw': 'Hifadhi Mahali',
+    'ur': 'مقام محفوظ کریں', 'tr': 'Konumu Kaydet', 'id': 'Simpan Lokasi', 'bn': 'অবস্থান সংরক্ষণ করুন', 'ha': 'Ajiye Wuri',
+    'so': 'Kaydi Goobta', 'fa': 'ذخیره موقعیت', 'ms': 'Simpan Lokasi',
+  },
+  'calc_method_label_prefix': {
+    'ar': 'طريقة الحساب', 'en': 'Calculation method', 'am': 'የስሌት ዘዴ', 'fr': 'Méthode de calcul', 'sw': 'Njia ya hesabu',
+    'ur': 'حساب کا طریقہ', 'tr': 'Hesaplama yöntemi', 'id': 'Metode perhitungan', 'bn': 'গণনার পদ্ধতি', 'ha': 'Hanyar lissafi',
+    'so': 'Habka xisaabinta', 'fa': 'روش محاسبه', 'ms': 'Kaedah pengiraan',
+  },
+  'asr_madhab_label_prefix': {
+    'ar': 'مذهب العصر', 'en': "Asr school (madhab)", 'am': 'የዐስር መድሀብ', 'fr': "École (madhhab) de l'Asr", 'sw': 'Madhehebu ya Alasiri',
+    'ur': 'عصر کا مذہب', 'tr': 'İkindi Mezhebi', 'id': 'Mazhab Asar', 'bn': 'আসরের মাজহাব', 'ha': "Madhabin La'asar",
+    'so': 'Madhabka Casarka', 'fa': 'مذهب عصر', 'ms': 'Mazhab Asar',
+  },
+  'hanafi_label': {
+    'ar': 'حنفي', 'en': 'Hanafi', 'am': 'ሐነፊ', 'fr': 'Hanafite', 'sw': 'Hanafi',
+    'ur': 'حنفی', 'tr': 'Hanefi', 'id': 'Hanafi', 'bn': 'হানাফি', 'ha': 'Hanafi',
+    'so': 'Xanafi', 'fa': 'حنفی', 'ms': 'Hanafi',
+  },
+  'jumhoor_madhab_label': {
+    'ar': 'الجمهور (شافعي/مالكي/حنبلي)', 'en': 'Majority (Shafi\'i/Maliki/Hanbali)', 'am': 'አብላጫው (ሻፊዒ/ማሊኪ/ሐንበሊ)', 'fr': 'Majorité (chaféite/malikite/hanbalite)', 'sw': 'Wengi (Shafi\'i/Maliki/Hanbali)',
+    'ur': 'جمہور (شافعی/مالکی/حنبلی)', 'tr': 'Çoğunluk (Şafii/Maliki/Hanbeli)', 'id': 'Mayoritas (Syafi\'i/Maliki/Hanbali)', 'bn': 'অধিকাংশ (শাফেয়ি/মালেকি/হাম্বলি)', 'ha': "Rinjaye (Shafi'i/Maliki/Hanbali)",
+    'so': 'Aqlabiyada (Shaafici/Maaliki/Xanbali)', 'fa': 'اکثریت (شافعی/مالکی/حنبلی)', 'ms': 'Majoriti (Syafi\'i/Maliki/Hanbali)',
+  },
+  'calc_method_sheet_title': {
+    'ar': 'طريقة حساب أوقات الصلاة', 'en': 'Prayer Time Calculation Method', 'am': 'የጸሎት ሰዓት ስሌት ዘዴ', 'fr': 'Méthode de calcul des heures de prière', 'sw': 'Njia ya Kuhesabu Nyakati za Sala',
+    'ur': 'نماز کے اوقات کے حساب کا طریقہ', 'tr': 'Namaz Vakti Hesaplama Yöntemi', 'id': 'Metode Perhitungan Waktu Salat', 'bn': 'নামাজের সময় গণনার পদ্ধতি', 'ha': 'Hanyar Lissafin Lokutan Sallah',
+    'so': 'Habka Xisaabinta Waqtiyada Salaadda', 'fa': 'روش محاسبه اوقات نماز', 'ms': 'Kaedah Pengiraan Waktu Solat',
+  },
+  'asr_madhab_sheet_title': {
+    'ar': 'مذهب حساب العصر', 'en': 'Asr Calculation School', 'am': 'የዐስር ስሌት መድሀብ', 'fr': "École de calcul de l'Asr", 'sw': 'Madhehebu ya Kuhesabu Alasiri',
+    'ur': 'عصر کے حساب کا مذہب', 'tr': 'İkindi Hesaplama Mezhebi', 'id': 'Mazhab Perhitungan Asar', 'bn': 'আসর গণনার মাজহাব', 'ha': "Madhabin Lissafin La'asar",
+    'so': 'Madhabka Xisaabinta Casarka', 'fa': 'مذهب محاسبه عصر', 'ms': 'Mazhab Pengiraan Asar',
+  },
+  'high_latitude_rule_title': {
+    'ar': 'قاعدة خطوط العرض العالية', 'en': 'High Latitude Rule', 'am': 'የከፍተኛ ኬክሮስ ደንብ', 'fr': 'Règle des hautes latitudes', 'sw': 'Kanuni ya Latitudo za Juu',
+    'ur': 'اونچے عرض البلد کا قاعدہ', 'tr': 'Yüksek Enlem Kuralı', 'id': 'Aturan Lintang Tinggi', 'bn': 'উচ্চ অক্ষাংশের নিয়ম', 'ha': 'Ka\'idar Latitude Mai Girma',
+    'so': 'Xeerka Latitude-ka Sare', 'fa': 'قاعده عرض جغرافیایی بالا', 'ms': 'Peraturan Latitud Tinggi',
+  },
+  'high_latitude_rule_desc': {
+    'ar': 'يظهر تأثيرها فقط في المناطق البعيدة عن خط الاستواء (فوق ٤٨° تقريبًا) حيث لا يُظلم الشفق كفاية لحساب الفجر/العشاء عاديًا',
+    'en': "Only affects regions far from the equator (above roughly 48°), where twilight never gets dark enough for a normal Fajr/Isha calculation",
+    'am': 'ተጽዕኖው የሚታየው ከምድር ወገብ ራቅ ካሉ አካባቢዎች (ከ48° በላይ ግምት) ብቻ ነው፣ እዚያ ንጋት ለተለመደው የፈጅር/ዒሻ ስሌት በቂ ጨለማ ስለማይሆን',
+    'fr': "N'affecte que les régions éloignées de l'équateur (au-delà d'environ 48°), où le crépuscule ne devient jamais assez sombre pour un calcul normal du Fajr/Isha",
+    'sw': 'Inaathiri tu maeneo yaliyo mbali na ikweta (zaidi ya nyuzi 48 hivi), ambapo giza la jioni halifiki kiwango cha kutosha kwa hesabu ya kawaida ya Fajr/Isha',
+    'ur': 'اس کا اثر صرف خطِ استوا سے دور علاقوں پر ہوتا ہے (تقریباً ٤٨° سے اوپر) جہاں شفق عام فجر/عشاء کے حساب کے لیے کافی تاریک نہیں ہوتی',
+    'tr': 'Yalnızca ekvatordan uzak bölgeleri etkiler (yaklaşık 48°\'nin üzerinde), burada alacakaranlık normal Fecir/Yatsı hesabı için yeterince kararmaz',
+    'id': 'Hanya memengaruhi wilayah yang jauh dari khatulistiwa (di atas sekitar 48°), di mana senja tidak pernah cukup gelap untuk perhitungan Subuh/Isya normal',
+    'bn': 'শুধুমাত্র নিরক্ষরেখা থেকে দূরবর্তী অঞ্চলে (প্রায় ৪৮° এর উপরে) প্রভাব ফেলে, যেখানে গোধূলি স্বাভাবিক ফজর/এশার হিসাবের জন্য যথেষ্ট অন্ধকার হয় না',
+    'ha': 'Yana shafan yankunan da suke nesa da equator ne kawai (sama da kusan digiri 48), inda duhun magariba ba ya taɓa zama isasshe don lissafin Asuba/Isha\'i na yau da kullun',
+    'so': 'Waxay saameyn ku yeelataa kaliya deegaanada ka fog dhulbaraha (in ka badan 48° qiyaastii), halkaas oo mugdiga fiidkii aanu marnaba u madoobaan xisaabinta caadiga ah ee Subax/Cisha',
+    'fa': 'فقط بر مناطق دور از خط استوا (بالای تقریباً ۴۸ درجه) تأثیر می‌گذارد، جایی که گرگ‌ومیش هرگز به اندازه کافی برای محاسبه عادی فجر/عشاء تاریک نمی‌شود',
+    'ms': 'Hanya menjejaskan kawasan yang jauh dari khatulistiwa (melebihi kira-kira 48°), di mana syafak tidak pernah cukup gelap untuk pengiraan Subuh/Isyak biasa',
+  },
+  'edit_location_manually_action': {
+    'ar': 'تعديل الموقع يدويًا', 'en': 'Edit Location Manually', 'am': 'አካባቢን በእጅ አርትዕ', 'fr': "Modifier l'emplacement manuellement", 'sw': 'Hariri Mahali Mwenyewe',
+    'ur': 'مقام دستی طور پر تبدیل کریں', 'tr': 'Konumu Manuel Düzenle', 'id': 'Ubah Lokasi Secara Manual', 'bn': 'ম্যানুয়ালি অবস্থান সম্পাদনা করুন', 'ha': 'Gyara Wuri da Hannu',
+    'so': 'Gacanta ku wax ka beddel Goobta', 'fa': 'ویرایش دستی موقعیت', 'ms': 'Edit Lokasi Secara Manual',
+  },
+  'no_location_title': {
+    'ar': 'لم نتمكن من تحديد موقعك', 'en': "We couldn't determine your location", 'am': 'አካባቢዎን መወሰን አልቻልንም', 'fr': "Nous n'avons pas pu déterminer votre emplacement", 'sw': 'Hatukuweza kubaini mahali pako',
+    'ur': 'ہم آپ کا مقام معلوم نہیں کر سکے', 'tr': 'Konumunuzu belirleyemedik', 'id': 'Kami tidak dapat menentukan lokasi Anda', 'bn': 'আমরা আপনার অবস্থান নির্ধারণ করতে পারিনি', 'ha': 'Ba mu iya tantance wurinka ba',
+    'so': 'Ma aanan awoodin inaan go\'aamino goobtaada', 'fa': 'نتوانستیم موقعیت شما را تعیین کنیم', 'ms': 'Kami tidak dapat menentukan lokasi anda',
+  },
+  'no_location_desc': {
+    'ar': 'تحتاج أوقات الصلاة والقبلة إلى موقعك — فعّل خدمة الموقع أو أدخله يدويًا', 'en': 'Prayer times and Qibla need your location — enable location services or enter it manually', 'am': 'የጸሎት ሰዓቶች እና ቂብላ አካባቢዎን ይፈልጋሉ — የአካባቢ አገልግሎትን ያንቁ ወይም በእጅ ያስገቡት', 'fr': 'Les heures de prière et la Qibla ont besoin de votre position — activez les services de localisation ou saisissez-la manuellement', 'sw': 'Nyakati za sala na Kibla vinahitaji mahali pako — washa huduma za mahali au uweke mwenyewe',
+    'ur': 'نماز کے اوقات اور قبلہ کو آپ کے مقام کی ضرورت ہے — لوکیشن سروسز فعال کریں یا دستی طور پر درج کریں', 'tr': 'Namaz vakitleri ve Kıble konumunuza ihtiyaç duyar — konum hizmetlerini etkinleştirin veya manuel girin', 'id': 'Waktu salat dan Kiblat memerlukan lokasi Anda — aktifkan layanan lokasi atau masukkan secara manual', 'bn': 'নামাজের সময় ও কিবলার জন্য আপনার অবস্থান প্রয়োজন — লোকেশন সেবা চালু করুন বা নিজে লিখুন', 'ha': 'Lokutan sallah da Alkibla suna buƙatar wurinka — kunna sabis na wuri ko ka shigar da shi da hannu',
+    'so': 'Waqtiyada salaadda iyo Qiblada waxay u baahan yihiin goobtaada — daar adeegga goobta ama gacanta ku geli', 'fa': 'اوقات نماز و قبله به موقعیت شما نیاز دارند — سرویس مکان را فعال کنید یا آن را به‌صورت دستی وارد کنید', 'ms': 'Waktu solat dan Kiblat memerlukan lokasi anda — dayakan perkhidmatan lokasi atau masukkan secara manual',
+  },
+  'enter_location_manually_action': {
+    'ar': 'إدخال الموقع يدويًا', 'en': 'Enter Location Manually', 'am': 'አካባቢን በእጅ ያስገቡ', 'fr': "Saisir l'emplacement manuellement", 'sw': 'Weka Mahali Mwenyewe',
+    'ur': 'مقام دستی طور پر درج کریں', 'tr': 'Konumu Manuel Gir', 'id': 'Masukkan Lokasi Secara Manual', 'bn': 'ম্যানুয়ালি অবস্থান লিখুন', 'ha': 'Shigar da Wuri da Hannu',
+    'so': 'Gacanta ku geli Goobta', 'fa': 'وارد کردن دستی موقعیت', 'ms': 'Masukkan Lokasi Secara Manual',
+  },
+  'hlr_auto_label': {
+    'ar': 'تلقائي (موصى به)', 'en': 'Automatic (recommended)', 'am': 'ራስ-ሰር (የሚመከር)', 'fr': 'Automatique (recommandé)', 'sw': 'Kiotomatiki (kinachopendekezwa)',
+    'ur': 'خودکار (تجویز کردہ)', 'tr': 'Otomatik (önerilen)', 'id': 'Otomatis (disarankan)', 'bn': 'স্বয়ংক্রিয় (প্রস্তাবিত)', 'ha': 'Atomatik (ana bada shawarar)',
+    'so': 'Toos ah (lagula talinayo)', 'fa': 'خودکار (توصیه‌شده)', 'ms': 'Automatik (disyorkan)',
+  },
+  'hlr_middle_of_night_label': {
+    'ar': 'منتصف الليل', 'en': 'Middle of the Night', 'am': 'የሌሊት እኩሌታ', 'fr': 'Milieu de la nuit', 'sw': 'Katikati ya Usiku',
+    'ur': 'نصف شب', 'tr': 'Gecenin Ortası', 'id': 'Tengah Malam', 'bn': 'মধ্যরাত', 'ha': 'Tsakiyar Dare',
+    'so': 'Bar-habeenka', 'fa': 'نیمه شب', 'ms': 'Pertengahan Malam',
+  },
+  'hlr_seventh_of_night_label': {
+    'ar': 'سُبع الليل', 'en': 'One-Seventh of the Night', 'am': 'የሌሊት ሰባተኛ', 'fr': 'Un septième de la nuit', 'sw': 'Sehemu ya Saba ya Usiku',
+    'ur': 'رات کا ساتواں حصہ', 'tr': 'Gecenin Yedide Biri', 'id': 'Sepertujuh Malam', 'bn': 'রাতের এক-সপ্তমাংশ', 'ha': 'Kashi Bakwai na Dare',
+    'so': 'Toddobaad-Habeenka', 'fa': 'یک‌هفتم شب', 'ms': 'Satu Pertujuh Malam',
+  },
+  'hlr_twilight_angle_label': {
+    'ar': 'زاوية الشفق', 'en': 'Twilight Angle', 'am': 'የንጋት ማዕዘን', 'fr': 'Angle crépusculaire', 'sw': 'Pembe ya Gizagiza',
+    'ur': 'شفق کا زاویہ', 'tr': 'Alacakaranlık Açısı', 'id': 'Sudut Senja', 'bn': 'গোধূলি কোণ', 'ha': 'Kusurwar Magariba',
+    'so': 'Xagasha Fiidka', 'fa': 'زاویه گرگ‌ومیش', 'ms': 'Sudut Syafak',
+  },
+  'method_muslim_world_league': {
+    'ar': 'رابطة العالم الإسلامي', 'en': 'Muslim World League', 'am': 'የሙስሊም ዓለም ሊግ', 'fr': 'Ligue islamique mondiale', 'sw': 'Umoja wa Dunia wa Kiislamu',
+    'ur': 'رابطہ عالم اسلامی', 'tr': 'Müslüman Dünya Birliği', 'id': 'Liga Muslim Dunia', 'bn': 'মুসলিম বিশ্ব লীগ', 'ha': "Kungiyar Musulmi ta Duniya",
+    'so': 'Ururka Muslimiinta Adduunka', 'fa': 'رابطه جهان اسلام', 'ms': 'Liga Muslim Sedunia',
+  },
+  'method_egyptian': {
+    'ar': 'الهيئة المصرية العامة للمساحة', 'en': 'Egyptian General Authority of Survey', 'am': 'የግብጽ አጠቃላይ ጥናት ባለስልጣን', 'fr': 'Autorité générale égyptienne de topographie', 'sw': 'Mamlaka Kuu ya Upimaji ya Misri',
+    'ur': 'مصری جنرل اتھارٹی آف سروے', 'tr': 'Mısır Genel Anket Otoritesi', 'id': 'Otoritas Survei Umum Mesir', 'bn': 'মিশরীয় সাধারণ জরিপ কর্তৃপক্ষ', 'ha': 'Hukumar Bincike ta Masar',
+    'so': 'Hay\'adda Sahanka Guud ee Masar', 'fa': 'سازمان کل نقشه‌برداری مصر', 'ms': 'Pihak Berkuasa Ukur Am Mesir',
+  },
+  'method_karachi': {
+    'ar': 'جامعة العلوم الإسلامية، كراتشي', 'en': 'University of Islamic Sciences, Karachi', 'am': 'የእስልምና ሳይንስ ዩኒቨርስቲ፣ ካራቺ', 'fr': 'Université des sciences islamiques, Karachi', 'sw': 'Chuo Kikuu cha Elimu ya Kiislamu, Karachi',
+    'ur': 'جامعہ علوم اسلامیہ، کراچی', 'tr': 'İslami Bilimler Üniversitesi, Karaçi', 'id': 'Universitas Ilmu Islam, Karachi', 'bn': 'ইসলামিক বিজ্ঞান বিশ্ববিদ্যালয়, করাচি', 'ha': 'Jami\'ar Kimiyyar Musulunci, Karachi',
+    'so': 'Jaamacadda Sayniska Islaamiga, Karachi', 'fa': 'دانشگاه علوم اسلامی، کراچی', 'ms': 'Universiti Sains Islam, Karachi',
+  },
+  'method_umm_al_qura': {
+    'ar': 'أم القرى، مكة المكرمة', 'en': 'Umm al-Qura, Makkah', 'am': 'ኡም አል-ቁራ፣ መካ', 'fr': 'Umm al-Qura, La Mecque', 'sw': 'Umm al-Qura, Makka',
+    'ur': 'ام القریٰ، مکہ مکرمہ', 'tr': 'Ümmü\'l-Kura, Mekke', 'id': 'Umm al-Qura, Makkah', 'bn': 'উম্মুল কুরা, মক্কা', 'ha': "Ummul Qura, Makka",
+    'so': 'Umm al-Qura, Makka', 'fa': 'ام‌القری، مکه', 'ms': 'Umm al-Qura, Makkah',
+  },
+  'method_dubai': {
+    'ar': 'دبي', 'en': 'Dubai', 'am': 'ዱባይ', 'fr': 'Dubaï', 'sw': 'Dubai',
+    'ur': 'دبئی', 'tr': 'Dubai', 'id': 'Dubai', 'bn': 'দুবাই', 'ha': 'Dubai',
+    'so': 'Dubay', 'fa': 'دبی', 'ms': 'Dubai',
+  },
+  'method_qatar': {
+    'ar': 'قطر', 'en': 'Qatar', 'am': 'ኳታር', 'fr': 'Qatar', 'sw': 'Qatar',
+    'ur': 'قطر', 'tr': 'Katar', 'id': 'Qatar', 'bn': 'কাতার', 'ha': 'Qatar',
+    'so': 'Qadar', 'fa': 'قطر', 'ms': 'Qatar',
+  },
+  'method_kuwait': {
+    'ar': 'الكويت', 'en': 'Kuwait', 'am': 'ኩዌት', 'fr': 'Koweït', 'sw': 'Kuwait',
+    'ur': 'کویت', 'tr': 'Kuveyt', 'id': 'Kuwait', 'bn': 'কুয়েত', 'ha': 'Kuwait',
+    'so': 'Kuwayt', 'fa': 'کویت', 'ms': 'Kuwait',
+  },
+  'method_moonsighting_committee': {
+    'ar': 'لجنة رؤية الهلال', 'en': 'Moonsighting Committee', 'am': 'የጨረቃ ምልከታ ኮሚቴ', 'fr': 'Comité d\'observation de la lune', 'sw': 'Kamati ya Kuona Mwezi',
+    'ur': 'کمیٹی برائے رؤیتِ ہلال', 'tr': 'Hilal Görme Komitesi', 'id': 'Komite Rukyatul Hilal', 'bn': 'চাঁদ দেখা কমিটি', 'ha': 'Kwamitin Ganin Wata',
+    'so': 'Guddiga Arag Bisha', 'fa': 'کمیته رؤیت هلال', 'ms': 'Jawatankuasa Cerapan Bulan',
+  },
+  'method_singapore': {
+    'ar': 'سنغافورة', 'en': 'Singapore', 'am': 'ሲንጋፖር', 'fr': 'Singapour', 'sw': 'Singapore',
+    'ur': 'سنگاپور', 'tr': 'Singapur', 'id': 'Singapura', 'bn': 'সিঙ্গাপুর', 'ha': 'Singapore',
+    'so': 'Singaboor', 'fa': 'سنگاپور', 'ms': 'Singapura',
+  },
+  'method_turkiye': {
+    'ar': 'تركيا (ديانت)', 'en': 'Turkey (Diyanet)', 'am': 'ቱርክ (ዲያነት)', 'fr': 'Turquie (Diyanet)', 'sw': 'Uturuki (Diyanet)',
+    'ur': 'ترکی (دیانت)', 'tr': 'Türkiye (Diyanet)', 'id': 'Turki (Diyanet)', 'bn': 'তুরস্ক (দিয়ানেত)', 'ha': 'Turkiyya (Diyanet)',
+    'so': 'Turkiga (Diyanet)', 'fa': 'ترکیه (دیانت)', 'ms': 'Turki (Diyanet)',
+  },
+  'method_tehran': {
+    'ar': 'طهران', 'en': 'Tehran', 'am': 'ቴህራን', 'fr': 'Téhéran', 'sw': 'Tehran',
+    'ur': 'تہران', 'tr': 'Tahran', 'id': 'Teheran', 'bn': 'তেহরান', 'ha': 'Tehran',
+    'so': 'Tehraan', 'fa': 'تهران', 'ms': 'Tehran',
+  },
+  'method_north_america': {
+    'ar': 'أمريكا الشمالية (ISNA)', 'en': 'North America (ISNA)', 'am': 'ሰሜን አሜሪካ (ISNA)', 'fr': 'Amérique du Nord (ISNA)', 'sw': 'Amerika Kaskazini (ISNA)',
+    'ur': 'شمالی امریکہ (ISNA)', 'tr': 'Kuzey Amerika (ISNA)', 'id': 'Amerika Utara (ISNA)', 'bn': 'উত্তর আমেরিকা (ISNA)', 'ha': 'Arewacin Amurka (ISNA)',
+    'so': 'Waqooyiga Ameerika (ISNA)', 'fa': 'آمریکای شمالی (ISNA)', 'ms': 'Amerika Utara (ISNA)',
+  },
+  'method_morocco': {
+    'ar': 'المغرب', 'en': 'Morocco', 'am': 'ሞሮኮ', 'fr': 'Maroc', 'sw': 'Moroko',
+    'ur': 'مراکش', 'tr': 'Fas', 'id': 'Maroko', 'bn': 'মরক্কো', 'ha': 'Maroko',
+    'so': 'Marooko', 'fa': 'مراکش', 'ms': 'Maghribi',
+  },
+  'am_period_short': {
+    'ar': 'ص', 'en': 'AM', 'am': 'ጠዋት', 'fr': 'AM', 'sw': 'AM',
+    'ur': 'صبح', 'tr': 'ÖÖ', 'id': 'AM', 'bn': 'AM', 'ha': 'AM',
+    'so': 'AM', 'fa': 'ق.ظ', 'ms': 'AM',
+  },
+  'pm_period_short': {
+    'ar': 'م', 'en': 'PM', 'am': 'ከሰዓት', 'fr': 'PM', 'sw': 'PM',
+    'ur': 'شام', 'tr': 'ÖS', 'id': 'PM', 'bn': 'PM', 'ha': 'PM',
+    'so': 'PM', 'fa': 'ب.ظ', 'ms': 'PM',
+  },
+  // 2026-08-22: salah_tracker_screen.dart.
+  'salah_tracker_title': {
+    'ar': 'إقامة الصلاة', 'en': 'Establishing Prayer', 'am': 'ጸሎትን ማቋቋም', 'fr': 'Accomplir la prière', 'sw': 'Kusimamisha Sala',
+    'ur': 'اقامتِ نماز', 'tr': 'Namazı İkame Etmek', 'id': 'Mendirikan Salat', 'bn': 'নামাজ কায়েম করা', 'ha': 'Tsayar da Sallah',
+    'so': 'Salaadda Taagidda', 'fa': 'اقامه نماز', 'ms': 'Mendirikan Solat',
+  },
+  'weekly_assessment_tooltip': {
+    'ar': 'تقييمي الأسبوعي', 'en': 'My Weekly Assessment', 'am': 'የሳምንታዊ ግምገማዬ', 'fr': 'Mon évaluation hebdomadaire', 'sw': 'Tathmini Yangu ya Wiki',
+    'ur': 'میرا ہفتہ وار جائزہ', 'tr': 'Haftalık Değerlendirmem', 'id': 'Penilaian Mingguan Saya', 'bn': 'আমার সাপ্তাহিক মূল্যায়ন', 'ha': 'Kimanta Makona',
+    'so': 'Qiimeyntayda Toddobaadlaha ah', 'fa': 'ارزیابی هفتگی من', 'ms': 'Penilaian Mingguan Saya',
+  },
+  'loading_salah_log': {
+    'ar': 'جاري تحميل سجل صلاتك...', 'en': 'Loading your prayer log...', 'am': 'የጸሎት መዝገብዎን በመጫን ላይ...', 'fr': 'Chargement de votre journal de prière...', 'sw': 'Inapakia rekodi yako ya sala...',
+    'ur': 'آپ کا نماز کا ریکارڈ لوڈ ہو رہا ہے...', 'tr': 'Namaz kaydınız yükleniyor...', 'id': 'Memuat catatan salat Anda...', 'bn': 'আপনার নামাজের রেকর্ড লোড হচ্ছে...', 'ha': 'Ana lodin tarihin sallar ka...',
+    'so': 'Waxaa la soo rarayaa diiwaanka salaaddaada...', 'fa': 'در حال بارگذاری سابقه نماز شما...', 'ms': 'Memuatkan log solat anda...',
+  },
+  'todays_prayers_header': {
+    'ar': 'صلواتي اليوم', 'en': "Today's Prayers", 'am': 'የዛሬ ጸሎቶቼ', 'fr': "Mes prières d'aujourd'hui", 'sw': 'Sala Zangu za Leo',
+    'ur': 'میری آج کی نمازیں', 'tr': 'Bugünkü Namazlarım', 'id': 'Salat Saya Hari Ini', 'bn': 'আজকের আমার নামাজ', 'ha': 'Sallolina na Yau',
+    'so': 'Salaadahayga Maanta', 'fa': 'نمازهای امروز من', 'ms': 'Solat Saya Hari Ini',
+  },
+  'log_honestly_subtitle': {
+    'ar': 'سجّل بصدق — هذا لك أنت، لا حكم عليك من أحد', 'en': "Record honestly — this is for you alone, no one is judging", 'am': 'በእውነት ይመዝግቡ — ይህ ለእርስዎ ብቻ ነው፣ ማንም አይፈርድብዎትም', 'fr': 'Enregistrez honnêtement — ceci est pour vous seul, personne ne juge', 'sw': 'Rekodi kwa uaminifu — hii ni kwa ajili yako pekee, hakuna anayehukumu',
+    'ur': 'ایمانداری سے درج کریں — یہ صرف آپ کے لیے ہے، کوئی آپ کو نہیں جانچ رہا', 'tr': 'Dürüstçe kaydedin — bu yalnızca sizin için, kimse yargılamıyor', 'id': 'Catat dengan jujur — ini hanya untuk Anda sendiri, tidak ada yang menghakimi', 'bn': 'সততার সাথে রেকর্ড করুন — এটি শুধু আপনার জন্য, কেউ বিচার করছে না', 'ha': 'Ka rubuta da gaskiya — wannan naka ne kaɗai, babu wanda zai yi maka hukunci',
+    'so': 'Si daacad ah u diiwaan geli — tan waa kuu adiga oo keliya, cid ku xukumaysa ma jirto', 'fa': 'صادقانه ثبت کنید — این فقط برای شماست، هیچ‌کس شما را قضاوت نمی‌کند', 'ms': 'Rekod dengan jujur — ini untuk anda sahaja, tiada siapa menghakimi',
+  },
+  'prayer_status_question_suffix': {
+    'ar': 'هل صليت؟', 'en': 'Did you pray?', 'am': 'ጸልየዋል?', 'fr': 'Avez-vous prié ?', 'sw': 'Je, umesali?',
+    'ur': 'کیا آپ نے نماز پڑھی؟', 'tr': 'Namaz kıldın mı?', 'id': 'Apakah Anda sudah salat?', 'bn': 'আপনি কি নামাজ পড়েছেন?', 'ha': 'Ka yi sallah?',
+    'so': 'Ma salaaday?', 'fa': 'آیا نماز خواندید؟', 'ms': 'Adakah anda telah solat?',
+  },
+  'prayed_on_time_status': {
+    'ar': 'صليتها في وقتها', 'en': 'Prayed on time', 'am': 'በሰዓቱ ጸልያለሁ', 'fr': "Priée à l'heure", 'sw': 'Nimesali kwa wakati',
+    'ur': 'وقت پر پڑھی', 'tr': 'Vaktinde kıldım', 'id': 'Salat tepat waktu', 'bn': 'সময়মতো পড়েছি', 'ha': 'Na yi ta a kan lokaci',
+    'so': 'Waqtigeeda ayaan ku tukaday', 'fa': 'به‌موقع خواندم', 'ms': 'Solat tepat masa',
+  },
+  'prayed_jamaah_status': {
+    'ar': 'صليتها جماعة', 'en': 'Prayed in congregation', 'am': 'በጀመዓ ጸልያለሁ', 'fr': 'Priée en congrégation', 'sw': 'Nimesali kwa jamaa',
+    'ur': 'باجماعت پڑھی', 'tr': 'Cemaatle kıldım', 'id': 'Salat berjamaah', 'bn': 'জামাতে পড়েছি', 'ha': 'Na yi ta jama\'a',
+    'so': 'Jamaaco ayaan ku tukaday', 'fa': 'با جماعت خواندم', 'ms': 'Solat berjemaah',
+  },
+  'prayed_late_status': {
+    'ar': 'صليتها متأخرًا', 'en': 'Prayed late', 'am': 'ዘግይቼ ጸልያለሁ', 'fr': 'Priée en retard', 'sw': 'Nimesali kwa kuchelewa',
+    'ur': 'دیر سے پڑھی', 'tr': 'Geç kıldım', 'id': 'Salat terlambat', 'bn': 'দেরিতে পড়েছি', 'ha': 'Na yi ta a makare',
+    'so': 'Aan daahay ayaan ku tukaday', 'fa': 'با تأخیر خواندم', 'ms': 'Solat lewat',
+  },
+  'prayer_missed_status': {
+    'ar': 'لم أصلها', 'en': "Didn't pray it", 'am': 'አልጸለይኩም', 'fr': "Non priée", 'sw': 'Sijasali',
+    'ur': 'نہیں پڑھی', 'tr': 'Kılmadım', 'id': 'Belum salat', 'bn': 'পড়িনি', 'ha': 'Ban yi ba',
+    'so': 'Ma tukan', 'fa': 'نخواندم', 'ms': 'Belum solat',
+  },
+  'not_recorded_yet_label': {
+    'ar': 'لم يُسجَّل بعد', 'en': 'Not recorded yet', 'am': 'እስካሁን አልተመዘገበም', 'fr': 'Pas encore enregistré', 'sw': 'Bado haijarekodiwa',
+    'ur': 'ابھی تک درج نہیں ہوا', 'tr': 'Henüz kaydedilmedi', 'id': 'Belum tercatat', 'bn': 'এখনও রেকর্ড করা হয়নি', 'ha': 'Ba a rubuta ba tukuna',
+    'so': 'Wali lama diiwaan gelin', 'fa': 'هنوز ثبت نشده', 'ms': 'Belum direkodkan',
+  },
+  'salah_library_action': {
+    'ar': 'مكتبة إقامة الصلاة', 'en': 'Prayer Library', 'am': 'የጸሎት ቤተ መጻሕፍት', 'fr': 'Bibliothèque de la prière', 'sw': 'Maktaba ya Sala',
+    'ur': 'نماز کی لائبریری', 'tr': 'Namaz Kütüphanesi', 'id': 'Perpustakaan Salat', 'bn': 'নামাজ গ্রন্থাগার', 'ha': 'Laburaren Sallah',
+    'so': 'Maktabadda Salaadda', 'fa': 'کتابخانه نماز', 'ms': 'Perpustakaan Solat',
+  },
+  'salah_stories_action': {
+    'ar': 'قصص الأولين في الصلاة', 'en': 'Stories of the Early Muslims on Prayer', 'am': 'የቀደምት ሙስሊሞች የጸሎት ታሪኮች', 'fr': 'Récits des premiers musulmans sur la prière', 'sw': 'Hadithi za Waislamu wa Kwanza kuhusu Sala',
+    'ur': 'نماز میں سلف کے قصے', 'tr': 'İlk Müslümanların Namaz Hakkındaki Kıssaları', 'id': 'Kisah Para Salaf tentang Salat', 'bn': 'নামাজ নিয়ে পূর্বসূরিদের কাহিনী', 'ha': 'Labaran Magabata Kan Sallah',
+    'so': 'Sheekooyinka Salafka ku Saabsan Salaadda', 'fa': 'داستان‌های سلف درباره نماز', 'ms': 'Kisah Salaf tentang Solat',
+  },
+  'salah_resources_action': {
+    'ar': 'مصادر موصى بها', 'en': 'Recommended Resources', 'am': 'የሚመከሩ ምንጮች', 'fr': 'Ressources recommandées', 'sw': 'Vyanzo Vinavyopendekezwa',
+    'ur': 'تجویز کردہ ذرائع', 'tr': 'Önerilen Kaynaklar', 'id': 'Sumber yang Direkomendasikan', 'bn': 'প্রস্তাবিত উৎস', 'ha': 'Abubuwan da Ake Bada Shawara',
+    'so': 'Ilaha Lagula Talinayo', 'fa': 'منابع پیشنهادی', 'ms': 'Sumber Disyorkan',
+  },
+  'todays_mission_label': {
+    'ar': 'مهمة اليوم', 'en': "Today's Mission", 'am': 'የዛሬ ተልእኮ', 'fr': "Mission du jour", 'sw': 'Dhamira ya Leo',
+    'ur': 'آج کا مشن', 'tr': 'Bugünkü Görev', 'id': 'Misi Hari Ini', 'bn': 'আজকের মিশন', 'ha': 'Manufar Yau',
+    'so': 'Hawsha Maanta', 'fa': 'مأموریت امروز', 'ms': 'Misi Hari Ini',
+  },
+  'view_full_library_action': {
+    'ar': 'عرض المكتبة كاملة', 'en': 'View Full Library', 'am': 'ሙሉ ቤተ መጻሕፍትን ይመልከቱ', 'fr': 'Voir la bibliothèque complète', 'sw': 'Ona Maktaba Kamili',
+    'ur': 'مکمل لائبریری دیکھیں', 'tr': 'Tüm Kütüphaneyi Görüntüle', 'id': 'Lihat Perpustakaan Lengkap', 'bn': 'সম্পূর্ণ গ্রন্থাগার দেখুন', 'ha': 'Duba Cikakken Laburare',
+    'so': 'Fiiri Maktabadda Oo Dhan', 'fa': 'مشاهده کتابخانه کامل', 'ms': 'Lihat Perpustakaan Penuh',
+  },
+  // 2026-08-22: salah_assessment_screen.dart.
+  'dim_muhafazah': {
+    'ar': 'المحافظة على الصلوات', 'en': 'Maintaining the Prayers', 'am': 'ጸሎቶችን መጠበቅ', 'fr': 'Assiduité aux prières', 'sw': 'Kudumisha Sala',
+    'ur': 'نمازوں کی پابندی', 'tr': 'Namazlara Devam', 'id': 'Menjaga Salat', 'bn': 'নামাজ বজায় রাখা', 'ha': 'Kiyaye Sallolin',
+    'so': 'Ilaalinta Salaadaha', 'fa': 'محافظت بر نمازها', 'ms': 'Menjaga Solat',
+  },
+  'dim_on_time': {
+    'ar': 'الصلاة في الوقت', 'en': 'Praying on Time', 'am': 'በሰዓቱ መጸለይ', 'fr': "Prier à l'heure", 'sw': 'Kusali kwa Wakati',
+    'ur': 'وقت پر نماز', 'tr': 'Vaktinde Namaz', 'id': 'Salat Tepat Waktu', 'bn': 'সময়মতো নামাজ', 'ha': 'Sallah a Kan Lokaci',
+    'so': 'Salaadda Waqtigeeda', 'fa': 'نماز به‌موقع', 'ms': 'Solat Tepat Masa',
+  },
+  'dim_jamaah': {
+    'ar': 'الجماعة', 'en': 'Congregation', 'am': 'ጀመዓ', 'fr': 'La congrégation', 'sw': 'Jamaa',
+    'ur': 'باجماعت', 'tr': 'Cemaat', 'id': 'Berjamaah', 'bn': 'জামাত', 'ha': "Jama'a",
+    'so': 'Jamaaco', 'fa': 'جماعت', 'ms': 'Berjemaah',
+  },
+  'dim_khushu': {
+    'ar': 'الخشوع', 'en': 'Khushu (Humility)', 'am': 'ኹሹዕ (ትህትና)', 'fr': 'Khoushou (humilité)', 'sw': 'Unyenyekevu (Khushu)',
+    'ur': 'خشوع', 'tr': 'Huşu', 'id': 'Khusyuk', 'bn': 'খুশু (একাগ্রতা)', 'ha': "Kaskantar da kai (Khushu'i)",
+    'so': 'Khushuuc', 'fa': 'خشوع', 'ms': 'Khusyuk',
+  },
+  'dim_rawatib': {
+    'ar': 'السنن الرواتب', 'en': 'The Regular Sunnah Prayers', 'am': 'መደበኛ ሱናዎች', 'fr': 'Les sunnas régulières', 'sw': 'Sunna za Kawaida',
+    'ur': 'سنن راتبہ', 'tr': 'Nafile Namazlar (Revatib)', 'id': 'Sunnah Rawatib', 'bn': 'সুন্নাতে রাওয়াতিব', 'ha': "Sunnonin Yau da Kullum",
+    'so': 'Sunnooyinka Joogtada ah', 'fa': 'سنت‌های رواتب', 'ms': 'Sunat Rawatib',
+  },
+  'dim_adhkar': {
+    'ar': 'أذكار الصلاة', 'en': 'Prayer Adhkar', 'am': 'የጸሎት አዝካር', 'fr': 'Les adhkar de la prière', 'sw': 'Adhkar za Sala',
+    'ur': 'نماز کے اذکار', 'tr': 'Namaz Ezkârı', 'id': 'Dzikir Salat', 'bn': 'নামাজের আজকার', 'ha': 'Azkarin Sallah',
+    'so': 'Adkaarka Salaadda', 'fa': 'اذکار نماز', 'ms': 'Zikir Solat',
+  },
+  'dim_understanding': {
+    'ar': 'فهم ما تقرأ', 'en': 'Understanding What You Recite', 'am': 'የሚያነቡትን መረዳት', 'fr': 'Comprendre ce que vous récitez', 'sw': 'Kuelewa Unayosoma',
+    'ur': 'جو پڑھتے ہیں اسے سمجھنا', 'tr': 'Okuduğunu Anlamak', 'id': 'Memahami yang Dibaca', 'bn': 'যা পড়ছেন তা বোঝা', 'ha': 'Fahimtar Abin da Kake Karantawa',
+    'so': 'Fahamka Waxa Aad Akhrinayso', 'fa': 'فهم آنچه می‌خوانید', 'ms': 'Memahami Apa yang Dibaca',
+  },
+  'weekly_progress_prefix': {
+    'ar': 'صليت', 'en': 'You prayed', 'am': 'ጸልየዋል', 'fr': 'Vous avez prié', 'sw': 'Umesali',
+    'ur': 'آپ نے پڑھی', 'tr': 'Kıldınız', 'id': 'Anda salat', 'bn': 'আপনি পড়েছেন', 'ha': 'Ka yi',
+    'so': 'Waad tukatay', 'fa': 'خواندید', 'ms': 'Anda telah solat',
+  },
+  'weekly_progress_middle': {
+    'ar': 'من', 'en': 'of', 'am': 'ከ', 'fr': 'sur', 'sw': 'kati ya',
+    'ur': 'میں سے', 'tr': '/', 'id': 'dari', 'bn': 'এর মধ্যে', 'ha': 'daga cikin',
+    'so': 'oo ka mid ah', 'fa': 'از', 'ms': 'daripada',
+  },
+  'weekly_progress_suffix': {
+    'ar': 'صلاة هذا الأسبوع (في وقتها أو جماعة)', 'en': 'prayers this week (on time or in congregation)', 'am': 'ጸሎቶች በዚህ ሳምንት (በሰዓቱ ወይም በጀመዓ)', 'fr': 'prières cette semaine (à l\'heure ou en congrégation)', 'sw': 'sala wiki hii (kwa wakati au kwa jamaa)',
+    'ur': 'نمازیں اس ہفتے (وقت پر یا باجماعت)', 'tr': 'namazı bu hafta (vaktinde veya cemaatle)', 'id': 'salat minggu ini (tepat waktu atau berjamaah)', 'bn': 'নামাজ এই সপ্তাহে (সময়মতো বা জামাতে)', 'ha': "sallah a wannan makon (a kan lokaci ko jama'a)",
+    'so': 'salaad usbuucan (waqtigeeda ama jamaaco)', 'fa': 'نماز در این هفته (به‌موقع یا با جماعت)', 'ms': 'solat minggu ini (tepat masa atau berjemaah)',
+  },
+  'week_in_detail_header': {
+    'ar': 'أسبوعك بالتفصيل', 'en': 'Your Week in Detail', 'am': 'ሳምንትዎ በዝርዝር', 'fr': 'Votre semaine en détail', 'sw': 'Wiki Yako kwa Undani',
+    'ur': 'آپ کا ہفتہ تفصیل سے', 'tr': 'Haftanız Ayrıntılı', 'id': 'Minggu Anda Secara Detail', 'bn': 'আপনার সপ্তাহ বিস্তারিত', 'ha': 'Makonka Dalla-dalla',
+    'so': 'Usbuucaaga Faahfaahsan', 'fa': 'هفته شما به‌تفصیل', 'ms': 'Minggu Anda Secara Terperinci',
+  },
+  'rate_yourself_honestly_subtitle': {
+    'ar': 'قيّم نفسك بصدق — لا أحد سيراها سواك', 'en': "Rate yourself honestly — no one will see this but you", 'am': 'ራስዎን በእውነት ይገምግሙ — ከእርስዎ በቀር ማንም አያየውም', 'fr': "Évaluez-vous honnêtement — personne d'autre que vous ne le verra", 'sw': 'Jipime kwa uaminifu — hakuna atakayeona hii isipokuwa wewe',
+    'ur': 'خود کو ایمانداری سے پرکھیں — یہ آپ کے سوا کوئی نہیں دیکھے گا', 'tr': 'Kendinizi dürüstçe değerlendirin — bunu sizden başka kimse görmeyecek', 'id': 'Nilai diri Anda dengan jujur — tidak ada yang akan melihatnya selain Anda', 'bn': 'নিজেকে সততার সাথে মূল্যায়ন করুন — আপনি ছাড়া কেউ এটি দেখবে না', 'ha': 'Ka tantance kanka da gaskiya — babu wanda zai gan shi sai kai',
+    'so': 'Si daacad ah isu qiimee — ma jiro cid arki doonta tan adiga mooyee', 'fa': 'خودتان را صادقانه ارزیابی کنید — جز شما کسی این را نمی‌بیند', 'ms': 'Nilai diri anda dengan jujur — tiada siapa akan melihat ini selain anda',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

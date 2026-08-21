@@ -1,28 +1,38 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/salah_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
-const _dimensionLabels = {
-  'muhafazah': 'المحافظة على الصلوات',
-  'onTime': 'الصلاة في الوقت',
-  'jamaah': 'الجماعة',
-  'khushu': 'الخشوع',
-  'rawatib': 'السنن الرواتب',
-  'adhkar': 'أذكار الصلاة',
-  'understanding': 'فهم ما تقرأ',
+const _dimensionLabelKeys = {
+  'muhafazah': 'dim_muhafazah',
+  'onTime': 'dim_on_time',
+  'jamaah': 'dim_jamaah',
+  'khushu': 'dim_khushu',
+  'rawatib': 'dim_rawatib',
+  'adhkar': 'dim_adhkar',
+  'understanding': 'dim_understanding',
 };
 
-const _prayerShortLabels = {
-  'fajr': 'الفجر',
-  'dhuhr': 'الظهر',
-  'asr': 'العصر',
-  'maghrib': 'المغرب',
-  'isha': 'العشاء',
+const _prayerShortLabelKeys = {
+  'fajr': 'prayer_fajr',
+  'dhuhr': 'prayer_dhuhr',
+  'asr': 'prayer_asr',
+  'maghrib': 'prayer_maghrib',
+  'isha': 'prayer_isha',
 };
 
-const _dayLabels = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];
+const _dayLabelKeys = [
+  'weekday_saturday',
+  'weekday_sunday',
+  'weekday_monday',
+  'weekday_tuesday',
+  'weekday_wednesday',
+  'weekday_thursday',
+  'weekday_friday',
+];
 
 Color _statusColor(PrayerStatus? status) => switch (status) {
       PrayerStatus.onTime || PrayerStatus.jamaah => AppColors.primary,
@@ -78,26 +88,30 @@ class _SalahAssessmentScreenState extends State<SalahAssessmentScreen> {
   @override
   Widget build(BuildContext context) {
     final (completed, total) = _weeklyCount;
-    return Scaffold(
-      appBar: AppBar(title: const Text('تقييمي الأسبوعي')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('weekly_assessment_tooltip', lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
-                  child: Text('صليت $completed من $total صلاة هذا الأسبوع (في وقتها أو جماعة)', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                  child: Text(
+                      '${basicText('weekly_progress_prefix', lang)} $completed ${basicText('weekly_progress_middle', lang)} $total ${basicText('weekly_progress_suffix', lang)}',
+                      style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
                 ),
                 const SizedBox(height: 16),
-                const Text('أسبوعك بالتفصيل', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+                Text(basicText('week_in_detail_header', lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 10),
                 if (_grid.isNotEmpty) _WeeklyGrid(grid: _grid),
                 const SizedBox(height: 20),
-                const Text('قيّم نفسك بصدق — لا أحد سيراها سواك', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                Text(basicText('rate_yourself_honestly_subtitle', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                 const SizedBox(height: 12),
-                ..._dimensionLabels.entries.map((entry) {
+                ..._dimensionLabelKeys.entries.map((entry) {
                   final rating = _ratings[entry.key] ?? 0;
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
@@ -106,7 +120,7 @@ class _SalahAssessmentScreenState extends State<SalahAssessmentScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(entry.value, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                        Text(basicText(entry.value, lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 6),
                         Row(
                           children: List.generate(5, (i) {
@@ -129,6 +143,7 @@ class _SalahAssessmentScreenState extends State<SalahAssessmentScreen> {
                 }),
               ],
             ),
+      ),
     );
   }
 }
@@ -144,6 +159,7 @@ class _WeeklyGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
@@ -152,15 +168,15 @@ class _WeeklyGrid extends StatelessWidget {
           Row(
             children: [
               const SizedBox(width: 44),
-              ..._dayLabels.map((d) => Expanded(child: Text(d, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted)))),
+              ..._dayLabelKeys.map((k) => Expanded(child: Text(basicText(k, lang), textAlign: TextAlign.center, style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted)))),
             ],
           ),
           const SizedBox(height: 6),
-          ..._prayerShortLabels.entries.map((prayer) => Padding(
+          ..._prayerShortLabelKeys.entries.map((prayer) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 3),
                 child: Row(
                   children: [
-                    SizedBox(width: 44, child: Text(prayer.value, style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700))),
+                    SizedBox(width: 44, child: Text(basicText(prayer.value, lang), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700))),
                     ...grid.map((day) => Expanded(
                           child: Center(
                             child: Container(
