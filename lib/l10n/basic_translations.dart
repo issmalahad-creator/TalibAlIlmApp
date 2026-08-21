@@ -2739,6 +2739,149 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'میری لائبریری سے حذف شدہ کتاب', 'tr': 'Kütüphanemden silinen bir kitap', 'id': 'Buku yang dihapus dari perpustakaan saya', 'bn': 'আমার গ্রন্থাগার থেকে মোছা একটি বই', 'ha': 'Littafi da aka share daga laburare na',
     'so': 'Buug laga tirtiray maktabadayda', 'fa': 'کتابی که از کتابخانه من حذف شده', 'ms': 'Buku dipadam daripada perpustakaan saya',
   },
+  // 2026-08-22: shared subject-area labels (placement_repository.dart) +
+  // mission_screen.dart. quran/adhkar reuse consistency_quran_label /
+  // consistency_dhikr_label already added for worship_coach_screen.dart.
+  'subject_hadith_label': {
+    'ar': 'الحديث', 'en': 'Hadith', 'am': 'ሐዲስ', 'fr': 'Le hadith', 'sw': 'Hadithi',
+    'ur': 'حدیث', 'tr': 'Hadis', 'id': 'Hadits', 'bn': 'হাদিস', 'ha': 'Hadisi',
+    'so': 'Xadiiska', 'fa': 'حدیث', 'ms': 'Hadis',
+  },
+  'subject_aqeedah_label': {
+    'ar': 'العقيدة', 'en': 'Aqeedah', 'am': 'ዐቂዳ', 'fr': "L'aqida", 'sw': 'Aqidah',
+    'ur': 'عقیدہ', 'tr': 'Akide', 'id': 'Akidah', 'bn': 'আকিদা', 'ha': 'Akida',
+    'so': 'Caqiidada', 'fa': 'عقیده', 'ms': 'Akidah',
+  },
+  'subject_arabic_label': {
+    'ar': 'العربية', 'en': 'Arabic', 'am': 'ዐረብኛ', 'fr': 'Arabe', 'sw': 'Kiarabu',
+    'ur': 'عربی', 'tr': 'Arapça', 'id': 'Bahasa Arab', 'bn': 'আরবি', 'ha': 'Larabci',
+    'so': 'Carabi', 'fa': 'عربی', 'ms': 'Bahasa Arab',
+  },
+  'subject_tajweed_label': {
+    'ar': 'التجويد', 'en': 'Tajweed', 'am': 'ተጅዊድ', 'fr': 'Le tajwid', 'sw': 'Tajwid',
+    'ur': 'تجوید', 'tr': 'Tecvid', 'id': 'Tajwid', 'bn': 'তাজবিদ', 'ha': 'Tajwidi',
+    'so': 'Tajwiidka', 'fa': 'تجوید', 'ms': 'Tajwid',
+  },
+  'mission_title': {
+    'ar': 'رسالتي', 'en': 'My Mission', 'am': 'ተልእኮዬ', 'fr': 'Ma mission', 'sw': 'Dhamira Yangu',
+    'ur': 'میرا مشن', 'tr': 'Görevim', 'id': 'Misi Saya', 'bn': 'আমার মিশন', 'ha': 'Manufata',
+    'so': 'Hawshayda', 'fa': 'مأموریت من', 'ms': 'Misi Saya',
+  },
+  'level_beginner_label': {
+    'ar': 'مبتدئ', 'en': 'Beginner', 'am': 'ጀማሪ', 'fr': 'Débutant', 'sw': 'Mwanzo',
+    'ur': 'ابتدائی', 'tr': 'Başlangıç', 'id': 'Pemula', 'bn': 'শিক্ষানবিশ', 'ha': 'Mai Farawa',
+    'so': 'Bilowga', 'fa': 'مبتدی', 'ms': 'Permulaan',
+  },
+  'level_intermediate_label': {
+    'ar': 'متوسط', 'en': 'Intermediate', 'am': 'መካከለኛ', 'fr': 'Intermédiaire', 'sw': 'Wastani',
+    'ur': 'درمیانہ', 'tr': 'Orta', 'id': 'Menengah', 'bn': 'মধ্যম', 'ha': 'Matsakaici',
+    'so': 'Dhexdhexaad', 'fa': 'متوسط', 'ms': 'Pertengahan',
+  },
+  'level_advanced_label': {
+    'ar': 'متقدم', 'en': 'Advanced', 'am': 'ከፍተኛ', 'fr': 'Avancé', 'sw': 'Juu',
+    'ur': 'اعلی درجہ', 'tr': 'İleri', 'id': 'Mahir', 'bn': 'উন্নত', 'ha': 'Mafi Gaba',
+    'so': 'Sare', 'fa': 'پیشرفته', 'ms': 'Mahir',
+  },
+  'previous_step_action': {
+    'ar': 'السابق', 'en': 'Previous', 'am': 'የቀድሞው', 'fr': 'Précédent', 'sw': 'Iliyotangulia',
+    'ur': 'پچھلا', 'tr': 'Önceki', 'id': 'Sebelumnya', 'bn': 'পূর্ববর্তী', 'ha': 'Na Baya',
+    'so': 'Kii Hore', 'fa': 'قبلی', 'ms': 'Sebelumnya',
+  },
+  'next_step_action': {
+    'ar': 'التالي', 'en': 'Next', 'am': 'ቀጣይ', 'fr': 'Suivant', 'sw': 'Ifuatayo',
+    'ur': 'اگلا', 'tr': 'İleri', 'id': 'Selanjutnya', 'bn': 'পরবর্তী', 'ha': 'Na Gaba',
+    'so': 'Xiga', 'fa': 'بعدی', 'ms': 'Seterusnya',
+  },
+  'show_my_map_action': {
+    'ar': 'أظهر خريطتي', 'en': 'Show My Map', 'am': 'ካርታዬን አሳይ', 'fr': 'Afficher ma carte', 'sw': 'Onyesha Ramani Yangu',
+    'ur': 'میرا نقشہ دکھائیں', 'tr': 'Haritamı Göster', 'id': 'Tampilkan Peta Saya', 'bn': 'আমার মানচিত্র দেখান', 'ha': 'Nuna Taswirata',
+    'so': 'Tus Khariidaddayda', 'fa': 'نقشه من را نشان بده', 'ms': 'Tunjukkan Peta Saya',
+  },
+  'mission_interest_step_title': {
+    'ar': 'ماذا تحب أن تتعلم أكثر؟', 'en': 'What do you enjoy learning most?', 'am': 'በጣም ማጥናት የሚወዱት ምንድን ነው?', 'fr': "Qu'aimez-vous apprendre le plus ?", 'sw': 'Ni nini unachopenda kujifunza zaidi?',
+    'ur': 'آپ سب سے زیادہ کیا سیکھنا پسند کرتے ہیں؟', 'tr': 'En çok neyi öğrenmeyi seviyorsunuz?', 'id': 'Apa yang paling Anda sukai untuk dipelajari?', 'bn': 'আপনি সবচেয়ে বেশি কী শিখতে ভালোবাসেন?', 'ha': 'Wane abu ka fi so ka koya?',
+    'so': 'Muxuu yahay waxa aad ugu jeceshahay inaad barato?', 'fa': 'بیشتر از همه علاقه‌مند به یادگیری چه چیزی هستید؟', 'ms': 'Apakah yang paling anda gemari untuk dipelajari?',
+  },
+  'mission_rating_step_title': {
+    'ar': 'قيّم نفسك في كل مجال (تصريح ذاتي فقط)', 'en': 'Rate yourself in each area (self-reported only)', 'am': 'በእያንዳንዱ ዘርፍ ራስዎን ይገምግሙ (እራስ-ሪፖርት ብቻ)', 'fr': 'Évaluez-vous dans chaque domaine (auto-déclaration uniquement)', 'sw': 'Jipime katika kila eneo (ni taarifa binafsi tu)',
+    'ur': 'ہر شعبے میں خود کو پرکھیں (صرف خود بیانی)', 'tr': 'Her alanda kendinizi değerlendirin (yalnızca kendi beyanınız)', 'id': 'Nilai diri Anda di setiap bidang (hanya laporan mandiri)', 'bn': 'প্রতিটি ক্ষেত্রে নিজেকে মূল্যায়ন করুন (শুধুমাত্র স্ব-প্রতিবেদন)', 'ha': 'Kimanta kanka a kowane fanni (bayani na kanka kawai)',
+    'so': 'Isqiimee qayb kasta (waa oo qudha sheegasho naftaada)', 'fa': 'در هر حوزه خودتان را ارزیابی کنید (فقط گزارش شخصی)', 'ms': 'Nilai diri anda dalam setiap bidang (laporan sendiri sahaja)',
+  },
+  'mission_minutes_step_title': {
+    'ar': 'كم دقيقة تستطيع التعلّم يوميًا؟', 'en': 'How many minutes can you learn daily?', 'am': 'በየቀኑ ስንት ደቂቃ ማጥናት ይችላሉ?', 'fr': 'Combien de minutes pouvez-vous apprendre par jour ?', 'sw': 'Unaweza kujifunza dakika ngapi kila siku?',
+    'ur': 'آپ روزانہ کتنے منٹ سیکھ سکتے ہیں؟', 'tr': 'Günde kaç dakika öğrenebilirsiniz?', 'id': 'Berapa menit Anda bisa belajar setiap hari?', 'bn': 'আপনি প্রতিদিন কত মিনিট শিখতে পারেন?', 'ha': 'Minti nawa za ka iya koyo kullum?',
+    'so': 'Immisa daqiiqo ayaad barasho maalin kasta awoodaa?', 'fa': 'روزانه چند دقیقه می‌توانید یاد بگیرید؟', 'ms': 'Berapa minit anda boleh belajar setiap hari?',
+  },
+  'mission_minutes_unit_suffix': {
+    'ar': 'دقيقة', 'en': 'min', 'am': 'ደቂቃ', 'fr': 'min', 'sw': 'dakika',
+    'ur': 'منٹ', 'tr': 'dk', 'id': 'menit', 'bn': 'মিনিট', 'ha': 'minti',
+    'so': 'daqiiqo', 'fa': 'دقیقه', 'ms': 'minit',
+  },
+  'mission_goal_step_title': {
+    'ar': 'ما هدفك خلال سنة؟ (اختياري)', 'en': 'What is your goal within a year? (optional)', 'am': 'በአንድ ዓመት ውስጥ ግብዎ ምንድን ነው? (አማራጭ)', 'fr': "Quel est votre objectif dans un an ? (facultatif)", 'sw': 'Lengo lako ndani ya mwaka mmoja ni nini? (si lazima)',
+    'ur': 'ایک سال میں آپ کا ہدف کیا ہے؟ (اختیاری)', 'tr': 'Bir yıl içindeki hedefiniz nedir? (isteğe bağlı)', 'id': 'Apa tujuan Anda dalam satu tahun? (opsional)', 'bn': 'এক বছরের মধ্যে আপনার লক্ষ্য কী? (ঐচ্ছিক)', 'ha': 'Menene manufarka a cikin shekara guda? (na zaɓi)',
+    'so': 'Waa maxay yoolkaaga sanad gudahiisa? (ikhtiyaari)', 'fa': 'هدف شما در یک سال چیست؟ (اختیاری)', 'ms': 'Apakah matlamat anda dalam setahun? (pilihan)',
+  },
+  'mission_goal_hint': {
+    'ar': 'مثال: أحفظ 5 أجزاء وأتقن الواسطية', 'en': "Example: memorize 5 juz' and master al-Wasitiyyah", 'am': 'ምሳሌ፦ 5 ጁዝእ አጥናት እና ዋሲጢያን ተካን', 'fr': "Exemple : mémoriser 5 juz' et maîtriser al-Wasitiyya", 'sw': 'Mfano: kuhifadhi juzuu 5 na kubobea al-Wasitiyyah',
+    'ur': 'مثال: 5 پارے حفظ کروں اور واسطیہ میں مہارت حاصل کروں', 'tr': "Örnek: 5 cüz ezberlemek ve el-Vasıtiyye'de ustalaşmak", 'id': "Contoh: menghafal 5 juz dan menguasai al-Wasitiyyah", 'bn': 'উদাহরণ: ৫ পারা হিফজ করা এবং ওয়াসিতিয়্যাহ আয়ত্ত করা', 'ha': "Misali: haddace juzu'i 5 da kware a al-Wasitiyyah",
+    'so': "Tusaale: xifdhi 5 juz' oo aqoon fiican u yeelo al-Wasitiyyah", 'fa': 'مثال: حفظ ۵ جزء و تسلط بر واسطیه', 'ms': 'Contoh: menghafal 5 juzuk dan menguasai al-Wasitiyyah',
+  },
+  'mission_one_year_goal_label': {
+    'ar': '🎯 هدفك خلال سنة', 'en': '🎯 Your goal within a year', 'am': '🎯 በአንድ ዓመት ውስጥ ግብዎ', 'fr': '🎯 Votre objectif dans un an', 'sw': '🎯 Lengo lako ndani ya mwaka',
+    'ur': '🎯 ایک سال میں آپ کا ہدف', 'tr': '🎯 Bir yıl içindeki hedefiniz', 'id': '🎯 Tujuan Anda dalam satu tahun', 'bn': '🎯 এক বছরের মধ্যে আপনার লক্ষ্য', 'ha': '🎯 Manufarka a cikin shekara',
+    'so': '🎯 Yoolkaaga sanad gudahiisa', 'fa': '🎯 هدف شما در یک سال', 'ms': '🎯 Matlamat anda dalam setahun',
+  },
+  'strongest_area_label': {
+    'ar': 'أقوى مجال', 'en': 'Strongest Area', 'am': 'ጠንካራ ዘርፍ', 'fr': 'Domaine le plus fort', 'sw': 'Eneo Imara Zaidi',
+    'ur': 'مضبوط ترین شعبہ', 'tr': 'En Güçlü Alan', 'id': 'Bidang Terkuat', 'bn': 'সবচেয়ে শক্তিশালী ক্ষেত্র', 'ha': 'Fanni Mafi Ƙarfi',
+    'so': 'Qaybta Ugu Xoogga Badan', 'fa': 'قوی‌ترین حوزه', 'ms': 'Bidang Terkuat',
+  },
+  'weakest_area_label': {
+    'ar': 'أضعف مجال', 'en': 'Weakest Area', 'am': 'ደካማ ዘርፍ', 'fr': 'Domaine le plus faible', 'sw': 'Eneo Dhaifu Zaidi',
+    'ur': 'کمزور ترین شعبہ', 'tr': 'En Zayıf Alan', 'id': 'Bidang Terlemah', 'bn': 'দুর্বলতম ক্ষেত্র', 'ha': 'Fanni Mafi Rauni',
+    'so': 'Qaybta Ugu Daciifsan', 'fa': 'ضعیف‌ترین حوزه', 'ms': 'Bidang Terlemah',
+  },
+  'average_label': {
+    'ar': 'المتوسط', 'en': 'Average', 'am': 'አማካይ', 'fr': 'Moyenne', 'sw': 'Wastani',
+    'ur': 'اوسط', 'tr': 'Ortalama', 'id': 'Rata-rata', 'bn': 'গড়', 'ha': 'Matsakaici',
+    'so': 'Celceliska', 'fa': 'میانگین', 'ms': 'Purata',
+  },
+  'your_map_header': {
+    'ar': 'خريطتك', 'en': 'Your Map', 'am': 'ካርታዎ', 'fr': 'Votre carte', 'sw': 'Ramani Yako',
+    'ur': 'آپ کا نقشہ', 'tr': 'Haritanız', 'id': 'Peta Anda', 'bn': 'আপনার মানচিত্র', 'ha': 'Taswirarka',
+    'so': 'Khariiddaada', 'fa': 'نقشه شما', 'ms': 'Peta Anda',
+  },
+  'biggest_opportunity_prefix': {
+    'ar': 'أكبر فرصة لتحسينك الآن:', 'en': 'Your biggest opportunity to improve right now:', 'am': 'አሁን ለማሻሻል ትልቁ ዕድልዎ፦', 'fr': "Votre plus grande opportunité d'amélioration maintenant :", 'sw': 'Fursa yako kubwa ya kuboresha sasa:',
+    'ur': 'ابھی بہتری کا سب سے بڑا موقع:', 'tr': 'Şu anda gelişmek için en büyük fırsatınız:', 'id': 'Peluang terbesar Anda untuk berkembang sekarang:', 'bn': 'এখন উন্নতির জন্য আপনার সবচেয়ে বড় সুযোগ:', 'ha': 'Babbar dama don ingantawa yanzu:',
+    'so': 'Fursaddaada ugu weyn ee horumarinta hadda:', 'fa': 'بزرگ‌ترین فرصت شما برای بهبود اکنون:', 'ms': 'Peluang terbesar anda untuk berkembang sekarang:',
+  },
+  'start_here_action': {
+    'ar': 'ابدأ من هنا', 'en': 'Start Here', 'am': 'ከዚህ ይጀምሩ', 'fr': 'Commencez ici', 'sw': 'Anzia Hapa',
+    'ur': 'یہاں سے شروع کریں', 'tr': 'Buradan Başla', 'id': 'Mulai Dari Sini', 'bn': 'এখান থেকে শুরু করুন', 'ha': 'Fara Daga Nan',
+    'so': 'Halkan ka Bilow', 'fa': 'از اینجا شروع کن', 'ms': 'Mula Dari Sini',
+  },
+  'suggested_level_prefix': {
+    'ar': 'المستوى المقترح:', 'en': 'Suggested level:', 'am': 'የተጠቆመ ደረጃ፦', 'fr': 'Niveau suggéré :', 'sw': 'Kiwango Kinachopendekezwa:',
+    'ur': 'تجویز کردہ سطح:', 'tr': 'Önerilen Seviye:', 'id': 'Tingkat yang Disarankan:', 'bn': 'প্রস্তাবিত স্তর:', 'ha': 'Matsayin da Aka Bada Shawara:',
+    'so': 'Heerka la Soo Jeediyay:', 'fa': 'سطح پیشنهادی:', 'ms': 'Tahap Dicadangkan:',
+  },
+  'use_it_suffix_question': {
+    'ar': '— استخدمه؟', 'en': '— use it?', 'am': '— ይጠቀሙበት?', 'fr': "— l'utiliser ?", 'sw': '— tumia?',
+    'ur': '— اسے استعمال کریں؟', 'tr': '— kullanılsın mı?', 'id': '— gunakan?', 'bn': '— ব্যবহার করবেন?', 'ha': '— a yi amfani da shi?',
+    'so': '— isticmaal?', 'fa': '— استفاده شود؟', 'ms': '— guna?',
+  },
+  'use_it_action': {
+    'ar': 'استخدمه', 'en': 'Use It', 'am': 'ይጠቀሙበት', 'fr': 'Utiliser', 'sw': 'Tumia',
+    'ur': 'استعمال کریں', 'tr': 'Kullan', 'id': 'Gunakan', 'bn': 'ব্যবহার করুন', 'ha': 'Yi Amfani',
+    'so': 'Isticmaal', 'fa': 'استفاده کن', 'ms': 'Guna',
+  },
+  'reassess_action': {
+    'ar': 'أعد التقييم', 'en': 'Reassess', 'am': 'እንደገና ይገምግሙ', 'fr': 'Réévaluer', 'sw': 'Pima Tena',
+    'ur': 'دوبارہ جانچیں', 'tr': 'Yeniden Değerlendir', 'id': 'Nilai Ulang', 'bn': 'পুনর্মূল্যায়ন করুন', 'ha': 'Sake Kimantawa',
+    'so': 'Dib u Qiimee', 'fa': 'ارزیابی مجدد', 'ms': 'Nilai Semula',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

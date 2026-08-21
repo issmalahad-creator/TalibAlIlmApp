@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
+import '../l10n/basic_translations.dart';
 import '../utils/month.dart';
 
 /// The 6 areas "رسالتي" assesses — deliberately limited to pillars that
@@ -16,6 +17,21 @@ const placementAreaLabels = {
   'tajweed': 'التجويد',
   'adhkar': 'الأذكار',
 };
+
+const _placementAreaLabelKeys = {
+  'quran': 'consistency_quran_label',
+  'hadith': 'subject_hadith_label',
+  'aqeedah': 'subject_aqeedah_label',
+  'arabic': 'subject_arabic_label',
+  'tajweed': 'subject_tajweed_label',
+  'adhkar': 'consistency_dhikr_label',
+};
+
+/// Translated subject-area name — UI chrome, unlike deep content strings.
+String placementAreaLabelFor(String area, String lang) {
+  final key = _placementAreaLabelKeys[area];
+  return key == null ? (placementAreaLabels[area] ?? area) : basicText(key, lang);
+}
 
 class AreaRating {
   final String area;

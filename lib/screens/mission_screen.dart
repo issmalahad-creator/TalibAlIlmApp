@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../repositories/placement_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../widgets/loading_view.dart';
@@ -24,7 +26,7 @@ Widget _screenForArea(String area) => switch (area) {
       _ => const QuranBrowseScreen(),
     };
 
-const _levelLabels = {'beginner': 'مبتدئ', 'intermediate': 'متوسط', 'advanced': 'متقدم'};
+const _levelLabelKeys = {'beginner': 'level_beginner_label', 'intermediate': 'level_intermediate_label', 'advanced': 'level_advanced_label'};
 
 /// "رسالتي" (إيكيغاي طالب العلم) — Ismail's 2026-08-17 request: a short
 /// self-reflection quiz (ماذا تحب / قيّم نفسك / وقتك المتاح / هدفك خلال
@@ -72,10 +74,12 @@ class _MissionScreenState extends State<MissionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('رسالتي')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('mission_title', lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.flag_outlined, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.flag_outlined, message: basicText('loading_generic', lang))
           : _hasCompleted
               ? _ResultsView(
                   ratings: _ratings,
@@ -91,6 +95,7 @@ class _MissionScreenState extends State<MissionScreen> {
                   },
                 )
               : _QuizFlow(repo: _repo, onDone: _load),
+      ),
     );
   }
 }
@@ -129,6 +134,7 @@ class _QuizFlowState extends State<_QuizFlow> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return Column(
       children: [
         Padding(
@@ -168,13 +174,13 @@ class _QuizFlowState extends State<_QuizFlow> {
           child: Row(
             children: [
               if (_step > 0)
-                Expanded(child: OutlinedButton(onPressed: () => setState(() => _step--), child: const Text('السابق'))),
+                Expanded(child: OutlinedButton(onPressed: () => setState(() => _step--), child: Text(basicText('previous_step_action', lang)))),
               if (_step > 0) const SizedBox(width: 10),
               Expanded(
                 flex: 2,
                 child: FilledButton(
                   onPressed: _step < 3 ? () => setState(() => _step++) : _submit,
-                  child: Text(_step < 3 ? 'التالي' : 'أظهر خريطتي'),
+                  child: Text(_step < 3 ? basicText('next_step_action', lang) : basicText('show_my_map_action', lang)),
                 ),
               ),
             ],
@@ -210,14 +216,15 @@ class _InterestStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return _StepScaffold(
-      title: 'ماذا تحب أن تتعلم أكثر؟',
+      title: basicText('mission_interest_step_title', lang),
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
         children: placementAreas
             .map((a) => FilterChip(
-                  label: Text(placementAreaLabels[a]!),
+                  label: Text(placementAreaLabelFor(a, lang)),
                   selected: selected.contains(a),
                   onSelected: (_) => onToggle(a),
                 ))
@@ -234,8 +241,9 @@ class _RatingStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return _StepScaffold(
-      title: 'قيّم نفسك في كل مجال (تصريح ذاتي فقط)',
+      title: basicText('mission_rating_step_title', lang),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: placementAreas
@@ -244,7 +252,7 @@ class _RatingStep extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(placementAreaLabels[a]!, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(placementAreaLabelFor(a, lang), style: const TextStyle(fontWeight: FontWeight.w700)),
                       Row(
                         children: List.generate(5, (i) {
                           final filled = i < ratings[a]!;
@@ -270,12 +278,13 @@ class _MinutesStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return _StepScaffold(
-      title: 'كم دقيقة تستطيع التعلّم يوميًا؟',
+      title: basicText('mission_minutes_step_title', lang),
       child: Wrap(
         spacing: 8,
         children: _dailyMinuteOptions
-            .map((m) => ChoiceChip(label: Text('$m دقيقة'), selected: selected == m, onSelected: (_) => onSelect(m)))
+            .map((m) => ChoiceChip(label: Text('$m ${basicText('mission_minutes_unit_suffix', lang)}'), selected: selected == m, onSelected: (_) => onSelect(m)))
             .toList(),
       ),
     );
@@ -288,12 +297,13 @@ class _GoalStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return _StepScaffold(
-      title: 'ما هدفك خلال سنة؟ (اختياري)',
+      title: basicText('mission_goal_step_title', lang),
       child: TextField(
         controller: controller,
         maxLines: 4,
-        decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'مثال: أحفظ 5 أجزاء وأتقن الواسطية'),
+        decoration: InputDecoration(border: const OutlineInputBorder(), hintText: basicText('mission_goal_hint', lang)),
       ),
     );
   }
@@ -315,6 +325,7 @@ class _ResultsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
     final byArea = {for (final r in ratings) r.area: r};
     final sorted = [...ratings]..sort((a, b) => a.rating.compareTo(b.rating));
     final weakest = sorted.isEmpty ? null : sorted.first;
@@ -334,7 +345,7 @@ class _ResultsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('🎯 هدفك خلال سنة', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+                Text(basicText('mission_one_year_goal_label', lang), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Text(mission.oneYearGoal!, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700)),
               ],
@@ -342,15 +353,15 @@ class _ResultsView extends StatelessWidget {
           ),
         Row(
           children: [
-            Expanded(child: _KpiCard(label: 'أقوى مجال', value: strongest == null ? '—' : placementAreaLabels[strongest.area]!)),
+            Expanded(child: _KpiCard(label: basicText('strongest_area_label', lang), value: strongest == null ? '—' : placementAreaLabelFor(strongest.area, lang))),
             const SizedBox(width: 8),
-            Expanded(child: _KpiCard(label: 'أضعف مجال', value: weakest == null ? '—' : placementAreaLabels[weakest.area]!)),
+            Expanded(child: _KpiCard(label: basicText('weakest_area_label', lang), value: weakest == null ? '—' : placementAreaLabelFor(weakest.area, lang))),
             const SizedBox(width: 8),
-            Expanded(child: _KpiCard(label: 'المتوسط', value: avg.toStringAsFixed(1))),
+            Expanded(child: _KpiCard(label: basicText('average_label', lang), value: avg.toStringAsFixed(1))),
           ],
         ),
         const SizedBox(height: 20),
-        const Text('خريطتك', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+        Text(basicText('your_map_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
         const SizedBox(height: 10),
         GridView.count(
           crossAxisCount: 3,
@@ -367,7 +378,7 @@ class _ResultsView extends StatelessWidget {
               duration: AppMotion.premium,
               curve: AppMotion.entranceCurve,
               builder: (context, t, child) => Opacity(opacity: t, child: Transform.scale(scale: 0.85 + 0.15 * t, child: child)),
-              child: _AreaRing(label: placementAreaLabels[area]!, rating: r?.rating ?? 0, interest: r?.interest ?? false),
+              child: _AreaRing(label: placementAreaLabelFor(area, lang), rating: r?.rating ?? 0, interest: r?.interest ?? false),
             );
           }).toList(),
         ),
@@ -379,13 +390,13 @@ class _ResultsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('أكبر فرصة لتحسينك الآن: ${placementAreaLabels[weakest.area]}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                Text('${basicText('biggest_opportunity_prefix', lang)} ${placementAreaLabelFor(weakest.area, lang)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
                 const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => _screenForArea(weakest.area))),
-                    child: const Text('ابدأ من هنا'),
+                    child: Text(basicText('start_here_action', lang)),
                   ),
                 ),
               ],
@@ -399,14 +410,16 @@ class _ResultsView extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
             child: Row(
               children: [
-                Expanded(child: Text('المستوى المقترح: ${_levelLabels[suggested]} — استخدمه؟', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
-                TextButton(onPressed: () => onApplyLevel(suggested), child: const Text('استخدمه')),
+                Expanded(
+                    child: Text('${basicText('suggested_level_prefix', lang)} ${basicText(_levelLabelKeys[suggested] ?? '', lang)} ${basicText('use_it_suffix_question', lang)}',
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
+                TextButton(onPressed: () => onApplyLevel(suggested), child: Text(basicText('use_it_action', lang))),
               ],
             ),
           ),
         ],
         const SizedBox(height: 20),
-        OutlinedButton(onPressed: onReassess, child: const Text('أعد التقييم')),
+        OutlinedButton(onPressed: onReassess, child: Text(basicText('reassess_action', lang))),
       ],
     );
   }
