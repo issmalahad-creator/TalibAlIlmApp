@@ -2984,6 +2984,29 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'محفوظ ہو گیا', 'tr': 'Kaydedildi', 'id': 'Tersimpan', 'bn': 'সংরক্ষিত হয়েছে', 'ha': 'An Ajiye',
     'so': 'Waa la Kaydiyay', 'fa': 'ذخیره شد', 'ms': 'Disimpan',
   },
+  // 2026-08-22: wird_screen.dart. Template titles/descriptions/item labels
+  // come from wird_templates.dart (scholar-named content), out of scope.
+  'wird_title': {
+    'ar': 'ورد اليوم', 'en': "Today's Wird", 'am': 'የዛሬው ውርድ', 'fr': 'Wird du jour', 'sw': 'Wird ya Leo',
+    'ur': 'آج کا ورد', 'tr': 'Bugünkü Vird', 'id': 'Wirid Hari Ini', 'bn': 'আজকের ওয়াজিফা', 'ha': 'Wirdin Yau',
+    'so': 'Wirdka Maanta', 'fa': 'ورد امروز', 'ms': 'Wirid Hari Ini',
+  },
+  'choose_wird_label': {
+    'ar': 'اختر وردك', 'en': 'Choose Your Wird', 'am': 'ውርድዎን ይምረጡ', 'fr': 'Choisissez votre wird', 'sw': 'Chagua Wird Yako',
+    'ur': 'اپنا ورد منتخب کریں', 'tr': 'Virdinizi Seçin', 'id': 'Pilih Wirid Anda', 'bn': 'আপনার ওয়াজিফা নির্বাচন করুন', 'ha': 'Zaɓi Wirdinka',
+    'so': 'Dooro Wirdkaaga', 'fa': 'ورد خود را انتخاب کنید', 'ms': 'Pilih Wirid Anda',
+  },
+  // 2026-08-22: companion_chat_screen.dart's two dev-tool tooltips.
+  'companion_debug_tooltip': {
+    'ar': 'تشخيص', 'en': 'Debug', 'am': 'ማረም', 'fr': 'Diagnostic', 'sw': 'Uchunguzi',
+    'ur': 'تشخیص', 'tr': 'Tanılama', 'id': 'Diagnostik', 'bn': 'নির্ণয়', 'ha': 'Bincike',
+    'so': 'Baaritaan', 'fa': 'عیب‌یابی', 'ms': 'Diagnostik',
+  },
+  'app_self_test_tooltip': {
+    'ar': 'اختبار شامل للتطبيق', 'en': 'Full App Self-Test', 'am': 'ሙሉ የመተግበሪያ ራስ-ምርመራ', 'fr': "Auto-test complet de l'application", 'sw': 'Jaribio Kamili la Programu',
+    'ur': 'مکمل ایپ سیلف ٹیسٹ', 'tr': 'Kapsamlı Uygulama Kendi Kendini Testi', 'id': 'Uji Mandiri Aplikasi Lengkap', 'bn': 'অ্যাপের সম্পূর্ণ স্ব-পরীক্ষা', 'ha': 'Cikakken Gwajin Kai na Manhajar',
+    'so': 'Tijaabinta Buuxda ee App-ka', 'fa': 'خودآزمایی کامل برنامه', 'ms': 'Ujian Diri Aplikasi Penuh',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

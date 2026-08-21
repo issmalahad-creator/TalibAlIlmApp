@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../data/wird_templates.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/wird_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'adhkar_screen.dart';
 import 'madarij_screen.dart';
@@ -95,16 +97,18 @@ class _WirdScreenState extends State<WirdScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('ورد اليوم')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('wird_title', lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 DropdownButtonFormField<String>(
                   initialValue: _selectedKey,
-                  decoration: const InputDecoration(labelText: 'اختر وردك', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: basicText('choose_wird_label', lang), border: const OutlineInputBorder()),
                   items: wirdTemplates.map((t) => DropdownMenuItem(value: t.key, child: Text(t.title))).toList(),
                   onChanged: (v) {
                     if (v != null) _selectTemplate(v);
@@ -126,6 +130,7 @@ class _WirdScreenState extends State<WirdScreen> {
                     )),
               ],
             ),
+      ),
     );
   }
 }

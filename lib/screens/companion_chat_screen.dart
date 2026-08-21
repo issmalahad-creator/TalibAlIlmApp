@@ -23,12 +23,12 @@ class CompanionChatScreen extends StatelessWidget {
         title: Text(basicText('companion_chat_title', lang)),
         actions: [
           IconButton(
-            tooltip: 'تشخيص',
+            tooltip: basicText('companion_debug_tooltip', lang),
             icon: const Icon(Icons.bug_report_outlined),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CompanionDebugScreen())),
           ),
           IconButton(
-            tooltip: 'اختبار شامل للتطبيق',
+            tooltip: basicText('app_self_test_tooltip', lang),
             icon: const Icon(Icons.health_and_safety_outlined),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiagnosticsTestScreen())),
           ),
