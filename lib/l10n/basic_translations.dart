@@ -1408,6 +1408,299 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'سرگرمیاں', 'tr': 'Etkinlikler', 'id': 'Aktivitas', 'bn': 'কার্যক্রম', 'ha': 'Ayyuka',
     'so': 'Hawlaha', 'fa': 'فعالیت‌ها', 'ms': 'Aktiviti',
   },
+  // 2026-08-22: notification_settings_screen.dart — adhkar/prayer/quiet-hours
+  // settings, found still 100% hardcoded Arabic during the sweep.
+  'notif_cat_morning_title': {
+    'ar': 'أذكار الصباح', 'en': 'Morning Adhkar', 'am': 'የጠዋት አዝካር', 'fr': 'Adhkar du matin', 'sw': 'Adhkar za Asubuhi',
+    'ur': 'صبح کے اذکار', 'tr': 'Sabah Ezkârı', 'id': 'Dzikir Pagi', 'bn': 'সকালের আজকার', 'ha': 'Azkarin Safiya',
+    'so': 'Adkaarka Aroorka', 'fa': 'اذکار صبح', 'ms': 'Zikir Pagi',
+  },
+  'notif_cat_morning_hint': {
+    'ar': 'الافتراضي: وقت الفجر الفعلي', 'en': 'Default: actual Fajr time', 'am': 'ነባሪ፦ ትክክለኛው የፈጅር ሰዓት', 'fr': 'Par défaut : heure réelle de Fajr', 'sw': 'Chaguo-msingi: wakati halisi wa Fajr',
+    'ur': 'ڈیفالٹ: فجر کا اصل وقت', 'tr': 'Varsayılan: gerçek Fecir vakti', 'id': 'Default: waktu Subuh sebenarnya', 'bn': 'ডিফল্ট: প্রকৃত ফজরের সময়', 'ha': 'Tsoho: ainihin lokacin Asuba',
+    'so': 'Caadiga: waqtiga dhabta ah ee Subax', 'fa': 'پیش‌فرض: زمان واقعی فجر', 'ms': 'Lalai: waktu Subuh sebenar',
+  },
+  'notif_cat_evening_title': {
+    'ar': 'أذكار المساء', 'en': 'Evening Adhkar', 'am': 'የማታ አዝካር', 'fr': 'Adhkar du soir', 'sw': 'Adhkar za Jioni',
+    'ur': 'شام کے اذکار', 'tr': 'Akşam Ezkârı', 'id': 'Dzikir Petang', 'bn': 'সন্ধ্যার আজকার', 'ha': 'Azkarin Yamma',
+    'so': 'Adkaarka Galabnimo', 'fa': 'اذکار عصر', 'ms': 'Zikir Petang',
+  },
+  'notif_cat_evening_hint': {
+    'ar': 'الافتراضي: وقت العصر الفعلي', 'en': 'Default: actual Asr time', 'am': 'ነባሪ፦ ትክክለኛው የዐስር ሰዓት', 'fr': "Par défaut : heure réelle d'Asr", 'sw': 'Chaguo-msingi: wakati halisi wa Asr',
+    'ur': 'ڈیفالٹ: عصر کا اصل وقت', 'tr': 'Varsayılan: gerçek İkindi vakti', 'id': 'Default: waktu Asar sebenarnya', 'bn': 'ডিফল্ট: প্রকৃত আসরের সময়', 'ha': 'Tsoho: ainihin lokacin La\'asar',
+    'so': 'Caadiga: waqtiga dhabta ah ee Casar', 'fa': 'پیش‌فرض: زمان واقعی عصر', 'ms': 'Lalai: waktu Asar sebenar',
+  },
+  'notif_cat_sleep_title': {
+    'ar': 'أذكار النوم', 'en': 'Sleep Adhkar', 'am': 'የመኝታ አዝካር', 'fr': 'Adhkar du coucher', 'sw': 'Adhkar za Kulala',
+    'ur': 'سونے کے اذکار', 'tr': 'Uyku Ezkârı', 'id': 'Dzikir Sebelum Tidur', 'bn': 'ঘুমের আজকার', 'ha': 'Azkarin Barci',
+    'so': 'Adkaarka Hurdada', 'fa': 'اذکار خواب', 'ms': 'Zikir Sebelum Tidur',
+  },
+  'notif_cat_sleep_hint': {
+    'ar': 'الافتراضي: وقت العشاء الفعلي', 'en': 'Default: actual Isha time', 'am': 'ነባሪ፦ ትክክለኛው የዒሻ ሰዓት', 'fr': "Par défaut : heure réelle d'Isha", 'sw': 'Chaguo-msingi: wakati halisi wa Isha',
+    'ur': 'ڈیفالٹ: عشاء کا اصل وقت', 'tr': 'Varsayılan: gerçek Yatsı vakti', 'id': 'Default: waktu Isya sebenarnya', 'bn': 'ডিফল্ট: প্রকৃত এশার সময়', 'ha': 'Tsoho: ainihin lokacin Isha\'i',
+    'so': 'Caadiga: waqtiga dhabta ah ee Cishaha', 'fa': 'پیش‌فرض: زمان واقعی عشاء', 'ms': 'Lalai: waktu Isyak sebenar',
+  },
+  'dhikr_generic_fallback': {
+    'ar': 'ذكر', 'en': 'Dhikr', 'am': 'ዚክር', 'fr': 'Dhikr', 'sw': 'Dhikr',
+    'ur': 'ذکر', 'tr': 'Zikir', 'id': 'Dzikir', 'bn': 'জিকির', 'ha': 'Zikiri',
+    'so': 'Dhikr', 'fa': 'ذکر', 'ms': 'Zikir',
+  },
+  'choose_dhikr_title': {
+    'ar': 'اختر الذكر', 'en': 'Choose the Dhikr', 'am': 'ዚክር ይምረጡ', 'fr': 'Choisissez le dhikr', 'sw': 'Chagua Dhikr',
+    'ur': 'ذکر منتخب کریں', 'tr': 'Zikri Seçin', 'id': 'Pilih Dzikir', 'bn': 'জিকির নির্বাচন করুন', 'ha': 'Zaɓi Zikiri',
+    'so': 'Dooro Dhikrka', 'fa': 'ذکر را انتخاب کنید', 'ms': 'Pilih Zikir',
+  },
+  'notifications_title': {
+    'ar': 'الإشعارات', 'en': 'Notifications', 'am': 'ማሳወቂያዎች', 'fr': 'Notifications', 'sw': 'Arifa',
+    'ur': 'اطلاعات', 'tr': 'Bildirimler', 'id': 'Notifikasi', 'bn': 'বিজ্ঞপ্তি', 'ha': 'Sanarwa',
+    'so': 'Ogeysiisyada', 'fa': 'اعلان‌ها', 'ms': 'Notifikasi',
+  },
+  'notification_diagnostics_tooltip': {
+    'ar': 'تشخيص الإشعارات', 'en': 'Notification Diagnostics', 'am': 'የማሳወቂያ ምርመራ', 'fr': 'Diagnostic des notifications', 'sw': 'Uchunguzi wa Arifa',
+    'ur': 'اطلاعات کی تشخیص', 'tr': 'Bildirim Tanılama', 'id': 'Diagnostik Notifikasi', 'bn': 'বিজ্ঞপ্তি নির্ণয়', 'ha': 'Binciken Sanarwa',
+    'so': 'Baaritaanka Ogeysiisyada', 'fa': 'عیب‌یابی اعلان‌ها', 'ms': 'Diagnostik Notifikasi',
+  },
+  'prayer_notification_title': {
+    'ar': 'تنبيه أوقات الصلاة', 'en': 'Prayer Time Alerts', 'am': 'የጸሎት ሰዓት ማንቂያ', 'fr': 'Alertes des heures de prière', 'sw': 'Arifa za Nyakati za Sala',
+    'ur': 'نماز کے اوقات کی الرٹ', 'tr': 'Namaz Vakti Uyarısı', 'id': 'Peringatan Waktu Salat', 'bn': 'নামাজের সময়ের সতর্কতা', 'ha': 'Faɗakarwar Lokutan Sallah',
+    'so': 'Digniinta Waqtiyada Salaadda', 'fa': 'هشدار اوقات نماز', 'ms': 'Amaran Waktu Solat',
+  },
+  'prayer_notification_subtitle': {
+    'ar': 'الأوقات الخمسة، محسوبة من موقعك الفعلي', 'en': 'All five times, calculated from your actual location', 'am': 'ሁሉም አምስት ሰዓቶች፣ ከትክክለኛ አካባቢዎ የተሰሉ', 'fr': 'Les cinq heures, calculées à partir de votre position réelle', 'sw': 'Nyakati zote tano, zilizohesabiwa kutoka eneo lako halisi',
+    'ur': 'تمام پانچ اوقات، آپ کے اصل مقام سے حساب شدہ', 'tr': 'Beş vaktin tümü, gerçek konumunuzdan hesaplanır', 'id': 'Kelima waktu, dihitung dari lokasi Anda yang sebenarnya', 'bn': 'পাঁচটি সময়ই আপনার প্রকৃত অবস্থান থেকে হিসাব করা', 'ha': 'Dukkan lokuta biyar, an ƙididdige su daga ainihin wurin da kake',
+    'so': 'Shantaba waqtiyada, waxaa lagu xisaabiyay meesha aad dhab ahaan joogto', 'fa': 'هر پنج وقت، بر اساس موقعیت واقعی شما محاسبه شده', 'ms': 'Kelima-lima waktu, dikira daripada lokasi sebenar anda',
+  },
+  'adhan_sound_title': {
+    'ar': 'صوت الأذان', 'en': 'Adhan Sound', 'am': 'የአዛን ድምፅ', 'fr': "Son de l'adhan", 'sw': 'Sauti ya Adhana',
+    'ur': 'اذان کی آواز', 'tr': 'Ezan Sesi', 'id': 'Suara Adzan', 'bn': 'আজানের শব্দ', 'ha': 'Sautin Kiran Salla',
+    'so': 'Codka Azaanka', 'fa': 'صدای اذان', 'ms': 'Bunyi Azan',
+  },
+  'adhan_sound_subtitle': {
+    'ar': 'تسجيل أذان حر الحقوق (CC0)، يعمل بلا اتصال إنترنت', 'en': 'A royalty-free (CC0) adhan recording, works fully offline', 'am': 'ነፃ የቅጂ መብት (CC0) የአዛን ቅጂ፣ ያለ ኢንተርኔት ይሰራል', 'fr': "Un enregistrement d'adhan libre de droits (CC0), fonctionne hors ligne", 'sw': 'Rekodi ya adhana isiyo na hakimiliki (CC0), inafanya kazi bila mtandao',
+    'ur': 'رائلٹی فری (CC0) اذان ریکارڈنگ، بغیر انٹرنیٹ کے کام کرتی ہے', 'tr': 'Telifsiz (CC0) ezan kaydı, tamamen çevrimdışı çalışır', 'id': 'Rekaman adzan bebas royalti (CC0), berfungsi sepenuhnya offline', 'bn': 'রয়্যালটি-মুক্ত (CC0) আজান রেকর্ডিং, সম্পূর্ণ অফলাইনে কাজ করে', 'ha': 'Rikodin kiran salla marar biyan haƙƙi (CC0), yana aiki gaba ɗaya ba tare da intanet ba',
+    'so': 'Duuban azaan xor u ah xuquuqda (CC0), wuxuu si buuxda u shaqeeyaa isaga oo aan lahayn internet', 'fa': 'ضبط اذان بدون حق امتیاز (CC0)، به‌طور کامل آفلاین کار می‌کند', 'ms': 'Rakaman azan bebas royalti (CC0), berfungsi sepenuhnya luar talian',
+  },
+  'stop_action': {
+    'ar': 'إيقاف', 'en': 'Stop', 'am': 'አቁም', 'fr': 'Arrêter', 'sw': 'Simamisha',
+    'ur': 'روکیں', 'tr': 'Durdur', 'id': 'Hentikan', 'bn': 'বন্ধ করুন', 'ha': 'Tsaya',
+    'so': 'Jooji', 'fa': 'توقف', 'ms': 'Berhenti',
+  },
+  'test_adhan_sound_action': {
+    'ar': 'تجربة صوت الأذان', 'en': 'Preview Adhan Sound', 'am': 'የአዛን ድምፅ ይሞክሩ', 'fr': "Aperçu du son de l'adhan", 'sw': 'Jaribu Sauti ya Adhana',
+    'ur': 'اذان کی آواز آزمائیں', 'tr': 'Ezan Sesini Dinle', 'id': 'Pratinjau Suara Adzan', 'bn': 'আজানের শব্দ শুনুন', 'ha': 'Gwada Sautin Kiran Salla',
+    'so': 'Tijaabi Codka Azaanka', 'fa': 'پیش‌نمایش صدای اذان', 'ms': 'Pratonton Bunyi Azan',
+  },
+  'quiet_hours_title': {
+    'ar': 'ساعات الهدوء', 'en': 'Quiet Hours', 'am': 'የፀጥታ ሰዓቶች', 'fr': 'Heures silencieuses', 'sw': 'Saa za Kimya',
+    'ur': 'خاموشی کے اوقات', 'tr': 'Sessiz Saatler', 'id': 'Jam Tenang', 'bn': 'নীরব সময়', 'ha': 'Sa\'o\'in Shiru',
+    'so': 'Saacadaha Aamusnaanta', 'fa': 'ساعات سکوت', 'ms': 'Waktu Senyap',
+  },
+  'quiet_hours_subtitle': {
+    'ar': 'لا يُجدوَل أي تذكير قابل للتحريك داخل هذه الفترة', 'en': 'No movable reminder will be scheduled within this window', 'am': 'ሊንቀሳቀስ የሚችል ማንኛውም ማስታወሻ በዚህ ጊዜ ውስጥ አይታቀድም', 'fr': 'Aucun rappel déplaçable ne sera programmé pendant cette période', 'sw': 'Hakuna ukumbusho unaoweza kuhamishwa utakaopangwa ndani ya kipindi hiki',
+    'ur': 'اس مدت کے دوران کوئی بھی قابلِ منتقلی یاد دہانی شیڈول نہیں کی جائے گی', 'tr': 'Bu süre içinde taşınabilir bir hatırlatma zamanlanmaz', 'id': 'Tidak ada pengingat yang dapat dipindahkan akan dijadwalkan dalam periode ini', 'bn': 'এই সময়ের মধ্যে কোনো স্থানান্তরযোগ্য অনুস্মারক নির্ধারণ করা হবে না', 'ha': 'Babu wata tunatarwa mai iya matsawa da za a tsara a cikin wannan lokacin',
+    'so': 'Wax xasuusin la dhaqaajin karo lama jadwali doono muddadan gudaheeda', 'fa': 'در این بازه زمانی هیچ یادآوری قابل‌جابجایی برنامه‌ریزی نخواهد شد', 'ms': 'Tiada peringatan boleh alih akan dijadualkan dalam tempoh ini',
+  },
+  'from_hour_prefix': {
+    'ar': 'من الساعة', 'en': 'From', 'am': 'ከሰዓት', 'fr': 'De', 'sw': 'Kutoka saa',
+    'ur': 'سے', 'tr': "Saat", 'id': 'Dari pukul', 'bn': 'থেকে', 'ha': 'Daga karfe',
+    'so': 'Laga bilaabo saacadda', 'fa': 'از ساعت', 'ms': 'Dari pukul',
+  },
+  'to_hour_prefix': {
+    'ar': 'إلى', 'en': 'to', 'am': 'እስከ', 'fr': 'à', 'sw': 'hadi saa',
+    'ur': 'تک', 'tr': "-", 'id': 'sampai pukul', 'bn': 'পর্যন্ত', 'ha': 'zuwa karfe',
+    'so': 'ilaa saacadda', 'fa': 'تا ساعت', 'ms': 'hingga pukul',
+  },
+  'adhkar_notifications_section_title': {
+    'ar': 'إشعارات الأذكار', 'en': 'Adhkar Notifications', 'am': 'የአዝካር ማሳወቂያዎች', 'fr': 'Notifications des adhkar', 'sw': 'Arifa za Adhkar',
+    'ur': 'اذکار کی اطلاعات', 'tr': 'Ezkâr Bildirimleri', 'id': 'Notifikasi Dzikir', 'bn': 'আজকার বিজ্ঞপ্তি', 'ha': 'Sanarwar Azkari',
+    'so': 'Ogeysiisyada Adkaarka', 'fa': 'اعلان‌های اذکار', 'ms': 'Notifikasi Zikir',
+  },
+  'auto_label': {
+    'ar': 'تلقائي', 'en': 'Automatic', 'am': 'ራስ-ሰር', 'fr': 'Automatique', 'sw': 'Kiotomatiki',
+    'ur': 'خودکار', 'tr': 'Otomatik', 'id': 'Otomatis', 'bn': 'স্বয়ংক্রিয়', 'ha': 'Atomatik',
+    'so': 'Toos ah', 'fa': 'خودکار', 'ms': 'Automatik',
+  },
+  'set_time_manually_label': {
+    'ar': 'تحديد وقت يدويًا', 'en': 'Set Time Manually', 'am': 'ሰዓት በእጅ ያዘጋጁ', 'fr': 'Définir l\'heure manuellement', 'sw': 'Weka Muda Mwenyewe',
+    'ur': 'دستی طور پر وقت مقرر کریں', 'tr': 'Manuel Saat Belirle', 'id': 'Atur Waktu Manual', 'bn': 'নিজে সময় নির্ধারণ করুন', 'ha': 'Saita Lokaci da Hannu',
+    'so': 'Gacanta ku qeex Waqtiga', 'fa': 'تنظیم دستی زمان', 'ms': 'Tetapkan Masa Secara Manual',
+  },
+  'hour_at_label': {
+    'ar': 'الساعة', 'en': 'At', 'am': 'በሰዓት', 'fr': 'À', 'sw': 'Saa',
+    'ur': 'وقت', 'tr': 'Saat', 'id': 'Pukul', 'bn': 'সময়', 'ha': 'Da karfe',
+    'so': 'Saacadda', 'fa': 'ساعت', 'ms': 'Pukul',
+  },
+  'custom_time_label': {
+    'ar': 'وقت مخصّص', 'en': 'Custom Time', 'am': 'ብጁ ሰዓት', 'fr': 'Heure personnalisée', 'sw': 'Muda Maalum',
+    'ur': 'اپنی مرضی کا وقت', 'tr': 'Özel Saat', 'id': 'Waktu Khusus', 'bn': 'কাস্টম সময়', 'ha': 'Lokaci na Musamman',
+    'so': 'Waqti Gaar ah', 'fa': 'زمان سفارشی', 'ms': 'Masa Tersuai',
+  },
+  'custom_adhkar_section_title': {
+    'ar': 'أذكار مخصّصة', 'en': 'Custom Adhkar', 'am': 'ብጁ አዝካር', 'fr': 'Adhkar personnalisés', 'sw': 'Adhkar Maalum',
+    'ur': 'حسبِ ضرورت اذکار', 'tr': 'Özel Ezkâr', 'id': 'Dzikir Kustom', 'bn': 'কাস্টম আজকার', 'ha': 'Azkari na Musamman',
+    'so': 'Adkaar Gaar ah', 'fa': 'اذکار سفارشی', 'ms': 'Zikir Tersuai',
+  },
+  'custom_adhkar_section_subtitle': {
+    'ar': 'أضف تذكيرًا لأي ذكر آخر تختاره بنفسك', 'en': 'Add a reminder for any other dhikr you choose yourself', 'am': 'እርስዎ ራስዎ ለሚመርጡት ማንኛውም ሌላ ዚክር ማስታወሻ ይጨምሩ', 'fr': 'Ajoutez un rappel pour tout autre dhikr de votre choix', 'sw': 'Ongeza ukumbusho kwa dhikr nyingine yoyote unayochagua mwenyewe',
+    'ur': 'اپنی پسند کے کسی بھی دوسرے ذکر کے لیے یاد دہانی شامل کریں', 'tr': 'Kendinizin seçtiği başka herhangi bir zikir için hatırlatma ekleyin', 'id': 'Tambahkan pengingat untuk dzikir lain pilihan Anda sendiri', 'bn': 'আপনার পছন্দমতো অন্য যেকোনো জিকিরের জন্য একটি অনুস্মারক যোগ করুন', 'ha': 'Ƙara tunatarwa don duk wani zikiri da kai da kanka ka zaɓa',
+    'so': 'Ku dar xasuusin dhikr kasta oo kale oo aad adigu doorato', 'fa': 'برای هر ذکر دیگری که خودتان انتخاب می‌کنید یادآوری اضافه کنید', 'ms': 'Tambah peringatan untuk mana-mana zikir lain pilihan anda sendiri',
+  },
+  'add_dhikr_reminder_action': {
+    'ar': 'أضف ذكرًا', 'en': 'Add a Dhikr', 'am': 'ዚክር ጨምር', 'fr': 'Ajouter un dhikr', 'sw': 'Ongeza Dhikr',
+    'ur': 'ذکر شامل کریں', 'tr': 'Zikir Ekle', 'id': 'Tambah Dzikir', 'bn': 'জিকির যোগ করুন', 'ha': 'Ƙara Zikiri',
+    'so': 'Ku dar Dhikr', 'fa': 'افزودن ذکر', 'ms': 'Tambah Zikir',
+  },
+  // 2026-08-22: notification_diagnostics_screen.dart — the self-check
+  // screen behind the diagnostics tooltip above.
+  'notification_diagnostics_title': {
+    'ar': 'تشخيص الإشعارات', 'en': 'Notification Diagnostics', 'am': 'የማሳወቂያ ምርመራ', 'fr': 'Diagnostic des notifications', 'sw': 'Uchunguzi wa Arifa',
+    'ur': 'اطلاعات کی تشخیص', 'tr': 'Bildirim Tanılama', 'id': 'Diagnostik Notifikasi', 'bn': 'বিজ্ঞপ্তি নির্ণয়', 'ha': 'Binciken Sanarwa',
+    'so': 'Baaritaanka Ogeysiisyada', 'fa': 'عیب‌یابی اعلان‌ها', 'ms': 'Diagnostik Notifikasi',
+  },
+  'notification_permission_title': {
+    'ar': 'إذن الإشعارات', 'en': 'Notification Permission', 'am': 'የማሳወቂያ ፈቃድ', 'fr': 'Autorisation de notifications', 'sw': 'Ruhusa ya Arifa',
+    'ur': 'اطلاعات کی اجازت', 'tr': 'Bildirim İzni', 'id': 'Izin Notifikasi', 'bn': 'বিজ্ঞপ্তির অনুমতি', 'ha': 'Izinin Sanarwa',
+    'so': 'Idanka Ogeysiisyada', 'fa': 'مجوز اعلان‌ها', 'ms': 'Kebenaran Notifikasi',
+  },
+  'permission_granted_label': {
+    'ar': 'ممنوح', 'en': 'Granted', 'am': 'ተፈቅዷል', 'fr': 'Accordée', 'sw': 'Imeruhusiwa',
+    'ur': 'دی گئی', 'tr': 'Verildi', 'id': 'Diberikan', 'bn': 'অনুমোদিত', 'ha': 'An Bayar',
+    'so': 'La Ogolaaday', 'fa': 'داده شده', 'ms': 'Diberikan',
+  },
+  'notification_permission_denied_text': {
+    'ar': 'غير ممنوح — لن تصل أي إشعارات حتى تُفعّله من إعدادات النظام', 'en': "Not granted — you won't receive any notifications until you enable it in system settings", 'am': 'አልተፈቀደም — ከስርዓት ቅንብሮች እስኪያነቁት ድረስ ምንም ማሳወቂያ አይደርስዎትም', 'fr': "Non accordée — vous ne recevrez aucune notification tant que vous ne l'activez pas dans les paramètres système", 'sw': 'Haijaruhusiwa — hutapokea arifa yoyote hadi uiwashe kwenye mipangilio ya mfumo',
+    'ur': 'دی نہیں گئی — سسٹم سیٹنگز سے فعال کیے بغیر آپ کو کوئی اطلاع نہیں ملے گی', 'tr': 'Verilmedi — sistem ayarlarından etkinleştirmedikçe hiçbir bildirim almazsınız', 'id': 'Tidak diberikan — Anda tidak akan menerima notifikasi apa pun hingga mengaktifkannya di pengaturan sistem', 'bn': 'অনুমোদিত নয় — সিস্টেম সেটিংস থেকে সক্রিয় না করা পর্যন্ত আপনি কোনো বিজ্ঞপ্তি পাবেন না', 'ha': 'Ba a bayar ba — ba za ka sami wata sanarwa ba sai ka kunna ta daga saitunan tsarin',
+    'so': 'Lama ogolaan — ma heli doontid ogeysiis illaa aad ka daaraysid dejinta nidaamka', 'fa': 'اعطا نشده — تا زمانی که آن را از تنظیمات سیستم فعال نکنید هیچ اعلانی دریافت نخواهید کرد', 'ms': 'Tidak diberikan — anda tidak akan menerima sebarang notifikasi sehingga anda mendayakannya dalam tetapan sistem',
+  },
+  'exact_alarm_scheduling_title': {
+    'ar': 'الجدولة الدقيقة (لتنبيه الصلاة)', 'en': 'Exact Scheduling (for prayer alerts)', 'am': 'ትክክለኛ መርሐግብር (ለጸሎት ማንቂያ)', 'fr': 'Planification précise (pour les alertes de prière)', 'sw': 'Upangaji Sahihi (kwa arifa za sala)',
+    'ur': 'درست شیڈولنگ (نماز کی الرٹ کے لیے)', 'tr': 'Kesin Zamanlama (namaz uyarıları için)', 'id': 'Penjadwalan Tepat (untuk peringatan salat)', 'bn': 'নির্ভুল সময়সূচি (নামাজের সতর্কতার জন্য)', 'ha': 'Tsara Ainihin Lokaci (don faɗakarwar sallah)',
+    'so': 'Jadwalka Saxda ah (digniinta salaadda)', 'fa': 'زمان‌بندی دقیق (برای هشدار نماز)', 'ms': 'Penjadualan Tepat (untuk amaran solat)',
+  },
+  'exact_alarm_granted_text': {
+    'ar': 'ممنوحة — تنبيه الصلاة يصل في وقته بدقة', 'en': 'Granted — prayer alerts arrive exactly on time', 'am': 'ተፈቅዷል — የጸሎት ማንቂያ በትክክለኛው ሰዓት ይደርሳል', 'fr': "Accordée — les alertes de prière arrivent exactement à l'heure", 'sw': 'Imeruhusiwa — arifa za sala zinafika kwa wakati kamili',
+    'ur': 'دی گئی — نماز کی الرٹ عین وقت پر پہنچتی ہے', 'tr': 'Verildi — namaz uyarıları tam zamanında gelir', 'id': 'Diberikan — peringatan salat tiba tepat waktu', 'bn': 'অনুমোদিত — নামাজের সতর্কতা সঠিক সময়ে পৌঁছায়', 'ha': 'An Bayar — faɗakarwar sallah tana isowa daidai lokaci',
+    'so': 'La Ogolaaday — digniinta salaadda waxay timaadaa waqtigeeda saxda ah', 'fa': 'داده شده — هشدار نماز دقیقاً به‌موقع می‌رسد', 'ms': 'Diberikan — amaran solat tiba tepat pada masanya',
+  },
+  'exact_alarm_denied_text': {
+    'ar': 'غير ممنوحة — تنبيه الصلاة قد يتأخر بضع دقائق بسبب توفير البطارية', 'en': 'Not granted — prayer alerts may be delayed a few minutes due to battery optimization', 'am': 'አልተፈቀደም — በባትሪ ቁጠባ ምክንያት የጸሎት ማንቂያ ጥቂት ደቂቃዎች ሊዘገይ ይችላል', 'fr': "Non accordée — les alertes de prière peuvent être retardées de quelques minutes en raison de l'économie de batterie", 'sw': 'Haijaruhusiwa — arifa za sala zinaweza kuchelewa dakika chache kwa sababu ya kuhifadhi betri',
+    'ur': 'دی نہیں گئی — بیٹری کی بچت کی وجہ سے نماز کی الرٹ چند منٹ تاخیر کا شکار ہو سکتی ہے', 'tr': 'Verilmedi — pil tasarrufu nedeniyle namaz uyarıları birkaç dakika gecikebilir', 'id': 'Tidak diberikan — peringatan salat mungkin tertunda beberapa menit karena optimisasi baterai', 'bn': 'অনুমোদিত নয় — ব্যাটারি সাশ্রয়ের কারণে নামাজের সতর্কতা কয়েক মিনিট বিলম্বিত হতে পারে', 'ha': "Ba a bayar ba — faɗakarwar sallah na iya jinkirta 'yan mintuna saboda tattalin baturi",
+    'so': 'Lama ogolaan — digniinta salaadda waxay dib u dhici kartaa dhowr daqiiqo sababtoo ah keydinta batteriga', 'fa': 'داده نشده — هشدار نماز ممکن است به دلیل بهینه‌سازی باتری چند دقیقه به تأخیر بیفتد', 'ms': 'Tidak diberikan — amaran solat mungkin lewat beberapa minit disebabkan pengoptimuman bateri',
+  },
+  'location_label': {
+    'ar': 'الموقع', 'en': 'Location', 'am': 'አካባቢ', 'fr': 'Emplacement', 'sw': 'Mahali',
+    'ur': 'مقام', 'tr': 'Konum', 'id': 'Lokasi', 'bn': 'অবস্থান', 'ha': 'Wuri',
+    'so': 'Goobta', 'fa': 'موقعیت', 'ms': 'Lokasi',
+  },
+  'no_location_available_text': {
+    'ar': 'لا يوجد موقع متاح — تُحسب أوقات الصلاة والأذكار بالساعات الافتراضية الثابتة', 'en': 'No location available — prayer and adhkar times are calculated using fixed default hours', 'am': 'ምንም አካባቢ የለም — የጸሎት እና የአዝካር ሰዓቶች በቋሚ ነባሪ ሰዓቶች ይሰላሉ', 'fr': "Aucun emplacement disponible — les heures de prière et d'adhkar sont calculées avec des heures par défaut fixes", 'sw': 'Hakuna mahali panapopatikana — nyakati za sala na adhkar zinahesabiwa kwa saa chaguo-msingi zisizobadilika',
+    'ur': 'کوئی مقام دستیاب نہیں — نماز اور اذکار کے اوقات مقررہ ڈیفالٹ اوقات سے شمار کیے جاتے ہیں', 'tr': 'Konum yok — namaz ve ezkâr vakitleri sabit varsayılan saatlerle hesaplanır', 'id': 'Tidak ada lokasi yang tersedia — waktu salat dan dzikir dihitung menggunakan jam default tetap', 'bn': 'কোনো অবস্থান উপলব্ধ নেই — নামাজ ও আজকারের সময় নির্ধারিত ডিফল্ট ঘণ্টা দিয়ে হিসাব করা হয়', 'ha': "Babu wurin da ake da shi — ana ƙididdige lokutan sallah da azkari da tsayayyun sa'o'in tsoho",
+    'so': 'Goob lama helin — waqtiyada salaadda iyo adkaarka waxaa lagu xisaabiyaa saacado caadi ah oo go\'an', 'fa': 'موقعیتی در دسترس نیست — زمان‌های نماز و اذکار با ساعات پیش‌فرض ثابت محاسبه می‌شوند', 'ms': 'Tiada lokasi tersedia — waktu solat dan zikir dikira menggunakan waktu lalai tetap',
+  },
+  'manual_location_text': {
+    'ar': 'موقع مُدخَل يدويًا', 'en': 'Manually entered location', 'am': 'በእጅ የገባ አካባቢ', 'fr': 'Emplacement saisi manuellement', 'sw': 'Mahali palipowekwa mwenyewe',
+    'ur': 'دستی طور پر درج کردہ مقام', 'tr': 'Manuel girilen konum', 'id': 'Lokasi yang dimasukkan secara manual', 'bn': 'ম্যানুয়ালি প্রবেশ করানো অবস্থান', 'ha': 'Wurin da aka shigar da hannu',
+    'so': 'Goob gacanta lagu galiyay', 'fa': 'موقعیت وارد شده به‌صورت دستی', 'ms': 'Lokasi dimasukkan secara manual',
+  },
+  'real_gps_location_text': {
+    'ar': 'موقع GPS حقيقي', 'en': 'Real GPS location', 'am': 'እውነተኛ የGPS አካባቢ', 'fr': 'Emplacement GPS réel', 'sw': 'Mahali halisi pa GPS',
+    'ur': 'اصل جی پی ایس مقام', 'tr': 'Gerçek GPS konumu', 'id': 'Lokasi GPS asli', 'bn': 'প্রকৃত জিপিএস অবস্থান', 'ha': 'Ainihin Wurin GPS',
+    'so': 'Goobta GPS-ka Dhabta ah', 'fa': 'موقعیت واقعی GPS', 'ms': 'Lokasi GPS sebenar',
+  },
+  'accuracy_meters_suffix': {
+    'ar': 'دقة ~', 'en': 'accuracy ~', 'am': 'ትክክለኛነት ~', 'fr': 'précision ~', 'sw': 'usahihi ~',
+    'ur': 'درستگی ~', 'tr': 'doğruluk ~', 'id': 'akurasi ~', 'bn': 'নির্ভুলতা ~', 'ha': 'daidaito ~',
+    'so': 'saxnaanta ~', 'fa': 'دقت ~', 'ms': 'ketepatan ~',
+  },
+  'meters_unit_short': {
+    'ar': 'م', 'en': 'm', 'am': 'ሜ', 'fr': 'm', 'sw': 'm',
+    'ur': 'میٹر', 'tr': 'm', 'id': 'm', 'bn': 'মি', 'ha': 'm',
+    'so': 'm', 'fa': 'متر', 'ms': 'm',
+  },
+  'from_cache_text': {
+    'ar': 'من ذاكرة التخزين المؤقت', 'en': 'from cache', 'am': 'ከመሸጎጫ', 'fr': 'depuis le cache', 'sw': 'kutoka kwenye hifadhi ya muda',
+    'ur': 'کیشے سے', 'tr': 'önbellekten', 'id': 'dari cache', 'bn': 'ক্যাশ থেকে', 'ha': 'daga ma\'ajiya',
+    'so': 'kaydka ku meel gaadhka ah', 'fa': 'از حافظه موقت', 'ms': 'daripada cache',
+  },
+  'scheduled_notifications_count_title': {
+    'ar': 'الإشعارات المجدولة الآن', 'en': 'Currently Scheduled Notifications', 'am': 'አሁን የተያዙ ማሳወቂያዎች', 'fr': 'Notifications actuellement programmées', 'sw': 'Arifa Zilizopangwa Sasa',
+    'ur': 'اس وقت شیڈول شدہ اطلاعات', 'tr': 'Şu Anda Zamanlanmış Bildirimler', 'id': 'Notifikasi yang Dijadwalkan Saat Ini', 'bn': 'বর্তমানে নির্ধারিত বিজ্ঞপ্তি', 'ha': 'Sanarwar da Aka Tsara Yanzu',
+    'so': 'Ogeysiisyada Hadda Jadwalka Lagu Qabtay', 'fa': 'اعلان‌های زمان‌بندی‌شده کنونی', 'ms': 'Notifikasi Dijadualkan Sekarang',
+  },
+  'no_scheduled_notifications_text': {
+    'ar': 'لا توجد إشعارات مجدولة حاليًا', 'en': 'No notifications are currently scheduled', 'am': 'በአሁኑ ጊዜ የተያዘ ማሳወቂያ የለም', 'fr': "Aucune notification n'est actuellement programmée", 'sw': 'Hakuna arifa zilizopangwa kwa sasa',
+    'ur': 'اس وقت کوئی اطلاع شیڈول نہیں ہے', 'tr': 'Şu anda zamanlanmış bir bildirim yok', 'id': 'Tidak ada notifikasi yang dijadwalkan saat ini', 'bn': 'বর্তমানে কোনো বিজ্ঞপ্তি নির্ধারিত নেই', 'ha': 'Babu sanarwar da aka tsara a yanzu',
+    'so': 'Hadda ma jiraan ogeysiisyo la jadwalay', 'fa': 'در حال حاضر هیچ اعلانی زمان‌بندی نشده است', 'ms': 'Tiada notifikasi dijadualkan pada masa ini',
+  },
+  // 2026-08-22: support_screen.dart — contact form + FAQ, reached from
+  // Profile. The Telegram message text sent TO admins (Ismail's own
+  // inbox) stays Arabic — that's an internal notification, not UI shown
+  // to the student, so it's out of scope for this sweep.
+  'support_title': {
+    'ar': 'الدعم والأسئلة الشائعة', 'en': 'Support & FAQ', 'am': 'ድጋፍ እና ተደጋጋሚ ጥያቄዎች', 'fr': 'Assistance et FAQ', 'sw': 'Msaada na Maswali Yanayoulizwa Mara kwa Mara',
+    'ur': 'مدد اور اکثر پوچھے گئے سوالات', 'tr': 'Destek ve SSS', 'id': 'Dukungan & FAQ', 'bn': 'সহায়তা ও প্রশ্নোত্তর', 'ha': 'Taimako da Tambayoyi',
+    'so': 'Taageero iyo Su\'aalaha Badanaa La Isweydiiyo', 'fa': 'پشتیبانی و پرسش‌های متداول', 'ms': 'Sokongan & Soalan Lazim',
+  },
+  'support_intro_title': {
+    'ar': 'هذا التطبيق وقفٌ لوجه الله تعالى', 'en': 'This app is a waqf, for the sake of Allah', 'am': 'ይህ መተግበሪያ ለአላህ ስም የተሰጠ ውቅፍ ነው', 'fr': "Cette application est un waqf, pour l'amour d'Allah", 'sw': 'Programu hii ni waqfu, kwa ajili ya Allah',
+    'ur': 'یہ ایپ اللہ کی رضا کے لیے وقف ہے', 'tr': 'Bu uygulama Allah rızası için bir vakıftır', 'id': 'Aplikasi ini adalah wakaf, karena Allah semata', 'bn': 'এই অ্যাপটি আল্লাহর সন্তুষ্টির জন্য একটি ওয়াকফ', 'ha': 'Wannan manhajar wakafi ce, don Allah kaɗai',
+    'so': 'Barnaamijkan waa waqaf, Ilaahay aawadiis', 'fa': 'این برنامه وقفی است، برای رضای خداوند', 'ms': 'Aplikasi ini adalah wakaf, kerana Allah semata-mata',
+  },
+  'support_intro_body': {
+    'ar': 'أُعدّ بلا مقابل احتساباً للأجر. إن واجهتك مشكلة، أو لديك اقتراح لتطويره، أو أي استفسار، يسعدنا تواصلك — ستصل رسالتك مباشرة إلى المشرفين على التطبيق.',
+    'en': "Built without charge, seeking reward from Allah alone. If you run into a problem, have a suggestion, or any question, we'd love to hear from you — your message goes directly to the app's maintainers.",
+    'am': 'ያለ ምንም ክፍያ፣ ከአላህ ብቻ ምንዳን በመፈለግ የተዘጋጀ ነው። ችግር ካጋጠመዎት፣ ለማሻሻል ሐሳብ ካለዎት፣ ወይም ማንኛውም ጥያቄ ካለዎት፣ እንድንሰማ ደስ ይለናል — መልእክትዎ በቀጥታ ለመተግበሪያው አስተዳዳሪዎች ይደርሳል።',
+    'fr': "Créée gratuitement, en recherchant uniquement la récompense d'Allah. Si vous rencontrez un problème, avez une suggestion, ou une question, nous serions ravis de vous entendre — votre message parvient directement aux responsables de l'application.",
+    'sw': 'Imetengenezwa bila malipo, tukitafuta malipo kutoka kwa Allah pekee. Ukikutana na tatizo, una pendekezo, au swali lolote, tungependa kusikia kutoka kwako — ujumbe wako unafika moja kwa moja kwa wasimamizi wa programu.',
+    'ur': 'یہ بلا معاوضہ، صرف اللہ سے اجر کی امید میں تیار کی گئی ہے۔ اگر آپ کو کوئی مسئلہ درپیش ہو، کوئی تجویز ہو، یا کوئی سوال ہو، تو ہمیں آپ سے سن کر خوشی ہوگی — آپ کا پیغام براہ راست ایپ کے منتظمین تک پہنچتا ہے۔',
+    'tr': 'Yalnızca Allah rızası gözetilerek ücretsiz olarak hazırlanmıştır. Bir sorunla karşılaşırsanız, bir öneriniz varsa veya herhangi bir sorunuz olursa, sizden haber almaktan memnuniyet duyarız — mesajınız doğrudan uygulama yöneticilerine ulaşır.',
+    'id': 'Dibuat tanpa biaya, semata mengharap pahala dari Allah. Jika Anda mengalami masalah, memiliki saran, atau pertanyaan apa pun, kami senang mendengar dari Anda — pesan Anda akan langsung sampai ke pengelola aplikasi.',
+    'bn': 'বিনামূল্যে তৈরি, শুধুমাত্র আল্লাহর কাছে সওয়াবের আশায়। যদি আপনি কোনো সমস্যার সম্মুখীন হন, কোনো পরামর্শ থাকে, বা কোনো প্রশ্ন থাকে, আমরা আপনার কাছ থেকে শুনতে চাই — আপনার বার্তা সরাসরি অ্যাপের পরিচালকদের কাছে পৌঁছাবে।',
+    'ha': 'An gina shi ba tare da biya ba, ana neman lada daga Allah kaɗai. Idan ka fuskanci matsala, kana da shawara, ko wata tambaya, muna son jin daga gare ka — saƙonka yana isa kai tsaye ga masu kula da manhajar.',
+    'so': 'Waxaa la sameeyay iyada oo aan lacag lahayn, iyadoo laga doonayo ajir Ilaahay oo keliya. Haddii aad la kulanto dhibaato, aad haysato talo, ama su\'aal kasta, waxaan jeclaan lahayn inaan kaa maqalno — fariintaadu waxay si toos ah ugu gaari doontaa maamulayaasha app-ka.',
+    'fa': 'بدون هیچ هزینه‌ای ساخته شده، تنها با امید پاداش از سوی خداوند. اگر با مشکلی مواجه شدید، پیشنهادی داشتید، یا سؤالی داشتید، خوشحال می‌شویم از شما بشنویم — پیام شما مستقیماً به مدیران برنامه می‌رسد.',
+    'ms': 'Dibina tanpa bayaran, semata-mata mengharap ganjaran daripada Allah. Jika anda menghadapi masalah, mempunyai cadangan, atau sebarang soalan, kami ingin mendengar daripada anda — mesej anda akan terus sampai kepada penyelenggara aplikasi.',
+  },
+  'contact_us_header': {
+    'ar': 'تواصل معنا', 'en': 'Contact Us', 'am': 'ያግኙን', 'fr': 'Contactez-nous', 'sw': 'Wasiliana Nasi',
+    'ur': 'ہم سے رابطہ کریں', 'tr': 'Bize Ulaşın', 'id': 'Hubungi Kami', 'bn': 'আমাদের সাথে যোগাযোগ করুন', 'ha': 'Tuntube Mu',
+    'so': 'Nala Soo Xiriir', 'fa': 'با ما تماس بگیرید', 'ms': 'Hubungi Kami',
+  },
+  'support_message_hint': {
+    'ar': 'اكتب رسالتك هنا: مشكلة، اقتراح، أو أي استفسار...', 'en': 'Write your message here: a problem, a suggestion, or any question...', 'am': 'መልእክትዎን እዚህ ይጻፉ፦ ችግር፣ ሐሳብ፣ ወይም ማንኛውም ጥያቄ...', 'fr': 'Écrivez votre message ici : un problème, une suggestion, ou une question...', 'sw': 'Andika ujumbe wako hapa: tatizo, pendekezo, au swali lolote...',
+    'ur': 'یہاں اپنا پیغام لکھیں: مسئلہ، تجویز، یا کوئی سوال...', 'tr': 'Mesajınızı buraya yazın: bir sorun, bir öneri veya herhangi bir soru...', 'id': 'Tulis pesan Anda di sini: masalah, saran, atau pertanyaan apa pun...', 'bn': 'আপনার বার্তা এখানে লিখুন: সমস্যা, পরামর্শ, বা কোনো প্রশ্ন...', 'ha': 'Rubuta saƙonka a nan: matsala, shawara, ko wata tambaya...',
+    'so': 'Halkan ku qor fariintaada: dhibaato, talo, ama su\'aal kasta...', 'fa': 'پیام خود را اینجا بنویسید: مشکل، پیشنهاد، یا هر سؤالی...', 'ms': 'Tulis mesej anda di sini: masalah, cadangan, atau sebarang soalan...',
+  },
+  'send_action': {
+    'ar': 'إرسال', 'en': 'Send', 'am': 'ላክ', 'fr': 'Envoyer', 'sw': 'Tuma',
+    'ur': 'بھیجیں', 'tr': 'Gönder', 'id': 'Kirim', 'bn': 'পাঠান', 'ha': 'Aika',
+    'so': 'Dir', 'fa': 'ارسال', 'ms': 'Hantar',
+  },
+  'sending_in_progress': {
+    'ar': 'جارٍ الإرسال...', 'en': 'Sending...', 'am': 'እየላከ ነው...', 'fr': 'Envoi en cours...', 'sw': 'Inatuma...',
+    'ur': 'بھیجا جا رہا ہے...', 'tr': 'Gönderiliyor...', 'id': 'Mengirim...', 'bn': 'পাঠানো হচ্ছে...', 'ha': 'Ana Aikawa...',
+    'so': 'Waa la diraayaa...', 'fa': 'در حال ارسال...', 'ms': 'Menghantar...',
+  },
+  'support_send_success': {
+    'ar': 'تم إرسال رسالتك، جزاك الله خيراً', 'en': 'Your message was sent, may Allah reward you well', 'am': 'መልእክትዎ ተልኳል፣ አላህ በደግነት ይክፈልዎ', 'fr': "Votre message a été envoyé, qu'Allah vous récompense", 'sw': 'Ujumbe wako umetumwa, Allah akulipe kheri',
+    'ur': 'آپ کا پیغام بھیج دیا گیا، اللہ آپ کو بہترین جزا دے', 'tr': 'Mesajınız gönderildi, Allah sizi hayırla mükafatlandırsın', 'id': 'Pesan Anda telah terkirim, semoga Allah membalas Anda dengan kebaikan', 'bn': 'আপনার বার্তা পাঠানো হয়েছে, আল্লাহ আপনাকে উত্তম প্রতিদান দিন', 'ha': 'An aika saƙonka, Allah Ya saka maka da alkhairi',
+    'so': 'Fariintaadii waa la diray, Ilaahay khayr ha kaa siiyo', 'fa': 'پیام شما ارسال شد، خداوند به شما پاداش نیک دهد', 'ms': 'Mesej anda telah dihantar, semoga Allah membalas kebaikan anda',
+  },
+  'support_send_failure': {
+    'ar': 'تعذر الإرسال — تأكد من الاتصال بالإنترنت وحاول مرة أخرى', 'en': "Couldn't send — check your internet connection and try again", 'am': 'መላክ አልተቻለም — የኢንተርኔት ግንኙነትዎን ያረጋግጡ እና እንደገና ይሞክሩ', 'fr': "Échec de l'envoi — vérifiez votre connexion internet et réessayez", 'sw': 'Imeshindikana kutuma — hakikisha muunganisho wa mtandao na ujaribu tena',
+    'ur': 'بھیجا نہیں جا سکا — اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں', 'tr': 'Gönderilemedi — internet bağlantınızı kontrol edip tekrar deneyin', 'id': 'Gagal mengirim — periksa koneksi internet Anda dan coba lagi', 'bn': 'পাঠানো যায়নি — আপনার ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন', 'ha': 'An kasa aikawa — duba haɗin intanet ɗinka ka sake gwadawa',
+    'so': 'Lama dirin — hubi xiriirkaaga internetka oo mar kale isku day', 'fa': 'ارسال ناموفق بود — اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید', 'ms': 'Gagal menghantar — semak sambungan internet anda dan cuba lagi',
+  },
+  'faq_header': {
+    'ar': 'الأسئلة الشائعة', 'en': 'Frequently Asked Questions', 'am': 'ተደጋጋሚ ጥያቄዎች', 'fr': 'Questions fréquentes', 'sw': 'Maswali Yanayoulizwa Mara kwa Mara',
+    'ur': 'اکثر پوچھے گئے سوالات', 'tr': 'Sık Sorulan Sorular', 'id': 'Pertanyaan yang Sering Diajukan', 'bn': 'প্রায়শই জিজ্ঞাসিত প্রশ্ন', 'ha': 'Tambayoyin da Ake Yawan Yi',
+    'so': 'Su\'aalaha Badanaa La Isweydiiyo', 'fa': 'پرسش‌های متداول', 'ms': 'Soalan Lazim',
+  },
+  'no_faq_yet_text': {
+    'ar': 'لا توجد أسئلة شائعة بعد.', 'en': 'No FAQ entries yet.', 'am': 'እስካሁን ተደጋጋሚ ጥያቄዎች የሉም።', 'fr': "Aucune question fréquente pour l'instant.", 'sw': 'Bado hakuna maswali yanayoulizwa mara kwa mara.',
+    'ur': 'ابھی تک کوئی عمومی سوال موجود نہیں۔', 'tr': 'Henüz sık sorulan soru yok.', 'id': 'Belum ada pertanyaan yang sering diajukan.', 'bn': 'এখনও কোনো প্রশ্নোত্তর নেই।', 'ha': 'Babu tambayoyin da ake yawan yi tukuna.',
+    'so': 'Wali ma jiraan su\'aalo badanaa la isweydiiyo.', 'fa': 'هنوز پرسش متداولی وجود ندارد.', 'ms': 'Belum ada soalan lazim.',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

@@ -1,19 +1,21 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/adhkar_repository.dart';
 import '../repositories/custom_adhkar_reminder_repository.dart';
 import '../services/adhkar_notification_prefs.dart';
+import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_notification_prefs.dart';
 import '../services/quiet_hours_prefs.dart';
 import '../theme/app_theme.dart';
 import 'notification_diagnostics_screen.dart';
 
-const _categoryLabels = {
-  'morning': ('أذكار الصباح', 'الافتراضي: وقت الفجر الفعلي'),
-  'evening': ('أذكار المساء', 'الافتراضي: وقت العصر الفعلي'),
-  'sleep': ('أذكار النوم', 'الافتراضي: وقت العشاء الفعلي'),
+const _categoryLabelKeys = {
+  'morning': ('notif_cat_morning_title', 'notif_cat_morning_hint'),
+  'evening': ('notif_cat_evening_title', 'notif_cat_evening_hint'),
+  'sleep': ('notif_cat_sleep_title', 'notif_cat_sleep_hint'),
 };
 
 /// "صفحة ضبط الإشعارات" — Ismail's 2026-08-17 request, first real working
@@ -142,9 +144,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     await _apply();
   }
 
-  String _titleFor(int categoryId) {
+  String _titleFor(int categoryId, String lang) {
     final match = _allCategories.where((c) => c.id == categoryId);
-    return match.isEmpty ? 'ذكر' : match.first.title;
+    return match.isEmpty ? basicText('dhikr_generic_fallback', lang) : match.first.title;
   }
 
   /// "أضف ذكرًا" — Ismail's 2026-08-17 request to add a reminder for any
@@ -154,7 +156,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     final category = await showDialog<AdhkarCategory>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('اختر الذكر'),
+        title: Text(basicText('choose_dhikr_title', LanguagePreferenceService.currentLanguage)),
         children: _allCategories
             .map((c) => SimpleDialogOption(onPressed: () => Navigator.pop(context, c), child: Text(c.title)))
             .toList(),
@@ -203,12 +205,14 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
       appBar: AppBar(
-        title: const Text('الإشعارات'),
+        title: Text(basicText('notifications_title', lang)),
         actions: [
           IconButton(
-            tooltip: 'تشخيص الإشعارات',
+            tooltip: basicText('notification_diagnostics_tooltip', lang),
             icon: const Icon(Icons.health_and_safety_outlined),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationDiagnosticsScreen())),
           ),
@@ -231,17 +235,17 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     children: [
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text('تنبيه أوقات الصلاة', style: AppTextStyles.title),
-                        subtitle: Text('الأوقات الخمسة، محسوبة من موقعك الفعلي', style: AppTextStyles.caption),
+                        title: Text(basicText('prayer_notification_title', lang), style: AppTextStyles.title),
+                        subtitle: Text(basicText('prayer_notification_subtitle', lang), style: AppTextStyles.caption),
                         value: _prayerEnabled,
                         onChanged: _togglePrayerNotifications,
                       ),
                       if (_prayerEnabled) ...[
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
-                          title: Text('صوت الأذان', style: AppTextStyles.title),
+                          title: Text(basicText('adhan_sound_title', lang), style: AppTextStyles.title),
                           subtitle: Text(
-                            'تسجيل أذان حر الحقوق (CC0)، يعمل بلا اتصال إنترنت',
+                            basicText('adhan_sound_subtitle', lang),
                             style: AppTextStyles.caption,
                           ),
                           value: _useAdhanSound,
@@ -254,7 +258,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                             child: OutlinedButton.icon(
                               onPressed: _playTestAdhan,
                               icon: Icon(_testPlaying ? Icons.stop : Icons.play_arrow),
-                              label: Text(_testPlaying ? 'إيقاف' : 'تجربة صوت الأذان'),
+                              label: Text(basicText(_testPlaying ? 'stop_action' : 'test_adhan_sound_action', lang)),
                             ),
                           ),
                         ),
@@ -274,8 +278,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     children: [
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text('ساعات الهدوء', style: AppTextStyles.title),
-                        subtitle: Text('لا يُجدوَل أي تذكير قابل للتحريك داخل هذه الفترة', style: AppTextStyles.caption),
+                        title: Text(basicText('quiet_hours_title', lang), style: AppTextStyles.title),
+                        subtitle: Text(basicText('quiet_hours_subtitle', lang), style: AppTextStyles.caption),
                         value: _quietHoursEnabled,
                         onChanged: _toggleQuietHours,
                       ),
@@ -286,17 +290,22 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                             alignment: AlignmentDirectional.centerStart,
                             child: OutlinedButton(
                               onPressed: _pickQuietWindow,
-                              child: Text('من الساعة $_quietStart:00 إلى $_quietEnd:00', style: AppTextStyles.label),
+                              child: Text(
+                                '${basicText('from_hour_prefix', lang)} $_quietStart:00 ${basicText('to_hour_prefix', lang)} $_quietEnd:00',
+                                style: AppTextStyles.label,
+                              ),
                             ),
                           ),
                         ),
                     ],
                   ),
                 ),
-                Text('إشعارات الأذكار', style: AppTextStyles.headline),
+                Text(basicText('adhkar_notifications_section_title', lang), style: AppTextStyles.headline),
                 const SizedBox(height: 10),
                 ..._prefs.categories.map((category) {
-                final (title, defaultHint) = _categoryLabels[category]!;
+                final (titleKey, hintKey) = _categoryLabelKeys[category]!;
+                final title = basicText(titleKey, lang);
+                final defaultHint = basicText(hintKey, lang);
                 final enabled = _enabled[category] ?? true;
                 final customHour = _customHours[category];
                 return Container(
@@ -326,7 +335,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                 style: customHour == null
                                     ? OutlinedButton.styleFrom(backgroundColor: AppColors.primaryLight)
                                     : null,
-                                child: Text('تلقائي', style: AppTextStyles.label),
+                                child: Text(basicText('auto_label', lang), style: AppTextStyles.label),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -337,7 +346,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                                     ? OutlinedButton.styleFrom(backgroundColor: AppColors.primaryLight)
                                     : null,
                                 child: Text(
-                                  customHour == null ? 'تحديد وقت يدويًا' : 'الساعة $customHour:00',
+                                  customHour == null
+                                      ? basicText('set_time_manually_label', lang)
+                                      : '${basicText('hour_at_label', lang)} $customHour:00',
                                   style: AppTextStyles.label,
                                 ),
                               ),
@@ -345,16 +356,16 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text(customHour == null ? defaultHint : 'وقت مخصّص', style: AppTextStyles.caption),
+                        Text(customHour == null ? defaultHint : basicText('custom_time_label', lang), style: AppTextStyles.caption),
                       ],
                     ],
                   ),
                 );
                 }),
                 const SizedBox(height: 8),
-                Text('أذكار مخصّصة', style: AppTextStyles.headline),
+                Text(basicText('custom_adhkar_section_title', lang), style: AppTextStyles.headline),
                 const SizedBox(height: 4),
-                Text('أضف تذكيرًا لأي ذكر آخر تختاره بنفسك', style: AppTextStyles.caption),
+                Text(basicText('custom_adhkar_section_subtitle', lang), style: AppTextStyles.caption),
                 const SizedBox(height: 10),
                 ..._customReminders.map((r) => Container(
                       margin: const EdgeInsets.only(bottom: 8),
@@ -366,8 +377,8 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       ),
                       child: Row(
                         children: [
-                          Expanded(child: Text(_titleFor(r.categoryId), style: AppTextStyles.body)),
-                          Text('الساعة ${r.hour}:00', style: AppTextStyles.caption),
+                          Expanded(child: Text(_titleFor(r.categoryId, lang), style: AppTextStyles.body)),
+                          Text('${basicText('hour_at_label', lang)} ${r.hour}:00', style: AppTextStyles.caption),
                           IconButton(
                             icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.textMuted),
                             onPressed: () => _removeCustomReminder(r.categoryId),
@@ -378,10 +389,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 OutlinedButton.icon(
                   onPressed: _addCustomReminder,
                   icon: const Icon(Icons.add),
-                  label: const Text('أضف ذكرًا'),
+                  label: Text(basicText('add_dhikr_reminder_action', lang)),
                 ),
               ],
             ),
+      ),
     );
   }
 }

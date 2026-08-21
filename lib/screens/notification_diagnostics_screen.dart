@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
@@ -48,8 +50,10 @@ class _NotificationDiagnosticsScreenState extends State<NotificationDiagnosticsS
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('تشخيص الإشعارات')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('notification_diagnostics_title', lang))),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -58,17 +62,17 @@ class _NotificationDiagnosticsScreenState extends State<NotificationDiagnosticsS
                 padding: const EdgeInsets.all(16),
                 children: [
                   _statusTile(
-                    title: 'إذن الإشعارات',
+                    title: basicText('notification_permission_title', lang),
                     ok: _notificationsEnabled,
-                    okText: 'ممنوح',
-                    badText: 'غير ممنوح — لن تصل أي إشعارات حتى تُفعّله من إعدادات النظام',
+                    okText: basicText('permission_granted_label', lang),
+                    badText: basicText('notification_permission_denied_text', lang),
                   ),
                   const SizedBox(height: 10),
                   _statusTile(
-                    title: 'الجدولة الدقيقة (لتنبيه الصلاة)',
+                    title: basicText('exact_alarm_scheduling_title', lang),
                     ok: _exactAlarmsEnabled,
-                    okText: 'ممنوحة — تنبيه الصلاة يصل في وقته بدقة',
-                    badText: 'غير ممنوحة — تنبيه الصلاة قد يتأخر بضع دقائق بسبب توفير البطارية',
+                    okText: basicText('exact_alarm_granted_text', lang),
+                    badText: basicText('exact_alarm_denied_text', lang),
                   ),
                   const SizedBox(height: 10),
                   Container(
@@ -81,24 +85,24 @@ class _NotificationDiagnosticsScreenState extends State<NotificationDiagnosticsS
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('الموقع', style: AppTextStyles.title),
+                        Text(basicText('location_label', lang), style: AppTextStyles.title),
                         const SizedBox(height: 6),
                         Text(
                           _location == null
-                              ? 'لا يوجد موقع متاح — تُحسب أوقات الصلاة والأذكار بالساعات الافتراضية الثابتة'
+                              ? basicText('no_location_available_text', lang)
                               : _location!.isManual
-                                  ? 'موقع مُدخَل يدويًا'
-                                  : 'موقع GPS حقيقي${_location!.accuracyMeters != null ? ' (دقة ~${_location!.accuracyMeters!.round()} م)' : ' (من ذاكرة التخزين المؤقت)'}',
+                                  ? basicText('manual_location_text', lang)
+                                  : '${basicText('real_gps_location_text', lang)}${_location!.accuracyMeters != null ? ' (${basicText('accuracy_meters_suffix', lang)}${_location!.accuracyMeters!.round()} ${basicText('meters_unit_short', lang)})' : ' (${basicText('from_cache_text', lang)})'}',
                           style: AppTextStyles.caption,
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text('الإشعارات المجدولة الآن (${_pending.length})', style: AppTextStyles.headline),
+                  Text('${basicText('scheduled_notifications_count_title', lang)} (${_pending.length})', style: AppTextStyles.headline),
                   const SizedBox(height: 10),
                   if (_pending.isEmpty)
-                    Text('لا توجد إشعارات مجدولة حاليًا', style: AppTextStyles.caption)
+                    Text(basicText('no_scheduled_notifications_text', lang), style: AppTextStyles.caption)
                   else
                     ..._pending.map((p) => Container(
                           margin: const EdgeInsets.only(bottom: 8),
@@ -126,6 +130,7 @@ class _NotificationDiagnosticsScreenState extends State<NotificationDiagnosticsS
                 ],
               ),
             ),
+      ),
     );
   }
 
