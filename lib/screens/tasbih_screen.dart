@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/milestone_repository.dart';
 import '../repositories/tasbih_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../widgets/celebration_overlay.dart';
@@ -66,20 +68,21 @@ class _TasbihScreenState extends State<TasbihScreen> {
   }
 
   Future<void> _addCustomPhrase() async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final controller = TextEditingController();
     final text = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إضافة ذكر مخصص'),
+        title: Text(basicText('add_custom_dhikr_title', lang)),
         content: TextField(
           controller: controller,
           autofocus: true,
           textAlign: TextAlign.right,
-          decoration: const InputDecoration(hintText: 'اكتب الذكر أو الدعاء'),
+          decoration: InputDecoration(hintText: basicText('write_dhikr_or_dua_hint', lang)),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('إضافة')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(basicText('cancel', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: Text(basicText('add', lang))),
         ],
       ),
     );
@@ -89,15 +92,16 @@ class _TasbihScreenState extends State<TasbihScreen> {
   }
 
   Future<void> _confirmDeleteCustomPhrase(String phraseKey, String text) async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final id = int.parse(phraseKey.substring('custom_'.length));
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف هذا الذكر المخصص؟'),
+        title: Text(basicText('delete_custom_dhikr_title', lang)),
         content: Text(text, textAlign: TextAlign.right),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حذف')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('undo_action', lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('delete', lang))),
         ],
       ),
     );
@@ -140,13 +144,15 @@ class _TasbihScreenState extends State<TasbihScreen> {
   Widget build(BuildContext context) {
     final fraction = (_count / _target).clamp(0.0, 1.0);
     final complete = _count >= _target;
-    return Scaffold(
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
       appBar: AppBar(
-        title: const Text('التسبيح'),
+        title: Text(basicText('tasbih_title', lang)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            tooltip: 'إعادة ضبط اليوم',
+            tooltip: basicText('reset_today_tooltip', lang),
             onPressed: _reset,
           ),
         ],
@@ -181,7 +187,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                         ),
                         ActionChip(
                           avatar: const Icon(Icons.add, size: 16),
-                          label: const Text('ذكر مخصص', style: TextStyle(fontSize: 12.5)),
+                          label: Text(basicText('custom_dhikr_chip_label', lang), style: const TextStyle(fontSize: 12.5)),
                           onPressed: _addCustomPhrase,
                         ),
                       ],
@@ -194,9 +200,9 @@ class _TasbihScreenState extends State<TasbihScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Text(
-                          'الهدف: ',
-                          style: TextStyle(
+                        Text(
+                          basicText('target_label_prefix', lang),
+                          style: const TextStyle(
                             fontSize: 12.5,
                             color: AppColors.textMuted,
                             fontWeight: FontWeight.w700,
@@ -278,7 +284,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                                         ),
                                       ),
                                       Text(
-                                        'من $_target',
+                                        '${basicText('of_target_prefix', lang)} $_target',
                                         style: const TextStyle(
                                           fontSize: 13,
                                           color: AppColors.textMuted,
@@ -292,8 +298,8 @@ class _TasbihScreenState extends State<TasbihScreen> {
                             const SizedBox(height: 20),
                             Text(
                               complete
-                                  ? 'أتممت الهدف — بارك الله فيك ✨'
-                                  : 'اضغط في أي مكان لتسبّح',
+                                  ? basicText('tasbih_target_complete_message', lang)
+                                  : basicText('tap_anywhere_to_tasbih_message', lang),
                               style: TextStyle(
                                 fontSize: 12.5,
                                 color: complete
@@ -310,6 +316,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
                 ],
               ),
             ),
+      ),
     );
   }
 }

@@ -2256,6 +2256,154 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'قبلہ', 'tr': 'Kıble', 'id': 'Kiblat', 'bn': 'কিবলা', 'ha': 'Alkibla',
     'so': 'Qiblada', 'fa': 'قبله', 'ms': 'Kiblat',
   },
+  // 2026-08-22: tasbih_screen.dart. The dhikr phrases themselves
+  // (سبحان الله etc.) stay Arabic — deep Islamic content, out of scope.
+  'tasbih_title': {
+    'ar': 'التسبيح', 'en': 'Tasbih Counter', 'am': 'ተስቢሕ ቆጣሪ', 'fr': 'Compteur de Tasbih', 'sw': 'Kihesabu Tasbihi',
+    'ur': 'تسبیح شمار', 'tr': 'Tesbih Sayacı', 'id': 'Penghitung Tasbih', 'bn': 'তসবিহ কাউন্টার', 'ha': 'Kirga Tasbihi',
+    'so': 'Tirinta Tasbiixda', 'fa': 'شمارشگر تسبیح', 'ms': 'Kira Tasbih',
+  },
+  'reset_today_tooltip': {
+    'ar': 'إعادة ضبط اليوم', 'en': "Reset Today's Count", 'am': 'የዛሬውን ዳግም አስጀምር', 'fr': "Réinitialiser aujourd'hui", 'sw': 'Weka Upya Leo',
+    'ur': 'آج کا شمار دوبارہ ترتیب دیں', 'tr': 'Bugünü Sıfırla', 'id': 'Atur Ulang Hari Ini', 'bn': 'আজকের গণনা রিসেট করুন', 'ha': 'Sake Farawa Yau',
+    'so': 'Dib u deji Maanta', 'fa': 'بازنشانی امروز', 'ms': 'Set Semula Hari Ini',
+  },
+  'add_custom_dhikr_title': {
+    'ar': 'إضافة ذكر مخصص', 'en': 'Add a Custom Dhikr', 'am': 'ብጁ ዚክር ጨምር', 'fr': 'Ajouter un dhikr personnalisé', 'sw': 'Ongeza Dhikr Maalum',
+    'ur': 'حسبِ ضرورت ذکر شامل کریں', 'tr': 'Özel Zikir Ekle', 'id': 'Tambah Dzikir Kustom', 'bn': 'কাস্টম জিকির যোগ করুন', 'ha': 'Ƙara Zikiri na Musamman',
+    'so': 'Ku dar Dhikr Gaar ah', 'fa': 'افزودن ذکر سفارشی', 'ms': 'Tambah Zikir Tersuai',
+  },
+  'write_dhikr_or_dua_hint': {
+    'ar': 'اكتب الذكر أو الدعاء', 'en': 'Write the dhikr or dua', 'am': 'ዚክሩን ወይም ዱዓውን ይጻፉ', 'fr': 'Écrivez le dhikr ou le doua', 'sw': 'Andika dhikr au dua',
+    'ur': 'ذکر یا دعا لکھیں', 'tr': 'Zikri veya duayı yazın', 'id': 'Tulis dzikir atau doa', 'bn': 'জিকির বা দোয়া লিখুন', 'ha': 'Rubuta zikiri ko addu\'a',
+    'so': 'Qor dhikrka ama duco', 'fa': 'ذکر یا دعا را بنویسید', 'ms': 'Tulis zikir atau doa',
+  },
+  'delete_custom_dhikr_title': {
+    'ar': 'حذف هذا الذكر المخصص؟', 'en': 'Delete this custom dhikr?', 'am': 'ይህን ብጁ ዚክር ይሰርዙ?', 'fr': 'Supprimer ce dhikr personnalisé ?', 'sw': 'Futa dhikr hii maalum?',
+    'ur': 'کیا یہ حسبِ ضرورت ذکر حذف کریں؟', 'tr': 'Bu özel zikri sil?', 'id': 'Hapus dzikir kustom ini?', 'bn': 'এই কাস্টম জিকিরটি মুছবেন?', 'ha': 'Share wannan zikirin na musamman?',
+    'so': 'Ma tirtirtaa dhikrkan gaarka ah?', 'fa': 'این ذکر سفارشی حذف شود؟', 'ms': 'Padam zikir tersuai ini?',
+  },
+  'undo_action': {
+    'ar': 'تراجع', 'en': 'Undo', 'am': 'ተመለስ', 'fr': 'Annuler', 'sw': 'Tengua',
+    'ur': 'واپس لیں', 'tr': 'Geri Al', 'id': 'Batalkan', 'bn': 'পূর্বাবস্থায় ফিরুন', 'ha': 'Soke',
+    'so': 'Dib u celi', 'fa': 'واگرد', 'ms': 'Buat Asal',
+  },
+  'custom_dhikr_chip_label': {
+    'ar': 'ذكر مخصص', 'en': 'Custom Dhikr', 'am': 'ብጁ ዚክር', 'fr': 'Dhikr personnalisé', 'sw': 'Dhikr Maalum',
+    'ur': 'حسبِ ضرورت ذکر', 'tr': 'Özel Zikir', 'id': 'Dzikir Kustom', 'bn': 'কাস্টম জিকির', 'ha': 'Zikiri na Musamman',
+    'so': 'Dhikr Gaar ah', 'fa': 'ذکر سفارشی', 'ms': 'Zikir Tersuai',
+  },
+  'target_label_prefix': {
+    'ar': 'الهدف: ', 'en': 'Target: ', 'am': 'ግብ፦ ', 'fr': 'Objectif : ', 'sw': 'Lengo: ',
+    'ur': 'ہدف: ', 'tr': 'Hedef: ', 'id': 'Target: ', 'bn': 'লক্ষ্য: ', 'ha': 'Manufa: ',
+    'so': 'Yoolka: ', 'fa': 'هدف: ', 'ms': 'Sasaran: ',
+  },
+  'of_target_prefix': {
+    'ar': 'من', 'en': 'of', 'am': 'ከ', 'fr': 'sur', 'sw': 'kati ya',
+    'ur': 'میں سے', 'tr': '/', 'id': 'dari', 'bn': 'এর মধ্যে', 'ha': 'daga cikin',
+    'so': 'oo ka mid ah', 'fa': 'از', 'ms': 'daripada',
+  },
+  'tasbih_target_complete_message': {
+    'ar': 'أتممت الهدف — بارك الله فيك ✨', 'en': "You completed the target — may Allah bless you ✨", 'am': 'ግቡን አጠናቀዋል — አላህ ይባርክዎ ✨', 'fr': "Vous avez atteint l'objectif — qu'Allah vous bénisse ✨", 'sw': 'Umefikia lengo — Allah akubariki ✨',
+    'ur': 'آپ نے ہدف مکمل کر لیا — اللہ آپ کو برکت دے ✨', 'tr': 'Hedefi tamamladınız — Allah sizi mübarek kılsın ✨', 'id': 'Anda mencapai target — semoga Allah memberkati Anda ✨', 'bn': 'আপনি লক্ষ্য পূরণ করেছেন — আল্লাহ আপনাকে বরকত দিন ✨', 'ha': 'Ka kammala manufar — Allah Ya albarkace ka ✨',
+    'so': 'Waad gaadhay yoolka — Ilaahay ha ku barakeeyo ✨', 'fa': 'به هدف رسیدید — خداوند شما را برکت دهد ✨', 'ms': 'Anda mencapai sasaran — semoga Allah memberkati anda ✨',
+  },
+  'tap_anywhere_to_tasbih_message': {
+    'ar': 'اضغط في أي مكان لتسبّح', 'en': 'Tap anywhere to count', 'am': 'ለመቁጠር የትም ይንኩ', 'fr': "Appuyez n'importe où pour compter", 'sw': 'Gusa mahali popote kuhesabu',
+    'ur': 'شمار کرنے کے لیے کہیں بھی دبائیں', 'tr': 'Saymak için herhangi bir yere dokunun', 'id': 'Ketuk di mana saja untuk menghitung', 'bn': 'গণনা করতে যেকোনো জায়গায় চাপুন', 'ha': 'Danna ko\'ina don ƙidayawa',
+    'so': 'Taabo meel kasta si aad u tirisid', 'fa': 'برای شمارش هر جا را لمس کنید', 'ms': 'Ketik di mana-mana untuk mengira',
+  },
+  // 2026-08-22: review_screen.dart.
+  'review_title': {
+    'ar': 'المراجعة', 'en': 'Review', 'am': 'ክለሳ', 'fr': 'Révision', 'sw': 'Kupitia',
+    'ur': 'دہرائی', 'tr': 'Tekrar', 'id': 'Ulangan', 'bn': 'পুনরাবৃত্তি', 'ha': 'Sake Nazari',
+    'so': 'Dib-u-eegis', 'fa': 'مرور', 'ms': 'Ulangkaji',
+  },
+  'completed_all_reviews_message': {
+    'ar': 'أحسنت — أنجزت كل مراجعات اليوم', 'en': "Well done — you've completed all of today's reviews", 'am': 'መልካም — የዛሬውን ክለሳ ሁሉ አጠናቀዋል', 'fr': "Bien joué — vous avez terminé toutes les révisions d'aujourd'hui", 'sw': 'Hongera — umekamilisha marudio yote ya leo',
+    'ur': 'شاباش — آپ نے آج کی تمام دہرائیاں مکمل کر لیں', 'tr': 'Aferin — bugünkü tüm tekrarları tamamladınız', 'id': 'Bagus — Anda telah menyelesaikan semua ulangan hari ini', 'bn': 'সাবাশ — আপনি আজকের সব পুনরাবৃত্তি সম্পন্ন করেছেন', 'ha': 'Madalla — ka kammala dukkan sake-nazarin yau',
+    'so': 'Waad ku mahadsan tahay — waad dhammaysay dhammaan dib-u-eegistii maanta', 'fa': 'آفرین — همه مرورهای امروز را کامل کردید', 'ms': 'Syabas — anda telah melengkapkan semua ulangkaji hari ini',
+  },
+  'no_reviews_due_message': {
+    'ar': 'لا توجد مراجعات مستحقة اليوم', 'en': 'No reviews due today', 'am': 'ዛሬ የሚገባ ክለሳ የለም', 'fr': "Aucune révision due aujourd'hui", 'sw': 'Hakuna marudio yanayohitajika leo',
+    'ur': 'آج کوئی دہرائی واجب نہیں', 'tr': 'Bugün için tekrar yok', 'id': 'Tidak ada ulangan yang jatuh tempo hari ini', 'bn': 'আজ কোনো পুনরাবৃত্তি বাকি নেই', 'ha': 'Babu sake-nazarin da ake bukata yau',
+    'so': 'Maanta dib-u-eegis lagama baahna', 'fa': 'امروز مروری لازم نیست', 'ms': 'Tiada ulangkaji perlu dilakukan hari ini',
+  },
+  'reward_reminder_prefix': {
+    'ar': 'قلت لنفسك:', 'en': 'You told yourself:', 'am': 'ለራስዎ ተናግረው ነበር፦', 'fr': 'Vous vous êtes dit :', 'sw': 'Ulijiambia:',
+    'ur': 'آپ نے خود سے کہا تھا:', 'tr': 'Kendinize demiştiniz:', 'id': 'Anda berkata pada diri sendiri:', 'bn': 'আপনি নিজেকে বলেছিলেন:', 'ha': 'Ka gaya wa kanka:',
+    'so': 'Waxaad naftaada u sheegtay:', 'fa': 'به خودتان گفتید:', 'ms': 'Anda telah berkata kepada diri sendiri:',
+  },
+  'reward_reminder_suffix': {
+    'ar': '— اذهب ونفّذها 🎉', 'en': "— go do it 🎉", 'am': '— ሂደው ያድርጉት 🎉', 'fr': "— allez-y et faites-le 🎉", 'sw': '— nenda ukafanye 🎉',
+    'ur': '— جائیں اور اسے پورا کریں 🎉', 'tr': '— hadi git ve yap 🎉', 'id': '— pergilah dan lakukan 🎉', 'bn': '— যান এবং তা করুন 🎉', 'ha': '— je ka aikata shi 🎉',
+    'so': '— tag oo samee 🎉', 'fa': '— برو و انجامش بده 🎉', 'ms': '— pergi dan lakukannya 🎉',
+  },
+  'remaining_count_prefix': {
+    'ar': 'باقي', 'en': 'Remaining:', 'am': 'ቀሪ', 'fr': 'Restant :', 'sw': 'Zilizobaki:',
+    'ur': 'باقی', 'tr': 'Kalan:', 'id': 'Sisa:', 'bn': 'বাকি', 'ha': 'Sauran:',
+    'so': 'Ku hadhay:', 'fa': 'باقی‌مانده:', 'ms': 'Baki:',
+  },
+  'ayah_word_label': {
+    'ar': 'آية', 'en': 'ayah', 'am': 'አንቀጽ', 'fr': 'verset', 'sw': 'aya',
+    'ur': 'آیت', 'tr': 'ayet', 'id': 'ayat', 'bn': 'আয়াত', 'ha': 'aya',
+    'so': 'aayad', 'fa': 'آیه', 'ms': 'ayat',
+  },
+  'to_surah_prefix': {
+    'ar': 'إلى سورة', 'en': 'to Surah', 'am': 'እስከ ሱራ', 'fr': "à la sourate", 'sw': 'hadi Sura',
+    'ur': 'سورۃ تک', 'tr': "Suresine kadar", 'id': 'hingga Surah', 'bn': 'সূরা পর্যন্ত', 'ha': 'zuwa Suratu',
+    'so': 'ilaa Suuradda', 'fa': 'تا سوره', 'ms': 'hingga Surah',
+  },
+  'rate_your_review_prompt': {
+    'ar': 'قيّم مراجعتك:', 'en': 'Rate your review:', 'am': 'ክለሳዎን ይገምግሙ፦', 'fr': 'Évaluez votre révision :', 'sw': 'Kadiria marudio yako:',
+    'ur': 'اپنی دہرائی کی درجہ بندی کریں:', 'tr': 'Tekrarınızı değerlendirin:', 'id': 'Nilai ulangan Anda:', 'bn': 'আপনার পুনরাবৃত্তি মূল্যায়ন করুন:', 'ha': 'Kimanta sake-nazarinka:',
+    'so': 'Qiimee dib-u-eegistaada:', 'fa': 'مرور خود را ارزیابی کنید:', 'ms': 'Nilai ulangkaji anda:',
+  },
+  'rating_needs_review': {
+    'ar': 'يحتاج مراجعة', 'en': 'Needs Review', 'am': 'ክለሳ ያስፈልገዋል', 'fr': 'Nécessite une révision', 'sw': 'Inahitaji Kupitiwa',
+    'ur': 'دہرائی درکار', 'tr': 'Tekrar Gerekli', 'id': 'Perlu Diulang', 'bn': 'পুনরাবৃত্তি প্রয়োজন', 'ha': 'Yana Buƙatar Sake Nazari',
+    'so': 'U Baahan Dib-u-eegis', 'fa': 'نیاز به مرور', 'ms': 'Perlu Ulangkaji',
+  },
+  'rating_good': {
+    'ar': 'جيد', 'en': 'Good', 'am': 'ጥሩ', 'fr': 'Bien', 'sw': 'Vizuri',
+    'ur': 'اچھا', 'tr': 'İyi', 'id': 'Baik', 'bn': 'ভালো', 'ha': 'Da Kyau',
+    'so': 'Wanaagsan', 'fa': 'خوب', 'ms': 'Baik',
+  },
+  'rating_excellent': {
+    'ar': 'ممتاز', 'en': 'Excellent', 'am': 'እጅግ በጣም ጥሩ', 'fr': 'Excellent', 'sw': 'Bora Sana',
+    'ur': 'بہترین', 'tr': 'Mükemmel', 'id': 'Sangat Baik', 'bn': 'চমৎকার', 'ha': 'Mafi Kyau',
+    'so': 'Aad U Fiican', 'fa': 'عالی', 'ms': 'Cemerlang',
+  },
+  'review_mistake_note_title': {
+    'ar': 'أي خطأ بالذات؟ (اختياري)', 'en': 'Which mistake exactly? (optional)', 'am': 'የትኛው ስህተት በተለይ? (አማራጭ)', 'fr': 'Quelle erreur exactement ? (facultatif)', 'sw': 'Kosa lipi hasa? (si lazima)',
+    'ur': 'بالکل کون سی غلطی؟ (اختیاری)', 'tr': 'Tam olarak hangi hata? (isteğe bağlı)', 'id': 'Kesalahan yang mana tepatnya? (opsional)', 'bn': 'ঠিক কোন ভুলটি? (ঐচ্ছিক)', 'ha': 'Wanne kuskure daidai? (na zaɓi)',
+    'so': 'Khaladkee sax ah? (ikhtiyaari)', 'fa': 'دقیقاً کدام اشتباه؟ (اختیاری)', 'ms': 'Kesilapan yang mana tepatnya? (pilihan)',
+  },
+  'review_mistake_note_hint': {
+    'ar': 'مثلًا: تعثرت بآية ٥', 'en': 'e.g. I stumbled on ayah 5', 'am': 'ለምሳሌ፦ በአንቀጽ 5 ተደናቀፍኩ', 'fr': "par exemple : j'ai buté sur le verset 5", 'sw': 'k.m.: nilikwazwa aya ya 5',
+    'ur': 'مثلاً: میں آیت ٥ پر اٹک گیا', 'tr': 'örneğin: 5. ayette takıldım', 'id': 'misalnya: saya tersendat di ayat 5', 'bn': 'যেমন: আয়াত ৫-এ আটকে গেছি', 'ha': "misali: na tuntuɓe a aya 5",
+    'so': 'tusaale ahaan: waxaan ku turunturooday aayadda 5aad', 'fa': 'مثلاً: در آیه ۵ گیر کردم', 'ms': 'contohnya: saya tersekat pada ayat 5',
+  },
+  'record_action': {
+    'ar': 'تسجيل', 'en': 'Record', 'am': 'መዝግብ', 'fr': 'Enregistrer', 'sw': 'Rekodi',
+    'ur': 'ریکارڈ کریں', 'tr': 'Kaydet', 'id': 'Catat', 'bn': 'রেকর্ড করুন', 'ha': 'Rubuta',
+    'so': 'Diiwaan geli', 'fa': 'ثبت', 'ms': 'Rekod',
+  },
+  'sabaq_label': {
+    'ar': 'سبق', 'en': 'Sabaq', 'am': 'ሰበቅ', 'fr': 'Sabaq', 'sw': 'Sabaq',
+    'ur': 'سبق', 'tr': 'Sebak', 'id': 'Sabaq', 'bn': 'সবক', 'ha': 'Sabaƙ',
+    'so': 'Sabaq', 'fa': 'سبق', 'ms': 'Sabaq',
+  },
+  'sabqi_label': {
+    'ar': 'سبقي', 'en': 'Sabqi', 'am': 'ሰበቂ', 'fr': 'Sabqi', 'sw': 'Sabqi',
+    'ur': 'سبقی', 'tr': 'Sebki', 'id': 'Sabqi', 'bn': 'সবকি', 'ha': 'Sabƙi',
+    'so': 'Sabqi', 'fa': 'سبقی', 'ms': 'Sabqi',
+  },
+  'manzil_label': {
+    'ar': 'منزل', 'en': 'Manzil', 'am': 'መንዚል', 'fr': 'Manzil', 'sw': 'Manzil',
+    'ur': 'منزل', 'tr': 'Menzil', 'id': 'Manzil', 'bn': 'মানজিল', 'ha': 'Manzil',
+    'so': 'Manzil', 'fa': 'منزل', 'ms': 'Manzil',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

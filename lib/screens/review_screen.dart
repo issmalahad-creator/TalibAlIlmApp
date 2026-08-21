@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
 import '../db/database_helper.dart';
+import '../l10n/basic_translations.dart';
 import '../models/personal_accountability.dart';
 import '../repositories/memorization_repository.dart';
 import '../repositories/milestone_repository.dart';
 import '../repositories/personal_accountability_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 
-const _hifzCategoryLabels = {
-  HifzCategory.sabaq: ('سبق', AppColors.primaryDark),
-  HifzCategory.sabqi: ('سبقي', AppColors.primary),
-  HifzCategory.manzil: ('منزل', Color(0xFFB8860B)),
+const _hifzCategoryLabelKeys = {
+  HifzCategory.sabaq: ('sabaq_label', AppColors.primaryDark),
+  HifzCategory.sabqi: ('sabqi_label', AppColors.primary),
+  HifzCategory.manzil: ('manzil_label', Color(0xFFB8860B)),
   HifzCategory.notStarted: ('', AppColors.textMuted),
 };
 
@@ -111,18 +113,19 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   Future<String?> _askForNote() async {
+    final lang = LanguagePreferenceService.currentLanguage;
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('أي خطأ بالذات؟ (اختياري)'),
+        title: Text(basicText('review_mistake_note_title', lang)),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: 'مثلًا: تعثرت بآية ٥'),
+          decoration: InputDecoration(hintText: basicText('review_mistake_note_hint', lang)),
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: const Text('تسجيل')),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text), child: Text(basicText('record_action', lang))),
         ],
       ),
     );
@@ -130,13 +133,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('المراجعة')),
-      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('review_title', lang))),
+      body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang)) : _buildBody(lang),
+      ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(String lang) {
     if (_queue.isEmpty) {
       return Center(
         child: Padding(
@@ -147,7 +153,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
               const Text('🌱', style: TextStyle(fontSize: 48)),
               const SizedBox(height: 12),
               Text(
-                _completedToday > 0 ? 'أحسنت — أنجزت كل مراجعات اليوم' : 'لا توجد مراجعات مستحقة اليوم',
+                _completedToday > 0 ? basicText('completed_all_reviews_message', lang) : basicText('no_reviews_due_message', lang),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark),
                 textAlign: TextAlign.center,
               ),
@@ -157,7 +163,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
                   child: Text(
-                    'قلت لنفسك: "${_accountability!.rewardText}" — اذهب ونفّذها 🎉',
+                    '${basicText('reward_reminder_prefix', lang)} "${_accountability!.rewardText}" ${basicText('reward_reminder_suffix', lang)}',
                     style: const TextStyle(fontSize: 13, color: AppColors.primaryDark),
                     textAlign: TextAlign.center,
                   ),
@@ -175,7 +181,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('باقي ${_queue.length}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+          Text('${basicText('remaining_count_prefix', lang)} ${_queue.length}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           const SizedBox(height: 12),
           Expanded(
             child: AnimatedSwitcher(
@@ -192,15 +198,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   children: [
                     Row(
                       children: [
-                        Text('صفحة ${unit.id}', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                        Text('${basicText('page_word_prefix', lang)} ${unit.id}', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
                         if (unit.hifzCategory() != HifzCategory.notStarted) ...[
                           const SizedBox(width: 8),
                           Builder(builder: (context) {
-                            final (label, color) = _hifzCategoryLabels[unit.hifzCategory()]!;
+                            final (labelKey, color) = _hifzCategoryLabelKeys[unit.hifzCategory()]!;
                             return Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
-                              child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w800)),
+                              child: Text(basicText(labelKey, lang), style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w800)),
                             );
                           }),
                         ],
@@ -208,8 +214,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'من سورة ${_surahNames[unit.surahStart] ?? unit.surahStart} آية ${unit.ayahStart} '
-                      'إلى سورة ${_surahNames[unit.surahEnd] ?? unit.surahEnd} آية ${unit.ayahEnd}',
+                      '${basicText('from_surah_prefix', lang)} ${_surahNames[unit.surahStart] ?? unit.surahStart} ${basicText('ayah_word_label', lang)} ${unit.ayahStart} '
+                      '${basicText('to_surah_prefix', lang)} ${_surahNames[unit.surahEnd] ?? unit.surahEnd} ${basicText('ayah_word_label', lang)} ${unit.ayahEnd}',
                       style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
                     ),
                     if (_startAyahPreview != null) ...[
@@ -222,15 +228,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('قيّم مراجعتك:', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+          Text(basicText('rate_your_review_prompt', lang), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _RateButton(label: 'يحتاج مراجعة', color: AppColors.textMuted, onTap: _rating ? null : () => _rate(ReviewQuality.needsReview))),
+              Expanded(child: _RateButton(label: basicText('rating_needs_review', lang), color: AppColors.textMuted, onTap: _rating ? null : () => _rate(ReviewQuality.needsReview))),
               const SizedBox(width: 8),
-              Expanded(child: _RateButton(label: 'جيد', color: AppColors.primary, onTap: _rating ? null : () => _rate(ReviewQuality.good))),
+              Expanded(child: _RateButton(label: basicText('rating_good', lang), color: AppColors.primary, onTap: _rating ? null : () => _rate(ReviewQuality.good))),
               const SizedBox(width: 8),
-              Expanded(child: _RateButton(label: 'ممتاز', color: AppColors.primaryDark, onTap: _rating ? null : () => _rate(ReviewQuality.excellent))),
+              Expanded(child: _RateButton(label: basicText('rating_excellent', lang), color: AppColors.primaryDark, onTap: _rating ? null : () => _rate(ReviewQuality.excellent))),
             ],
           ),
         ],
