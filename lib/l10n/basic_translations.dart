@@ -3380,6 +3380,138 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'کون سا جملہ یا لمحہ آپ کو متاثر کر گیا؟', 'tr': "Sizi hangi ifade ya da an etkiledi?", 'id': 'Frasa atau momen apa yang memengaruhi Anda?', 'bn': 'কোন বাক্য বা মুহূর্ত আপনাকে প্রভাবিত করেছিল?', 'ha': "Wace jimla ko lokaci ne ya shafe ka?",
     'so': 'Weerkee ama xaaladdee ayaa ku saameysay?', 'fa': 'چه عبارت یا لحظه‌ای بر شما تأثیر گذاشت؟', 'ms': 'Frasa atau detik apakah yang menyentuh anda?',
   },
+  // 2026-08-22: personal_library_screen.dart. Book titles are user data,
+  // not translated.
+  'personal_library_title': {
+    'ar': 'مكتبتي', 'en': 'My Library', 'am': 'ቤተ መጻሕፍቴ', 'fr': 'Ma bibliothèque', 'sw': 'Maktaba Yangu',
+    'ur': 'میری لائبریری', 'tr': 'Kütüphanem', 'id': 'Perpustakaan Saya', 'bn': 'আমার গ্রন্থাগার', 'ha': 'Laburare Na',
+    'so': 'Maktabadayda', 'fa': 'کتابخانه من', 'ms': 'Perpustakaan Saya',
+  },
+  'new_category_title': {
+    'ar': 'قسم جديد', 'en': 'New Category', 'am': 'አዲስ ክፍል', 'fr': 'Nouvelle catégorie', 'sw': 'Jamii Mpya',
+    'ur': 'نیا زمرہ', 'tr': 'Yeni Kategori', 'id': 'Kategori Baru', 'bn': 'নতুন বিভাগ', 'ha': 'Sabon Fanni',
+    'so': 'Qaybo Cusub', 'fa': 'دسته جدید', 'ms': 'Kategori Baharu',
+  },
+  'category_name_hint_example': {
+    'ar': 'مثال: الفقه', 'en': 'e.g.: Fiqh', 'am': 'ለምሳሌ፦ ፊቅህ', 'fr': 'par exemple : le fiqh', 'sw': 'k.m.: Fiqhi',
+    'ur': 'مثلاً: فقہ', 'tr': 'örneğin: Fıkıh', 'id': 'misalnya: Fiqih', 'bn': 'যেমন: ফিকহ', 'ha': 'misali: Fikihu',
+    'so': 'tusaale ahaan: Fiqhiga', 'fa': 'مثلاً: فقه', 'ms': 'contohnya: Fiqh',
+  },
+  'rename_category_title': {
+    'ar': 'إعادة تسمية القسم', 'en': 'Rename Category', 'am': 'ክፍልን እንደገና ይሰይሙ', 'fr': 'Renommer la catégorie', 'sw': 'Badilisha Jina la Jamii',
+    'ur': 'زمرے کا نام تبدیل کریں', 'tr': 'Kategoriyi Yeniden Adlandır', 'id': 'Ubah Nama Kategori', 'bn': 'বিভাগের নাম পরিবর্তন করুন', 'ha': 'Sake Suna Fanni',
+    'so': 'Dib u Magacaw Qaybta', 'fa': 'تغییر نام دسته', 'ms': 'Namakan Semula Kategori',
+  },
+  'delete_category_title': {
+    'ar': 'حذف القسم', 'en': 'Delete Category', 'am': 'ክፍል ሰርዝ', 'fr': 'Supprimer la catégorie', 'sw': 'Futa Jamii',
+    'ur': 'زمرہ حذف کریں', 'tr': 'Kategoriyi Sil', 'id': 'Hapus Kategori', 'bn': 'বিভাগ মুছুন', 'ha': 'Share Fanni',
+    'so': 'Tirtir Qaybta', 'fa': 'حذف دسته', 'ms': 'Padam Kategori',
+  },
+  'delete_category_confirm_prefix': {
+    'ar': 'سيتم حذف قسم', 'en': 'This will delete the category', 'am': 'ክፍል ይሰረዛል', 'fr': 'Ceci supprimera la catégorie', 'sw': 'Hii itafuta jamii',
+    'ur': 'یہ زمرہ حذف کر دے گا', 'tr': 'Bu kategori silinecek:', 'id': 'Ini akan menghapus kategori', 'bn': 'এটি বিভাগ মুছে ফেলবে', 'ha': 'Wannan zai share fannin',
+    'so': 'Tan waxay tirtiri doontaa qaybta', 'fa': 'این کار دسته را حذف می‌کند', 'ms': 'Ini akan memadam kategori',
+  },
+  'delete_category_confirm_suffix': {
+    'ar': 'فقط — الكتب بداخله ستبقى محفوظة ضمن "بدون قسم".', 'en': 'only — the books inside it will remain saved under "Uncategorized".', 'am': 'ብቻ — በውስጡ ያሉት መጻሕፍት በ"ያለ ክፍል" ውስጥ ተቀምጠው ይቆያሉ።', 'fr': 'uniquement — les livres qu\'elle contient resteront enregistrés sous "Sans catégorie".', 'sw': 'tu — vitabu vilivyomo vitabaki vimehifadhiwa chini ya "Bila Jamii".',
+    'ur': 'صرف — اس کے اندر موجود کتابیں "بغیر زمرہ" میں محفوظ رہیں گی۔', 'tr': 'sadece — içindeki kitaplar "Kategorisiz" altında saklı kalacak.', 'id': 'saja — buku-buku di dalamnya akan tetap tersimpan di bawah "Tanpa Kategori".', 'bn': 'শুধু — এর ভেতরের বইগুলো "বিভাগহীন"-এর অধীনে সংরক্ষিত থাকবে।', 'ha': "kawai — littattafan da ke ciki za su ci gaba da ajiye a ƙarƙashin \"Ba Tare da Fanni Ba\".",
+    'so': 'kaliya — buugagta gudaha ku jira waxay ku sii jiri doonaan "Qaybla\'aan".', 'fa': 'فقط — کتاب‌های داخل آن زیر "بدون دسته" ذخیره باقی می‌مانند.', 'ms': 'sahaja — buku di dalamnya akan kekal disimpan di bawah "Tiada Kategori".',
+  },
+  'uncategorized_label': {
+    'ar': 'بدون قسم', 'en': 'Uncategorized', 'am': 'ያለ ክፍል', 'fr': 'Sans catégorie', 'sw': 'Bila Jamii',
+    'ur': 'بغیر زمرہ', 'tr': 'Kategorisiz', 'id': 'Tanpa Kategori', 'bn': 'বিভাগহীন', 'ha': 'Ba Tare da Fanni Ba',
+    'so': "Qaybla'aan", 'fa': 'بدون دسته', 'ms': 'Tiada Kategori',
+  },
+  'generic_category_fallback_name': {
+    'ar': 'قسم', 'en': 'Category', 'am': 'ክፍል', 'fr': 'Catégorie', 'sw': 'Jamii',
+    'ur': 'زمرہ', 'tr': 'Kategori', 'id': 'Kategori', 'bn': 'বিভাগ', 'ha': 'Fanni',
+    'so': 'Qaybta', 'fa': 'دسته', 'ms': 'Kategori',
+  },
+  'add_book_failed_prefix': {
+    'ar': 'تعذر إضافة الكتاب:', 'en': 'Could not add the book:', 'am': 'መጽሐፉን ማከል አልተቻለም፦', 'fr': "Impossible d'ajouter le livre :", 'sw': 'Imeshindikana kuongeza kitabu:',
+    'ur': 'کتاب شامل نہیں کی جا سکی:', 'tr': 'Kitap eklenemedi:', 'id': 'Tidak dapat menambahkan buku:', 'bn': 'বই যোগ করা যায়নি:', 'ha': "An kasa ƙara littafin:",
+    'so': 'Lama darsan buugga:', 'fa': 'افزودن کتاب ممکن نشد:', 'ms': 'Tidak dapat menambah buku:',
+  },
+  'delete_book_title': {
+    'ar': 'حذف الكتاب', 'en': 'Delete Book', 'am': 'መጽሐፍ ሰርዝ', 'fr': 'Supprimer le livre', 'sw': 'Futa Kitabu',
+    'ur': 'کتاب حذف کریں', 'tr': 'Kitabı Sil', 'id': 'Hapus Buku', 'bn': 'বই মুছুন', 'ha': 'Share Littafi',
+    'so': 'Tirtir Buugga', 'fa': 'حذف کتاب', 'ms': 'Padam Buku',
+  },
+  'delete_book_confirm_prefix': {
+    'ar': 'هل تريد حذف', 'en': 'Do you want to delete', 'am': 'መሰረዝ ይፈልጋሉ', 'fr': 'Voulez-vous supprimer', 'sw': 'Je, unataka kufuta',
+    'ur': 'کیا آپ حذف کرنا چاہتے ہیں', 'tr': 'Silmek istiyor musunuz:', 'id': 'Apakah Anda ingin menghapus', 'bn': 'আপনি কি মুছে ফেলতে চান', 'ha': "Kana son share",
+    'so': 'Ma doonaysaa inaad tirtirto', 'fa': 'آیا می‌خواهید حذف کنید', 'ms': 'Adakah anda ingin memadam',
+  },
+  'delete_book_confirm_suffix': {
+    'ar': 'من مكتبتك؟', 'en': 'from your library?', 'am': 'ከቤተ መጻሕፍትዎ?', 'fr': 'de votre bibliothèque ?', 'sw': 'kutoka maktaba yako?',
+    'ur': 'اپنی لائبریری سے؟', 'tr': 'kütüphanenizden?', 'id': 'dari perpustakaan Anda?', 'bn': 'আপনার লাইব্রেরি থেকে?', 'ha': 'daga laburarenka?',
+    'so': 'maktabaddaada?', 'fa': 'از کتابخانه‌تان؟', 'ms': 'daripada perpustakaan anda?',
+  },
+  'copy_book_list_tooltip': {
+    'ar': 'نسخ قائمة الكتب (نسخة احتياطية)', 'en': 'Copy Book List (backup)', 'am': 'የመጻሕፍት ዝርዝርን ይቅዱ (ምትኬ)', 'fr': 'Copier la liste des livres (sauvegarde)', 'sw': 'Nakili Orodha ya Vitabu (nakala rudufu)',
+    'ur': 'کتابوں کی فہرست کاپی کریں (بیک اپ)', 'tr': 'Kitap Listesini Kopyala (yedek)', 'id': 'Salin Daftar Buku (cadangan)', 'bn': 'বইয়ের তালিকা কপি করুন (ব্যাকআপ)', 'ha': "Kwafi Jerin Littattafai (madadin)",
+    'so': 'Koobi Liiska Buugagta (kaydin)', 'fa': 'کپی فهرست کتاب‌ها (پشتیبان)', 'ms': 'Salin Senarai Buku (sandaran)',
+  },
+  'book_list_copied_message': {
+    'ar': 'تم نسخ قائمة الكتب — يمكنك لصقها في تلجرام أو الملاحظات كنسخة احتياطية.', 'en': "The book list was copied — you can paste it in Telegram or Notes as a backup.", 'am': 'የመጻሕፍት ዝርዝሩ ተቀድቷል — እንደ ምትኬ በቴሌግራም ወይም ማስታወሻዎች ውስጥ መለጠፍ ይችላሉ።', 'fr': "La liste des livres a été copiée — vous pouvez la coller dans Telegram ou dans les Notes comme sauvegarde.", 'sw': 'Orodha ya vitabu imenakiliwa — unaweza kubandika katika Telegram au Vidokezo kama nakala rudufu.',
+    'ur': 'کتابوں کی فہرست کاپی ہو گئی — آپ اسے ٹیلیگرام یا نوٹس میں بیک اپ کے طور پر پیسٹ کر سکتے ہیں۔', 'tr': "Kitap listesi kopyalandı — yedek olarak Telegram'a veya Notlar'a yapıştırabilirsiniz.", 'id': 'Daftar buku telah disalin — Anda dapat menempelkannya di Telegram atau Catatan sebagai cadangan.', 'bn': 'বইয়ের তালিকা কপি হয়েছে — আপনি এটি টেলিগ্রাম বা নোটে ব্যাকআপ হিসেবে পেস্ট করতে পারেন।', 'ha': "An kwafi jerin littattafai — za ka iya manna shi a Telegram ko Bayanai a matsayin madadin.",
+    'so': 'Liiska buugagta waa la koobiyay — waxaad ku dhejin kartaa Telegram ama Fiiro gaar ah si kaydin ah.', 'fa': 'فهرست کتاب‌ها کپی شد — می‌توانید آن را در تلگرام یا یادداشت‌ها به‌عنوان پشتیبان جای‌گذاری کنید.', 'ms': 'Senarai buku telah disalin — anda boleh menampalnya dalam Telegram atau Nota sebagai sandaran.',
+  },
+  'library_export_header': {
+    'ar': 'مكتبتي', 'en': 'My Library', 'am': 'ቤተ መጻሕፍቴ', 'fr': 'Ma bibliothèque', 'sw': 'Maktaba Yangu',
+    'ur': 'میری لائبریری', 'tr': 'Kütüphanem', 'id': 'Perpustakaan Saya', 'bn': 'আমার গ্রন্থাগার', 'ha': 'Laburare Na',
+    'so': 'Maktabadayda', 'fa': 'کتابخانه من', 'ms': 'Perpustakaan Saya',
+  },
+  'empty_library_note': {
+    'ar': '(المكتبة فارغة)', 'en': '(The library is empty)', 'am': '(ቤተ መጻሕፍት ባዶ ነው)', 'fr': '(La bibliothèque est vide)', 'sw': '(Maktaba ni tupu)',
+    'ur': '(لائبریری خالی ہے)', 'tr': '(Kütüphane boş)', 'id': '(Perpustakaan kosong)', 'bn': '(গ্রন্থাগার খালি)', 'ha': "(Laburaren babu kowa)",
+    'so': '(Maktabaddu waa madhan tahay)', 'fa': '(کتابخانه خالی است)', 'ms': '(Perpustakaan kosong)',
+  },
+  'search_all_books_hint': {
+    'ar': 'ابحث في كل كتبك...', 'en': 'Search all your books...', 'am': 'ሁሉንም መጻሕፍትዎን ይፈልጉ...', 'fr': 'Rechercher dans tous vos livres...', 'sw': 'Tafuta vitabu vyako vyote...',
+    'ur': 'اپنی تمام کتابوں میں تلاش کریں...', 'tr': 'Tüm kitaplarınızda arayın...', 'id': 'Cari di semua buku Anda...', 'bn': 'আপনার সব বইয়ে অনুসন্ধান করুন...', 'ha': "Bincika duk littattafanka...",
+    'so': 'Ka raadi dhammaan buugagaaga...', 'fa': 'در همه کتاب‌های خود جستجو کنید...', 'ms': 'Cari dalam semua buku anda...',
+  },
+  'organize_books_hint': {
+    'ar': 'رتّب كتبك في أقسام (مثل: الفقه، العقيدة، السيرة) لتجدها بسهولة لاحقاً.', 'en': 'Organize your books into categories (e.g. Fiqh, Aqeedah, Seerah) to find them easily later.', 'am': 'በኋላ በቀላሉ ለማግኘት መጻሕፍትዎን በክፍሎች ያደራጁ (ለምሳሌ፦ ፊቅህ፣ ዐቂዳ፣ ሲራ)።', 'fr': 'Organisez vos livres en catégories (par ex. fiqh, aqida, sira) pour les retrouver facilement plus tard.', 'sw': 'Panga vitabu vyako katika jamii (mfano: Fiqhi, Aqidah, Sira) ili kuvipata kwa urahisi baadaye.',
+    'ur': 'اپنی کتابوں کو زمروں میں ترتیب دیں (مثلاً: فقہ، عقیدہ، سیرت) تاکہ بعد میں آسانی سے تلاش کر سکیں۔', 'tr': "Kitaplarınızı daha sonra kolayca bulmak için kategorilere ayırın (örn: Fıkıh, Akide, Siyer).", 'id': 'Atur buku Anda ke dalam kategori (misalnya: Fiqih, Akidah, Sirah) agar mudah ditemukan nanti.', 'bn': 'পরে সহজে খুঁজে পেতে আপনার বইগুলো বিভাগে সাজান (যেমন: ফিকহ, আকিদা, সিরাত)।', 'ha': "Tsara littattafanka a cikin fannoni (misali: Fikihu, Akida, Sira) don ka same su cikin sauƙi daga baya.",
+    'so': 'Buugagaaga ku qaybi qaybo (tusaale ahaan: Fiqhiga, Caqiidada, Siirada) si aad si fudud ugu heshid mustaqbalka.', 'fa': 'کتاب‌های خود را در دسته‌ها سازماندهی کنید (مثلاً: فقه، عقیده، سیره) تا بعداً به‌راحتی پیدایشان کنید.', 'ms': 'Susun buku anda kepada kategori (contohnya: Fiqh, Akidah, Sirah) untuk memudahkan anda mencarinya kemudian.',
+  },
+  'book_count_suffix': {
+    'ar': 'كتاب', 'en': 'books', 'am': 'መጻሕፍት', 'fr': 'livres', 'sw': 'vitabu',
+    'ur': 'کتابیں', 'tr': 'kitap', 'id': 'buku', 'bn': 'বই', 'ha': 'littattafai',
+    'so': 'buugag', 'fa': 'کتاب', 'ms': 'buku',
+  },
+  'rename_action_label': {
+    'ar': 'إعادة تسمية', 'en': 'Rename', 'am': 'እንደገና ይሰይሙ', 'fr': 'Renommer', 'sw': 'Badilisha Jina',
+    'ur': 'نام تبدیل کریں', 'tr': 'Yeniden Adlandır', 'id': 'Ubah Nama', 'bn': 'নাম পরিবর্তন করুন', 'ha': 'Sake Suna',
+    'so': 'Dib u Magacaw', 'fa': 'تغییر نام', 'ms': 'Namakan Semula',
+  },
+  'no_search_results_message': {
+    'ar': 'لا توجد نتائج.', 'en': 'No results.', 'am': 'ውጤት የለም።', 'fr': 'Aucun résultat.', 'sw': 'Hakuna matokeo.',
+    'ur': 'کوئی نتیجہ نہیں۔', 'tr': 'Sonuç yok.', 'id': 'Tidak ada hasil.', 'bn': 'কোনো ফলাফল নেই।', 'ha': "Babu sakamako.",
+    'so': 'Natiijo ma jirto.', 'fa': 'نتیجه‌ای یافت نشد.', 'ms': 'Tiada keputusan.',
+  },
+  'adding_in_progress_message': {
+    'ar': 'جارٍ الإضافة...', 'en': 'Adding...', 'am': 'በመጨመር ላይ...', 'fr': 'Ajout en cours...', 'sw': 'Inaongeza...',
+    'ur': 'شامل کیا جا رہا ہے...', 'tr': 'Ekleniyor...', 'id': 'Menambahkan...', 'bn': 'যোগ করা হচ্ছে...', 'ha': "Ana Ƙarawa...",
+    'so': 'Waa la darayaa...', 'fa': 'در حال افزودن...', 'ms': 'Menambah...',
+  },
+  'add_book_action': {
+    'ar': 'إضافة كتاب', 'en': 'Add a Book', 'am': 'መጽሐፍ ጨምር', 'fr': 'Ajouter un livre', 'sw': 'Ongeza Kitabu',
+    'ur': 'کتاب شامل کریں', 'tr': 'Kitap Ekle', 'id': 'Tambah Buku', 'bn': 'বই যোগ করুন', 'ha': 'Ƙara Littafi',
+    'so': 'Ku dar Buug', 'fa': 'افزودن کتاب', 'ms': 'Tambah Buku',
+  },
+  'no_books_here_yet_prefix': {
+    'ar': 'لا توجد كتب هنا بعد.', 'en': 'No books here yet.', 'am': 'እስካሁን እዚህ መጻሕፍት የሉም።', 'fr': "Aucun livre ici pour l'instant.", 'sw': 'Bado hakuna vitabu hapa.',
+    'ur': 'ابھی تک یہاں کوئی کتاب نہیں۔', 'tr': 'Burada henüz kitap yok.', 'id': 'Belum ada buku di sini.', 'bn': 'এখনও এখানে কোনো বই নেই।', 'ha': "Babu littattafai a nan tukuna.",
+    'so': 'Wali buugag halkan kuma jiraan.', 'fa': 'هنوز کتابی اینجا نیست.', 'ms': 'Belum ada buku di sini.',
+  },
+  'no_books_here_yet_suffix': {
+    'ar': 'اضغط "إضافة كتاب" لاختيار PDF من جهازك.', 'en': 'Tap "Add a Book" to choose a PDF from your device.', 'am': 'ከመሳሪያዎ PDF ለመምረጥ "መጽሐፍ ጨምር" ይንኩ።', 'fr': 'Appuyez sur « Ajouter un livre » pour choisir un PDF depuis votre appareil.', 'sw': 'Bonyeza "Ongeza Kitabu" kuchagua PDF kutoka kifaa chako.',
+    'ur': 'اپنے آلے سے PDF منتخب کرنے کے لیے "کتاب شامل کریں" دبائیں۔', 'tr': "Cihazınızdan bir PDF seçmek için \"Kitap Ekle\"ye dokunun.", 'id': 'Ketuk "Tambah Buku" untuk memilih PDF dari perangkat Anda.', 'bn': 'আপনার ডিভাইস থেকে একটি PDF বেছে নিতে "বই যোগ করুন" চাপুন।', 'ha': "Danna \"Ƙara Littafi\" don zaɓar PDF daga na'urarka.",
+    'so': 'Taabo "Ku dar Buug" si aad uga dooratid PDF qalabkaaga.', 'fa': 'برای انتخاب یک PDF از دستگاه خود، "افزودن کتاب" را بزنید.', 'ms': 'Ketik "Tambah Buku" untuk memilih PDF daripada peranti anda.',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to
