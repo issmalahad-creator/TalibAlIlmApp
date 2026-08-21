@@ -2918,6 +2918,72 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'یہاں اپنے اعداد و شمار دیکھنے کے لیے "کتب خانہ" یا "میری لائبریری" سے کوئی کتاب پڑھنا شروع کریں۔', 'tr': "İstatistiklerinizi burada görmek için \"Kütüphane\" veya \"Kütüphanem\"den herhangi bir kitap okumaya başlayın.", 'id': 'Mulailah membaca buku apa pun dari "Perpustakaan" atau "Perpustakaan Saya" untuk melihat statistik Anda di sini.', 'bn': 'এখানে আপনার পরিসংখ্যান দেখতে "লাইব্রেরি" বা "আমার লাইব্রেরি" থেকে যেকোনো বই পড়া শুরু করুন।', 'ha': 'Fara karanta duk wani littafi daga "Laburare" ko "Laburare Na" don ganin kididdigarka a nan.',
     'so': 'Ka bilow akhrinta buug kasta oo ka mid ah "Maktabadda" ama "Maktabadayda" si aad halkan uga aragto tirakoobkaaga.', 'fa': 'برای دیدن آمار خود در اینجا، خواندن هر کتابی را از "کتابخانه" یا "کتابخانه من" شروع کنید.', 'ms': 'Mula membaca mana-mana buku daripada "Perpustakaan" atau "Perpustakaan Saya" untuk melihat statistik anda di sini.',
   },
+  // 2026-08-22: personal_accountability_screen.dart.
+  'personal_accountability_title': {
+    'ar': 'التزامي الشخصي', 'en': 'My Personal Commitment', 'am': 'የግል ቁርጠኝነቴ', 'fr': 'Mon engagement personnel', 'sw': 'Ahadi Yangu Binafsi',
+    'ur': 'میری ذاتی وابستگی', 'tr': 'Kişisel Taahhüdüm', 'id': 'Komitmen Pribadi Saya', 'bn': 'আমার ব্যক্তিগত অঙ্গীকার', 'ha': 'Alkawarina na Kaina',
+    'so': 'Ballan-qaadkayga Shakhsiga ah', 'fa': 'تعهد شخصی من', 'ms': 'Komitmen Peribadi Saya',
+  },
+  'personal_accountability_intro': {
+    'ar': 'هذا التزام بينك وبين نفسك فقط. التطبيق يذكّرك بما كتبته هنا عند إنجازك أو تقصيرك — ولا ينفّذ شيئًا نيابة عنك بأي حال.', 'en': "This is a commitment only between you and yourself. The app just reminds you of what you wrote here when you succeed or fall short — it never carries out anything on your behalf.", 'am': 'ይህ ከራስዎ ጋር ብቻ ያለ ቁርጠኝነት ነው። መተግበሪያው ስኬትዎ ወይም ውድቀትዎ ጊዜ እዚህ የጻፉትን ያስታውስዎታል — በምንም መልኩ ስለ እርስዎ ምንም አያከናውንም።', 'fr': "Ceci est un engagement uniquement entre vous et vous-même. L'application ne fait que vous rappeler ce que vous avez écrit ici lorsque vous réussissez ou échouez — elle n'exécute jamais rien en votre nom.", 'sw': 'Hii ni ahadi kati yako na wewe mwenyewe tu. Programu inakukumbusha tu ulichoandika hapa unapofanikiwa au kukosea — haifanyi chochote kwa niaba yako kamwe.',
+    'ur': 'یہ صرف آپ کے اور آپ کے درمیان ایک وابستگی ہے۔ ایپ آپ کو صرف اس بات کی یاد دلاتی ہے جو آپ نے یہاں لکھی جب آپ کامیاب ہوں یا کمی کریں — یہ آپ کی جانب سے کبھی کچھ نہیں کرتی۔', 'tr': "Bu yalnızca sizinle sizin aranızdaki bir taahhüttür. Uygulama, başarılı olduğunuzda veya eksik kaldığınızda burada yazdıklarınızı size hatırlatır — sizin adınıza asla hiçbir şey yapmaz.", 'id': 'Ini adalah komitmen hanya antara Anda dan diri Anda sendiri. Aplikasi hanya mengingatkan Anda tentang apa yang Anda tulis di sini saat Anda berhasil atau gagal — tidak pernah melakukan apa pun atas nama Anda.', 'bn': 'এটি শুধুমাত্র আপনার এবং আপনার নিজের মধ্যে একটি অঙ্গীকার। অ্যাপটি শুধু আপনাকে মনে করিয়ে দেয় আপনি এখানে যা লিখেছেন যখন আপনি সফল হন বা ঘাটতি করেন — এটি কখনো আপনার পক্ষে কিছু করে না।', 'ha': "Wannan alkawari ne tsakaninka da kanka kawai. Manhajar tana tunatar da kai abin da ka rubuta a nan lokacin da ka yi nasara ko ka gaza — ba ta taɓa yin komai a madadinka ba.",
+    'so': 'Tani waa ballan-qaad adiga iyo naftaada oo kaliya ka dhexeeya. App-ku wuxuu kuu xasuusiyaa waxa aad halkan qortay marka aad guulaysato ama aad ka gaabsatid — mar walba kuguma sameeyo wax adiga aawadaa.', 'fa': 'این تعهدی فقط بین شما و خودتان است. برنامه فقط آنچه اینجا نوشته‌اید را هنگام موفقیت یا کوتاهی به شما یادآوری می‌کند — هرگز چیزی از طرف شما انجام نمی‌دهد.', 'ms': 'Ini adalah komitmen hanya antara anda dan diri anda sendiri. Aplikasi hanya mengingatkan anda tentang apa yang anda tulis di sini apabila anda berjaya atau tidak — ia tidak pernah melakukan apa-apa bagi pihak anda.',
+  },
+  'my_reward_header': {
+    'ar': 'مكافأتي', 'en': 'My Reward', 'am': 'ሽልማቴ', 'fr': 'Ma récompense', 'sw': 'Zawadi Yangu',
+    'ur': 'میرا انعام', 'tr': 'Ödülüm', 'id': 'Hadiah Saya', 'bn': 'আমার পুরস্কার', 'ha': 'Ladana',
+    'so': 'Abaal-marintayda', 'fa': 'پاداش من', 'ms': 'Ganjaran Saya',
+  },
+  'reward_subtitle': {
+    'ar': 'شيء تكافئ به نفسك عند إنجاز مهمة أو استلام شهادة', 'en': 'Something you reward yourself with when completing a task or earning a certificate', 'am': 'ተግባር ሲያጠናቅቁ ወይም የምስክር ወረቀት ሲቀበሉ ራስዎን የሚሸልሙበት ነገር', 'fr': 'Quelque chose dont vous vous récompensez en accomplissant une tâche ou en obtenant un certificat', 'sw': 'Kitu unachojituza nacho unapokamilisha kazi au kupata cheti',
+    'ur': 'کوئی چیز جس سے آپ کسی کام کی تکمیل یا سرٹیفکیٹ ملنے پر خود کو نوازتے ہیں', 'tr': 'Bir görevi tamamladığınızda veya sertifika aldığınızda kendinizi ödüllendireceğiniz bir şey', 'id': 'Sesuatu yang Anda hadiahkan pada diri sendiri saat menyelesaikan tugas atau mendapatkan sertifikat', 'bn': 'কোনো কাজ শেষ করলে বা সনদ পেলে নিজেকে যা দিয়ে পুরস্কৃত করেন', 'ha': "Wani abu da kake ba wa kanka lada da shi lokacin da ka kammala aiki ko ka sami takardar shaida",
+    'so': 'Wax aad naftaada ku abaal marto marka aad dhammayso hawl ama aad hesho shahaado', 'fa': 'چیزی که هنگام تکمیل یک کار یا دریافت گواهی به خودتان پاداش می‌دهید', 'ms': 'Sesuatu yang anda ganjari diri sendiri apabila menyelesaikan tugasan atau mendapat sijil',
+  },
+  'enable_reward_reminder_action': {
+    'ar': 'فعّل التذكير بالمكافأة', 'en': 'Enable Reward Reminder', 'am': 'የሽልማት ማስታወሻ አንቁ', 'fr': 'Activer le rappel de récompense', 'sw': 'Washa Ukumbusho wa Zawadi',
+    'ur': 'انعام کی یاد دہانی فعال کریں', 'tr': 'Ödül Hatırlatmasını Etkinleştir', 'id': 'Aktifkan Pengingat Hadiah', 'bn': 'পুরস্কার অনুস্মারক চালু করুন', 'ha': 'Kunna Tunatarwar Lada',
+    'so': 'Daar Xasuusinta Abaal-marinta', 'fa': 'فعال‌سازی یادآوری پاداش', 'ms': 'Dayakan Peringatan Ganjaran',
+  },
+  'reward_hint_example': {
+    'ar': 'مثلًا: سأشتري كتابًا أحبه', 'en': "e.g.: I'll buy a book I love", 'am': 'ለምሳሌ፦ የምወደው መጽሐፍ እገዛለሁ', 'fr': "par exemple : j'achèterai un livre que j'aime", 'sw': 'k.m.: nitanunua kitabu ninachopenda',
+    'ur': 'مثلاً: میں اپنی پسندیدہ کتاب خریدوں گا', 'tr': 'örneğin: sevdiğim bir kitap satın alacağım', 'id': 'misalnya: saya akan membeli buku yang saya suka', 'bn': 'যেমন: আমি আমার পছন্দের একটি বই কিনব', 'ha': "misali: zan sayi littafin da nake so",
+    'so': 'tusaale ahaan: waxaan iibsan doonaa buug aan jeclahay', 'fa': 'مثلاً: کتابی که دوست دارم می‌خرم', 'ms': 'contohnya: saya akan membeli buku yang saya suka',
+  },
+  'if_i_fall_short_header': {
+    'ar': 'إن قصّرت', 'en': 'If I Fall Short', 'am': 'ካልተሳካልኝ', 'fr': "Si je n'y arrive pas", 'sw': 'Ikiwa Nitakosea',
+    'ur': 'اگر میں کمی کروں', 'tr': 'Eksik Kalırsam', 'id': 'Jika Saya Gagal', 'bn': 'যদি আমি কম করি', 'ha': 'Idan Na Gaza',
+    'so': 'Haddii Aan Ka Gaabsado', 'fa': 'اگر کوتاهی کنم', 'ms': 'Jika Saya Tidak Berjaya',
+  },
+  'if_i_fall_short_subtitle': {
+    'ar': 'قرارك بالكامل — لا يوجد صح أو خطأ هنا', 'en': "Entirely your choice — there's no right or wrong here", 'am': 'ሙሉ በሙሉ የእርስዎ ውሳኔ — እዚህ ትክክል ወይም ስህተት የለም', 'fr': "Entièrement votre choix — il n'y a ni bien ni mal ici", 'sw': 'Ni uamuzi wako kabisa — hakuna sahihi au makosa hapa',
+    'ur': 'مکمل طور پر آپ کا فیصلہ — یہاں کوئی صحیح یا غلط نہیں', 'tr': 'Tamamen sizin kararınız — burada doğru ya da yanlış yok', 'id': 'Sepenuhnya keputusan Anda — tidak ada benar atau salah di sini', 'bn': 'সম্পূর্ণ আপনার সিদ্ধান্ত — এখানে সঠিক বা ভুল নেই', 'ha': 'Shawararka ce gaba ɗaya — babu daidai ko kuskure a nan',
+    'so': 'Waa go\'aankaaga oo dhan — halkan ma jiro sax ama qalad', 'fa': 'تصمیم کاملاً با شماست — اینجا درست یا غلطی وجود ندارد', 'ms': 'Sepenuhnya keputusan anda — tiada betul atau salah di sini',
+  },
+  'no_punishment_option_title': {
+    'ar': 'بدون عقاب — أعتمد على نفسي فقط', 'en': "No punishment — I rely on myself alone", 'am': 'ያለ ቅጣት — በራሴ ብቻ እተማመናለሁ', 'fr': "Sans punition — je compte uniquement sur moi-même", 'sw': 'Bila adhabu — natumaini nafsi yangu tu',
+    'ur': 'بغیر سزا کے — میں صرف اپنے آپ پر انحصار کرتا ہوں', 'tr': "Cezasız — sadece kendime güveniyorum", 'id': 'Tanpa hukuman — saya hanya mengandalkan diri sendiri', 'bn': 'কোনো শাস্তি ছাড়া — শুধু নিজের উপর নির্ভর করি', 'ha': "Ba tare da hukunci ba — na dogara ga kaina kaɗai",
+    'so': 'Ciqaab la\'aan — waxaan ku tiirsanahay naftayda oo keliya', 'fa': 'بدون تنبیه — فقط به خودم تکیه می‌کنم', 'ms': 'Tanpa hukuman — saya bergantung pada diri sendiri sahaja',
+  },
+  'no_punishment_option_subtitle': {
+    'ar': 'خيار صحي تمامًا؛ الالتزام الذاتي وحده كافٍ لكثير من الناس', 'en': 'A perfectly healthy choice; self-commitment alone is enough for many people', 'am': 'ፍጹም ጤናማ ምርጫ ነው፤ ራስን ማክበር ብቻ ለብዙ ሰዎች በቂ ነው', 'fr': 'Un choix parfaitement sain ; l\'engagement personnel seul suffit pour beaucoup de gens', 'sw': 'Ni chaguo lenye afya kabisa; ahadi binafsi pekee inatosha kwa watu wengi',
+    'ur': 'بالکل صحت مند انتخاب؛ خود وابستگی اکیلی بہت سے لوگوں کے لیے کافی ہے', 'tr': "Tamamen sağlıklı bir seçim; birçok insan için yalnızca kendine bağlılık yeterlidir", 'id': 'Pilihan yang sepenuhnya sehat; komitmen diri saja sudah cukup bagi banyak orang', 'bn': 'সম্পূর্ণ স্বাস্থ্যকর একটি পছন্দ; শুধু স্ব-অঙ্গীকারই অনেকের জন্য যথেষ্ট', 'ha': "Zaɓi mai kyau sosai; alkawarin kai kaɗai ya isa ga mutane da yawa",
+    'so': 'Waa doorasho caafimaad qaba oo dhammaystiran; ballan-qaadka naftaada oo kaliya ayaa ku filan dad badan', 'fa': 'انتخابی کاملاً سالم؛ تعهد شخصی به‌تنهایی برای بسیاری از افراد کافی است', 'ms': 'Pilihan yang sangat sihat; komitmen diri sahaja mencukupi bagi ramai orang',
+  },
+  'set_own_commitment_option': {
+    'ar': 'أضع لنفسي التزامًا عند التقصير', 'en': "I'll set a commitment for myself if I fall short", 'am': 'ካልተሳካልኝ ለራሴ ቁርጠኝነት አስቀምጣለሁ', 'fr': "Je me fixerai un engagement en cas d'échec", 'sw': 'Nitajiwekea ahadi ninapokosea',
+    'ur': 'کمی کرنے پر میں اپنے لیے ایک وابستگی مقرر کروں گا', 'tr': "Eksik kalırsam kendime bir taahhüt belirlerim", 'id': 'Saya akan menetapkan komitmen untuk diri sendiri jika gagal', 'bn': 'ঘাটতি হলে আমি নিজের জন্য একটি অঙ্গীকার রাখব', 'ha': "Zan sanya wa kaina alkawari idan na gaza",
+    'so': 'Waxaan naftayda u dejin doonaa ballan-qaad haddii aan ka gaabsado', 'fa': 'اگر کوتاهی کنم برای خودم تعهدی می‌گذارم', 'ms': 'Saya akan menetapkan komitmen untuk diri sendiri jika tidak berjaya',
+  },
+  'punishment_hint_example': {
+    'ar': 'مثلًا: سأتصدق بمبلغ معيّن', 'en': "e.g.: I'll give a certain amount in charity", 'am': 'ለምሳሌ፦ የተወሰነ መጠን ምጽዋት እሰጣለሁ', 'fr': 'par exemple : je ferai un don caritatif', 'sw': 'k.m.: nitatoa sadaka kiasi fulani',
+    'ur': 'مثلاً: میں ایک مخصوص رقم صدقہ کروں گا', 'tr': 'örneğin: belirli bir miktar sadaka vereceğim', 'id': 'misalnya: saya akan bersedekah dengan jumlah tertentu', 'bn': 'যেমন: আমি একটি নির্দিষ্ট পরিমাণ সদকা দেব', 'ha': "misali: zan bayar da sadaka kuɗi na musamman",
+    'so': 'tusaale ahaan: waxaan bixin doonaa sadaqad qadar go\'an ah', 'fa': 'مثلاً: مبلغ مشخصی صدقه می‌دهم', 'ms': 'contohnya: saya akan bersedekah dengan jumlah tertentu',
+  },
+  'saved_message': {
+    'ar': 'تم الحفظ', 'en': 'Saved', 'am': 'ተቀምጧል', 'fr': 'Enregistré', 'sw': 'Imehifadhiwa',
+    'ur': 'محفوظ ہو گیا', 'tr': 'Kaydedildi', 'id': 'Tersimpan', 'bn': 'সংরক্ষিত হয়েছে', 'ha': 'An Ajiye',
+    'so': 'Waa la Kaydiyay', 'fa': 'ذخیره شد', 'ms': 'Disimpan',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

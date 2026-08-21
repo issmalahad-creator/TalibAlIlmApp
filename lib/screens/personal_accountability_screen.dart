@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/personal_accountability.dart';
 import '../repositories/personal_accountability_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -52,7 +54,8 @@ class _PersonalAccountabilityScreenState extends State<PersonalAccountabilityScr
       punishmentText: _punishmentController.text.trim(),
     ));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم الحفظ')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(basicText('saved_message', LanguagePreferenceService.currentLanguage))));
   }
 
   @override
@@ -64,31 +67,33 @@ class _PersonalAccountabilityScreenState extends State<PersonalAccountabilityScr
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('التزامي الشخصي')),
+    return ValueListenableBuilder<String>(
+      valueListenable: LanguagePreferenceService.languageNotifier,
+      builder: (context, lang, _) => Scaffold(
+      appBar: AppBar(title: Text(basicText('personal_accountability_title', lang))),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
-                  child: const Text(
-                    'هذا التزام بينك وبين نفسك فقط. التطبيق يذكّرك بما كتبته هنا عند إنجازك أو تقصيرك — ولا ينفّذ شيئًا نيابة عنك بأي حال.',
-                    style: TextStyle(fontSize: 12.5, color: AppColors.textDark, height: 1.6),
+                  child: Text(
+                    basicText('personal_accountability_intro', lang),
+                    style: const TextStyle(fontSize: 12.5, color: AppColors.textDark, height: 1.6),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text('مكافأتي', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(basicText('my_reward_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                const Text(
-                  'شيء تكافئ به نفسك عند إنجاز مهمة أو استلام شهادة',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                Text(
+                  basicText('reward_subtitle', lang),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                 ),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('فعّل التذكير بالمكافأة', style: TextStyle(fontSize: 13.5)),
+                  title: Text(basicText('enable_reward_reminder_action', lang), style: const TextStyle(fontSize: 13.5)),
                   value: _rewardEnabled,
                   onChanged: (v) => setState(() => _rewardEnabled = v),
                 ),
@@ -96,40 +101,41 @@ class _PersonalAccountabilityScreenState extends State<PersonalAccountabilityScr
                   TextField(
                     controller: _rewardController,
                     maxLines: 2,
-                    decoration: const InputDecoration(hintText: 'مثلًا: سأشتري كتابًا أحبه'),
+                    decoration: InputDecoration(hintText: basicText('reward_hint_example', lang)),
                   ),
                 const SizedBox(height: 28),
-                const Text('إن قصّرت', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(basicText('if_i_fall_short_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                const Text(
-                  'قرارك بالكامل — لا يوجد صح أو خطأ هنا',
-                  style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                Text(
+                  basicText('if_i_fall_short_subtitle', lang),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                 ),
                 RadioListTile<bool>(
                   contentPadding: EdgeInsets.zero,
                   value: false,
                   groupValue: _punishmentEnabled,
                   onChanged: (v) => setState(() => _punishmentEnabled = v ?? false),
-                  title: const Text('بدون عقاب — أعتمد على نفسي فقط', style: TextStyle(fontSize: 13.5)),
-                  subtitle: const Text('خيار صحي تمامًا؛ الالتزام الذاتي وحده كافٍ لكثير من الناس', style: TextStyle(fontSize: 11.5)),
+                  title: Text(basicText('no_punishment_option_title', lang), style: const TextStyle(fontSize: 13.5)),
+                  subtitle: Text(basicText('no_punishment_option_subtitle', lang), style: const TextStyle(fontSize: 11.5)),
                 ),
                 RadioListTile<bool>(
                   contentPadding: EdgeInsets.zero,
                   value: true,
                   groupValue: _punishmentEnabled,
                   onChanged: (v) => setState(() => _punishmentEnabled = v ?? false),
-                  title: const Text('أضع لنفسي التزامًا عند التقصير', style: TextStyle(fontSize: 13.5)),
+                  title: Text(basicText('set_own_commitment_option', lang), style: const TextStyle(fontSize: 13.5)),
                 ),
                 if (_punishmentEnabled)
                   TextField(
                     controller: _punishmentController,
                     maxLines: 2,
-                    decoration: const InputDecoration(hintText: 'مثلًا: سأتصدق بمبلغ معيّن'),
+                    decoration: InputDecoration(hintText: basicText('punishment_hint_example', lang)),
                   ),
                 const SizedBox(height: 28),
-                FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('حفظ')),
+                FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(basicText('save', lang))),
               ],
             ),
+      ),
     );
   }
 }
