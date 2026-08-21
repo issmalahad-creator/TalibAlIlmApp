@@ -2404,6 +2404,127 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'منزل', 'tr': 'Menzil', 'id': 'Manzil', 'bn': 'মানজিল', 'ha': 'Manzil',
     'so': 'Manzil', 'fa': 'منزل', 'ms': 'Manzil',
   },
+  // 2026-08-22: command_center_screen.dart.
+  'command_center_title': {
+    'ar': 'لوحة القيادة', 'en': 'Command Center', 'am': 'የመቆጣጠሪያ ሰሌዳ', 'fr': 'Centre de commande', 'sw': 'Kituo cha Amri',
+    'ur': 'کمانڈ سینٹر', 'tr': 'Komuta Merkezi', 'id': 'Pusat Kendali', 'bn': 'কমান্ড সেন্টার', 'ha': 'Cibiyar Umarni',
+    'so': 'Xarunta Amarka', 'fa': 'مرکز فرماندهی', 'ms': 'Pusat Arahan',
+  },
+  'calculating_dashboard_message': {
+    'ar': 'جاري حساب لوحتك...', 'en': 'Calculating your dashboard...', 'am': 'ሰሌዳዎን በማስላት ላይ...', 'fr': 'Calcul de votre tableau de bord...', 'sw': 'Inahesabu dashibodi yako...',
+    'ur': 'آپ کا ڈیش بورڈ شمار کیا جا رہا ہے...', 'tr': 'Panonuz hesaplanıyor...', 'id': 'Menghitung dasbor Anda...', 'bn': 'আপনার ড্যাশবোর্ড গণনা করা হচ্ছে...', 'ha': 'Ana lissafin dashboard ɗinka...',
+    'so': 'Waxaa la xisaabinayaa dashboard-kaaga...', 'fa': 'در حال محاسبه داشبورد شما...', 'ms': 'Mengira papan pemuka anda...',
+  },
+  'todays_plan_smart_title': {
+    'ar': 'خطتك اليوم محسوبة بذكاء', 'en': "Today's Plan, Calculated Smartly", 'am': 'የዛሬው እቅድዎ በብልህነት የተሰላ ነው', 'fr': "Votre plan du jour, calculé intelligemment", 'sw': 'Mpango Wako wa Leo, Umehesabiwa kwa Akili',
+    'ur': 'آج کا آپ کا منصوبہ ذہانت سے شمار کیا گیا', 'tr': 'Bugünkü Planınız Akıllıca Hesaplandı', 'id': 'Rencana Hari Ini, Dihitung Secara Cerdas', 'bn': 'আজকের পরিকল্পনা বুদ্ধিমত্তার সাথে গণনা করা হয়েছে', 'ha': 'Tsarin Yau, An Lissafta Shi Da Basira',
+    'so': 'Qorshahaaga Maanta, Si Xikmad Leh Loo Xisaabiyay', 'fa': 'برنامه امروز شما، هوشمندانه محاسبه شده', 'ms': 'Rancangan Hari Ini, Dikira Secara Bijak',
+  },
+  'if_you_allocate_prefix': {
+    'ar': 'لو خصصت', 'en': 'If you set aside', 'am': 'ቢመድቡ', 'fr': 'Si vous consacriez', 'sw': 'Ukitenga',
+    'ur': 'اگر آپ مختص کریں', 'tr': 'Ayırırsanız', 'id': 'Jika Anda menyisihkan', 'bn': 'আপনি যদি বরাদ্দ করেন', 'ha': 'Idan ka ware',
+    'so': 'Haddii aad qoondayso', 'fa': 'اگر اختصاص دهید', 'ms': 'Jika anda memperuntukkan',
+  },
+  'trial_allocation_suffix': {
+    'ar': 'دقيقة اليوم — توزيع تجريبي، لا يُلزمك بشيء', 'en': "minutes today — a trial split, it doesn't commit you to anything", 'am': 'ደቂቃ ዛሬ — የሙከራ ክፍፍል፣ ምንም አያስገድድዎትም', 'fr': "minutes aujourd'hui — une répartition d'essai, qui ne vous engage à rien", 'sw': 'dakika leo — mgao wa majaribio, hauhitaji chochote kwako',
+    'ur': 'منٹ آج — ایک آزمائشی تقسیم، جو آپ کو کسی چیز کا پابند نہیں کرتی', 'tr': 'dakika bugün — deneme dağılımı, sizi hiçbir şeye bağlamaz', 'id': 'menit hari ini — pembagian percobaan, tidak mengikat Anda pada apa pun', 'bn': 'মিনিট আজ — একটি ট্রায়াল বণ্টন, যা আপনাকে কিছুতে বাধ্য করে না', 'ha': "minti a yau — rabon gwaji ne, ba ya daure ka da komai",
+    'so': 'daqiiqo maanta — qaybin tijaabo ah, kuma qasbayo wax', 'fa': 'دقیقه امروز — یک تقسیم آزمایشی، شما را به چیزی متعهد نمی‌کند', 'ms': 'minit hari ini — pembahagian percubaan, tidak mengikat anda kepada apa-apa',
+  },
+  'minutes_short_unit': {
+    'ar': 'د', 'en': 'min', 'am': 'ደ', 'fr': 'min', 'sw': 'dak',
+    'ur': 'من', 'tr': 'dk', 'id': 'mnt', 'bn': 'মিনিট', 'ha': 'min',
+    'so': 'daq', 'fa': 'دق', 'ms': 'min',
+  },
+  'quick_review_note_prefix': {
+    'ar': 'زادت مراجعة سريعة لأن لديك', 'en': 'Quick review increased because you have', 'am': 'ፈጣን ክለሳ ጨምሯል ምክንያቱም አለዎት', 'fr': 'La révision rapide a augmenté car vous avez', 'sw': 'Marudio ya haraka yameongezeka kwa sababu una',
+    'ur': 'فوری دہرائی بڑھ گئی کیونکہ آپ کے پاس ہے', 'tr': 'Hızlı tekrar arttı çünkü', 'id': 'Ulangan cepat meningkat karena Anda memiliki', 'bn': 'দ্রুত পুনরাবৃত্তি বেড়েছে কারণ আপনার আছে', 'ha': 'Sake-nazari mai sauri ya karu domin kana da',
+    'so': 'Dib-u-eegis degdeg ah ayaa kordhay sababtoo ah waxaad haysataa', 'fa': 'مرور سریع افزایش یافت زیرا شما دارید', 'ms': 'Ulangkaji pantas meningkat kerana anda mempunyai',
+  },
+  'quick_review_note_middle': {
+    'ar': 'صفحة قرآن و', 'en': "Qur'an pages and", 'am': 'የቁርኣን ገጾች እና', 'fr': 'pages du Coran et', 'sw': 'kurasa za Qur\'an na',
+    'ur': 'قرآن کے صفحات اور', 'tr': "Kur'an sayfası ve", 'id': 'halaman Al-Qur\'an dan', 'bn': 'কুরআনের পাতা এবং', 'ha': "shafukan Alkur'ani da",
+    'so': "bogag Qur'aan ah iyo", 'fa': 'صفحه قرآن و', 'ms': 'halaman Al-Quran dan',
+  },
+  'quick_review_note_suffix': {
+    'ar': 'مراجعة معرفية مستحقة اليوم', 'en': 'knowledge reviews due today', 'am': 'ዛሬ የሚገባ የእውቀት ክለሳ', 'fr': "révisions de connaissances dues aujourd'hui", 'sw': 'marudio ya maarifa yanayohitajika leo',
+    'ur': 'علمی دہرائیاں آج واجب', 'tr': 'bugün için bilgi tekrarı', 'id': 'ulangan pengetahuan jatuh tempo hari ini', 'bn': 'জ্ঞানভিত্তিক পুনরাবৃত্তি আজ বাকি', 'ha': 'sake-nazarin ilimi da ake bukata yau',
+    'so': 'dib-u-eegis aqoon ah oo maanta la sugayo', 'fa': 'مرور دانش که امروز موعد آن است', 'ms': 'ulangkaji pengetahuan perlu dilakukan hari ini',
+  },
+  'forecast_card_title': {
+    'ar': 'توقّع ختمك', 'en': 'Your Completion Forecast', 'am': 'የማጠናቀቂያ ትንበያዎ', 'fr': "Prévision de votre achèvement", 'sw': 'Utabiri wa Kukamilisha Kwako',
+    'ur': 'آپ کی تکمیل کی پیشین گوئی', 'tr': 'Tamamlama Tahmininiz', 'id': 'Perkiraan Penyelesaian Anda', 'bn': 'আপনার সমাপ্তির পূর্বাভাস', 'ha': 'Hasashen Kammalawarka',
+    'so': 'Saadaasha Dhammaystirkaaga', 'fa': 'پیش‌بینی ختم شما', 'ms': 'Ramalan Penyempurnaan Anda',
+  },
+  'forecast_insufficient_data_text': {
+    'ar': 'بيانات غير كافية بعد لتوقّع موثوق — يحتاج الأمر أيامًا أكثر من الحفظ الفعلي المسجَّل حتى نستطيع بناء توقّع مبني على تاريخك الحقيقي، لا رقم مختلَق.',
+    'en': "Not enough data yet for a reliable forecast — it takes more days of actually-recorded memorization before we can build a forecast based on your real history, not a made-up number.",
+    'am': 'ለታማኝ ትንበያ በቂ መረጃ የለም — በእውነተኛ ታሪክዎ ላይ የተመሰረተ ትንበያ ልንገነባ እስክንችል ድረስ ተጨማሪ ቀናት ትክክለኛ የተመዘገበ ጥናት ይፈልጋል፣ የተፈጠረ ቁጥር አይደለም።',
+    'fr': "Pas encore assez de données pour une prévision fiable — il faut davantage de jours de mémorisation réellement enregistrée avant de pouvoir construire une prévision basée sur votre véritable historique, pas un chiffre inventé.",
+    'sw': 'Bado hakuna data ya kutosha kwa utabiri wa kuaminika — inahitaji siku zaidi za kuhifadhi zilizorekodiwa halisi kabla hatujaweza kujenga utabiri unaotegemea historia yako halisi, si nambari iliyobuniwa.',
+    'ur': 'قابلِ اعتماد پیشین گوئی کے لیے ابھی کافی ڈیٹا نہیں ہے — اس میں مزید دنوں کی اصل درج شدہ حفظ کی ضرورت ہے تاکہ ہم آپ کی حقیقی تاریخ پر مبنی پیشین گوئی بنا سکیں، نہ کہ گھڑا ہوا نمبر۔',
+    'tr': "Güvenilir bir tahmin için henüz yeterli veri yok — gerçek geçmişinize dayalı bir tahmin oluşturabilmemiz için uydurma bir sayı değil, daha fazla gün gerçekten kaydedilmiş ezber gerekiyor.",
+    'id': 'Data belum cukup untuk perkiraan yang andal — dibutuhkan lebih banyak hari hafalan yang benar-benar tercatat sebelum kami dapat membangun perkiraan berdasarkan riwayat asli Anda, bukan angka rekaan.',
+    'bn': 'নির্ভরযোগ্য পূর্বাভাসের জন্য এখনও পর্যাপ্ত তথ্য নেই — আপনার প্রকৃত ইতিহাসের ভিত্তিতে পূর্বাভাস তৈরি করতে আরও বেশি দিনের প্রকৃতভাবে রেকর্ড করা হিফজ প্রয়োজন, বানানো সংখ্যা নয়।',
+    'ha': "Babu isasshen bayanai tukuna don hasashe abin dogaro — yana buƙatar ƙarin kwanaki na haddace da aka rubuta na gaskiya kafin mu iya gina hasashe bisa tarihinka na gaskiya, ba lambar da aka ƙirƙira ba.",
+    'so': 'Wali xog kuma filna saadaal la isku halayn karo — waxay u baahan tahay maalmo dheeraad ah oo xifdhin dhab ah oo la diiwaan geliyay ka hor inta aanan dhisin saadaal ku salaysan taariikhdaada dhabta ah, ee aan ahayn tiro la been abuurtay.',
+    'fa': 'هنوز داده کافی برای پیش‌بینی قابل اعتماد وجود ندارد — نیاز به روزهای بیشتری از حفظ واقعاً ثبت‌شده است تا بتوانیم پیش‌بینی‌ای بر اساس سابقه واقعی شما بسازیم، نه یک عدد ساختگی.',
+    'ms': 'Data belum mencukupi untuk ramalan yang boleh dipercayai — ia memerlukan lebih banyak hari hafalan yang benar-benar direkodkan sebelum kami dapat membina ramalan berdasarkan sejarah sebenar anda, bukan nombor rekaan.',
+  },
+  'forecast_best_case_label': {
+    'ar': 'أفضل حالة', 'en': 'Best Case', 'am': 'ምርጥ ሁኔታ', 'fr': 'Meilleur cas', 'sw': 'Hali Bora Zaidi',
+    'ur': 'بہترین صورت', 'tr': 'En İyi Durum', 'id': 'Skenario Terbaik', 'bn': 'সেরা পরিস্থিতি', 'ha': 'Mafi Kyawun Yanayi',
+    'so': 'Xaaladda Ugu Wanaagsan', 'fa': 'بهترین حالت', 'ms': 'Senario Terbaik',
+  },
+  'forecast_expected_label': {
+    'ar': 'المتوقَّع', 'en': 'Expected', 'am': 'የሚጠበቀው', 'fr': 'Attendu', 'sw': 'Inayotarajiwa',
+    'ur': 'متوقع', 'tr': 'Beklenen', 'id': 'Diperkirakan', 'bn': 'প্রত্যাশিত', 'ha': 'Ake Sa Ran',
+    'so': 'La Filayo', 'fa': 'مورد انتظار', 'ms': 'Dijangka',
+  },
+  'forecast_worst_case_label': {
+    'ar': 'أسوأ حالة', 'en': 'Worst Case', 'am': 'መጥፎ ሁኔታ', 'fr': 'Pire cas', 'sw': 'Hali Mbaya Zaidi',
+    'ur': 'بدترین صورت', 'tr': 'En Kötü Durum', 'id': 'Skenario Terburuk', 'bn': 'সবচেয়ে খারাপ পরিস্থিতি', 'ha': 'Mafi Munin Yanayi',
+    'so': 'Xaaladda Ugu Xun', 'fa': 'بدترین حالت', 'ms': 'Senario Terburuk',
+  },
+  'forecast_basis_note': {
+    'ar': 'مبني على محاكاة لأيام حفظك الحقيقية المسجَّلة فعليًا، لا افتراضًا نظريًا.', 'en': "Based on a simulation of your actually-recorded memorization days, not a theoretical assumption.", 'am': 'በትክክል በተመዘገቡ የጥናት ቀናትዎ ማስመሰያ ላይ የተመሰረተ ነው፣ የንድፈ ሐሳብ ግምት አይደለም።', 'fr': "Basé sur une simulation de vos jours de mémorisation réellement enregistrés, pas une hypothèse théorique.", 'sw': 'Kimejengwa juu ya uigaji wa siku zako halisi za kuhifadhi zilizorekodiwa, si dhana ya kinadharia.',
+    'ur': 'یہ آپ کے حقیقی طور پر درج شدہ حفظ کے دنوں کی نقالی پر مبنی ہے، نظریاتی مفروضے پر نہیں۔', 'tr': "Teorik bir varsayım değil, gerçekten kaydedilmiş ezber günlerinizin simülasyonuna dayanır.", 'id': 'Berdasarkan simulasi hari-hari hafalan Anda yang benar-benar tercatat, bukan asumsi teoretis.', 'bn': 'এটি আপনার প্রকৃতভাবে রেকর্ড করা হিফজের দিনগুলোর সিমুলেশনের ওপর ভিত্তি করে তৈরি, তাত্ত্বিক অনুমান নয়।', 'ha': "An gina shi bisa kwaikwayon ainihin kwanakin haddacewarka da aka rubuta, ba zato na ka'ida ba.",
+    'so': 'Waxaa lagu dhisay tayaya-simulaysiga maalmaha dhabta ah ee xifdhintaada la diiwaan geliyay, ma aha mala-awaal fikrad ah.', 'fa': 'بر اساس شبیه‌سازی روزهای واقعی حفظ ثبت‌شده شما است، نه یک فرض نظری.', 'ms': 'Berdasarkan simulasi hari hafalan sebenar anda yang direkodkan, bukan andaian teori.',
+  },
+  'biggest_factor_prefix': {
+    'ar': 'أكبر عامل يمكن تحسينه:', 'en': 'Biggest factor you could improve:', 'am': 'ሊያሻሽሉት የሚችሉት ትልቁ ምክንያት፦', 'fr': 'Le plus grand facteur que vous pourriez améliorer :', 'sw': 'Sababu kubwa unayoweza kuboresha:',
+    'ur': 'سب سے بڑا عنصر جسے آپ بہتر بنا سکتے ہیں:', 'tr': 'İyileştirebileceğiniz en büyük faktör:', 'id': 'Faktor terbesar yang bisa Anda tingkatkan:', 'bn': 'সবচেয়ে বড় বিষয় যা আপনি উন্নত করতে পারেন:', 'ha': 'Babban abin da za ka iya inganta:',
+    'so': 'Arrinta ugu weyn ee aad hagaajin karto:', 'fa': 'بزرگ‌ترین عاملی که می‌توانید بهبود دهید:', 'ms': 'Faktor terbesar yang boleh anda perbaiki:',
+  },
+  'sensitivity_impact_prefix': {
+    'ar': 'قد يقرّب ختمك ~', 'en': 'Could bring your completion closer by ~', 'am': 'ማጠናቀቅዎን በ~ ሊያቀርበው ይችላል', 'fr': 'Pourrait rapprocher votre achèvement de ~', 'sw': 'Inaweza kuleta ukamilishaji wako karibu kwa ~',
+    'ur': 'آپ کی تکمیل کو ~ سے قریب لا سکتا ہے', 'tr': 'Tamamlanmanızı ~ kadar yaklaştırabilir', 'id': 'Bisa mendekatkan penyelesaian Anda sekitar ~', 'bn': 'আপনার সমাপ্তিকে ~ কাছে আনতে পারে', 'ha': 'Zai iya kawo kammalawarka kusa da ~',
+    'so': 'Wuxuu dhammaystirkaaga u soo dhoweyn karaa ~', 'fa': 'ممکن است ختم شما را حدود ~ نزدیک‌تر کند', 'ms': 'Boleh mendekatkan penyempurnaan anda sekitar ~',
+  },
+  'sensitivity_impact_suffix': {
+    'ar': 'يومًا لو تحسّن هذا العامل تحديدًا', 'en': 'days if specifically this factor improved', 'am': 'ቀናት ይህ ምክንያት በተለይ ቢሻሻል', 'fr': 'jours si spécifiquement ce facteur s\'améliorait', 'sw': 'siku ikiwa sababu hii mahususi ingeboreshwa',
+    'ur': 'دن اگر خاص طور پر یہ عنصر بہتر ہو جائے', 'tr': 'gün, özellikle bu faktör iyileşirse', 'id': 'hari jika faktor ini secara khusus membaik', 'bn': 'দিন যদি বিশেষভাবে এই বিষয়টি উন্নত হয়', 'ha': 'kwanaki idan wannan abin musamman ya inganta',
+    'so': 'maalin haddii arrintan gaar ahaan hagaagto', 'fa': 'روز اگر دقیقاً همین عامل بهبود یابد', 'ms': 'hari jika faktor ini khususnya bertambah baik',
+  },
+  'day_word_label': {
+    'ar': 'يوم', 'en': 'day(s)', 'am': 'ቀን', 'fr': 'jour(s)', 'sw': 'siku',
+    'ur': 'دن', 'tr': 'gün', 'id': 'hari', 'bn': 'দিন', 'ha': 'kwanaki',
+    'so': 'maalin', 'fa': 'روز', 'ms': 'hari',
+  },
+  'quran_mastery_label': {
+    'ar': 'إتقان القرآن', 'en': "Qur'an Mastery", 'am': 'የቁርኣን ብቃት', 'fr': 'Maîtrise du Coran', 'sw': 'Umahiri wa Qur\'an',
+    'ur': 'قرآن پر مہارت', 'tr': "Kur'an Hakimiyeti", 'id': 'Penguasaan Al-Qur\'an', 'bn': 'কুরআন দক্ষতা', 'ha': "Kwarewar Alkur'ani",
+    'so': "Xirfadaha Qur'aanka", 'fa': 'تسلط بر قرآن', 'ms': 'Penguasaan Al-Quran',
+  },
+  'adhkar_streak_label': {
+    'ar': 'استمرارية الأذكار', 'en': 'Adhkar Streak', 'am': 'የአዝካር ተከታታይነት', 'fr': 'Régularité des adhkar', 'sw': 'Mfululizo wa Adhkar',
+    'ur': 'اذکار کا تسلسل', 'tr': 'Ezkâr Serisi', 'id': 'Rentetan Dzikir', 'bn': 'আজকার ধারাবাহিকতা', 'ha': 'Jerin Azkari',
+    'so': 'Isku-xigxiga Adkaarka', 'fa': 'استمرار اذکار', 'ms': 'Rentetan Zikir',
+  },
+  'due_knowledge_reviews_label': {
+    'ar': 'مراجعات معرفية مستحقة', 'en': 'Knowledge Reviews Due', 'am': 'የሚገባ የእውቀት ክለሳ', 'fr': 'Révisions de connaissances dues', 'sw': 'Marudio ya Maarifa Yanayohitajika',
+    'ur': 'واجب علمی دہرائیاں', 'tr': 'Bekleyen Bilgi Tekrarları', 'id': 'Ulangan Pengetahuan Jatuh Tempo', 'bn': 'বাকি জ্ঞানভিত্তিক পুনরাবৃত্তি', 'ha': 'Sake-nazarin Ilimi da Ake Bukata',
+    'so': 'Dib-u-eegis Aqoon ah oo Sugaya', 'fa': 'مرور دانش سررسیده', 'ms': 'Ulangkaji Pengetahuan Perlu Dilakukan',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to
