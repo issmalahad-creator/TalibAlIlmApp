@@ -1023,6 +1023,8 @@ Ismail's request 2026-08-22: his current Quran-reading screen's font/layout look
 - [ ] 71.4 — Real Mushaf navigation: swipe, jump-to-page/surah, resume last position.
 - [ ] 71.5 — Tap-an-ayah interaction hook, feeding into Phase 72's study view.
 
+**71.6 (later, optional, online-enhanced layer)** — Ismail's instruction 2026-08-22: "الذي هو فنان ويحتاج نت... اعمله يكون بجانب الذي بدون نت لمن أراد التطور" — an optional richer/prettier rendering path using Quran Foundation's live API/MCP (real KFGQPC v2 mushaf, official assets) for students who have internet and want it, sitting *alongside* — never replacing — the offline 71.1–71.5 core. Not scoped in detail yet, not the current priority; the offline Mushaf (71.1–71.5) is what to actually work on now — this line exists so the idea isn't lost, not as a next step.
+
 ## Phase 72 — Ayah-centered tafsir study mode — 📋 PLANNED, not started
 
 Ismail's request 2026-08-22, inspired by Quranpedia/Quran.com's study-mode UX but explicitly **not** a literal copy — "خذ منهما فكرة البنية، ثم اجعل تجربة التفاسير في تطبيقك أجمل وأسهل". Explicitly confirmed via direct question this session: **fully deterministic, no AI** — the pasted external proposal's "Claude explains/compares tafsir" layer was rejected; this only displays real existing tafsir texts side by side, matching Ismail's standing "لا AI، كله رياضيات" rule for anything student-facing (same rule already governing the companion chat). No blockers — starts immediately.
