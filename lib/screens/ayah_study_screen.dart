@@ -56,13 +56,14 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
     final ayahText = await _repo.ayahAt(_surah, _ayah);
     final entries = await _repo.tafsirEntriesForAyah(_surah, _ayah);
     if (!mounted) return;
-    // Arabic tafsir first (this app's primary content language), then
-    // everything else in the order `tafsirSources` already lists them.
-    entries.sort((a, b) {
-      if (a.language == 'ar' && b.language != 'ar') return -1;
-      if (b.language == 'ar' && a.language != 'ar') return 1;
-      return 0;
-    });
+    // The DB query has no ORDER BY (SQLite's row order is otherwise
+    // unspecified), so card order would be unpredictable run to run
+    // without this — sort by each source's fixed position in
+    // `tafsirSources`, the same stable catalog order the language/source
+    // pickers elsewhere in the app already use (Arabic entries listed
+    // first there too, so this naturally keeps Arabic tafsir on top).
+    final sourceOrder = {for (var i = 0; i < QuranSearchRepository.tafsirSources.length; i++) QuranSearchRepository.tafsirSources[i].$1: i};
+    entries.sort((a, b) => (sourceOrder[a.source] ?? 999).compareTo(sourceOrder[b.source] ?? 999));
     setState(() {
       _currentAyah = ayahText;
       _entries = entries;
@@ -238,7 +239,7 @@ class _AyahNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -300,7 +301,21 @@ class _CardsView extends StatelessWidget {
         ...entries.map((e) => Card(
               margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
-                title: Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w700)),
+                title: Row(
+                  children: [
+                    Expanded(child: Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w700))),
+                    // Several sources share an identical organizational
+                    // label across languages (e.g. several "Rowwad
+                    // Translation Center" editions) — without this tag
+                    // those cards would be indistinguishable by title alone.
+                    Container(
+                      margin: const EdgeInsets.only(right: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
+                      child: Text(QuranSearchRepository.languageLabels[e.language] ?? e.language, style: const TextStyle(fontSize: 10.5, color: AppColors.primaryDark)),
+                    ),
+                  ],
+                ),
                 subtitle: Text(
                   e.text,
                   maxLines: 2,
@@ -350,7 +365,13 @@ class _ReaderView extends StatelessWidget {
                   label: Text(basicText('all_sources_action', lang)),
                 ),
                 const Spacer(),
-                Text(sourceLabels[source] ?? source, style: const TextStyle(fontWeight: FontWeight.w800)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(sourceLabels[source] ?? source, style: const TextStyle(fontWeight: FontWeight.w800)),
+                    if (entry != null) Text(QuranSearchRepository.languageLabels[entry.language] ?? entry.language, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                  ],
+                ),
               ],
             ),
           ),
@@ -414,7 +435,7 @@ class _CompareView extends StatelessWidget {
             children: entries.map((e) {
               final selected = selection.contains(e.source);
               return ChoiceChip(
-                label: Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontSize: 12)),
+                label: Text('${sourceLabels[e.source] ?? e.source} (${QuranSearchRepository.languageLabels[e.language] ?? e.language})', style: const TextStyle(fontSize: 12)),
                 selected: selected,
                 onSelected: (_) => onToggle(e.source),
               );
