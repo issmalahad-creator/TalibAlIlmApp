@@ -11,6 +11,15 @@ class QuranAyahText {
   QuranAyahText({required this.surah, required this.ayah, required this.text, this.juzNumber});
 }
 
+/// One tafsir/translation source's real text for one ayah — see
+/// [QuranReadingRepository.tafsirEntriesForAyah].
+class AyahTafsirEntry {
+  final String source;
+  final String language;
+  final String text;
+  const AyahTafsirEntry({required this.source, required this.language, required this.text});
+}
+
 /// "قراءة القرآن" — the periodic full read-through concept added in
 /// QURAN_COMPANION_ROADMAP.md section 4.15, genuinely separate from
 /// `MemorizationRepository` (reading doesn't require memorizing). Single
@@ -96,6 +105,64 @@ class QuranReadingRepository {
     );
     if (rows.isEmpty) return null;
     return rows.first['text'] as String?;
+  }
+
+  /// Single-ayah lookup by reference — backs the Study view opening
+  /// directly on one ayah, and its prev/next navigation below.
+  Future<QuranAyahText?> ayahAt(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('quran_ayat', where: 'surah = ? AND ayah = ?', whereArgs: [surah, ayah], limit: 1);
+    if (rows.isEmpty) return null;
+    final r = rows.first;
+    return QuranAyahText(surah: r['surah'] as int, ayah: r['ayah'] as int, text: r['text_uthmani'] as String, juzNumber: r['juz_number'] as int?);
+  }
+
+  /// The next ayah in canonical Mushaf order (rolls into the next surah's
+  /// ayah 1 once the current surah ends) — null only at the very end of
+  /// the Quran (114:6). Backs the Study view's "next ayah" swipe.
+  Future<QuranAyahText?> nextAyah(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT surah, ayah, text_uthmani, juz_number FROM quran_ayat WHERE surah > ? OR (surah = ? AND ayah > ?) ORDER BY surah ASC, ayah ASC LIMIT 1',
+      [surah, surah, ayah],
+    );
+    if (rows.isEmpty) return null;
+    final r = rows.first;
+    return QuranAyahText(surah: r['surah'] as int, ayah: r['ayah'] as int, text: r['text_uthmani'] as String, juzNumber: r['juz_number'] as int?);
+  }
+
+  /// The previous ayah in canonical Mushaf order — null only at 1:1.
+  /// Backs the Study view's "previous ayah" swipe.
+  Future<QuranAyahText?> previousAyah(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT surah, ayah, text_uthmani, juz_number FROM quran_ayat WHERE surah < ? OR (surah = ? AND ayah < ?) ORDER BY surah DESC, ayah DESC LIMIT 1',
+      [surah, surah, ayah],
+    );
+    if (rows.isEmpty) return null;
+    final r = rows.first;
+    return QuranAyahText(surah: r['surah'] as int, ayah: r['ayah'] as int, text: r['text_uthmani'] as String, juzNumber: r['juz_number'] as int?);
+  }
+
+  /// Every source that actually has non-empty text for one ayah — backs
+  /// the Study view's source-card list (QURAN_COMPANION_ROADMAP.md
+  /// Phase 72). One query instead of one lookup per source (`tafsirSources`
+  /// has 47 entries) — a source with no coverage for this ayah (e.g. the
+  /// documented ibn_ashur/Al-Kahf gap) is simply absent from the result
+  /// rather than shown as an empty card.
+  Future<List<AyahTafsirEntry>> tafsirEntriesForAyah(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      "SELECT source, language, text FROM tafsir_entries WHERE surah = ? AND ? BETWEEN ayah_from AND ayah_to AND text != ''",
+      [surah, ayah],
+    );
+    return rows
+        .map((r) => AyahTafsirEntry(
+              source: r['source'] as String,
+              language: r['language'] as String,
+              text: r['text'] as String,
+            ))
+        .toList();
   }
 
   Future<bool> isFavorite(int surah, int ayah) async {

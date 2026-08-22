@@ -3512,6 +3512,62 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'اپنے آلے سے PDF منتخب کرنے کے لیے "کتاب شامل کریں" دبائیں۔', 'tr': "Cihazınızdan bir PDF seçmek için \"Kitap Ekle\"ye dokunun.", 'id': 'Ketuk "Tambah Buku" untuk memilih PDF dari perangkat Anda.', 'bn': 'আপনার ডিভাইস থেকে একটি PDF বেছে নিতে "বই যোগ করুন" চাপুন।', 'ha': "Danna \"Ƙara Littafi\" don zaɓar PDF daga na'urarka.",
     'so': 'Taabo "Ku dar Buug" si aad uga dooratid PDF qalabkaaga.', 'fa': 'برای انتخاب یک PDF از دستگاه خود، "افزودن کتاب" را بزنید.', 'ms': 'Ketik "Tambah Buku" untuk memilih PDF daripada peranti anda.',
   },
+  // 2026-08-22: ayah_study_screen.dart — Phase 72 ("دراسة الآية").
+  'ayah_study_title': {
+    'ar': 'دراسة الآية', 'en': 'Ayah Study', 'am': 'የአንቀጽ ጥናት', 'fr': 'Étude du verset', 'sw': 'Uchunguzi wa Aya',
+    'ur': 'آیت کا مطالعہ', 'tr': 'Ayet İncelemesi', 'id': 'Studi Ayat', 'bn': 'আয়াত অধ্যয়ন', 'ha': 'Nazarin Aya',
+    'so': 'Daraasadda Aayadda', 'fa': 'مطالعه آیه', 'ms': 'Kajian Ayat',
+  },
+  'font_size_tooltip': {
+    'ar': 'حجم الخط', 'en': 'Font Size', 'am': 'የቅርጸ-ቁምፊ መጠን', 'fr': 'Taille de police', 'sw': 'Ukubwa wa Fonti',
+    'ur': 'فونٹ کا سائز', 'tr': 'Yazı Boyutu', 'id': 'Ukuran Font', 'bn': 'ফন্টের আকার', 'ha': 'Girman Rubutu',
+    'so': 'Cabbirka Farta', 'fa': 'اندازه قلم', 'ms': 'Saiz Fon',
+  },
+  'sepia_mode_tooltip': {
+    'ar': 'الوضع الورقي', 'en': 'Sepia Mode', 'am': 'የወረቀት ገጽታ', 'fr': 'Mode sépia', 'sw': 'Hali ya Karatasi',
+    'ur': 'سیپیا موڈ', 'tr': 'Sepya Modu', 'id': 'Mode Sepia', 'bn': 'সেপিয়া মোড', 'ha': 'Yanayin Sepia',
+    'so': 'Habka Warqadda', 'fa': 'حالت سپیا', 'ms': 'Mod Sepia',
+  },
+  'previous_ayah_action': {
+    'ar': 'الآية السابقة', 'en': 'Previous Ayah', 'am': 'ቀዳሚ አንቀጽ', 'fr': 'Verset précédent', 'sw': 'Aya Iliyotangulia',
+    'ur': 'پچھلی آیت', 'tr': 'Önceki Ayet', 'id': 'Ayat Sebelumnya', 'bn': 'পূর্ববর্তী আয়াত', 'ha': 'Ayar da Ta Gabata',
+    'so': 'Aayadda Hore', 'fa': 'آیه قبلی', 'ms': 'Ayat Sebelumnya',
+  },
+  'next_ayah_action': {
+    'ar': 'الآية التالية', 'en': 'Next Ayah', 'am': 'ቀጣይ አንቀጽ', 'fr': 'Verset suivant', 'sw': 'Aya Ifuatayo',
+    'ur': 'اگلی آیت', 'tr': 'Sonraki Ayet', 'id': 'Ayat Berikutnya', 'bn': 'পরবর্তী আয়াত', 'ha': 'Ayar da Ke Gaba',
+    'so': 'Aayadda Xigta', 'fa': 'آیه بعدی', 'ms': 'Ayat Seterusnya',
+  },
+  'no_tafsir_sources_for_ayah': {
+    'ar': 'لا توجد مصادر تفسير محفوظة لهذه الآية بعد', 'en': 'No tafsir sources stored for this ayah yet', 'am': 'ለዚህ አንቀጽ እስካሁን የተቀመጠ ትርጓሜ ምንጭ የለም', 'fr': "Aucune source de tafsir enregistrée pour ce verset pour l'instant", 'sw': 'Bado hakuna vyanzo vya tafsiri vilivyohifadhiwa kwa aya hii',
+    'ur': 'ابھی تک اس آیت کے لیے کوئی تفسیر کا ذریعہ محفوظ نہیں ہے', 'tr': 'Bu ayet için henüz kayıtlı tefsir kaynağı yok', 'id': 'Belum ada sumber tafsir yang tersimpan untuk ayat ini', 'bn': 'এই আয়াতের জন্য এখনও কোনো তাফসীর উৎস সংরক্ষিত নেই', 'ha': 'Babu tushen tafsiri da aka adana wa wannan ayar tukuna',
+    'so': 'Wali ilo tafsiir ah oo la kaydiyay ayaadan uma jiraan', 'fa': 'هنوز منبع تفسیری برای این آیه ذخیره نشده است', 'ms': 'Belum ada sumber tafsir disimpan untuk ayat ini',
+  },
+  'compare_tafsirs_action': {
+    'ar': 'قارن التفاسير', 'en': 'Compare Tafsirs', 'am': 'ትርጓሜዎችን ያወዳድሩ', 'fr': 'Comparer les tafsirs', 'sw': 'Linganisha Tafsiri',
+    'ur': 'تفاسیر کا موازنہ کریں', 'tr': 'Tefsirleri Karşılaştır', 'id': 'Bandingkan Tafsir', 'bn': 'তাফসীর তুলনা করুন', 'ha': 'Kwatanta Tafsirori',
+    'so': 'Isbarbardhig Tafsiirrada', 'fa': 'مقایسه تفاسیر', 'ms': 'Bandingkan Tafsir',
+  },
+  'all_sources_action': {
+    'ar': 'كل المصادر', 'en': 'All Sources', 'am': 'ሁሉም ምንጮች', 'fr': 'Toutes les sources', 'sw': 'Vyanzo Vyote',
+    'ur': 'تمام ذرائع', 'tr': 'Tüm Kaynaklar', 'id': 'Semua Sumber', 'bn': 'সব উৎস', 'ha': 'Dukkan Tushe',
+    'so': 'Dhammaan Ilaha', 'fa': 'همه منابع', 'ms': 'Semua Sumber',
+  },
+  'no_tafsir_for_this_ayah': {
+    'ar': 'لا يوجد تفسير محفوظ لهذه الآية من هذا المصدر', 'en': 'No tafsir stored for this ayah from this source', 'am': 'ከዚህ ምንጭ ለዚህ አንቀጽ የተቀመጠ ትርጓሜ የለም', 'fr': 'Aucun tafsir enregistré pour ce verset depuis cette source', 'sw': 'Hakuna tafsiri iliyohifadhiwa kwa aya hii kutoka chanzo hiki',
+    'ur': 'اس ذریعے سے اس آیت کے لیے کوئی تفسیر محفوظ نہیں ہے', 'tr': 'Bu kaynaktan bu ayet için kayıtlı tefsir yok', 'id': 'Tidak ada tafsir tersimpan untuk ayat ini dari sumber ini', 'bn': 'এই উৎস থেকে এই আয়াতের জন্য কোনো তাফসীর সংরক্ষিত নেই', 'ha': 'Babu tafsirin da aka adana wa wannan ayar daga wannan tushen',
+    'so': 'Ilahan tafsiir looma kaydin ayadan', 'fa': 'از این منبع تفسیری برای این آیه ذخیره نشده است', 'ms': 'Tiada tafsir disimpan untuk ayat ini daripada sumber ini',
+  },
+  'exit_compare_action': {
+    'ar': 'إنهاء المقارنة', 'en': 'Exit Comparison', 'am': 'ንጽጽርን ዝጋ', 'fr': 'Quitter la comparaison', 'sw': 'Toka Kulinganisha',
+    'ur': 'موازنہ ختم کریں', 'tr': 'Karşılaştırmadan Çık', 'id': 'Keluar dari Perbandingan', 'bn': 'তুলনা থেকে বের হন', 'ha': 'Fita Kwatancen',
+    'so': 'Ka Bax Isbarbardhigga', 'fa': 'خروج از مقایسه', 'ms': 'Keluar Perbandingan',
+  },
+  'pick_two_to_four_sources': {
+    'ar': 'اختر من ٢ إلى ٤ مصادر للمقارنة', 'en': 'Pick 2 to 4 sources to compare', 'am': 'ለማወዳደር ከ2 እስከ 4 ምንጮችን ይምረጡ', 'fr': 'Choisissez de 2 à 4 sources à comparer', 'sw': 'Chagua vyanzo 2 hadi 4 kulinganisha',
+    'ur': 'موازنے کے لیے 2 سے 4 ذرائع منتخب کریں', 'tr': 'Karşılaştırmak için 2 ila 4 kaynak seçin', 'id': 'Pilih 2 hingga 4 sumber untuk dibandingkan', 'bn': 'তুলনা করতে ২ থেকে ৪টি উৎস বেছে নিন', 'ha': 'Zaɓi tushe 2 zuwa 4 don kwatantawa',
+    'so': 'Dooro 2 ilaa 4 ilood si aad u isbarbardhigto', 'fa': 'برای مقایسه ۲ تا ۴ منبع انتخاب کنید', 'ms': 'Pilih 2 hingga 4 sumber untuk dibandingkan',
+  },
 };
 
 /// Looks up [key] in the student's current language, falling back to

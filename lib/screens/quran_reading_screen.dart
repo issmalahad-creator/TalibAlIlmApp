@@ -8,7 +8,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/quran_surahs.dart';
+import 'ayah_study_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
+import '../l10n/basic_translations.dart';
 import '../l10n/reading_encouragement.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../repositories/quran_reading_repository.dart';
@@ -892,7 +894,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
       context: context,
       position: position,
       items: [
-        const PopupMenuItem(value: 'tafsir', child: ListTile(leading: Icon(Icons.menu_book_outlined), title: Text('التفسير'), dense: true)),
+        PopupMenuItem(value: 'tafsir', child: ListTile(leading: const Icon(Icons.menu_book_outlined), title: Text(basicText('ayah_study_title', LanguagePreferenceService.currentLanguage)), dense: true)),
         const PopupMenuItem(value: 'translation', child: ListTile(leading: Icon(Icons.translate_outlined, color: AppColors.textMuted), title: Text('الترجمة', style: TextStyle(color: AppColors.textMuted)), dense: true)),
         const PopupMenuItem(value: 'listen', child: ListTile(leading: Icon(Icons.headphones_outlined, color: AppColors.textMuted), title: Text('الاستماع للآية', style: TextStyle(color: AppColors.textMuted)), dense: true)),
         PopupMenuItem(value: 'favorite', child: ListTile(leading: Icon(isFav ? Icons.bookmark : Icons.bookmark_outline), title: Text(isFav ? 'إزالة من المفضلة' : 'أضف للمفضلة'), dense: true)),
@@ -907,23 +909,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     if (selected == null) return;
     switch (selected) {
       case 'tafsir':
-        final tafsir = await _repo.tafsirForAyah(a.surah, a.ayah, _tafsirSource);
-        if (!mounted) return;
-        await showModalBottomSheet(
-          context: context,
-          builder: (context) => Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('سورة ${_surahNames[a.surah] ?? a.surah} — آية ${a.ayah}', style: const TextStyle(fontWeight: FontWeight.w800)),
-                const SizedBox(height: 10),
-                Text(tafsir ?? 'لا يوجد تفسير محفوظ لهذه الآية من هذا المصدر', textAlign: TextAlign.right, style: const TextStyle(fontSize: 14, height: 1.7)),
-              ],
-            ),
-          ),
-        );
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => AyahStudyScreen(surah: a.surah, ayah: a.ayah)));
         break;
       case 'translation':
         _notAvailable('الترجمة');
