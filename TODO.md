@@ -1034,3 +1034,17 @@ Ismail's request 2026-08-22, inspired by Quranpedia/Quran.com's study-mode UX bu
 - [ ] 72.3 — Full-screen tafsir reader: prev/next-ayah swipe (no return to the source list needed), font-size control, dark/sepia modes — reuse the app's existing text-scale/theme services rather than building new ones.
 - [ ] 72.4 — Comparison view: pick 2–4 tafsirs, real texts stacked/scrollable side by side (no narrow columns on a phone).
 - [ ] 72.5 — Deterministic cross-source search (Quran + tafsir), same keyword/fuzzy-matching approach already used elsewhere in the app (no embeddings, no AI).
+
+## Phase 73 — Dawah/debate coach ("مدرّب المناظرة والحوار") — 📋 PLANNED, not started, comes after Phase 72
+
+Ismail's request 2026-08-22, pasted from an external planning conversation (a large multi-message proposal: knowledge base → RAG → dialogue engine → evaluation, inspired by studying Ahmad Deedat's/Zakir Naik's/Yusuf Estes' argumentation methodology — explicitly **not** meant to be "a copy of Deedat," an original system that studies their approach and cites real, documented sources). Explicit instruction: finish the Mushaf/tafsir work (Phase 71/72) first, this comes after.
+
+**Critical policy conflict resolved before any planning was logged**: the original proposal's whole design (a live debate opponent that invents novel objections, reads free-form student answers, and grades them dynamically) requires real generative AI as a student-facing feature — this directly contradicted Ismail's own repeatedly-reaffirmed standing rule this session ("لا AI في التطبيق كله رياضيات" — the Claude API is dev-diagnostics-only, never student-facing, same rule that shaped the companion chat and Phase 72's tafsir display). Asked directly; Ismail confirmed: **no live AI exception for this feature either** — find a fully deterministic approach instead.
+
+**Deterministic redesign** (reuses this app's existing patterns, not a new paradigm):
+- New tables: `dawah_topics`, `dawah_objections` (with `parent_objection_id` for pre-authored follow-up chains — branching dialogue trees written in advance, not generated live), `dawah_model_answers` (real, cited: Quran/hadith/tafsir/external source per answer), `dawah_required_elements` (keyword-taggable points a strong answer should hit, for scoring).
+- Scoring/matching: reuses `companion_chat_engine.dart`'s existing normalize + Damerau-Levenshtein fuzzy matcher (already proven, already deterministic) to check a student's typed answer against `required_elements`' keywords — real fraction-matched score, shows exactly which points were missed plus the real model answer for those. No LLM judges anything.
+- Debate flow: topic/difficulty picker → first objection from a pre-authored branch → student answers → deterministic score + real citations → next pre-authored objection in that branch → session summary with genuine per-category percentages (computed from real matches, not the illustrative numbers in the original pasted proposal).
+- **Content is the real bottleneck, not the code**: every objection, model answer, and citation must be genuinely researched and verifiable — same sourcing discipline as the Quran text/tafsir/font work all session (no inventing Bible/Torah citations or Deedat/Naik/Estes quotes from memory). Starts with a small, carefully-verified batch (5–10 objections) before any scaling, not the original proposal's "50–100 شبهة" starting point.
+
+Not scoped into numbered sub-steps yet — do that when this phase is actually reached, per the same "plan first" discipline used for Phase 71.
