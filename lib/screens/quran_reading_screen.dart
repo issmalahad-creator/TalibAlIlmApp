@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:confetti/confetti.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
 import 'package:share_plus/share_plus.dart';
@@ -17,6 +16,7 @@ import '../repositories/quran_reading_session_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../services/companion_context_tracker.dart';
 import '../services/language_preference_service.dart';
+import '../services/mushaf_page_layout.dart';
 import '../services/quran_audio/quran_audio_provider_registry.dart';
 import '../services/quran_audio_engine.dart';
 import '../services/text_scale_preference_service.dart';
@@ -100,7 +100,6 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   /// open, cleared once it closes. Ismail's 2026-08-16 "طبق الأصل" request.
   int? _selectedSurah;
   int? _selectedAyah;
-  final List<TapGestureRecognizer> _recognizers = [];
 
   /// "الوقت المتبقي لختم القرآن" (100_IDEAS_FOR_IMPROVEMENT.md #21) —
   /// shown here too, not only inside رحلتي, so it's visible without an
@@ -228,9 +227,6 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     _audioEngine.stop();
     _audioEngine.dispose();
     _sessionTimer?.cancel();
-    for (final r in _recognizers) {
-      r.dispose();
-    }
     super.dispose();
   }
 
@@ -950,64 +946,36 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     }
   }
 
-  /// Builds the page as continuously-flowing paragraphs (one per surah
-  /// segment present on the page) instead of one isolated block per ayah —
-  /// this is the actual visual difference from a real printed Mushaf page
-  /// Ismail flagged ("طبق الأصل"): ayat wrap naturally into dense lines
-  /// rather than each starting its own paragraph. True line-for-line
-  /// replication of the official Madinah Mushaf's exact 15-lines-per-page
-  /// breaks would need that print's own line-break dataset, which isn't
-  /// sourced into this app — flagged here rather than faked; this gets the
-  /// visual density and flow right without it.
-  List<Widget> _buildContent(Color themeColor, Color textColor) {
-    for (final r in _recognizers) {
-      r.dispose();
-    }
-    _recognizers.clear();
+  /// Builds the page as real justified lines — QURAN_COMPANION_ROADMAP.md
+  /// Phase 71.2. Words are packed by `computeMushafPageLayout` (own
+  /// word/line packer, shrinking font size to fit within a 15-line target;
+  /// see `mushaf_page_layout.dart`) into `MushafLine`s, then each line
+  /// renders as a `Row` with `MainAxisAlignment.spaceBetween` so it
+  /// stretches to fill the page width edge-to-edge like a real printed
+  /// Mushaf line, instead of the previous left-ragged flowing paragraphs.
+  /// True line-for-line replication of the *official* Madinah Mushaf's
+  /// exact 15-lines-per-page breaks would need that print's own
+  /// line-break dataset, which isn't sourced into this app (see TODO.md
+  /// Phase 71) — this is our own computed approximation of the same
+  /// visual result, not a claim of pixel-identical official pagination.
+  List<Widget> _buildContent(Color themeColor, Color textColor, double maxWidth) {
+    if (_ayat.isEmpty) return [];
+
+    final ayahByKey = {for (final a in _ayat) '${a.surah}:${a.ayah}': a};
+    final layout = computeMushafPageLayout(ayat: _ayat, maxWidth: maxWidth, fontFamily: _quranFontFamily);
 
     final widgets = <Widget>[];
-    var currentSpans = <InlineSpan>[];
-    void flush() {
-      if (currentSpans.isEmpty) return;
-      widgets.add(Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Text.rich(TextSpan(children: currentSpans), textAlign: TextAlign.right, textDirection: TextDirection.rtl),
-      ));
-      currentSpans = [];
-    }
-
-    for (final a in _ayat) {
-      if (a.ayah == 1) {
-        flush();
-        widgets.add(_SurahBanner(name: _surahNames[a.surah] ?? '${a.surah}', color: themeColor));
+    for (final line in layout.lines) {
+      if (line.words.first.startsNewSurah) {
+        widgets.add(_SurahBanner(name: _surahNames[line.words.first.surah] ?? '${line.words.first.surah}', color: themeColor));
       }
-      final isSelected = _selectedSurah == a.surah && _selectedAyah == a.ayah;
-      final recognizer = TapGestureRecognizer()..onTapDown = (details) => _onAyahTap(a, details);
-      _recognizers.add(recognizer);
-      currentSpans.add(TextSpan(
-        text: '${a.text} ',
-        recognizer: recognizer,
-        style: TextStyle(
-          fontFamily: _quranFontFamily,
-          fontSize: 21,
-          height: 2.3,
-          color: textColor,
-          backgroundColor: isSelected ? themeColor.withValues(alpha: 0.18) : null,
-        ),
-      ));
-      currentSpans.add(WidgetSpan(
-        alignment: PlaceholderAlignment.middle,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 3),
-          child: _AyahMedallion(number: a.ayah, color: themeColor, litUp: isSelected),
-        ),
-      ));
-      currentSpans.add(const TextSpan(text: '  '));
+      widgets.add(_buildLineRow(line, layout.fontSize, themeColor, textColor, ayahByKey));
 
       if (_showTafsir) {
-        final tafsir = _tafsirByAyah['${a.surah}:${a.ayah}'];
-        if (tafsir != null && tafsir.trim().isNotEmpty) {
-          flush();
+        for (final word in line.words) {
+          if (!word.isAyahEnd) continue;
+          final tafsir = _tafsirByAyah['${word.surah}:${word.ayah}'];
+          if (tafsir == null || tafsir.trim().isEmpty) continue;
           widgets.add(Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Container(
@@ -1019,8 +987,42 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
         }
       }
     }
-    flush();
     return widgets;
+  }
+
+  Widget _buildLineRow(MushafLine line, double fontSize, Color themeColor, Color textColor, Map<String, QuranAyahText> ayahByKey) {
+    final children = <Widget>[];
+    for (final word in line.words) {
+      final isSelected = _selectedSurah == word.surah && _selectedAyah == word.ayah;
+      final a = ayahByKey['${word.surah}:${word.ayah}'];
+      Widget wordWidget = Text(
+        word.text,
+        style: TextStyle(
+          fontFamily: _quranFontFamily,
+          fontSize: fontSize,
+          color: textColor,
+          backgroundColor: isSelected ? themeColor.withValues(alpha: 0.18) : null,
+        ),
+      );
+      if (a != null) {
+        wordWidget = GestureDetector(onTapDown: (details) => _onAyahTap(a, details), child: wordWidget);
+      }
+      children.add(wordWidget);
+      if (word.isAyahEnd) {
+        children.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 3),
+          child: _AyahMedallion(number: word.ayah, color: themeColor, litUp: isSelected),
+        ));
+      }
+    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        mainAxisAlignment: children.length > 1 ? MainAxisAlignment.spaceBetween : MainAxisAlignment.start,
+        children: children,
+      ),
+    );
   }
 
   // 2026-08-17: warm ivory/beige tokens pulled from a close read of the
@@ -1276,14 +1278,16 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                                   key: ValueKey(_page),
                                   child: Padding(
                                     padding: const EdgeInsets.all(20),
-                                    child: SingleChildScrollView(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                                        children: [
-                                          ..._buildContent(themeColor, textColor),
-                                          const SizedBox(height: 6),
-                                          Center(child: _PageNumberCartouche(page: _page, color: themeColor)),
-                                        ],
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) => SingleChildScrollView(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            ..._buildContent(themeColor, textColor, constraints.maxWidth),
+                                            const SizedBox(height: 6),
+                                            Center(child: _PageNumberCartouche(page: _page, color: themeColor)),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
