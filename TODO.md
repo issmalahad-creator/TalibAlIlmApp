@@ -1156,7 +1156,15 @@ Ismail's request 2026-08-22, inspired by Quranpedia/Quran.com's study-mode UX bu
   - [ ] 72.5b — Result cards show which source(s) matched, reusing the language-tag pill pattern already built in `AyahStudyScreen`'s cards.
   - [ ] 72.5c — Reuse `closestMatch`'s fuzzy-tolerant fallback logic for the cross-source case too, rather than writing a second matching algorithm.
 
-## Phase 73 — Dawah/debate coach ("مدرّب المناظرة والحوار") — 📋 PLANNED, not started, comes after Phase 72
+## Phase 73 — خلاصة سريعة للتنفيذ
+
+**الهدف بجملة واحدة**: مدرّب مناظرة/دعوة حتمي بالكامل (لا AI حي) — اعتراضات مُعدَّة مسبقًا مع إجابات موثَّقة، يُصحَّح جواب الطالب بمطابقة كلمات مفتاحية (نفس محرك `companion_chat_engine.dart` الموجود فعلاً).
+
+**ترتيب البناء**: 73.1 (بحث محتوى فقط، 5-10 اعتراضات حقيقية موثَّقة، لا كود) ← 73.2 (قاعدة بيانات) ← 73.3 (محرك التصحيح) ← 73.4 (أوضاع: تعليمي/اختبار/مناظرة/عشوائي) ← 73.5-73.6 (ملخص وسجل) ← 73.7 (توسيع تدريجي للمحتوى فقط بعد إثبات نجاح الدفعة الصغيرة).
+
+**قيود ثابتة**: لا AI حي يجيب الطالب مباشرة؛ كل استشهاد يجب أن يكون حقيقيًا وموثَّقًا (لا اختلاق من الذاكرة)؛ يبدأ بدفعة صغيرة (5-10) لا بمئة اعتراض دفعة واحدة.
+
+**يبدأ بعد**: انتهاء العمل الفعلي في القرآن (71/72) — تعليمات إسماعيل الصريحة، ولا يتعارض مع كون العمل الحالي في المرحلة 77 (فرع منفصل).
 
 Ismail's request 2026-08-22, pasted from an external planning conversation (a large multi-message proposal: knowledge base → RAG → dialogue engine → evaluation, inspired by studying Ahmad Deedat's/Zakir Naik's/Yusuf Estes' argumentation methodology — explicitly **not** meant to be "a copy of Deedat," an original system that studies their approach and cites real, documented sources). Explicit instruction: finish the Mushaf/tafsir work (Phase 71/72) first, this comes after.
 
@@ -1197,7 +1205,15 @@ Ismail's request 2026-08-22, pasted from an external planning conversation (a la
 - [ ] 73.6 — Session history screen reading `dawah_session_log`, same list/trend pattern as the existing memorization/review history screens (reuse the widget pattern, don't design a new one).
 - [ ] 73.7 — Scale the content library gradually (batch by batch, each batch through the same 73.1a-e research→review→import pipeline, fully verified before the next) toward the original proposal's broader topic coverage — only after 73.1-73.6 are proven working end to end on the small starting batch.
 
-## Phase 74 — "مساجدنا" mosque platform (multi-tenant mosque profiles + Telegram admin bot) — 📋 PLANNED, not started, comes after Phase 73
+## Phase 74 — خلاصة سريعة للتنفيذ
+
+**الهدف بجملة واحدة**: منصة مساجد داخل التطبيق — قالب واحد `MosqueProfileScreen(mosqueId)` يخدم آلاف المساجد ببيانات مختلفة فقط، إدارة كل مسجد عبر بوت تليجرام واحد (لا بوت لكل مسجد)، محتوى يمر بمراجعة يومية قبل النشر.
+
+**ترتيب البناء**: 74.0 (**قرار مسدود — يجب تأكيده أولاً**: Firebase/Sheets+Apps Script بدل سيرفر تقليدي، انظر تصنيف الفئات الثلاث أسفل) ← 74.1 (توثيق معماري فقط) ← 74.2 (قاعدة بيانات أساسية) ← 74.3 (API) ← 74.4 (قالب Flutter) ← 74.5 (بوت) ← 74.6-74.9 (سير عمل/صلاحيات/مراجعة/توثيق) ← 74.10 (نطاق أول إصدار محدود).
+
+**قيود ثابتة**: لا شاشة Flutter جديدة لكل مسجد، لا بيانات مسجد مكتوبة في الكود؛ `mosqueId` هو الهوية الدائمة، `chat_id` تليجرام قابل للتغيير وليس مفتاحًا أساسيًا؛ التبرعات لا تُفعَّل تلقائيًا أبدًا، توثيق صريح مطلوب دائمًا.
+
+**يبدأ بعد**: المرحلة 73 (تسلسل إسماعيل الصريح) — ولا يبدأ 74.1 إطلاقًا قبل تأكيد قرار 74.0.
 
 Ismail's request 2026-08-25, pasted from a large external planning conversation (~30-point architecture: one reusable `MosqueProfile` template driven entirely by `mosqueId` — never a hardcoded per-mosque screen — with independent modules for gallery/activities/lessons/khutbahs/Quran circles/children's programs/library/needs/donations/achievements; a single Telegram bot as an admin control panel per mosque group, chat_id → mosqueId lookup, a daily moderation digest instead of instant publish, tiered permissions (Super Admin/Mosque Owner/Imam/Moderator/Viewer), and an explicit "this can outlive me" design: self-documenting `/docs`, an admin-succession flow, secrets kept out of docs, automated backups).
 
@@ -1258,7 +1274,13 @@ Ismail's request 2026-08-25, pasted from a large external planning conversation 
   - [ ] 74.10a — **In MVP**: mosque list/search/nearby/"مسجدي", `MosqueProfileScreen` header + activities + announcements + gallery + lessons only.
   - [ ] 74.10b — **Deferred past MVP**: Quran circles, children's programs, library, khutbah archive, needs, donations — add each as its own `mosque_content.type` once real mosques are actively using the MVP, not before.
 
-## Phase 75 — "أفضل تطبيق ديني" quality bar (research-grounded, applies across every phase) — 📋 PLANNED, not started
+## Phase 75 — خلاصة سريعة للتنفيذ
+
+**الهدف بجملة واحدة**: مراجعة بحثية دورية (ليست مرة واحدة) تقارن التطبيق بأفضل التطبيقات الدينية الحقيقية، تُطبَّق نتائجها عبر كل المراحل الأخرى بدل أن تكون مرحلة منفصلة قائمة بذاتها.
+
+**الخطوة الوحيدة المجدولة الآن**: 75.1 — بحث Play Store/إطلاق فعلي، لكن فقط بعد وجود MVP حقيقي من 73/74 — لا فائدة من بحثه الآن.
+
+**قيود ثابتة**: التمايز الحقيقي للتطبيق هو الحتمية (لا AI حي) — لا يُضحَّى به لمجرد "مجاراة" أدوات تنافسية تعتمد AI حي.
 
 Ismail's request 2026-08-25 ("ابحث اون لاين كيف نجعل من برنامجنا أفضل برنامج ديني في العالم") — real web research done before logging this, not guessed:
 - Best Quran apps in 2026 win on **trustworthy, named-scholar-attributed content** (this app already does this — Tanzil/real tafsir sources, never anonymous), **word-by-word study tools**, **color-coded Tajweed display**, and for memorization specifically, **real-time listen-and-flag-mistakes recitation checking** (the standard Tarteel AI/Muallim AI set) — this app's memorization coach (`TODO.md` Phase 4.21/4.30) should keep tracking toward that bar as its own ongoing item, not a new phase.
@@ -1271,7 +1293,13 @@ Ismail's request 2026-08-25 ("ابحث اون لاين كيف نجعل من بر
 
 Sources consulted 2026-08-25: [RecitID — Best Quran Apps 2026](https://recitid.ai/guides/best-quran-app-2026), [Umatyn — Best Islamic Learning Apps 2026](https://umatyn.com/blog/best-islamic-learning-apps-2026), [Apologetics AI](https://www.yeschat.ai/gpts-2OTolYn91O-Apologetics-AI), [Apologist AI](https://www.apologistai.net/).
 
-## Phase 76 — Gap analysis vs. leading Islamic apps + closing plan — 📋 PLANNED, not started
+## Phase 76 — خلاصة سريعة للتنفيذ
+
+**الهدف بجملة واحدة**: سد 4 فجوات حقيقية مؤكدة بالكود (لا افتراضية) مقابل التطبيقات الرائدة: تلوين تجويد، ترجمة كلمة-بكلمة، فحص تلاوة صادق النطاق، تعرف صوتي (أقل أولوية).
+
+**ترتيب البناء (حسب الأثر الحقيقي مقابل الجهد)**: 76.1 (تلوين التجويد — أعلى قيمة، بيانات مفتوحة جاهزة) ← 76.2 (كلمة بكلمة) ← 76.3 (فحص تلاوة — **يحتاج تأكيد إسماعيل الصريح أولاً**: نموذج تعرّف كلام محلي مختلف عن قاعدة "لا AI حي") ← 76.4 (تعرف صوتي، عند الحاجة فقط).
+
+**قيود ثابتة**: فحص التلاوة يرصد كلمات ناقصة/زائدة فقط، لا يقيّم دقة التجويد أبدًا — يُذكر هذا صراحة في واجهة المستخدم، لا وعد زائد.
 
 Ismail's request 2026-08-25 ("هل عرفت الgap بيني وبين big apps... اريد ان تقلص الفارق"). Checked the *actual current code* (grep, not memory) before claiming anything is missing — every "gap" below was confirmed absent, every "already ahead" claim was confirmed present.
 
@@ -1306,3 +1334,15 @@ Ismail's request 2026-08-25 ("هل عرفت الgap بيني وبين big apps..
   - [ ] 76.3d — UI explicitly states the honest scope ("يرصد الكلمات الناقصة أو الزائدة، لا يقيّم دقة التجويد أو مخارج الحروف") so it's never mistaken for a full pronunciation grader — matches this app's standing honesty discipline (e.g. Phase 3's "قريبًا" labels instead of faked steps).
   - [ ] 76.3e — Integrate as an optional step inside the existing memorization/review flow, not a separate disconnected feature.
 - [ ] 76.4 — Audio ayah/surah identification (lowest priority of the four; revisit after 76.1-76.3 are real). When reached: a fresh feasibility research pass first (embedding-based offline approaches are actively evolving per 2026 research — re-check the state of the art at that time rather than locking in today's approach).
+
+## Phase 78 — خلاصة سريعة للتنفيذ
+
+**الهدف بجملة واحدة**: نظام إنتاج محتوى قصير (يوتيوب Shorts/TikTok/Reels/X) بجودة أصيلة غير مكررة، مصمَّم عبر n8n + Claude كموجِّه محتوى، ضمن مشروع n8n الأكبر (ليس جزءًا من هذا المستودع مباشرة — انظر "معمارية n8n" أعلى).
+
+**فُصِل عمدًا عن `TalibAlIlmApp` الفعلي**: هذا مشروع منفصل حقًا (يخص أعمدة السوشل ميديا/ERP/الدخل في خطة إسماعيل، لا القرآن/طالب العلم) — التخطيط هنا موجَز فقط، البناء الفعلي والتفصيل الذري يحدث عند العمل المباشر على n8n، خارج نطاق هذا المستودع.
+
+**التوصية الصادقة الوحيدة الآن (من الاقتراح الخارجي الذي لصقه إسماعيل نفسه، وهي توصيته هو لا اختراعي)**: ابدأ بـ10 فيديوهات فعلية لاختبار السلسلة كاملة (بحث → فكرة → تحقق → نص → إنتاج → مراجعة بشرية → نشر → تحليلات)، لا 100 دفعة واحدة — نفس مبدأ "دفعة صغيرة مُتحقَّق منها قبل التوسّع" المتّبع في كل مرحلة أخرى بهذا الملف.
+
+**قيود ثابتة حرجة (سياسات المنصات الحقيقية، ليست اجتهادًا)**: يوتيوب يستهدف صراحة المحتوى "غير الأصيل"/المُنتَج بكمية (سياسة توثيق واضحة) — التكرار في الفكرة/الخطاف/البنية يُعرِّض القناة للخطر الفعلي، ليس نظريًا فقط. أي ادعاء ديني/تاريخي/علمي في المحتوى يمر بنفس انضباط التحقق من المصادر المتّبع في تفسير القرآن — لا اختلاق حديث أو نسبة قول لعالم دون تحقق. لا تنزيل/إعادة نشر لمقاطع محمية بحقوق نشر.
+
+**لن يُبنى قبل**: نجاح المرحلة 77 (الأولوية الحقيقية القريبة المدى)، وقرار إسماعيل الصريح بالبدء الفعلي في هذا الفرع تحديدًا.
