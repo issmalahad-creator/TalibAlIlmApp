@@ -6,6 +6,16 @@ Single reference for this project. Read this before touching any code — same d
 
 This started as a near-clone of `DawahReportApp` (same architecture, forked early). As of 2026-08-15 it is being rebuilt into a Quran memorization/understanding/application companion — full product spec, database schema, algorithms, and phased build order live in **[`QURAN_COMPANION_ROADMAP.md`](QURAN_COMPANION_ROADMAP.md)**. Read that file in full before writing any feature code. Don't re-derive the plan from scratch or from memory — the roadmap is long and was built deliberately (including real web research for every scholar/text named in it); trust it over improvisation.
 
+## Where the project stands (updated 2026-08-25)
+
+`TODO.md` is the authoritative live tracker — phase by phase, with commit hashes and verification notes. This section is only a compass, not a duplicate of it.
+
+**Substantially done**: the core Quran companion — memorization/review engine (Ebbinghaus 6-station), daily session, understanding/application pillars, journey plan, level map, worship/prayer coach, companion chat, app-wide translation coverage, and Phase 71's real Mushaf page rendering (own-engine layout for all 604 pages, now being progressively replaced page-by-page with real Madinah-Mushaf art — 120/604 done as of this date, waiting on the rest from Ismail) plus Phase 72's ayah-centered tafsir study mode (source cards, reader, compare — cross-source search still open).
+
+**Planned, not started yet, in this order** (see `TODO.md` for full numbered sub-steps of each): Phase 73 — deterministic Dawah/debate coach (no live AI, pre-authored objection trees + real cited answers + fuzzy-match scoring). Phase 74 — "مساجدنا" multi-tenant mosque platform (Telegram bot admin + backend API + database — a real architecture shift from this app's current offline-only design, needs an explicit infra decision before it starts). Phase 75 — ongoing research-grounded quality bar, not a one-time task.
+
+**Not yet scoped into TODO.md phases at all**: the roadmap's "مكتبة النصوص الإسلامية" pillar (`QURAN_COMPANION_ROADMAP.md` §4.9) — 40 Nawawi Hadiths + Ibn Uthaymeen's explanation, Aqeedah Wasitiyyah, Zad al-Ma'ad excerpts, Madarij al-Salikin, full Fiqh/purification + prayer method, Hisn al-Muslim adhkar, Qaida Noorania, Asma-ul-Husna. This is most of the app's eventual scope and hasn't been started.
+
 ## The one rule that prevents scatter
 
 **Work exactly one phase at a time, in the order listed in `TODO.md`.** Do not start Phase N+1 work while Phase N is incomplete or unverified, even if it looks quick. The roadmap covers an enormous final scope (Quran + Hadith + Aqeedah + Fiqh + more) — the only way this actually ships is strict sequencing, not parallel partial progress on five things at once. `TODO.md` in this folder is the live checklist; update it the moment a phase step finishes, before starting the next one.
