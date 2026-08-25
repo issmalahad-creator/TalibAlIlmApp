@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -72,6 +75,8 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   int _page = 1;
   List<QuranAyahText> _ayat = [];
   bool _loading = true;
+  List<_AyahPolygon> _pagePolygons = [];
+  _AyahPolygon? _flashedPolygon;
   bool _showTafsir = false;
   String _tafsirSource = QuranSearchRepository.defaultTafsirSource;
   String _tafsirLanguage = 'ar';
@@ -370,10 +375,12 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     setState(() => _loading = true);
     final page = await _repo.lastPage();
     final ayat = await _repo.ayatForPage(page);
+    final polygons = await _loadAyahPolygonsForPage(page);
     if (!mounted) return;
     setState(() {
       _page = page;
       _ayat = ayat;
+      _pagePolygons = polygons;
       _loading = false;
     });
     if (_showTafsir) _loadTafsir();
@@ -395,10 +402,12 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     });
     await _repo.savePosition(page);
     final ayat = await _repo.ayatForPage(page);
+    final polygons = await _loadAyahPolygonsForPage(page);
     if (!mounted) return;
     setState(() {
       _page = page;
       _ayat = ayat;
+      _pagePolygons = polygons;
     });
     if (_showTafsir) _loadTafsir();
     _refreshPageFavoritedState();
@@ -890,15 +899,16 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
       Rect.fromPoints(details.globalPosition, details.globalPosition),
       Offset.zero & overlay.size,
     );
+    final lang = LanguagePreferenceService.currentLanguage;
     final selected = await showMenu<String>(
       context: context,
       position: position,
       items: [
-        PopupMenuItem(value: 'tafsir', child: ListTile(leading: const Icon(Icons.menu_book_outlined), title: Text(basicText('ayah_study_title', LanguagePreferenceService.currentLanguage)), dense: true)),
-        const PopupMenuItem(value: 'translation', child: ListTile(leading: Icon(Icons.translate_outlined, color: AppColors.textMuted), title: Text('الترجمة', style: TextStyle(color: AppColors.textMuted)), dense: true)),
-        const PopupMenuItem(value: 'listen', child: ListTile(leading: Icon(Icons.headphones_outlined, color: AppColors.textMuted), title: Text('الاستماع للآية', style: TextStyle(color: AppColors.textMuted)), dense: true)),
-        PopupMenuItem(value: 'favorite', child: ListTile(leading: Icon(isFav ? Icons.bookmark : Icons.bookmark_outline), title: Text(isFav ? 'إزالة من المفضلة' : 'أضف للمفضلة'), dense: true)),
-        const PopupMenuItem(value: 'share', child: ListTile(leading: Icon(Icons.share_outlined), title: Text('نشر'), dense: true)),
+        PopupMenuItem(value: 'tafsir', child: ListTile(leading: const Icon(Icons.menu_book_outlined), title: Text(basicText('ayah_study_title', lang)), dense: true)),
+        PopupMenuItem(value: 'translation', child: ListTile(leading: const Icon(Icons.translate_outlined, color: AppColors.textMuted), title: Text(basicText('translate_action', lang), style: const TextStyle(color: AppColors.textMuted)), dense: true)),
+        PopupMenuItem(value: 'listen', child: ListTile(leading: const Icon(Icons.headphones_outlined, color: AppColors.textMuted), title: Text(basicText('listen_ayah_action', lang), style: const TextStyle(color: AppColors.textMuted)), dense: true)),
+        PopupMenuItem(value: 'favorite', child: ListTile(leading: Icon(isFav ? Icons.bookmark : Icons.bookmark_outline), title: Text(isFav ? basicText('remove_from_favorites_action', lang) : basicText('add_to_favorites_action', lang)), dense: true)),
+        PopupMenuItem(value: 'share', child: ListTile(leading: const Icon(Icons.share_outlined), title: Text(basicText('share_action', lang)), dense: true)),
       ],
     );
     if (!mounted) return;
@@ -912,7 +922,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
         await Navigator.push(context, MaterialPageRoute(builder: (_) => AyahStudyScreen(surah: a.surah, ayah: a.ayah)));
         break;
       case 'translation':
-        _notAvailable('الترجمة');
+        await _pickTranslationLanguage(a);
         break;
       case 'listen':
         _notAvailable('الاستماع للآية');
@@ -932,6 +942,52 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     }
   }
 
+  /// "الترجمة" shortcut on the ayah context menu (2026-08-25: Ismail
+  /// flagged it was a dead stub) — lists every language this ayah actually
+  /// has a stored translation/tafsir in, then jumps straight into
+  /// `AyahStudyScreen`'s reader for that language's source instead of
+  /// routing through the full source-card list.
+  Future<void> _pickTranslationLanguage(QuranAyahText a) async {
+    final lang = LanguagePreferenceService.currentLanguage;
+    final entries = await _repo.tafsirEntriesForAyah(a.surah, a.ayah);
+    if (!mounted) return;
+    if (entries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(basicText('no_translation_available_for_ayah', lang))));
+      return;
+    }
+    final sourceOrder = {for (var i = 0; i < QuranSearchRepository.tafsirSources.length; i++) QuranSearchRepository.tafsirSources[i].$1: i};
+    entries.sort((x, y) => (sourceOrder[x.source] ?? 999).compareTo(sourceOrder[y.source] ?? 999));
+    final seenLanguages = <String>{};
+    final choices = <AyahTafsirEntry>[
+      for (final e in entries)
+        if (seenLanguages.add(e.language)) e,
+    ];
+    final chosen = await showModalBottomSheet<AyahTafsirEntry>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(padding: const EdgeInsets.all(16), child: Text(basicText('pick_translation_language_title', lang), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15))),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: choices
+                    .map((e) => ListTile(
+                          title: Text(QuranSearchRepository.languageLabels[e.language] ?? e.language),
+                          onTap: () => Navigator.pop(context, e),
+                        ))
+                    .toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => AyahStudyScreen(surah: a.surah, ayah: a.ayah, initialSource: chosen.source)));
+  }
+
   /// Builds the page as real justified lines — QURAN_COMPANION_ROADMAP.md
   /// Phase 71.2. Words are packed by `computeMushafPageLayout` (own
   /// word/line packer, shrinking font size to fit within a 15-line target;
@@ -944,6 +1000,123 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
   /// line-break dataset, which isn't sourced into this app (see TODO.md
   /// Phase 71) — this is our own computed approximation of the same
   /// visual result, not a claim of pixel-identical official pagination.
+  /// Real Madinah-Mushaf-derived page art (border + the actual justified
+  /// Quran text, baked in as vector paths) for the small set of pages we
+  /// have real source files for so far (2026-08-23: Ismail wants a direct,
+  /// honest proof before scaling to all 604 — see the SVG source's own
+  /// licensing notice for the King Fahd Complex's permissive digital-use
+  /// grant). Ayah-tap/tafsir isn't available on these pages yet — there's
+  /// no hit-region data in the source files — every other page keeps using
+  /// the app's own real-text engine unchanged.
+  static final _mushafBorderPages = {for (var p = 1; p <= 120; p++) p};
+
+  String? _mushafBorderAssetPath(int page) {
+    if (!_mushafBorderPages.contains(page)) return null;
+    return 'assets/quran/mushaf_borders/${page.toString().padLeft(3, '0')}.svg';
+  }
+
+  /// Pages 1-2 keep a small centered text box inside a much more elaborate
+  /// ornamental frame (real Mushaf opening-page convention) — less blank
+  /// paper margin to safely zoom into than the ordinary pages (3+), which
+  /// are mostly filled edge-to-edge already.
+  /// Real per-ayah hit-region viewBox, page → (width, height) — pages 1-2
+  /// are the ornate square-framed opening pages, page 3 is a normal
+  /// running-text page in this source (2026-08-24, `svg2` sample set:
+  /// Ismail's second source after the first one's justification didn't
+  /// look real enough — see `svg2/00N.svg`'s own `viewBox`).
+  static final _mushafViewBoxes = {
+    1: (235.0, 235.0),
+    2: (235.0, 235.0),
+    for (var p = 3; p <= 120; p++) p: (345.0, 550.0),
+  };
+
+  double _mushafAspectRatioFor(int page) {
+    final box = _mushafViewBoxes[page];
+    if (box == null) return 510.236 / 729.448;
+    return box.$1 / box.$2;
+  }
+
+  /// Real per-ayah tap regions for [page], parsed from the source's own
+  /// polygon metadata (`assets/quran/mushaf_borders/00N.json` —
+  /// `svg2/00N.json` in the raw drop Ismail gave, CC0 per its NOTICE.md).
+  /// Only pages with a matching `.json` get real on-glyph tapping; a page
+  /// asset without one (page 3 in this sample) just returns empty and
+  /// falls back to the ayah-picker button.
+  Future<List<_AyahPolygon>> _loadAyahPolygonsForPage(int page) async {
+    final box = _mushafViewBoxes[page];
+    if (box == null) return [];
+    final path = 'assets/quran/mushaf_borders/${page.toString().padLeft(3, '0')}.json';
+    try {
+      final raw = await rootBundle.loadString(path);
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => _AyahPolygon.fromJson(e as Map<String, dynamic>, box)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Maps a tap on the rendered (scaled/zoomed) SVG box back to the
+  /// source's own viewBox space, then finds which ayah polygon contains
+  /// it. `boxSize` is the GestureDetector's own render size (the
+  /// AspectRatio-locked box, pre-zoom) — `Transform.scale`'s hit-testing
+  /// already inverts the zoom for us, so `localPosition` arrives already
+  /// in that box's coordinate space.
+  void _handleMushafPageTap(TapDownDetails details, Size boxSize) {
+    if (_pagePolygons.isEmpty || boxSize.width == 0 || boxSize.height == 0) return;
+    final box = _mushafViewBoxes[_page];
+    if (box == null) return;
+    final vx = details.localPosition.dx / boxSize.width * box.$1;
+    final vy = details.localPosition.dy / boxSize.height * box.$2;
+    for (final poly in _pagePolygons) {
+      if (poly.containsPoint(vx, vy)) {
+        final match = _ayat.where((a) => a.surah == poly.surahNumber && a.ayah == poly.ayahNumber).firstOrNull;
+        if (match != null) {
+          // 2026-08-25 ("أريد عند الضغط أن تلمع الآية"): brief highlight so
+          // tapping a real-art page gives the same instant feedback the
+          // regular pages' word taps already do, before the menu opens.
+          setState(() => _flashedPolygon = poly);
+          Future.delayed(const Duration(milliseconds: 550), () {
+            if (mounted && _flashedPolygon == poly) setState(() => _flashedPolygon = null);
+          });
+          _onAyahTap(match, details);
+        }
+        return;
+      }
+    }
+  }
+
+  /// Picks an ayah on the current (real-art) page, then opens the same
+  /// Study screen every other page's ayah-tap opens — the honest stand-in
+  /// for tap-on-glyph until these pages have real hit-region data.
+  Future<void> _openAyahPickerForPage(BuildContext context) async {
+    final lang = LanguagePreferenceService.currentLanguage;
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        builder: (context, scrollController) => ListView.builder(
+          controller: scrollController,
+          padding: const EdgeInsets.all(16),
+          itemCount: _ayat.length,
+          itemBuilder: (context, i) {
+            final a = _ayat[i];
+            return ListTile(
+              title: Text('${_surahNames[a.surah] ?? a.surah} — ${basicText('ayah_label', lang)} ${a.ayah}', textAlign: TextAlign.right),
+              subtitle: Text(a.text, textAlign: TextAlign.right, maxLines: 1, overflow: TextOverflow.ellipsis, textDirection: TextDirection.rtl),
+              trailing: const Icon(Icons.chevron_left_rounded),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => AyahStudyScreen(surah: a.surah, ayah: a.ayah)));
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   List<Widget> _buildContent(Color themeColor, Color textColor, double maxWidth) {
     if (_ayat.isEmpty) return [];
 
@@ -1189,8 +1362,9 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                       // "big empty margins above/below the frame" gap
                       // Ismail caught. `Positioned.fill` forces it back to
                       // filling the Stack completely, like before.
-                      Positioned.fill(
-                        child: Container(
+                      Builder(builder: (context) {
+                        final borderAsset = _mushafBorderAssetPath(_page);
+                        final Widget card = Container(
                         // 2026-08-17 ("وسع الجوانب الى الاخير"): was
                         // `horizontal: 40` — sized to leave room for the
                         // left/right icon rails that used to float beside
@@ -1260,31 +1434,99 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                                   position: Tween<Offset>(begin: const Offset(0.06, 0), end: Offset.zero).animate(animation),
                                   child: FadeTransition(opacity: animation, child: child),
                                 ),
-                                child: CustomPaint(
-                                  key: ValueKey(_page),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) => SingleChildScrollView(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: [
-                                            ..._buildContent(themeColor, textColor, constraints.maxWidth),
-                                            const SizedBox(height: 6),
-                                            Center(child: _PageNumberCartouche(page: _page, color: themeColor)),
-                                          ],
+                                child: _mushafBorderAssetPath(_page) != null
+                                    ? LayoutBuilder(
+                                        key: ValueKey(_page),
+                                        builder: (context, constraints) => InteractiveViewer(
+                                          // 2026-08-25 ("تكبير الصفحه
+                                          // بصبعين"): two-finger pinch only —
+                                          // `panEnabled: false` so a single-
+                                          // finger horizontal drag still
+                                          // reaches the outer page-turn
+                                          // swipe instead of being eaten by
+                                          // panning a zoomed image.
+                                          panEnabled: false,
+                                          scaleEnabled: true,
+                                          minScale: 1,
+                                          maxScale: 4,
+                                          child: GestureDetector(
+                                            behavior: HitTestBehavior.opaque,
+                                            onTapDown: (details) => _handleMushafPageTap(details, constraints.biggest),
+                                            child: SizedBox(
+                                              width: constraints.maxWidth,
+                                              height: constraints.maxHeight,
+                                              child: Stack(
+                                                children: [
+                                                  SvgPicture.asset(
+                                                    _mushafBorderAssetPath(_page)!,
+                                                    fit: BoxFit.fill,
+                                                    width: constraints.maxWidth,
+                                                    height: constraints.maxHeight,
+                                                  ),
+                                                  if (_flashedPolygon != null)
+                                                    Positioned.fill(
+                                                      child: IgnorePointer(
+                                                        child: CustomPaint(
+                                                          painter: _AyahFlashPainter(
+                                                            polygon: _flashedPolygon!,
+                                                            viewBox: _mushafViewBoxes[_page]!,
+                                                            color: themeColor,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : CustomPaint(
+                                        key: ValueKey(_page),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(20),
+                                          child: LayoutBuilder(
+                                            builder: (context, constraints) => SingleChildScrollView(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                children: [
+                                                  ..._buildContent(themeColor, textColor, constraints.maxWidth),
+                                                  const SizedBox(height: 6),
+                                                  Center(child: _PageFooter(page: _page, color: themeColor)),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                ),
                               ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      ),
+                      );
+                        // 2026-08-23: these real-art pages have no per-ayah
+                        // hit-region data (the source SVGs don't include
+                        // one), so on-glyph tapping isn't possible yet — this
+                        // button is the honest interim: real access to the
+                        // same tafsir/translation study view every other
+                        // page's ayah-tap opens, just picked by ayah number
+                        // instead of by tapping the exact word.
+                        return borderAsset != null
+                            ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AspectRatio(aspectRatio: _mushafAspectRatioFor(_page), child: card),
+                                  const SizedBox(height: 10),
+                                  OutlinedButton.icon(
+                                    onPressed: () => _openAyahPickerForPage(context),
+                                    icon: const Icon(Icons.auto_stories_outlined, size: 18),
+                                    label: Text(basicText('study_page_ayat_action', LanguagePreferenceService.currentLanguage)),
+                                  ),
+                                ],
+                              )
+                            : Positioned.fill(child: card);
+                      }),
                       // شارة العد التنازلي لجلسة القراءة (2026-08-17) — لا
                       // تظهر إلا أثناء جلسة فعلية، ولا تحجز مساحة من الرأس
                       // المضغوط، عائمة فوق زاوية الصفحة نفسها فقط.
@@ -1443,25 +1685,122 @@ class _RibbonBadge extends StatelessWidget {
     // 2026-08-17: was a flat single-tone fill with no outline — the
     // reference's title/juz-page ribbons read as small gold-bordered
     // jewelry pieces (soft gradient + a real gold edge), not a plain tint.
+    // 2026-08-23: Ismail wanted this "فخم" (grand) like a traditional
+    // Islamic ornament — added an inner hairline border (a real jeweled
+    // banner reads as two nested edges, not one) and a small gold diamond
+    // stud at each pointed tip.
     return Container(
       decoration: BoxDecoration(boxShadow: DepthShadows.soft(_goldColor)),
-      child: ClipPath(
-        clipper: const _RibbonClipper(),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: large ? 24 : 16, vertical: large ? 9 : 5),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [AppColors.surface, color.withValues(alpha: 0.14)],
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          ClipPath(
+            clipper: const _RibbonClipper(),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: large ? 26 : 18, vertical: large ? 9 : 5),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppColors.surface, color.withValues(alpha: 0.14)],
+                ),
+                border: Border.all(color: _goldColor.withValues(alpha: 0.65), width: 1.4),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(border: Border.all(color: _goldColor.withValues(alpha: 0.32), width: 0.8)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    child: Text(text, style: TextStyle(fontSize: large ? 14 : 13, fontWeight: FontWeight.w800, color: color)),
+                  ),
+                ),
+              ),
             ),
-            border: Border.all(color: _goldColor.withValues(alpha: 0.55), width: 1),
           ),
-          child: Text(text, style: TextStyle(fontSize: large ? 14 : 13, fontWeight: FontWeight.w800, color: color)),
+          Positioned(left: large ? -4 : -2, child: _RibbonStud(size: large ? 7 : 5)),
+          Positioned(right: large ? -4 : -2, child: _RibbonStud(size: large ? 7 : 5)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Small gold diamond stud marking a ribbon's pointed tip — the jeweled
+/// detail that separates a plain hexagon from an ornamental Islamic banner.
+class _RibbonStud extends StatelessWidget {
+  final double size;
+  const _RibbonStud({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: pi / 4,
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: _goldColor,
+          border: Border.all(color: _goldColor.withValues(alpha: 0.5), width: 0.6),
+          boxShadow: [BoxShadow(color: _goldColor.withValues(alpha: 0.4), blurRadius: 3)],
         ),
       ),
     );
   }
+}
+
+/// One ayah's real tap region on a `svg2`-sourced mushaf page — the raw
+/// `"x1,y1 x2,y2 ..."` polygon string from the source JSON, parsed once
+/// and hit-tested via ray casting (the source's polygons are simple but
+/// often L-shaped/multi-segment for a justified line that wraps a medallion
+/// or a margin note, so a plain bounding-box test would misfire on those).
+class _AyahPolygon {
+  final int surahNumber;
+  final int ayahNumber;
+  final List<Offset> points;
+  const _AyahPolygon({required this.surahNumber, required this.ayahNumber, required this.points});
+
+  factory _AyahPolygon.fromJson(Map<String, dynamic> json, (double, double) viewBox) {
+    final raw = (json['polygon'] as String).trim().split(RegExp(r'\s+'));
+    final points = raw.map((pair) {
+      final parts = pair.split(',');
+      return Offset(double.parse(parts[0]), double.parse(parts[1]));
+    }).toList();
+    return _AyahPolygon(surahNumber: json['surahNumber'] as int, ayahNumber: json['ayahNumber'] as int, points: points);
+  }
+
+  bool containsPoint(double x, double y) {
+    var inside = false;
+    for (var i = 0, j = points.length - 1; i < points.length; j = i++) {
+      final pi = points[i], pj = points[j];
+      final intersects = (pi.dy > y) != (pj.dy > y) && x < (pj.dx - pi.dx) * (y - pi.dy) / (pj.dy - pi.dy) + pi.dx;
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  }
+}
+
+/// Brief translucent fill over the tapped ayah's real polygon — the visual
+/// feedback Ismail asked for (2026-08-25: "أريد عند الضغط أن تلمع الآية")
+/// so tapping a real-art page confirms which ayah registered before the
+/// menu opens, the same instant feedback regular pages' word taps give.
+class _AyahFlashPainter extends CustomPainter {
+  final _AyahPolygon polygon;
+  final (double, double) viewBox;
+  final Color color;
+  const _AyahFlashPainter({required this.polygon, required this.viewBox, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final sx = size.width / viewBox.$1;
+    final sy = size.height / viewBox.$2;
+    final path = Path()..addPolygon(polygon.points.map((p) => Offset(p.dx * sx, p.dy * sy)).toList(), true);
+    canvas.drawPath(path, Paint()..color = color.withValues(alpha: 0.28));
+  }
+
+  @override
+  bool shouldRepaint(covariant _AyahFlashPainter oldDelegate) => oldDelegate.polygon != polygon || oldDelegate.color != color;
 }
 
 class _RibbonClipper extends CustomClipper<Path> {
@@ -1498,8 +1837,62 @@ class _SurahBanner extends StatelessWidget {
   }
 }
 
-/// Double-ring page-number cartouche at the bottom of the page frame —
-/// echoes the reference's ornate page-number circle at the page foot.
+/// The page-foot ornament: a dotted rule on either side of the page-number
+/// cartouche, echoing the dotted "leader lines" real printed Mushaf pages
+/// use to lead the eye to the folio number — Ismail asked for this
+/// specifically (2026-08-23: "رقم الصفحه لديها نقاط لمعرفه مكان التواجد").
+class _PageFooter extends StatelessWidget {
+  final int page;
+  final Color color;
+  const _PageFooter({required this.page, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _DottedRule(color: color),
+        const SizedBox(width: 10),
+        _PageNumberCartouche(page: page, color: color),
+        const SizedBox(width: 10),
+        _DottedRule(color: color),
+      ],
+    );
+  }
+}
+
+class _DottedRule extends StatelessWidget {
+  final Color color;
+  const _DottedRule({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(width: 60, height: 6, child: CustomPaint(painter: _DottedRulePainter(color: color)));
+  }
+}
+
+class _DottedRulePainter extends CustomPainter {
+  final Color color;
+  const _DottedRulePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color.withValues(alpha: 0.5);
+    const dotRadius = 1.6;
+    const gap = 8.0;
+    for (var x = dotRadius; x < size.width; x += gap) {
+      canvas.drawCircle(Offset(x, size.height / 2), dotRadius, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DottedRulePainter oldDelegate) => oldDelegate.color != color;
+}
+
+/// Double-ring page-number cartouche at the bottom of the page frame, with
+/// a small gold sun-rosette of studs around the rim for a richer, more
+/// jeweled read (2026-08-23: Ismail wanted the page number itself more
+/// "فخم" — the plain double ring alone read as too bare).
 class _PageNumberCartouche extends StatelessWidget {
   final int page;
   final Color color;
@@ -1507,17 +1900,38 @@ class _PageNumberCartouche extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 44,
-      height: 44,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 1.3)),
-      child: Container(
-        width: 32,
-        height: 32,
+    return SizedBox(
+      width: 52,
+      height: 52,
+      child: Stack(
         alignment: Alignment.center,
-        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color.withValues(alpha: 0.5), width: 1)),
-        child: Text(_easternArabicDigits(page), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+        children: [
+          for (var i = 0; i < 8; i++)
+            Transform.rotate(
+              angle: i * (pi / 4),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  width: 3,
+                  height: 3,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: _goldColor.withValues(alpha: 0.75)),
+                ),
+              ),
+            ),
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color, width: 1.3)),
+            child: Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: color.withValues(alpha: 0.5), width: 1)),
+              child: Text(_easternArabicDigits(page), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+            ),
+          ),
+        ],
       ),
     );
   }

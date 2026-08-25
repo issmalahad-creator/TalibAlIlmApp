@@ -20,7 +20,12 @@ import '../theme/app_theme.dart';
 class AyahStudyScreen extends StatefulWidget {
   final int surah;
   final int ayah;
-  const AyahStudyScreen({super.key, required this.surah, required this.ayah});
+  /// When set, opens straight into the reader for this source instead of
+  /// the card list — backs the reading screen's "الترجمة" shortcut
+  /// (2026-08-25: Ismail wanted picking a language to jump directly to
+  /// that translation, not through the full source list every time).
+  final String? initialSource;
+  const AyahStudyScreen({super.key, required this.surah, required this.ayah, this.initialSource});
 
   @override
   State<AyahStudyScreen> createState() => _AyahStudyScreenState();
@@ -39,8 +44,8 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
   List<AyahTafsirEntry> _entries = [];
   bool _loading = true;
 
-  _StudyMode _mode = _StudyMode.cards;
-  String? _readerSource;
+  late _StudyMode _mode = widget.initialSource != null ? _StudyMode.reader : _StudyMode.cards;
+  late String? _readerSource = widget.initialSource;
   final Set<String> _compareSelection = {};
 
   bool _sepia = false;

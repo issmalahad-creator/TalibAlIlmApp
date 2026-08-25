@@ -63,6 +63,7 @@ dependencies:
   latlong2: ^0.9.1
   camera: ^0.11.0+2
   flutter_rotation_sensor: ^0.3.1
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
@@ -98,6 +99,7 @@ flutter:
   # Book-of-the-month content itself is still fetched live from Telegram, no
   # asset needed for that. See CLAUDE.md "Book content feed".
   assets:
+    - assets/quran/mushaf_borders/
     - assets/quran/quran-uthmani.txt
     - assets/quran/quran-data.js
     - assets/quran/tafsir-ibn-kathir-full.jsonl.gz

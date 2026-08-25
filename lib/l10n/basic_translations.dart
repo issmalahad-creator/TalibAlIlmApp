@@ -3513,10 +3513,55 @@ const Map<String, Map<String, String>> basicTranslations = {
     'so': 'Taabo "Ku dar Buug" si aad uga dooratid PDF qalabkaaga.', 'fa': 'برای انتخاب یک PDF از دستگاه خود، "افزودن کتاب" را بزنید.', 'ms': 'Ketik "Tambah Buku" untuk memilih PDF daripada peranti anda.',
   },
   // 2026-08-22: ayah_study_screen.dart — Phase 72 ("دراسة الآية").
+  'study_page_ayat_action': {
+    'ar': 'تفاسير آيات هذه الصفحة', 'en': 'Study This Page\'s Ayat', 'am': 'የዚህ ገጽ አንቀጾች ጥናት', 'fr': 'Étudier les versets de cette page', 'sw': 'Chunguza Aya za Ukurasa Huu',
+    'ur': 'اس صفحہ کی آیات کا مطالعہ', 'tr': 'Bu Sayfanın Ayetlerini İncele', 'id': 'Pelajari Ayat Halaman Ini', 'bn': 'এই পৃষ্ঠার আয়াতগুলি অধ্যয়ন করুন', 'ha': 'Nazarin Ayoyin Wannan Shafi',
+    'so': 'Daraasadda Aayadaha Boggan', 'fa': 'مطالعه آیات این صفحه', 'ms': 'Kaji Ayat Halaman Ini',
+  },
+  'ayah_label': {
+    'ar': 'آية', 'en': 'Ayah', 'am': 'አንቀጽ', 'fr': 'Verset', 'sw': 'Aya',
+    'ur': 'آیت', 'tr': 'Ayet', 'id': 'Ayat', 'bn': 'আয়াত', 'ha': 'Aya',
+    'so': 'Aayad', 'fa': 'آیه', 'ms': 'Ayat',
+  },
   'ayah_study_title': {
     'ar': 'دراسة الآية', 'en': 'Ayah Study', 'am': 'የአንቀጽ ጥናት', 'fr': 'Étude du verset', 'sw': 'Uchunguzi wa Aya',
     'ur': 'آیت کا مطالعہ', 'tr': 'Ayet İncelemesi', 'id': 'Studi Ayat', 'bn': 'আয়াত অধ্যয়ন', 'ha': 'Nazarin Aya',
     'so': 'Daraasadda Aayadda', 'fa': 'مطالعه آیه', 'ms': 'Kajian Ayat',
+  },
+  'translate_action': {
+    'ar': 'الترجمة', 'en': 'Translation', 'am': 'ትርጉም', 'fr': 'Traduction', 'sw': 'Tafsiri',
+    'ur': 'ترجمہ', 'tr': 'Çeviri', 'id': 'Terjemahan', 'bn': 'অনুবাদ', 'ha': 'Fassara',
+    'so': 'Turjumaad', 'fa': 'ترجمه', 'ms': 'Terjemahan',
+  },
+  'listen_ayah_action': {
+    'ar': 'الاستماع للآية', 'en': 'Listen to Ayah', 'am': 'አንቀጹን ማዳመጥ', 'fr': 'Écouter le verset', 'sw': 'Sikiliza Aya',
+    'ur': 'آیت سنیں', 'tr': 'Ayeti Dinle', 'id': 'Dengarkan Ayat', 'bn': 'আয়াত শুনুন', 'ha': 'Saurari Aya',
+    'so': 'Dhagayso Aayadda', 'fa': 'شنیدن آیه', 'ms': 'Dengar Ayat',
+  },
+  'remove_from_favorites_action': {
+    'ar': 'إزالة من المفضلة', 'en': 'Remove from Favorites', 'am': 'ከምወዳቸው አስወግድ', 'fr': 'Retirer des favoris', 'sw': 'Ondoa kwenye Vipendwa',
+    'ur': 'پسندیدہ سے ہٹائیں', 'tr': 'Favorilerden Kaldır', 'id': 'Hapus dari Favorit', 'bn': 'প্রিয় থেকে সরান', 'ha': 'Cire daga Abubuwan So',
+    'so': 'Ka saar Kuwa La Jecelyahay', 'fa': 'حذف از موارد دلخواه', 'ms': 'Buang dari Kegemaran',
+  },
+  'add_to_favorites_action': {
+    'ar': 'أضف للمفضلة', 'en': 'Add to Favorites', 'am': 'ወደ ተወዳጆች ጨምር', 'fr': 'Ajouter aux favoris', 'sw': 'Ongeza kwenye Vipendwa',
+    'ur': 'پسندیدہ میں شامل کریں', 'tr': 'Favorilere Ekle', 'id': 'Tambah ke Favorit', 'bn': 'প্রিয়তে যোগ করুন', 'ha': 'Ƙara zuwa Abubuwan So',
+    'so': 'Ku dar Kuwa La Jecelyahay', 'fa': 'افزودن به موارد دلخواه', 'ms': 'Tambah ke Kegemaran',
+  },
+  'share_action': {
+    'ar': 'نشر', 'en': 'Share', 'am': 'አጋራ', 'fr': 'Partager', 'sw': 'Shiriki',
+    'ur': 'شیئر کریں', 'tr': 'Paylaş', 'id': 'Bagikan', 'bn': 'শেয়ার করুন', 'ha': 'Raba',
+    'so': 'La wadaag', 'fa': 'اشتراک‌گذاری', 'ms': 'Kongsi',
+  },
+  'pick_translation_language_title': {
+    'ar': 'اختر لغة الترجمة', 'en': 'Choose Translation Language', 'am': 'የትርጉም ቋንቋ ይምረጡ', 'fr': 'Choisir la langue de traduction', 'sw': 'Chagua Lugha ya Tafsiri',
+    'ur': 'ترجمے کی زبان منتخب کریں', 'tr': 'Çeviri Dili Seçin', 'id': 'Pilih Bahasa Terjemahan', 'bn': 'অনুবাদের ভাষা নির্বাচন করুন', 'ha': 'Zaɓi Harshen Fassara',
+    'so': 'Dooro Luqadda Turjumaadda', 'fa': 'انتخاب زبان ترجمه', 'ms': 'Pilih Bahasa Terjemahan',
+  },
+  'no_translation_available_for_ayah': {
+    'ar': 'لا توجد ترجمة متاحة لهذه الآية', 'en': 'No translation available for this ayah', 'am': 'ለዚህ አንቀጽ ትርጉም የለም', 'fr': 'Aucune traduction disponible pour ce verset', 'sw': 'Hakuna tafsiri kwa aya hii',
+    'ur': 'اس آیت کے لیے کوئی ترجمہ دستیاب نہیں', 'tr': 'Bu ayet için çeviri yok', 'id': 'Tidak ada terjemahan untuk ayat ini', 'bn': 'এই আয়াতের জন্য কোনো অনুবাদ নেই', 'ha': 'Babu fassara don wannan aya',
+    'so': 'Turjumaad uma jirto aayaddan', 'fa': 'ترجمه‌ای برای این آیه موجود نیست', 'ms': 'Tiada terjemahan untuk ayat ini',
   },
   'font_size_tooltip': {
     'ar': 'حجم الخط', 'en': 'Font Size', 'am': 'የቅርጸ-ቁምፊ መጠን', 'fr': 'Taille de police', 'sw': 'Ukubwa wa Fonti',
