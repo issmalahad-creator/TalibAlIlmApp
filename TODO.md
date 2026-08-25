@@ -1,6 +1,13 @@
 # TODO.md — live phase tracker
 
-Last updated: 2026-08-15. **Work top to bottom, one unchecked item at a time.** Don't skip ahead — see `CLAUDE.md`'s "one rule that prevents scatter". Full detail for every item lives in `QURAN_COMPANION_ROADMAP.md`; this file only tracks status.
+Last updated: 2026-08-25. **Work top to bottom, one unchecked item at a time.** Don't skip ahead — see `CLAUDE.md`'s "one rule that prevents scatter". Full detail for every item lives in `QURAN_COMPANION_ROADMAP.md`; this file only tracks status.
+
+## Known issues — not yet fixed (check here before assuming something new broke)
+
+- [ ] **Quran search returns no results for real words** — Ismail reported searching "الظالمون" in "البحث في القرآن" gave "لم يعثر على نتائج", though that word is genuinely common in the Quran. Not yet root-caused — suspect is `normalizeArabicForSearch`/the `text_normalized` index (`lib/utils/arabic_normalize.dart`, `lib/repositories/quran_search_repository.dart`) possibly not matching the AmiriQuran-rendered text's exact Unicode form, but this needs real investigation, not a guess-fix.
+- [ ] **`svg2` pages 121-604 not yet integrated** — waiting on Ismail to provide the remaining SVG (+ ideally JSON) files; see Phase 71.7 above for the exact pattern to repeat once they arrive.
+- [ ] **Only pages 1-2 have real tap-polygon data** — pages 3-120 use the ayah-picker button as an honest fallback until their `.json` arrives.
+- [ ] **No colored/ornamental border on the new real-art pages** — this source is monochrome; Ismail hasn't confirmed yet whether that's final or whether a Flutter-drawn decorative frame should be layered on top.
 
 ## Prerequisites
 
@@ -1023,7 +1030,24 @@ Ismail's request 2026-08-22: his current Quran-reading screen's font/layout look
 - [x] 71.4 — Real Mushaf navigation: **already existed** in this screen before this phase (swipe via `onHorizontalDragEnd`, `_openIndex`'s surah/juz/page-number tabs, `_repo.savePosition`/`lastPage()` resume) — untouched by 71.1/71.2, now rendering through the new line layout automatically.
 - [x] 71.5 — Tap-an-ayah interaction: **already existed** (`_onAyahTap`'s context menu) — carried over word-by-word in 71.2 (each word is its own `GestureDetector` now, instead of one recognizer per whole ayah span); feeds into Phase 72's study view once that's built.
 
-**71.6 (later, optional, online-enhanced layer)** — Ismail's instruction 2026-08-22: "الذي هو فنان ويحتاج نت... اعمله يكون بجانب الذي بدون نت لمن أراد التطور" — an optional richer/prettier rendering path using Quran Foundation's live API/MCP (real KFGQPC v2 mushaf, official assets) for students who have internet and want it, sitting *alongside* — never replacing — the offline 71.1–71.5 core. Not scoped in detail yet, not the current priority; the offline Mushaf (71.1–71.5) is what to actually work on now — this line exists so the idea isn't lost, not as a next step.
+**71.6 (later, optional, online-enhanced layer)** — Ismail's instruction 2026-08-22: "الذي هو فنان ويحتاج نت... اعمله يكون بجانب الذي بدون نت لمن أراد التطور" — an optional richer/prettier rendering path using Quran Foundation's live API/MCP (real KFGQPC v2 mushaf, official assets) for students who have internet and want it, sitting *alongside* — never replacing — the offline 71.1–71.5 core. Superseded by what actually got built below — not abandoned, just not needed once a real offline art source showed up.
+
+**71.7 — Real Madinah-Mushaf page art, offline, 120/604 pages — ✅ DONE 2026-08-25 (commit `1b7fe42`)**
+
+Ismail wasn't satisfied with 71.1-71.5's own-engine rendering ("طفل من عالم الكرتون" — felt amateurish next to a real Mushaf) and separately sourced real page SVGs himself (quranpedia/quran-svg-style: CC0 hit-region metadata over KFGQPC-permitted-use calligraphy, license text saved in his own drop). Two source rounds: `svg/` (green ornate border, but no real per-ayah polygon data) tried first, then explicitly swapped for `svg2/` (Ismail: "لم يعجبني هاذا... امسح الاول") which has real polygon hit-regions for pages 1-2.
+
+- [x] `assets/quran/mushaf_borders/001.svg`–`120.svg` + `001.json`/`002.json` bundled (`pubspec.yaml` now includes the whole folder, not a per-file list — new pages just need to be dropped in + code constants bumped)
+- [x] `quran_reading_screen.dart`: pages with a matching SVG asset render it via `flutter_svg` instead of the own-engine layout; everything else (page 121+) still uses 71.1-71.5's engine unchanged
+- [x] Real per-ayah tap: `_AyahPolygon` (ray-cast point-in-polygon), wired into the *existing* `_onAyahTap` context menu — same menu every other page's word-tap opens, not a separate UI. Only pages 1-2 have polygon JSON so far; other SVG pages fall back to an ayah-picker button (`_openAyahPickerForPage`)
+- [x] Two-finger pinch-zoom (`InteractiveViewer`, `panEnabled: false` so it doesn't fight the page-turn swipe) + a brief highlight flash on the tapped ayah's real polygon
+- [x] Fixed two real dead/hardcoded items on the ayah context menu found along the way: "الترجمة" was an unwired stub → now a real language picker that jumps straight into `AyahStudyScreen`'s reader; "نشر"/"أضف للمفضلة"/etc. labels were hardcoded Arabic → now `basicText()`-wired
+- [x] Verified on-device: pages 1, 3, 5 render correctly (no cropping), page-1 ayah tap → menu → "الترجمة" → language list → jumps into the real English (Rowwad Translation Center) reader, confirmed end to end
+
+**Known, not yet done:**
+- Pages 121–604 need their own SVG (+ ideally JSON) from Ismail before they can be added — same pattern, just bump `_mushafBorderPages`/`_mushafViewBoxes` in `quran_reading_screen.dart` and add the files
+- Only pages 1–2 have real tap-polygon JSON; every other SVG page (3–120) uses the ayah-picker button until their JSON arrives
+- This source's SVGs are genuinely monochrome (single dark fill, no colored border/decoration baked in) — different look from the `svg/` source's green border. Ismail hasn't yet confirmed whether that's acceptable as final or whether a decorative frame should be added on top in Flutter
+- A large chunk of this session was lost chasing a rendering bug that turned out not to exist (see commit message on `1b7fe42` for the full postmortem) — flagged here as a process note: next time something "isn't rendering," add a solid-color control-test layer *first*, before trying multiple unverified fixes in sequence
 
 ## Phase 72 — Ayah-centered tafsir study mode — 📋 PLANNED, not started
 
