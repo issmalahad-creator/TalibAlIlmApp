@@ -2,6 +2,10 @@
 
 Last updated: 2026-08-25. **Work top to bottom, one unchecked item at a time.** Don't skip ahead — see `CLAUDE.md`'s "one rule that prevents scatter". Full detail for every item lives in `QURAN_COMPANION_ROADMAP.md`; this file only tracks status.
 
+## ابدأ من هنا (النقطة التالية فعليًا، بلا تفكير إضافي)
+
+بعد Phase 71.7 (بانتظار ملفات المصحف من إسماعيل) والمرحلة 72.5 (البحث الموحّد، صغيرة وجاهزة)، **أول خطوة برمجية حقيقية تالية هي 73.1a-e**: بحث محتوى فقط (لا كود)، بلا سيرفر، بلا قرارات معلّقة — اختيار 2-3 مواضيع، كتابة 5-10 اعتراضات حقيقية، إجابة موثّقة لكل واحد، حفظها في ملف مسودة يراجعه إسماعيل قبل أي عمل في قاعدة البيانات. لا تبدأ 74 (منصة المساجد) قبل أن يؤكد إسماعيل اختيار البنية (74.0) صراحة — هذا مقصود، ليس نسيانًا.
+
 ## Known issues — not yet fixed (check here before assuming something new broke)
 
 - [ ] **Quran search returns no results for real words** — Ismail reported searching "الظالمون" in "البحث في القرآن" gave "لم يعثر على نتائج", though that word is genuinely common in the Quran. Not yet root-caused — suspect is `normalizeArabicForSearch`/the `text_normalized` index (`lib/utils/arabic_normalize.dart`, `lib/repositories/quran_search_repository.dart`) possibly not matching the AmiriQuran-rendered text's exact Unicode form, but this needs real investigation, not a guess-fix.
