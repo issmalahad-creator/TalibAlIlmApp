@@ -1057,7 +1057,10 @@ Ismail's request 2026-08-22, inspired by Quranpedia/Quran.com's study-mode UX bu
 - [ ] 72.2 — Ayah tap → "Study" bottom sheet showing available sources as cards (icon, name, author, short description).
 - [ ] 72.3 — Full-screen tafsir reader: prev/next-ayah swipe (no return to the source list needed), font-size control, dark/sepia modes — reuse the app's existing text-scale/theme services rather than building new ones.
 - [ ] 72.4 — Comparison view: pick 2–4 tafsirs, real texts stacked/scrollable side by side (no narrow columns on a phone).
-- [ ] 72.5 — Deterministic cross-source search (Quran + tafsir), same keyword/fuzzy-matching approach already used elsewhere in the app (no embeddings, no AI).
+- [ ] 72.5 — Deterministic cross-source search (Quran + tafsir), no server needed (فئة 1 — محلي بالكامل):
+  - [ ] 72.5a — Extend `QuranSearchRepository` with a mode that searches across `tafsir_entries.text` for every source in one query (not just the currently-selected source), same `LIKE`/normalize approach `_byText` already uses.
+  - [ ] 72.5b — Result cards show which source(s) matched, reusing the language-tag pill pattern already built in `AyahStudyScreen`'s cards.
+  - [ ] 72.5c — Reuse `closestMatch`'s fuzzy-tolerant fallback logic for the cross-source case too, rather than writing a second matching algorithm.
 
 ## Phase 73 — Dawah/debate coach ("مدرّب المناظرة والحوار") — 📋 PLANNED, not started, comes after Phase 72
 
@@ -1073,13 +1076,32 @@ Ismail's request 2026-08-22, pasted from an external planning conversation (a la
 
 **Numbered sub-steps** (added 2026-08-25, per Ismail's request to plan this and the mosque-platform idea below before building either — real research done first: apologetics-AI tools like "Apologetics AI" let a learner pick a knowledge level 1-5 and an interaction mode — Instructor/Trivia/Open Discussion/Role-Play/random-topic — with the AI playing a skeptic and challenging the learner's answers; that mode structure maps cleanly onto this phase's deterministic design below, so it's adopted as the shape of 73.4 instead of inventing one from scratch):
 
-- [ ] 73.1 — Content pipeline + a genuinely small, verified starting batch: 5-10 objections across 2-3 topics (e.g. "Is the Quran preserved/unaltered", "Tawhid vs Trinity" basics), each with a real cited model answer (Quran ayah / hadith / tafsir / a real, checkable external source — never invented from memory) and `required_elements` keyword tags for scoring. No app code yet — this step is pure content research and verification, the actual bottleneck per the existing note above.
-- [ ] 73.2 — DB schema: `dawah_topics`, `dawah_objections` (+ `parent_objection_id` for pre-authored branches), `dawah_model_answers`, `dawah_required_elements`, `dawah_session_log` (for 73.6's history). Additive migration, same pattern as every other phase.
-- [ ] 73.3 — Scoring engine: reuse `companion_chat_engine.dart`'s normalize + Damerau-Levenshtein fuzzy matcher against `required_elements`; real fraction-matched score, shows exactly which required points were hit/missed plus the real model answer for the missed ones.
-- [ ] 73.4 — Modes screen (topic/difficulty picker first): **Instructor mode** (read the model answer + citations before being tested — study first), **Quiz mode** (objection shown, student answers, scored immediately, matches "Trivia" above), **Debate mode** (a full pre-authored branch played out turn by turn — student answer → deterministic score/citations → next pre-authored objection in that branch → session summary), **Random topic** (picks any topic/difficulty at random instead of the student choosing).
-- [ ] 73.5 — Session summary screen: genuine per-category percentages computed from real matches (never the illustrative numbers from the original pasted proposal), weak-point list with the real model answers for what was missed.
-- [ ] 73.6 — Session history (`dawah_session_log`) so a student can see improvement over time, reusing this app's existing progress-tracking patterns (memorization/review screens already do this).
-- [ ] 73.7 — Scale the content library gradually (batch by batch, each batch fully verified before the next) toward the original proposal's broader topic coverage — only after 73.1-73.6 are proven working end to end on the small starting batch.
+- [ ] 73.1 — Content pipeline + a genuinely small, verified starting batch. No app code yet — pure content research, the actual bottleneck.
+  - [ ] 73.1a — Pick the 2-3 starting topics (recommend: "هل القرآن محفوظ من التحريف", "التوحيد مقابل التثليث", "هل محمد ﷺ نُبِّئ في الكتب السابقة" — broad, well-documented, low ambiguity).
+  - [ ] 73.1b — For each topic, write 3-5 real objections a genuine skeptic/opponent would raise (5-10 total across all topics) — phrased the way a real person asks, not a strawman.
+  - [ ] 73.1c — For each objection, one real cited model answer: the actual ayah (surah:ayah), hadith (with book/number), tafsir excerpt, or external source citation — verified against a real source, never recalled from memory.
+  - [ ] 73.1d — For each model answer, extract 3-6 `required_elements` keyword/phrase tags — the specific points a strong answer must hit, used later for scoring.
+  - [ ] 73.1e — Write the same 5-10 objections + answers into a plain markdown/CSV staging file first (not the DB) so Ismail can review/approve the actual content before any schema work starts.
+- [ ] 73.2 — DB schema (additive migration, same pattern as every other phase in this file):
+  - [ ] 73.2a — `dawah_topics (id, name, description, difficulty)`
+  - [ ] 73.2b — `dawah_objections (id, topic_id, parent_objection_id NULLABLE, text, order_in_branch)`
+  - [ ] 73.2c — `dawah_model_answers (id, objection_id, text, citation_type, citation_ref)`
+  - [ ] 73.2d — `dawah_required_elements (id, model_answer_id, keyword_or_phrase)`
+  - [ ] 73.2e — `dawah_session_log (id, topic_id, mode, started_at, completed_at, score_percent)` — feeds 73.6.
+  - [ ] 73.2f — Import script/service (`dawah_content_import_service.dart`, mirroring `quran_import_service.dart`'s pattern) that loads 73.1e's staging file into these tables.
+- [ ] 73.3 — Scoring engine (`dawah_scoring_service.dart` or similar):
+  - [ ] 73.3a — Reuse `companion_chat_engine.dart`'s normalize + Damerau-Levenshtein fuzzy matcher directly (import/call it, don't reimplement).
+  - [ ] 73.3b — Function: student's typed answer + a `dawah_required_elements` list → which elements matched (fuzzy-tolerant) → fraction score.
+  - [ ] 73.3c — Return structure includes: matched elements, missed elements, the real model answer text for the missed ones (so the student sees what they should have said).
+  - [ ] 73.3d — Unit tests mirroring the style of `test/mushaf_page_layout_test.dart` — real objection/answer fixtures, not synthetic strings.
+- [ ] 73.4 — Modes screen (`dawah_coach_screen.dart`), topic/difficulty picker first, then:
+  - [ ] 73.4a — **Instructor mode**: shows the objection + model answer + citations together, no scoring — pure study.
+  - [ ] 73.4b — **Quiz mode**: objection shown alone, student types an answer, immediately scored via 73.3, model answer revealed after.
+  - [ ] 73.4c — **Debate mode**: walks one full pre-authored branch (`parent_objection_id` chain) turn by turn — student answer → score/citations → next objection in that branch → repeat to the branch's end.
+  - [ ] 73.4d — **Random topic** entry point: skips the picker, picks a random topic+objection at the student's chosen difficulty.
+- [ ] 73.5 — Session summary screen: real per-category percentages (computed from 73.3's actual match data across the session, never invented/illustrative numbers), a weak-point list (element → real model answer for each miss).
+- [ ] 73.6 — Session history screen reading `dawah_session_log`, same list/trend pattern as the existing memorization/review history screens (reuse the widget pattern, don't design a new one).
+- [ ] 73.7 — Scale the content library gradually (batch by batch, each batch through the same 73.1a-e research→review→import pipeline, fully verified before the next) toward the original proposal's broader topic coverage — only after 73.1-73.6 are proven working end to end on the small starting batch.
 
 ## Phase 74 — "مساجدنا" mosque platform (multi-tenant mosque profiles + Telegram admin bot) — 📋 PLANNED, not started, comes after Phase 73
 
@@ -1088,23 +1110,70 @@ Ismail's request 2026-08-25, pasted from a large external planning conversation 
 **This is a genuinely large, separate architecture decision, not a small feature** — flagging plainly rather than quietly scoping around it: everything above requires a real backend server + its own database + Telegram Bot API token + hosting, which this app does not have today (it's offline-first, local `sqflite` only, by design per `CLAUDE.md`). Building this means standing up server infrastructure for the first time in this project's history. That's a legitimate, well-thought-out direction, but it's a decision Ismail should confirm explicitly before 74.1 starts (hosting cost/provider, who runs the server, how secrets are managed) — not something to default into silently.
 
 **Numbered sub-steps** (kept in the same order Ismail's own proposal already used — it was well-sequenced):
-- [ ] 74.1 — Architecture-only pass: document the mosque data model (`Mosque`, `MosqueUser`, `MosqueSection`, `MosqueContent`, `MosqueMedia`, `TelegramConnection`, `ModerationAction`) and the module list, no code yet — matches Ismail's own "افحص، لا تعدل شيء" first-stage instruction.
-- [ ] 74.2 — Backend + database: minimal core tables first (`mosques`, `mosque_content` generic-typed rather than one table per content type, `mosque_users`, `mosque_telegram_connections`, `mosque_pending_changes`), expand later — Ismail's own instruction was explicitly not to create 15 tables up front.
-- [ ] 74.3 — Backend API (REST, one `mosqueId`-scoped resource per module: activities, media, announcements, lessons, khutbahs, circles, children's programs, library, needs).
-- [ ] 74.4 — Flutter: one reusable `MosqueProfileScreen(mosqueId)` template + `MosquesScreen` (list/search/nearby/"مسجدي") — the golden rule from Ismail's own proposal: **never** a new Dart screen or hardcoded mosque data per mosque; icons/sections themselves are data-driven (`enabled`/`sortOrder` per mosque), not `if (mosque == ...)` branches.
-- [ ] 74.5 — Telegram bot core: one bot for all mosques, `chat_id → mosqueId` lookup table, not one bot per mosque.
-- [ ] 74.6 — Mosque creation + verification workflow: request → admin review (in Telegram) → approve/reject → only then published in the app; same for donation eligibility (never auto-enabled, always explicitly verified).
-- [ ] 74.7 — Permission tiers (Super Admin / Mosque Owner / Imam / Moderator / Viewer) enforced on both the bot and the API, not just the UI.
-- [ ] 74.8 — Daily moderation digest: a mosque's day's pending changes bundled into one review message (risk-tiered — low-risk auto-publish-eligible per policy, donations/financial/imam-change always mandatory review) instead of publishing instantly per message.
-- [ ] 74.9 — Documentation + succession system: `/docs` (architecture, database, bot, permissions, moderation, deployment, backup/recovery, troubleshooting — the "why", not just the "what", per Ismail's explicit ask so a future non-programmer admin or a different developer can run this without him), an admin-succession flow (Super Admin can promote/hand off), secrets in environment/secret-manager only, never in docs, automated DB backups with a documented restore procedure.
-- [ ] 74.10 — MVP launch scope: don't ship every module at once — Quran + adhkar + prayer + "مساجدنا" (mosque list/nearby/mine + profile + activities/announcements/gallery/lessons only) first; add circles/children/library/khutbahs/needs/donations after real mosques are using the MVP.
+**Server-requirement breakdown (Ismail's request 2026-08-25) — three categories, applied to every phase, not just this one:**
+
+**فئة 1 — لا يحتاج سيرفر إطلاقًا (محلي بالكامل داخل الهاتف):**
+- **المرحلة 73 كاملة** (مدرّب المناظرة) — قاعدة بيانات محلية `sqflite`، لا اتصال خارجي مطلقًا.
+- **76.1** (تلوين التجويد) و **76.2** (كلمة بكلمة) — البيانات تُستورد مرة واحدة عند التطوير وتُخزَّن محليًا، كأي بيانات تفسير موجودة الآن.
+- **76.3** (فحص التلاوة) — التعرف على الكلام يعمل *على الجهاز نفسه* (on-device STT)، بلا اتصال إطلاقًا.
+- **76.4** (التعرف الصوتي على السورة) — يمكن أن يكون محليًا أيضًا حسب الأسلوب المختار عند الوصول إليه.
+- من المرحلة 74: **74.1** (توثيق المعمارية فقط) — مجرد كتابة، لا كود ولا سيرفر.
+
+**فئة 2 — يحتاج "شيئًا" على الإنترنت، لكن له بديل خفيف بلا سيرفر مُدار (بوت + Google Sheets/Firebase بدل سيرفر تقليدي):**
+هذا ينطبق على **معظم المرحلة 74**، وهو خبر جيد — لا شيء فيها يحتاج فعليًا سيرفر (VPS) تستأجره وتديره:
+- **74.2 (قاعدة البيانات)**: بديل Firebase Firestore أو Supabase (قاعدة بيانات جاهزة، مجانية لحجم صغير، بلا صيانة) بدل بناء قاعدة بيانات + خادم مخصص. أو حتى **Google Sheet واحدة** كمخزن بيانات فعلي إذا كان عدد المساجد صغيرًا (أقل من ~50) — نفس نمط "Telegram/Sheets sync" الذي كان موجودًا أصلًا في تطبيق DawahReportApp الشقيق (أُزيل من هذا التطبيق تحديدًا في Phase -1، لكن يستحق مراجعته كمرجع جاهز قبل البناء من الصفر).
+- **74.3 (Backend API)**: يمكن الاستغناء عنها كليًا إذا استُخدم Firestore/Supabase — تطبيق Flutter يتصل مباشرة بقاعدة البيانات عبر SDK جاهز، وقواعد الصلاحيات (74.7) تُفرض داخل قاعدة البيانات نفسها بدل كتابة API منفصلة.
+- **74.5 (بوت Telegram)**: يعمل كـ **Google Apps Script** (مجاني، بلا سيرفر، يتصل بـ Google Sheets مباشرة) أو **Firebase Cloud Function** (تُستدعى فقط عند وصول رسالة — لا شيء يعمل بشكل دائم، لا تكلفة تشغيل مستمرة).
+- **74.6 (سير إنشاء/توثيق المسجد)** و **74.8 (ملخص المراجعة اليومي)**: نفس فكرة الدالة السحابية المجدولة (scheduled Cloud Function / Apps Script trigger) — لا سيرفر دائم.
+- **74.7 (الصلاحيات)**: تُفرض داخل كود الدالة السحابية + قواعد أمان Firestore، بدل طبقة صلاحيات على سيرفر مستقل.
+
+**فئة 3 — لا بديل حقيقي، يتطلب "شيئًا" متاحًا على الإنترنت دائمًا (لكن ليس بالضرورة سيرفرًا تستأجره):**
+- **حقيقة تقنية لا مفر منها**: بوت Telegram بطبيعته يحتاج جهة ما يمكن الوصول إليها عبر الإنترنت لاستقبال رسائله (هذا شرط من Telegram نفسها، وليس خيارًا معماريًا) — **لكن** هذه الجهة لا يلزم أن تكون سيرفرًا مُدارًا؛ دالة سحابية مجانية (فئة 2 أعلاه) تفي بهذا الشرط بالكامل بدون أي إدارة خوادم فعلية. فعليًا: **لا يوجد عنصر واحد في هذه الخطة كلها يتطلب سيرفرًا تقليديًا مُستأجرًا وبدون بديل** — إن قبلنا الحل الخفيف (Firebase/Apps Script) كإجابة كافية، وهو ما أنصح به بشدة لمشروع فردي.
+
+**الخلاصة العملية**: أنصح بالبدء بـ Firebase (Firestore + Cloud Functions) أو Google Sheets + Apps Script كبديل كامل عن "سيرفر خلفي" في 74.2/74.3/74.5/74.8 — يلغي الحاجة لاستضافة أو صيانة أي شيء بنفسك. هذا قرار يستحق تأكيدك أنت تحديدًا قبل 74.1، وليس اختيارًا أفرضه بصمت.
+
+- [ ] 74.0 — **Blocking prerequisite, confirm with Ismail before anything else in this phase**: pick Firebase/Supabase/Sheets+AppsScript (recommended, zero server maintenance) vs. a traditional self-hosted backend, and who operates whichever is chosen day-to-day. Do not silently pick a stack.
+- [ ] 74.1 — Architecture-only pass, no code: document the mosque data model and module list in `/docs/06_MOSQUE_SYSTEM.md` (see 74.9) — `Mosque`, `MosqueUser`, `MosqueSection`, `MosqueContent`, `MosqueMedia`, `TelegramConnection`, `ModerationAction`, plus the exact enum of `mosque_content.type` values (activity, announcement, lesson, khutbah, recording, circle, children_program, library_item, need).
+- [ ] 74.2 — Backend + database, minimal core tables first (expand later — explicitly not 15 tables up front):
+  - [ ] 74.2a — `mosques (id, name, imam_name, city, region, description, image_url, lat, lng, phone, status, verified, created_at)` — `status`: pending / verified / published / suspended.
+  - [ ] 74.2b — `mosque_content (id, mosque_id, type, title, description, media_url, date, status, created_by, created_at)` — one generic table for activities/announcements/lessons/khutbahs/etc, typed by `type`, not one table per content type.
+  - [ ] 74.2c — `mosque_users (id, mosque_id, user_id, role)` — role: super_admin / mosque_owner / imam / moderator / viewer.
+  - [ ] 74.2d — `mosque_telegram_connections (mosque_id, chat_id, group_title, connected_at)` — `mosque_id` is the durable key; `chat_id` can change without losing the mosque (see 74.5).
+  - [ ] 74.2e — `mosque_pending_changes (id, mosque_id, content_id, risk_tier, status, submitted_at, reviewed_at, reviewed_by)` — feeds 74.8's daily digest.
+- [ ] 74.3 — Backend API, `mosqueId`-scoped REST resources — plan the exact route list before coding:
+  - [ ] 74.3a — `POST/GET /mosques`, `GET/PATCH /mosques/:id`
+  - [ ] 74.3b — `GET/POST /mosques/:id/content?type=...` (covers activities/announcements/lessons/khutbahs/circles/children/library/needs via the `type` param, per 74.2b)
+  - [ ] 74.3c — `GET/POST /mosques/:id/media`
+  - [ ] 74.3d — `POST /mosques/:id/pending-changes/:changeId/approve|reject`
+  - [ ] 74.3e — Auth middleware enforcing 74.7's role tiers on every route, not just checked in the UI.
+- [ ] 74.4 — Flutter — one reusable template, never a new screen or hardcoded data per mosque:
+  - [ ] 74.4a — `MosquesScreen`: list + search-by-name + "nearby" (location permission, distance sort) + "مسجدي" (pick a default followed mosque).
+  - [ ] 74.4b — `MosqueProfileScreen(mosqueId)`: header (image/name/imam/city/verified badge) + preview strips (latest 3 activities, latest 2 announcements, 6 gallery photos, each with "عرض الكل") + the services grid.
+  - [ ] 74.4c — Services grid driven by `mosque_sections(mosque_id, section_type, enabled, sort_order)` — a section only renders if `enabled=true` for that mosque; **no `if (mosque.name == ...)` branching anywhere**.
+  - [ ] 74.4d — One detail screen per content type (`MosqueActivitiesScreen`, `MosqueAnnouncementsScreen`, `MosqueGalleryScreen`, etc.), each taking `mosqueId` and a `type` filter, all built on the same list-detail pattern.
+- [ ] 74.5 — Telegram bot core: one bot for every mosque (never one bot per mosque). On each incoming message: look up `chat_id` in `mosque_telegram_connections` → `mosque_id` → all subsequent actions scoped to that mosque. Re-linking a group to the same `mosque_id` must be a supported, documented action (mosque is the durable identity, the Telegram group is not).
+- [ ] 74.6 — Mosque creation + verification workflow (bot-driven wizard): name → imam → city/region → location pin → photo → phone → submit → `status=pending` → Super Admin review in Telegram (approve/reject) → `status=verified` → group-link step (74.5) → `status=published`, only now visible in `MosquesScreen`. Donation eligibility follows the identical pending→reviewed→approved gate, never auto-enabled.
+- [ ] 74.7 — Permission tiers, defined once and enforced in both the bot's command handlers and the API's auth middleware (74.3e) — not just hidden buttons in a UI: Super Admin (everything, incl. mosque approval) / Mosque Owner (edit mosque info, manage moderators) / Imam (lessons, khutbahs, recordings) / Moderator (activities, announcements, photos) / Viewer (read-only).
+- [ ] 74.8 — Daily moderation digest: cron/scheduled job groups a mosque's day of `mosque_pending_changes` by `risk_tier` (low: activity/photo/schedule-time-edit → auto-publish-eligible per policy; medium: announcement/lesson/new-content → needs review; high: donation/financial/imam-change → always mandatory review) → one Telegram message to Super Admin per mosque with counts + "مراجعة"/"اعتماد الكل"/"رفض" actions.
+- [ ] 74.9 — Documentation + succession system:
+  - [ ] 74.9a — `/docs/00_PROJECT_OVERVIEW.md` through `12_TROUBLESHOOTING.md` (per Ismail's own numbered list) — each explains the *why* behind a real decision (e.g. "mosque_id is durable, chat_id is not, because..."), not just what the code does.
+  - [ ] 74.9b — Admin-succession flow: Super Admin can promote another user to Super Admin and step down, documented as an explicit bot command sequence, not a manual DB edit.
+  - [ ] 74.9c — Secrets policy: bot token / DB credentials / API keys live only in environment variables or a secret manager, `/docs` only ever names the variable, never the value.
+  - [ ] 74.9d — Automated DB backups (daily/weekly/monthly per Ismail's own spec) + a documented, tested restore procedure in `10_BACKUP_RECOVERY.md`.
+- [ ] 74.10 — MVP launch scope, explicit include/exclude list:
+  - [ ] 74.10a — **In MVP**: mosque list/search/nearby/"مسجدي", `MosqueProfileScreen` header + activities + announcements + gallery + lessons only.
+  - [ ] 74.10b — **Deferred past MVP**: Quran circles, children's programs, library, khutbah archive, needs, donations — add each as its own `mosque_content.type` once real mosques are actively using the MVP, not before.
 
 ## Phase 75 — "أفضل تطبيق ديني" quality bar (research-grounded, applies across every phase) — 📋 PLANNED, not started
 
 Ismail's request 2026-08-25 ("ابحث اون لاين كيف نجعل من برنامجنا أفضل برنامج ديني في العالم") — real web research done before logging this, not guessed:
 - Best Quran apps in 2026 win on **trustworthy, named-scholar-attributed content** (this app already does this — Tanzil/real tafsir sources, never anonymous), **word-by-word study tools**, **color-coded Tajweed display**, and for memorization specifically, **real-time listen-and-flag-mistakes recitation checking** (the standard Tarteel AI/Muallim AI set) — this app's memorization coach (`TODO.md` Phase 4.21/4.30) should keep tracking toward that bar as its own ongoing item, not a new phase.
 - Apologetics/dawah AI tools that exist today (Apologist AI, "Muslim AI", Apologetics AI) are almost all **live-generative-AI-driven** — the opposite of this app's deterministic standing rule. This app's edge, if Phase 73 is executed well, is being the deterministic, source-cited, no-hallucination alternative — genuinely differentiated, not a weakness to work around.
-- [ ] 75.1 — When Phase 73/74 MVPs are real, do a second focused research pass specifically on Play Store discoverability/launch practice for religious apps (short distinctive name, mosque deep-links as an organic distribution channel per Ismail's own proposal, staged feature rollout) — not worth researching in detail until there's a real MVP to launch.
+- [ ] 75.1 — When Phase 73/74 MVPs are real, a second focused research pass on Play Store discoverability/launch practice for religious apps:
+  - [ ] 75.1a — App name/listing research (short, distinctive, not overloaded with keywords).
+  - [ ] 75.1b — Mosque deep-links as an organic distribution channel (`talib-al-ilm.app/mosque/MOSQ_000001`-style) — needs Android App Links/Firebase Dynamic Links (or successor) set up, itself needs Phase 74's chosen backend to exist first.
+  - [ ] 75.1c — Staged feature rollout plan for the store listing (what ships in v1 vs. what's advertised as "coming soon").
+  - Not worth doing in detail until Phase 73/74 have a real MVP to launch — this step is a placeholder/reminder, not actionable yet.
 
 Sources consulted 2026-08-25: [RecitID — Best Quran Apps 2026](https://recitid.ai/guides/best-quran-app-2026), [Umatyn — Best Islamic Learning Apps 2026](https://umatyn.com/blog/best-islamic-learning-apps-2026), [Apologetics AI](https://www.yeschat.ai/gpts-2OTolYn91O-Apologetics-AI), [Apologist AI](https://www.apologistai.net/).
 
@@ -1125,7 +1194,21 @@ Ismail's request 2026-08-25 ("هل عرفت الgap بيني وبين big apps..
 - The planned mosque platform (Phase 74) has no direct competitor in what was researched — a genuine differentiator, not a catch-up item.
 
 **Numbered closing plan** (ordered by real impact vs. effort — Ismail: planning only right now, do not start building):
-- [ ] 76.1 — Tajweed color-coding on the reading screen (highest value, most achievable — real open reference data exists). Source and verify a real rule-tagged Uthmani dataset (Al Quran Cloud `quran-tajweed` edition or equivalent), map it onto the already-bundled Tanzil text, render per-rule colors in `quran_reading_screen.dart`'s text rendering (and eventually the real-art SVG pages from Phase 71.7, separately, since that's a different rendering path). Toggle-able (some students/scholars prefer plain black Mushaf text), matches this app's existing "الوضع الورقي"-style display-option pattern.
-- [ ] 76.2 — Word-by-word interlinear view: per-word gloss + grammar note, ayah-by-ayah, reusing `AyahStudyScreen`'s existing reader pattern (a new "كلمة بكلمة" source/tab there rather than a whole new screen) — needs a real, licensed word-by-word dataset sourced and verified first (same sourcing discipline as every tafsir import this project has done — no inventing glosses).
-- [ ] 76.3 — Recitation practice checker (the achievable, honestly-scoped version): on-device speech-to-text (needs a real Flutter package evaluated for offline/on-device capability, not a live cloud-AI call — flag explicitly to Ismail that a *local* speech-recognition model is a different category from the "no live AI" rule, which is about generative text AI answering as a scholar, not a transcription/pattern-matching sensor — confirm he's fine with that distinction before building) → transcript compared against the expected ayah via the existing fuzzy-matcher → flags skipped/added/substituted words only, explicitly never claims to grade Tajweed/pronunciation accuracy (which real research says even specialist apps can't fully do). This is Phase 4.13 from the original roadmap, finally being scoped honestly instead of left as an aspiration.
-- [ ] 76.4 — Audio ayah/surah identification (lowest priority of the four) — revisit after 76.1-76.3 are real; needs its own feasibility research pass when reached (embedding-based offline approaches are actively evolving per 2026 research, worth re-checking closer to when this is actually picked up rather than locking in an approach now).
+- [ ] 76.1 — Tajweed color-coding (highest value, most achievable — real open reference data exists).
+  - [ ] 76.1a — Source and verify a real rule-tagged Uthmani dataset (Al Quran Cloud's `quran-tajweed` edition, or extract the rule set from `github.com/quran/tajweed`'s experiments) — confirm license terms explicitly (same discipline as the Tanzil/tafsir imports), don't assume.
+  - [ ] 76.1b — Write a mapping/import step from that dataset's rule tags onto this app's already-bundled Tanzil text (word/letter-position alignment needs real verification against a sample of pages, not assumed to line up automatically).
+  - [ ] 76.1c — New `tajweed_rule_spans` table (or equivalent) keyed by surah/ayah/character-range → rule id, plus a fixed rule→color legend.
+  - [ ] 76.1d — Render in `quran_reading_screen.dart`'s own-engine text path (the `_buildContent`/CustomPaint path for pages without real-art SVGs) — per-span color instead of flat `textColor`.
+  - [ ] 76.1e — Separately (not blocking 76.1d): investigate whether the real-art SVG pages from Phase 71.7 can carry tajweed color too (their source may or may not support it — check before assuming either way), since that's a fundamentally different rendering path.
+  - [ ] 76.1f — Toggle in the existing display-options sheet (alongside "الوضع الورقي" etc.) — on by default or off, decide with Ismail, don't assume.
+- [ ] 76.2 — Word-by-word interlinear view.
+  - [ ] 76.2a — Source and verify a real, licensed word-by-word Arabic-grammar/translation dataset (same sourcing discipline as every tafsir import — verify the license, don't invent glosses).
+  - [ ] 76.2b — Import into a `word_by_word_glosses (surah, ayah, word_index, arabic_word, gloss, grammar_note)` table.
+  - [ ] 76.2c — New tab/source inside `AyahStudyScreen`'s existing reader ("كلمة بكلمة") rather than a new screen — reuse its prev/next-ayah nav and font-size controls as-is.
+- [ ] 76.3 — Recitation practice checker (Phase 4.13 from the original roadmap, finally scoped honestly instead of left as an aspiration).
+  - [ ] 76.3a — **Confirm with Ismail first**: a *local/on-device* speech-recognition model is a different category from the "no live AI" rule (that rule is about generative text AI answering as a scholar; this is a transcription/pattern-matching sensor) — get explicit sign-off on that distinction before writing any code.
+  - [ ] 76.3b — Evaluate real Flutter packages for on-device/offline Arabic speech-to-text specifically (don't assume general-purpose STT packages handle Quranic Arabic well — verify against a real test recitation before committing to one).
+  - [ ] 76.3c — Practice-session flow: student recites a known ayah → local STT transcribes → transcript fuzzy-matched (reusing the same matcher as 73.3) against the expected ayah text → flags skipped/added/substituted words only.
+  - [ ] 76.3d — UI explicitly states the honest scope ("يرصد الكلمات الناقصة أو الزائدة، لا يقيّم دقة التجويد أو مخارج الحروف") so it's never mistaken for a full pronunciation grader — matches this app's standing honesty discipline (e.g. Phase 3's "قريبًا" labels instead of faked steps).
+  - [ ] 76.3e — Integrate as an optional step inside the existing memorization/review flow, not a separate disconnected feature.
+- [ ] 76.4 — Audio ayah/surah identification (lowest priority of the four; revisit after 76.1-76.3 are real). When reached: a fresh feasibility research pass first (embedding-based offline approaches are actively evolving per 2026 research — re-check the state of the art at that time rather than locking in today's approach).
