@@ -1342,7 +1342,12 @@ Ismail's request 2026-08-25 ("هل عرفت الgap بيني وبين big apps..
   - [ ] 76.1c — New `tajweed_rule_spans` table (or equivalent) keyed by surah/ayah/character-range → rule id, plus a fixed rule→color legend.
   - [ ] 76.1d — Render in `quran_reading_screen.dart`'s own-engine text path (the `_buildContent`/CustomPaint path for pages without real-art SVGs) — per-span color instead of flat `textColor`.
   - [ ] 76.1e — Separately (not blocking 76.1d): investigate whether the real-art SVG pages from Phase 71.7 can carry tajweed color too (their source may or may not support it — check before assuming either way), since that's a fundamentally different rendering path.
-  - [ ] 76.1f — Toggle in the existing display-options sheet (alongside "الوضع الورقي" etc.) — on by default or off, decide with Ismail, don't assume.
+  - [ ] 76.1f — **قرار محسوم 2026-08-26 (إسماعيل، بلقطات شاشة Tarteel الحقيقية)**: تلوين التجويد اختياري بالكامل — مفتاح تشغيل/إيقاف واحد في شاشة الإعدادات (نفس مكان "Marking" > "Show Tajweed Colors" في Tarteel)، **افتراضيًا مُطفَأ** (قرار هندسي معقول لتغيير بصري اختياري بهذا الحجم، ما لم يطلب إسماعيل غير ذلك) — وليس سلوكًا مفروضًا على كل الطلاب.
+  - [ ] 76.1g — **إضافة جديدة، مطلوبة صراحة 2026-08-26**: نمط اختيار "طريقة عرض المصحف" بثلاثة خيارات، بنفس مكان الإعدادات، مطابقًا لنمط Tarteel الحقيقي (لقطة شاشة "Mushaf Layout"):
+    - **كتاب (Book)** ↔ صفحات الفن الحقيقي (`_mushafBorderAssetPath`، Phase 71.7) — الأقرب لمصحف مطبوع حقيقي.
+    - **نص القرآن (Quran Text)** ↔ محرك النص الخاص بالتطبيق (`_buildContent`/CustomPaint) — نص قابل لتغيير الحجم.
+    - **ترجمة/كلمة بكلمة (Translation)** ↔ **قدرة جديدة غير موجودة حاليًا على شاشة القراءة الرئيسية** — عرض الترجمة (ولاحقًا كلمة-بكلمة من 76.2) مضمّنة مع النص العربي مباشرة في نفس الصفحة، بخلاف `AyahStudyScreen` الحالية التي تفتح كشاشة منفصلة لكل آية — يحتاج تصميمًا جديدًا حقيقيًا، ليس مجرد ربط بميزة موجودة.
+    - القرار الثلاثي هذا يخص **صفحة القراءة الرئيسية تحديدًا**، منفصل عن تلوين التجويد (76.1f) الذي يبقى مفتاحًا إضافيًا يعمل فوق أيٍّ من الأنماط الثلاثة، لا نمطًا رابعًا مستقلًا.
 - [ ] 76.2 — Word-by-word interlinear view.
   - [ ] 76.2a — Source and verify a real, licensed word-by-word Arabic-grammar/translation dataset (same sourcing discipline as every tafsir import — verify the license, don't invent glosses).
   - [ ] 76.2b — Import into a `word_by_word_glosses (surah, ayah, word_index, arabic_word, gloss, grammar_note)` table.
