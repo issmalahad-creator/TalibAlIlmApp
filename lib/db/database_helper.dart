@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 44,
+      version: 45,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -75,6 +75,7 @@ class DatabaseHelper {
         await _createV42Tables(db);
         await _createV43Tables(db);
         await _createV44Tables(db);
+        await _createV45Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -123,6 +124,7 @@ class DatabaseHelper {
         if (oldVersion < 42) await _createV42Tables(db);
         if (oldVersion < 43) await _createV43Tables(db);
         if (oldVersion < 44) await _createV44Tables(db);
+        if (oldVersion < 45) await _createV45Tables(db);
       },
     );
   }
@@ -1320,6 +1322,41 @@ class DatabaseHelper {
         created_at TEXT NOT NULL,
         user_text TEXT NOT NULL,
         intent_id TEXT
+      )
+    ''');
+  }
+
+  /// "تسميع" — Phase 76.3 of TODO.md, the recitation-practice checker.
+  /// `recitation_sessions` is one row per practice attempt (student recites
+  /// one ayah, gets scored); `recitation_mistakes` is the per-word detail
+  /// behind that score — real, timestamped data the mistake-history/
+  /// frequency view (76.3e, mirroring Tarteel's real shipped feature) reads
+  /// from. Deliberately separate from `memorization_review_log` — a
+  /// recitation mistake (said the wrong word) and a memorization-quality
+  /// self-rating are different concepts, not the same table reused.
+  Future<void> _createV45Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE recitation_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        mode TEXT NOT NULL,
+        score REAL NOT NULL,
+        extra_word_count INTEGER NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE recitation_mistakes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id INTEGER NOT NULL,
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        word_index INTEGER NOT NULL,
+        expected_word TEXT NOT NULL,
+        said_word TEXT,
+        status TEXT NOT NULL,
+        FOREIGN KEY (session_id) REFERENCES recitation_sessions (id)
       )
     ''');
   }

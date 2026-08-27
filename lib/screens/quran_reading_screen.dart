@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/quran_surahs.dart';
 import 'ayah_study_screen.dart';
+import 'recitation_practice_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
 import '../l10n/basic_translations.dart';
 import '../l10n/reading_encouragement.dart';
@@ -905,6 +906,7 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
       position: position,
       items: [
         PopupMenuItem(value: 'tafsir', child: ListTile(leading: const Icon(Icons.menu_book_outlined), title: Text(basicText('ayah_study_title', lang)), dense: true)),
+        PopupMenuItem(value: 'recite', child: ListTile(leading: const Icon(Icons.mic_outlined), title: Text(basicText('recitation_practice_title', lang)), dense: true)),
         PopupMenuItem(value: 'translation', child: ListTile(leading: const Icon(Icons.translate_outlined, color: AppColors.textMuted), title: Text(basicText('translate_action', lang), style: const TextStyle(color: AppColors.textMuted)), dense: true)),
         PopupMenuItem(value: 'listen', child: ListTile(leading: const Icon(Icons.headphones_outlined, color: AppColors.textMuted), title: Text(basicText('listen_ayah_action', lang), style: const TextStyle(color: AppColors.textMuted)), dense: true)),
         PopupMenuItem(value: 'favorite', child: ListTile(leading: Icon(isFav ? Icons.bookmark : Icons.bookmark_outline), title: Text(isFav ? basicText('remove_from_favorites_action', lang) : basicText('add_to_favorites_action', lang)), dense: true)),
@@ -920,6 +922,9 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
     switch (selected) {
       case 'tafsir':
         await Navigator.push(context, MaterialPageRoute(builder: (_) => AyahStudyScreen(surah: a.surah, ayah: a.ayah)));
+        break;
+      case 'recite':
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => RecitationPracticeScreen(surah: a.surah, ayah: a.ayah)));
         break;
       case 'translation':
         await _pickTranslationLanguage(a);
