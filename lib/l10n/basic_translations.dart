@@ -3616,6 +3616,40 @@ const Map<String, Map<String, String>> basicTranslations = {
     'so': 'Barnaamijku wuxuu u baahan yahay ogolaanshaha makarafoonka sifadan', 'fa': 'برنامه برای این ویژگی به مجوز میکروفون نیاز دارد',
     'ms': 'Aplikasi memerlukan kebenaran mikrofon untuk ciri ini',
   },
+  'recitation_mode_listen': {
+    'ar': 'استماع', 'en': 'Listen', 'am': 'ማዳመጥ', 'fr': 'Écouter', 'sw': 'Sikiliza',
+    'ur': 'سنیں', 'tr': 'Dinle', 'id': 'Dengar', 'bn': 'শুনুন', 'ha': 'Saurara',
+    'so': 'Dhagayso', 'fa': 'گوش دادن', 'ms': 'Dengar',
+  },
+  'recitation_mode_recite': {
+    'ar': 'تسميع', 'en': 'Recite', 'am': 'ንባብ', 'fr': 'Réciter', 'sw': 'Soma',
+    'ur': 'تلاوت', 'tr': 'Oku', 'id': 'Baca', 'bn': 'তিলাওয়াত', 'ha': 'Karatu',
+    'so': 'Akhri', 'fa': 'تلاوت', 'ms': 'Baca',
+  },
+  'recitation_mode_test': {
+    'ar': 'اختبار', 'en': 'Test', 'am': 'ፈተና', 'fr': 'Test', 'sw': 'Jaribio',
+    'ur': 'ٹیسٹ', 'tr': 'Test', 'id': 'Uji', 'bn': 'পরীক্ষা', 'ha': 'Gwaji',
+    'so': 'Imtixaan', 'fa': 'آزمون', 'ms': 'Ujian',
+  },
+  'recitation_hidden_ayah_hint': {
+    'ar': 'الآية مخفية — اقرأها من حفظك ثم اضغط ابدأ التسميع', 'en': 'The ayah is hidden — recite it from memory, then press Start',
+    'am': 'አንቀጹ ተደብቋል — ከቃላችሁ አንብቡት ከዚያ ጀምር ተጫኑ', 'fr': "Le verset est masqué — récitez-le de mémoire puis appuyez sur Démarrer",
+    'sw': 'Aya imefichwa — isome kwa kumbukumbu kisha bonyeza Anza', 'ur': 'آیت پوشیدہ ہے — اسے حفظ سے پڑھیں پھر شروع کریں دبائیں',
+    'tr': 'Ayet gizli — ezberden okuyun sonra Başlat\'a basın', 'id': 'Ayat disembunyikan — bacalah dari hafalan lalu tekan Mulai',
+    'bn': 'আয়াতটি লুকানো — মুখস্থ থেকে পড়ুন তারপর শুরু করুন চাপুন', 'ha': 'An ɓoye ayar — karanta daga hafizarka sannan danna Fara',
+    'so': 'Aayadu waa qarsoon tahay — xasuusnaanta ka akhri kadibna riix Bilow', 'fa': 'آیه پنهان است — از حفظ بخوانید سپس شروع را بزنید',
+    'ms': 'Ayat disembunyikan — bacalah dari hafazan kemudian tekan Mula',
+  },
+  'recitation_play_action': {
+    'ar': 'استمع للقارئ', 'en': 'Play Reciter', 'am': 'አንባቢ አጫውት', 'fr': 'Écouter le récitateur', 'sw': 'Cheza Msomaji',
+    'ur': 'قاری سنیں', 'tr': 'Okuyucuyu Dinle', 'id': 'Putar Qari', 'bn': 'ক্বারী শুনুন', 'ha': 'Kunna Mai Karatu',
+    'so': 'Dhagayso Akhriyaha', 'fa': 'پخش قاری', 'ms': 'Main Qari',
+  },
+  'recitation_playing_status': {
+    'ar': 'جارٍ التشغيل...', 'en': 'Playing...', 'am': 'በማጫወት ላይ...', 'fr': 'Lecture en cours...', 'sw': 'Inacheza...',
+    'ur': 'چل رہا ہے...', 'tr': 'Çalıyor...', 'id': 'Memutar...', 'bn': 'বাজছে...', 'ha': 'Ana kunnawa...',
+    'so': 'Waa la tarayaa...', 'fa': 'در حال پخش...', 'ms': 'Sedang Dimainkan...',
+  },
   'previous_ayah_action': {
     'ar': 'الآية السابقة', 'en': 'Previous Ayah', 'am': 'ቀዳሚ አንቀጽ', 'fr': 'Verset précédent', 'sw': 'Aya Iliyotangulia',
     'ur': 'پچھلی آیت', 'tr': 'Önceki Ayet', 'id': 'Ayat Sebelumnya', 'bn': 'পূর্ববর্তী আয়াত', 'ha': 'Ayar da Ta Gabata',
