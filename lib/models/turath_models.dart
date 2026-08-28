@@ -113,3 +113,49 @@ class TurathAuthor {
   final String? bio;
   const TurathAuthor({required this.id, this.bio});
 }
+
+/// A book-level or page-level favorite (spec item 10) -- `pageNumber` is
+/// null for a whole-book favorite, set for one favorited page. `createdAt`
+/// is a Hijri date string (`todayDate()`), matching every other saved-date
+/// field in this app (e.g. `quran_favorites.added_date`) -- not ISO8601.
+class TurathFavorite {
+  final int id;
+  final int bookId;
+  final String bookName;
+  final int? pageNumber;
+  final String createdAt;
+  const TurathFavorite({required this.id, required this.bookId, required this.bookName, this.pageNumber, required this.createdAt});
+
+  bool get isBook => pageNumber == null;
+}
+
+/// The last page a student read in a given book (spec item 11) -- one row
+/// per book, overwritten as reading progresses.
+class TurathLastRead {
+  final int bookId;
+  final String bookName;
+  final int pageNumber;
+  final String updatedAt;
+  const TurathLastRead({required this.bookId, required this.bookName, required this.pageNumber, required this.updatedAt});
+}
+
+/// A personal note attached to a specific page, optionally to a selected
+/// snippet of its text (spec item 12).
+class TurathNote {
+  final int id;
+  final int bookId;
+  final String bookName;
+  final int pageNumber;
+  final String? selectedText;
+  final String note;
+  final String createdAt;
+  const TurathNote({
+    required this.id,
+    required this.bookId,
+    required this.bookName,
+    required this.pageNumber,
+    this.selectedText,
+    required this.note,
+    required this.createdAt,
+  });
+}

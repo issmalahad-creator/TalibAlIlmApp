@@ -20,7 +20,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'talib_alilm.db');
     return openDatabase(
       path,
-      version: 45,
+      version: 46,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -76,6 +76,7 @@ class DatabaseHelper {
         await _createV43Tables(db);
         await _createV44Tables(db);
         await _createV45Tables(db);
+        await _createV46Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -125,6 +126,7 @@ class DatabaseHelper {
         if (oldVersion < 43) await _createV43Tables(db);
         if (oldVersion < 44) await _createV44Tables(db);
         if (oldVersion < 45) await _createV45Tables(db);
+        if (oldVersion < 46) await _createV46Tables(db);
       },
     );
   }
@@ -1357,6 +1359,65 @@ class DatabaseHelper {
         said_word TEXT,
         status TEXT NOT NULL,
         FOREIGN KEY (session_id) REFERENCES recitation_sessions (id)
+      )
+    ''');
+  }
+
+  /// Local persistence for the Turath library (Phase 79 spec items 10-14,
+  /// 17-19: favorites, last-read position, personal notes, and an
+  /// offline-capable page/book cache limited to what's actually been
+  /// visited -- never the whole library). All keyed by `book_id`/
+  /// `page_number` from the real turath.io API, never invented IDs.
+  Future<void> _createV46Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE turath_favorites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL,
+        book_id INTEGER NOT NULL,
+        book_name TEXT NOT NULL,
+        page_number INTEGER,
+        created_at TEXT NOT NULL,
+        UNIQUE(type, book_id, page_number)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_last_read (
+        book_id INTEGER PRIMARY KEY,
+        book_name TEXT NOT NULL,
+        page_number INTEGER NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_id INTEGER NOT NULL,
+        book_name TEXT NOT NULL,
+        page_number INTEGER NOT NULL,
+        selected_text TEXT,
+        note TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_book_cache (
+        book_id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        info TEXT,
+        volumes_json TEXT NOT NULL,
+        indexes_json TEXT NOT NULL,
+        cached_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_page_cache (
+        book_id INTEGER NOT NULL,
+        page_number INTEGER NOT NULL,
+        volume TEXT NOT NULL,
+        text TEXT NOT NULL,
+        headings_json TEXT NOT NULL,
+        cached_at TEXT NOT NULL,
+        PRIMARY KEY (book_id, page_number)
       )
     ''');
   }

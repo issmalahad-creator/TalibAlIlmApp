@@ -7,7 +7,15 @@ import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import 'turath_my_library_screen.dart';
 import 'turath_reader_screen.dart';
+import 'turath_topic_books_screen.dart';
+
+/// Real Arabic subject terms used as "تصفح حسب الموضوع" shortcuts -- NOT a
+/// real Turath category taxonomy (the public API has none, see
+/// `TurathTopicBooksScreen`'s doc comment) -- just honest, useful search
+/// shortcuts for the subjects a student of Islamic knowledge browses most.
+const _turathTopics = ['العقيدة', 'التفسير', 'علوم القرآن', 'الحديث', 'الفقه', 'أصول الفقه', 'السيرة', 'اللغة العربية', 'الرقائق'];
 
 /// "📚 المكتبة التراثية" — Phase 79.7's search entry point (chosen as the
 /// *first* screen rather than a categories browser: turath.io's real API
@@ -70,11 +78,20 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(title: Text(basicText('turath_library_title', lang))),
+        appBar: AppBar(
+          title: Text(basicText('turath_library_title', lang)),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.bookmarks_outlined),
+              tooltip: basicText('turath_favorites_title', lang),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathMyLibraryScreen())),
+            ),
+          ],
+        ),
         body: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: TextField(
                 controller: _controller,
                 textDirection: TextDirection.rtl,
@@ -88,6 +105,29 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
                 ),
               ),
             ),
+            if (_status == _SearchStatus.idle) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(alignment: Alignment.centerRight, child: Text(basicText('turath_topics_title', lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textMuted))),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: _turathTopics
+                      .map((topic) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: ActionChip(
+                              label: Text(topic),
+                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathTopicBooksScreen(topicQuery: topic, topicLabel: topic))),
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
             Expanded(child: _buildBody(lang)),
           ],
         ),
@@ -134,7 +174,7 @@ class _ResultCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
-        title: Text(result.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(result.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.w700)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

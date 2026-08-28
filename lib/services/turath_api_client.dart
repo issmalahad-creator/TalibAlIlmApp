@@ -30,7 +30,16 @@ class TurathApiClient {
   final int apiVersion;
   final Duration timeout;
   final int maxRetries;
+
+  /// Minimum gap enforced between any two outgoing requests (Ismail's spec
+  /// item 16: "لا ترسل آلاف الطلبات... RateLimiter... لا concurrent requests
+  /// بلا حدود"). A real public API with no key is the one most worth being
+  /// polite to, not less -- a fast local search-as-you-type shouldn't be
+  /// able to fire requests back-to-back with no gap at all.
+  final Duration minRequestGap;
   final http.Client _http;
+  DateTime? _lastRequestAt;
+  Future<void> _requestQueue = Future.value();
 
   TurathApiClient({
     this.apiBase = 'https://api.turath.io/',
@@ -38,6 +47,7 @@ class TurathApiClient {
     this.apiVersion = 3,
     this.timeout = const Duration(seconds: 15),
     this.maxRetries = 2,
+    this.minRequestGap = const Duration(milliseconds: 250),
     http.Client? httpClient,
   }) : _http = httpClient ?? http.Client();
 
@@ -51,7 +61,26 @@ class TurathApiClient {
     return _getWithRetry(uri);
   }
 
-  Future<Map<String, dynamic>> _getWithRetry(Uri uri) async {
+  /// Serializes every real network call through one queue so requests never
+  /// fire concurrently, and spaces them by [minRequestGap] -- a real,
+  /// simple rate limiter, not a documented intention that isn't enforced.
+  Future<Map<String, dynamic>> _getWithRetry(Uri uri) {
+    final result = _requestQueue.then((_) => _throttledGet(uri));
+    // Swallow errors here so one failed request doesn't poison the queue
+    // for requests queued after it; the real error still reaches the
+    // caller via the returned `result` future below.
+    _requestQueue = result.then((_) => null, onError: (_) => null);
+    return result;
+  }
+
+  Future<Map<String, dynamic>> _throttledGet(Uri uri) async {
+    final last = _lastRequestAt;
+    if (last != null) {
+      final elapsed = DateTime.now().difference(last);
+      if (elapsed < minRequestGap) await Future.delayed(minRequestGap - elapsed);
+    }
+    _lastRequestAt = DateTime.now();
+
     Object? lastError;
     for (var attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -86,10 +115,16 @@ class TurathApiClient {
     return {};
   }
 
-  Future<TurathSearchResults> search(String query, {int? categoryId, int? page}) async {
+  /// [bookId] scopes the search to one book -- Ismail's spec item 9
+  /// ("البحث داخل الكتاب"), live-verified 2026-08-28 against book 16521
+  /// (`?q=...&book_id=16521` returned only that book's real matches, not
+  /// guessed from the SDK docs -- `book_id` isn't documented there at all).
+  Future<TurathSearchResults> search(String query, {int? categoryId, int? bookId, int? authorId, int? page}) async {
     final json = await _getJson('search', {
       'q': query,
       if (categoryId != null) 'cat_id': '$categoryId',
+      if (bookId != null) 'book_id': '$bookId',
+      if (authorId != null) 'author_id': '$authorId',
       if (page != null) 'pg': '$page',
     });
     final data = (json['data'] as List?) ?? [];

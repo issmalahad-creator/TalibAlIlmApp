@@ -883,6 +883,101 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'صفحے پر جائیں', 'tr': 'Sayfaya git', 'id': 'Pergi ke halaman', 'bn': 'পৃষ্ঠায় যান', 'ha': 'Tafi shafi',
     'so': 'Aad bogga', 'fa': 'برو به صفحه', 'ms': 'Pergi ke halaman',
   },
+  'turath_start_reading_action': {
+    'ar': 'بدء القراءة', 'en': 'Start Reading', 'am': 'ማንበብ ጀምር', 'fr': 'Commencer la lecture', 'sw': 'Anza Kusoma',
+    'ur': 'پڑھنا شروع کریں', 'tr': 'Okumaya Başla', 'id': 'Mulai Membaca', 'bn': 'পড়া শুরু করুন', 'ha': 'Fara Karatu',
+    'so': 'Bilow Akhrinta', 'fa': 'شروع مطالعه', 'ms': 'Mula Membaca',
+  },
+  'turath_index_action': {
+    'ar': 'الفهرس', 'en': 'Table of Contents', 'am': 'ማውጫ', 'fr': 'Table des matières', 'sw': 'Yaliyomo',
+    'ur': 'فہرست', 'tr': 'İçindekiler', 'id': 'Daftar Isi', 'bn': 'সূচিপত্র', 'ha': 'Fihirisa',
+    'so': 'Tusmada', 'fa': 'فهرست مطالب', 'ms': 'Kandungan',
+  },
+  'turath_search_in_book_action': {
+    'ar': 'بحث داخل الكتاب', 'en': 'Search Inside This Book', 'am': 'በዚህ መጽሐፍ ውስጥ ፈልግ', 'fr': 'Rechercher dans ce livre', 'sw': 'Tafuta Ndani ya Kitabu Hiki',
+    'ur': 'اس کتاب کے اندر تلاش کریں', 'tr': 'Bu Kitapta Ara', 'id': 'Cari di Dalam Buku Ini', 'bn': 'এই বইয়ের মধ্যে অনুসন্ধান করুন', 'ha': 'Bincika Cikin Wannan Littafi',
+    'so': 'Ka raadi buugan gudihiisa', 'fa': 'جستجو در این کتاب', 'ms': 'Cari Dalam Buku Ini',
+  },
+  'turath_favorites_title': {
+    'ar': 'المفضلة', 'en': 'Favorites', 'am': 'ተወዳጆች', 'fr': 'Favoris', 'sw': 'Vipendwa',
+    'ur': 'پسندیدہ', 'tr': 'Favoriler', 'id': 'Favorit', 'bn': 'পছন্দসমূহ', 'ha': 'Abubuwan So',
+    'so': 'Kuwa la jecel yahay', 'fa': 'موردعلاقه‌ها', 'ms': 'Kegemaran',
+  },
+  'turath_recently_read_title': {
+    'ar': 'قرأت مؤخرًا', 'en': 'Recently Read', 'am': 'በቅርቡ የተነበቡ', 'fr': 'Lus récemment', 'sw': 'Iliyosomwa Hivi Karibuni',
+    'ur': 'حال ہی میں پڑھی گئیں', 'tr': 'Son Okunanlar', 'id': 'Baru Dibaca', 'bn': 'সম্প্রতি পঠিত', 'ha': 'Karatun Kwanan Nan',
+    'so': 'Dhawaan la akhriyay', 'fa': 'اخیراً خوانده‌شده', 'ms': 'Baru Dibaca',
+  },
+  'turath_notes_title': {
+    'ar': 'ملاحظاتي', 'en': 'My Notes', 'am': 'ማስታወሻዎቼ', 'fr': 'Mes notes', 'sw': 'Vidokezo Vyangu',
+    'ur': 'میرے نوٹس', 'tr': 'Notlarım', 'id': 'Catatan Saya', 'bn': 'আমার নোটসমূহ', 'ha': 'Bayanaina',
+    'so': 'Xusuus-qorkayga', 'fa': 'یادداشت‌های من', 'ms': 'Nota Saya',
+  },
+  'turath_add_note_action': {
+    'ar': 'أضف ملاحظة', 'en': 'Add Note', 'am': 'ማስታወሻ ጨምር', 'fr': 'Ajouter une note', 'sw': 'Ongeza Kidokezo',
+    'ur': 'نوٹ شامل کریں', 'tr': 'Not Ekle', 'id': 'Tambah Catatan', 'bn': 'নোট যোগ করুন', 'ha': 'Ƙara Bayani',
+    'so': 'Ku dar Xusuus-qor', 'fa': 'افزودن یادداشت', 'ms': 'Tambah Nota',
+  },
+  'turath_note_hint': {
+    'ar': 'اكتب ملاحظتك هنا...', 'en': 'Write your note here...', 'am': 'ማስታወሻዎን እዚህ ይጻፉ...', 'fr': 'Écrivez votre note ici...', 'sw': 'Andika kidokezo chako hapa...',
+    'ur': 'اپنا نوٹ یہاں لکھیں...', 'tr': 'Notunuzu buraya yazın...', 'id': 'Tulis catatan Anda di sini...', 'bn': 'আপনার নোট এখানে লিখুন...', 'ha': 'Rubuta bayaninka a nan...',
+    'so': 'Halkan ku qor xusuus-qorkaaga...', 'fa': 'یادداشت خود را اینجا بنویسید...', 'ms': 'Tulis nota anda di sini...',
+  },
+  'turath_no_favorites_empty': {
+    'ar': 'لا توجد كتب أو صفحات مفضّلة بعد', 'en': 'No favorite books or pages yet', 'am': 'እስካሁን ተወዳጅ መጻሕፍት ወይም ገጾች የሉም',
+    'fr': "Aucun livre ou page favori pour l'instant", 'sw': 'Hakuna vitabu au kurasa vipendwa bado', 'ur': 'ابھی تک کوئی پسندیدہ کتاب یا صفحہ نہیں',
+    'tr': 'Henüz favori kitap veya sayfa yok', 'id': 'Belum ada buku atau halaman favorit', 'bn': 'এখনও কোনো প্রিয় বই বা পৃষ্ঠা নেই',
+    'ha': 'Babu littattafai ko shafuka da aka fi so tukuna', 'so': 'Wali ma jiraan buugag ama bogag la jecel yahay',
+    'fa': 'هنوز کتاب یا صفحه موردعلاقه‌ای نیست', 'ms': 'Tiada buku atau halaman kegemaran lagi',
+  },
+  'turath_no_notes_empty': {
+    'ar': 'لا توجد ملاحظات بعد', 'en': 'No notes yet', 'am': 'እስካሁን ማስታወሻዎች የሉም', 'fr': "Aucune note pour l'instant", 'sw': 'Hakuna vidokezo bado',
+    'ur': 'ابھی تک کوئی نوٹ نہیں', 'tr': 'Henüz not yok', 'id': 'Belum ada catatan', 'bn': 'এখনও কোনো নোট নেই', 'ha': 'Babu bayanai tukuna',
+    'so': 'Wali xusuus-qor lama haysto', 'fa': 'هنوز یادداشتی نیست', 'ms': 'Tiada nota lagi',
+  },
+  'turath_no_recent_empty': {
+    'ar': 'لم تبدأ قراءة أي كتاب بعد', 'en': "You haven't started reading any book yet", 'am': 'እስካሁን ማንኛውንም መጽሐፍ ማንበብ አልጀመሩም',
+    'fr': "Vous n'avez encore commencé aucun livre", 'sw': 'Bado hujaanza kusoma kitabu chochote', 'ur': 'ابھی تک آپ نے کوئی کتاب پڑھنا شروع نہیں کی',
+    'tr': 'Henüz hiçbir kitap okumaya başlamadınız', 'id': 'Anda belum mulai membaca buku apa pun', 'bn': 'আপনি এখনও কোনো বই পড়া শুরু করেননি',
+    'ha': 'Ba ka fara karanta wani littafi ba tukuna', 'so': 'Wali ma bilaabin akhrinta buug', 'fa': 'هنوز مطالعه هیچ کتابی را شروع نکرده‌اید',
+    'ms': 'Anda belum mula membaca mana-mana buku',
+  },
+  'turath_last_read_label': {
+    'ar': 'آخر قراءة: صفحة', 'en': 'Last read: page', 'am': 'መጨረሻ የተነበበ: ገጽ', 'fr': 'Dernière lecture : page', 'sw': 'Iliyosomwa mwisho: ukurasa',
+    'ur': 'آخری مطالعہ: صفحہ', 'tr': 'Son okunan: sayfa', 'id': 'Terakhir dibaca: halaman', 'bn': 'সর্বশেষ পঠিত: পৃষ্ঠা', 'ha': 'Karatun ƙarshe: shafi',
+    'so': 'Akhriskii ugu dambeeyay: bogga', 'fa': 'آخرین مطالعه: صفحه', 'ms': 'Terakhir dibaca: halaman',
+  },
+  'turath_about_book_label': {
+    'ar': 'عن الكتاب', 'en': 'About This Book', 'am': 'ስለ መጽሐፉ', 'fr': 'À propos de ce livre', 'sw': 'Kuhusu Kitabu Hiki',
+    'ur': 'اس کتاب کے بارے میں', 'tr': 'Bu Kitap Hakkında', 'id': 'Tentang Buku Ini', 'bn': 'এই বই সম্পর্কে', 'ha': 'Game da Wannan Littafi',
+    'so': 'Ku saabsan buugan', 'fa': 'درباره این کتاب', 'ms': 'Tentang Buku Ini',
+  },
+  'turath_source_attribution': {
+    'ar': 'المحتوى من مكتبة turath.io', 'en': 'Content from the turath.io library', 'am': 'ይዘት ከ turath.io ቤተ መጻሕፍት', 'fr': 'Contenu de la bibliothèque turath.io',
+    'sw': 'Maudhui kutoka maktaba ya turath.io', 'ur': 'مواد turath.io لائبریری سے', 'tr': 'İçerik turath.io kütüphanesinden', 'id': 'Konten dari perpustakaan turath.io',
+    'bn': 'বিষয়বস্তু turath.io লাইব্রেরি থেকে', 'ha': 'Abin ciki daga laburaren turath.io', 'so': 'Content-ka wuxuu ka yimid maktabadda turath.io',
+    'fa': 'محتوا از کتابخانه turath.io', 'ms': 'Kandungan daripada perpustakaan turath.io',
+  },
+  'turath_topics_title': {
+    'ar': 'تصفح حسب الموضوع', 'en': 'Browse by Topic', 'am': 'በርዕስ አስስ', 'fr': 'Parcourir par sujet', 'sw': 'Vinjari kwa Mada',
+    'ur': 'موضوع کے لحاظ سے دیکھیں', 'tr': 'Konuya Göre Gözat', 'id': 'Jelajahi Berdasarkan Topik', 'bn': 'বিষয় অনুযায়ী ব্রাউজ করুন', 'ha': 'Bincika ta Batun',
+    'so': 'Ku baadh Mawduuca', 'fa': 'مرور بر اساس موضوع', 'ms': 'Layari Mengikut Topik',
+  },
+  'copy_action': {
+    'ar': 'نسخ', 'en': 'Copy', 'am': 'ቅዳ', 'fr': 'Copier', 'sw': 'Nakili',
+    'ur': 'کاپی کریں', 'tr': 'Kopyala', 'id': 'Salin', 'bn': 'কপি করুন', 'ha': 'Kwafi',
+    'so': 'Koobi', 'fa': 'کپی', 'ms': 'Salin',
+  },
+  'delete_action': {
+    'ar': 'حذف', 'en': 'Delete', 'am': 'ሰርዝ', 'fr': 'Supprimer', 'sw': 'Futa',
+    'ur': 'حذف کریں', 'tr': 'Sil', 'id': 'Hapus', 'bn': 'মুছে ফেলুন', 'ha': 'Share',
+    'so': 'Tirtir', 'fa': 'حذف', 'ms': 'Padam',
+  },
+  'save_action': {
+    'ar': 'حفظ', 'en': 'Save', 'am': 'አስቀምጥ', 'fr': 'Enregistrer', 'sw': 'Hifadhi',
+    'ur': 'محفوظ کریں', 'tr': 'Kaydet', 'id': 'Simpan', 'bn': 'সংরক্ষণ করুন', 'ha': 'Ajiye',
+    'so': 'Kaydi', 'fa': 'ذخیره', 'ms': 'Simpan',
+  },
   'load_failed_prefix': {
     'ar': 'تعذّر التحميل', 'en': 'Failed to load', 'am': 'መጫን አልተቻለም', 'fr': 'Échec du chargement', 'sw': 'Imeshindwa kupakia',
     'ur': 'لوڈ کرنا ناکام ہوا', 'tr': 'Yükleme başarısız', 'id': 'Gagal memuat', 'bn': 'লোড ব্যর্থ হয়েছে', 'ha': 'An kasa loda',
@@ -3716,6 +3811,25 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ar': 'جارٍ التشغيل...', 'en': 'Playing...', 'am': 'በማጫወት ላይ...', 'fr': 'Lecture en cours...', 'sw': 'Inacheza...',
     'ur': 'چل رہا ہے...', 'tr': 'Çalıyor...', 'id': 'Memutar...', 'bn': 'বাজছে...', 'ha': 'Ana kunnawa...',
     'so': 'Waa la tarayaa...', 'fa': 'در حال پخش...', 'ms': 'Sedang Dimainkan...',
+  },
+  'recitation_mistakes_title': {
+    'ar': 'سجل أخطاء التسميع', 'en': 'Recitation Mistake History', 'am': 'የንባብ ስህተት ታሪክ', 'fr': 'Historique des erreurs de récitation', 'sw': 'Historia ya Makosa ya Kusoma',
+    'ur': 'تلاوت کی غلطیوں کی تاریخ', 'tr': 'Okuma Hatası Geçmişi', 'id': 'Riwayat Kesalahan Bacaan', 'bn': 'তিলাওয়াতের ভুলের ইতিহাস', 'ha': 'Tarihin Kurakuran Karatu',
+    'so': 'Taariikhda Khaladaadka Akhrinta', 'fa': 'تاریخچه خطاهای تلاوت', 'ms': 'Sejarah Kesilapan Bacaan',
+  },
+  'recitation_mistakes_empty': {
+    'ar': 'لا توجد أخطاء مسجلة بعد — ابدأ جلسة تسميع من صفحة القرآن', 'en': 'No mistakes recorded yet — start a recitation session from the Quran page',
+    'am': 'እስካሁን ምንም ስህተት አልተመዘገበም — ከቁርአን ገጽ ንባብ ጀምር', 'fr': "Aucune erreur enregistrée pour l'instant — commencez une session de récitation depuis la page du Coran",
+    'sw': 'Hakuna makosa yaliyorekodiwa bado — anza kipindi cha kusoma kutoka ukurasa wa Qur\'ani', 'ur': 'ابھی تک کوئی غلطی درج نہیں — قرآن کے صفحے سے تلاوت شروع کریں',
+    'tr': 'Henüz kaydedilmiş hata yok — Kur\'an sayfasından bir okuma oturumu başlatın', 'id': 'Belum ada kesalahan yang tercatat — mulai sesi bacaan dari halaman Al-Quran',
+    'bn': 'এখনও কোনো ভুল রেকর্ড করা হয়নি — কুরআনের পৃষ্ঠা থেকে তিলাওয়াত সেশন শুরু করুন', 'ha': 'Babu kurakurai da aka rubuta tukuna — fara zaman karatu daga shafin Alqur\'ani',
+    'so': 'Wali lama duubin khaladaad — ka bilow fadhi akhris bogga Qur\'aanka', 'fa': 'هنوز خطایی ثبت نشده — یک جلسه تلاوت از صفحه قرآن شروع کنید',
+    'ms': 'Tiada kesilapan direkodkan lagi — mulakan sesi bacaan dari halaman Al-Quran',
+  },
+  'all_label': {
+    'ar': 'الكل', 'en': 'All', 'am': 'ሁሉም', 'fr': 'Tout', 'sw': 'Zote',
+    'ur': 'تمام', 'tr': 'Tümü', 'id': 'Semua', 'bn': 'সব', 'ha': 'Duka',
+    'so': 'Dhammaan', 'fa': 'همه', 'ms': 'Semua',
   },
   'previous_ayah_action': {
     'ar': 'الآية السابقة', 'en': 'Previous Ayah', 'am': 'ቀዳሚ አንቀጽ', 'fr': 'Verset précédent', 'sw': 'Aya Iliyotangulia',
