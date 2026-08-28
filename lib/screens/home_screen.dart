@@ -36,6 +36,7 @@ import 'adhkar_screen.dart';
 import 'daily_session_screen.dart';
 import 'prayer_times_screen.dart';
 import 'tasbih_screen.dart';
+import 'turath_library_screen.dart';
 import 'profile_screen.dart';
 import 'qibla_screen.dart';
 import 'salah_tracker_screen.dart';
@@ -240,6 +241,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: basicText('tasbih', lang),
                       color: NavColors.cyan,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TasbihScreen())),
+                    ),
+                    NavTileData(
+                      icon: Icons.local_library_outlined,
+                      label: basicText('turath_library_title', lang),
+                      color: NavColors.brown,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathLibraryScreen())),
                     ),
                         ]),
                       ],
