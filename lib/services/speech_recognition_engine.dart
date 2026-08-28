@@ -23,12 +23,27 @@ abstract class SpeechRecognitionEngine {
   Future<List<String>> availableArabicLocaleIds();
 
   /// [onPartialResult] fires repeatedly as words are recognized mid-
-  /// speech (for live UI feedback); [onFinalResult] fires once when the
-  /// session ends with the engine's best final transcript.
+  /// speech (for live UI feedback). [onFinalResult] fires once per
+  /// detected pause segment (whenever the underlying recognizer decides
+  /// the student paused) — it does NOT end the session. The engine keeps
+  /// listening automatically after each segment, so a whole page's worth
+  /// of continuous recitation across many ayat arrives as a stream of
+  /// [onFinalResult] calls, one per natural pause, until the caller
+  /// explicitly calls [stopListening]. (76.3-page-redesign, Ismail
+  /// 2026-08-28: "لا أريد آية بآية" — a single session-ending final
+  /// result per ayah was the old single-ayah model; this is the new one.)
+  ///
+  /// [listenFor]/[pauseFor] bound each individual segment, not the whole
+  /// session — [pauseFor] is the silence length that ends one segment
+  /// (kept short so ayah-to-ayah pauses are detected promptly),
+  /// [listenFor] is a safety cap per segment before it's force-cut and
+  /// automatically restarted.
   Future<void> startListening({
     required void Function(String text) onPartialResult,
     required void Function(String text) onFinalResult,
     String? localeId,
+    Duration listenFor = const Duration(seconds: 30),
+    Duration pauseFor = const Duration(seconds: 5),
   });
 
   Future<void> stopListening();

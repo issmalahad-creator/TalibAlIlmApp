@@ -14,7 +14,19 @@ class RecitationWordResult {
 class RecitationAlignmentResult {
   final List<RecitationWordResult> words;
   final int extraWordCount;
-  const RecitationAlignmentResult({required this.words, required this.extraWordCount});
+
+  /// Where each extra (said-but-not-expected) word falls, in forward
+  /// reading order, as an index into [words] — value `k` means "this
+  /// extra was said immediately before the word at `words[k]`" (or, if
+  /// `k == words.length`, "after the last expected word"). Lets a page-
+  /// level caller (76.3-redesign) attribute each extra word to the right
+  /// ayah when slicing one page-wide alignment back into per-ayah rows —
+  /// without this, extras from a whole page could only be dumped
+  /// arbitrarily onto one ayah, which would be fabricated data, not a
+  /// real per-ayah count.
+  final List<int> extraWordPositions;
+
+  const RecitationAlignmentResult({required this.words, required this.extraWordCount, this.extraWordPositions = const []});
 
   int get correctCount => words.where((w) => w.status == RecitationWordStatus.correct).length;
   int get totalExpected => words.length;
@@ -57,7 +69,7 @@ RecitationAlignmentResult alignRecitation({required List<String> expectedWords, 
 
   // Backtrack to recover the actual alignment, not just the distance.
   final words = <RecitationWordResult>[];
-  var extraWordCount = 0;
+  final extraPositions = <int>[]; // raw backward `i` values; reversed below
   var i = m, j = n;
   while (i > 0 || j > 0) {
     if (i > 0 && j > 0 && dp[i][j] == dp[i - 1][j - 1] + (isFuzzyMatch(expectedWords[i - 1], saidWords[j - 1]) ? 0 : 1)) {
@@ -73,10 +85,18 @@ RecitationAlignmentResult alignRecitation({required List<String> expectedWords, 
       words.add(RecitationWordResult(expectedWord: expectedWords[i - 1], status: RecitationWordStatus.missing));
       i--;
     } else {
-      extraWordCount++;
+      // `i` here is the forward index (0-based, out of m) of the next
+      // not-yet-placed expected word -- i.e. this extra was said
+      // immediately before words[i] in forward order (or after the last
+      // expected word, if i == m). See extraWordPositions' doc comment.
+      extraPositions.add(i);
       j--;
     }
   }
 
-  return RecitationAlignmentResult(words: words.reversed.toList(), extraWordCount: extraWordCount);
+  return RecitationAlignmentResult(
+    words: words.reversed.toList(),
+    extraWordCount: extraPositions.length,
+    extraWordPositions: extraPositions.reversed.toList(),
+  );
 }

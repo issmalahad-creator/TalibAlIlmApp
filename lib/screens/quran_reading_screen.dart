@@ -12,6 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/quran_surahs.dart';
 import 'ayah_study_screen.dart';
+import 'page_recitation_screen.dart';
+import 'recitation_mistakes_screen.dart';
 import 'recitation_practice_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
 import '../l10n/basic_translations.dart';
@@ -817,6 +819,28 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                   );
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.mic_outlined),
+                title: const Text('تسميع الصفحة كاملة'),
+                subtitle: const Text('استماع مستمر لكل آيات الصفحة، آية بعد آية بلا توقف يدوي', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.pop(context);
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => Navigator.push(context, MaterialPageRoute(builder: (_) => PageRecitationScreen(pageNumber: _page))),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.history_edu_outlined),
+                title: const Text('سجل أخطاء التسميع'),
+                subtitle: const Text('الكلمات التي تتكرر أخطاؤها عبر كل جلساتك', style: TextStyle(fontSize: 11)),
+                onTap: () {
+                  Navigator.pop(context);
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecitationMistakesScreen())),
+                  );
+                },
+              ),
               ListTile(leading: const Icon(Icons.translate_outlined, color: AppColors.textMuted), title: const Text('الترجمة', style: TextStyle(color: AppColors.textMuted)), onTap: () => _notAvailable('الترجمة')),
               const Divider(),
               SwitchListTile(
@@ -1612,6 +1636,25 @@ class _QuranReadingScreenState extends State<QuranReadingScreen> with WidgetsBin
                   ),
                 ),
               ],
+              ),
+            ),
+      // Prominent, primary entry point for continuous page-level "تسميع"
+      // (76.3-redesign) -- deliberately a floating gold mic button, not
+      // another small icon folded into the existing utility rail above.
+      // Real product research 2026-08-28 (Tarteel's own public app-update
+      // notes, via WebSearch/WebFetch): their home screen was simplified
+      // down to essentially one big microphone button as the primary
+      // action, with everything else secondary -- the same principle
+      // here, but built with this app's own gold-ring visual language
+      // (`_GoldCircleIcon`), not a copy of their flat mic icon.
+      floatingActionButton: _ayat.isEmpty
+          ? null
+          : Padding(
+              padding: const EdgeInsets.only(bottom: 64),
+              child: _GoldCircleIcon(
+                icon: Icons.mic_rounded,
+                size: 56,
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PageRecitationScreen(pageNumber: _page))),
               ),
             ),
     );

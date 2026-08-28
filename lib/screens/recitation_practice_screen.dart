@@ -101,20 +101,28 @@ class _RecitationPracticeScreenState extends State<RecitationPracticeScreen> {
       return;
     }
 
+    // 2026-08-28 (Ismail, real-device test): pre-checking availableArabicLocaleIds()
+    // and refusing to even try was too strict -- some real devices don't
+    // list Arabic in locales() even though the underlying recognizer can
+    // still handle it (or handles it via the system default). Attempt to
+    // listen with an explicit Arabic locale when one is reported, otherwise
+    // fall back to the device's default locale instead of blocking outright
+    // -- a real listen attempt is a better test than a locale-list lookup.
     final arabicLocales = await _engine.availableArabicLocaleIds();
-    if (arabicLocales.isEmpty) {
-      setState(() => _status = _Status.unavailable);
-      return;
-    }
-
     setState(() => _status = _Status.listening);
     await _engine.startListening(
-      localeId: arabicLocales.first,
+      localeId: arabicLocales.isNotEmpty ? arabicLocales.first : null,
       onPartialResult: (text) {
         if (!mounted) return;
         setState(() => _partialTranscript = text);
       },
       onFinalResult: (text) async {
+        // This screen is still single-ayah scoped (76.3-redesign phases
+        // 3-6 move page-level continuous sessions into the reader itself).
+        // The engine now keeps listening across pause-segments by default
+        // (for that future page mode), so explicitly stop it after the
+        // first segment here or it would keep listening past this ayah.
+        await _engine.stopListening();
         if (!mounted) return;
         setState(() => _status = _Status.scoring);
         final ayah = _ayahText;

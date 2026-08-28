@@ -44,6 +44,19 @@ void main() {
         RecitationWordStatus.correct,
       ]);
       expect(result.extraWordCount, 1);
+      // "سبحانه" was said between "الله" (expected index 2) and "أحد"
+      // (expected index 3) -- extraWordPositions records it as occurring
+      // immediately before words[3], which is what a page-level caller
+      // (76.3-redesign) needs to attribute the extra to the right ayah.
+      expect(result.extraWordPositions, [3]);
+    });
+
+    test('extraWordPositions places a trailing extra after the last expected word', () {
+      final expected = _words('قل هو الله أحد');
+      final said = _words('قل هو الله أحد سبحانه'); // extra said after the ayah ends
+      final result = alignRecitation(expectedWords: expected, saidWords: said);
+      expect(result.extraWordCount, 1);
+      expect(result.extraWordPositions, [4]); // 4 == words.length: after everything
     });
 
     test('a substituted word is flagged wrong with the real said word attached', () {
@@ -77,6 +90,30 @@ void main() {
       final result = alignRecitation(expectedWords: [], saidWords: ['شيء']);
       expect(result.score, 1.0);
       expect(result.extraWordCount, 1);
+      expect(result.extraWordPositions, [0]);
+    });
+
+    test('a whole page (multiple ayat concatenated) aligns correctly across the ayah boundary -- '
+        'the same call this function makes for a single ayah works unmodified at page scale '
+        '(76.3-redesign: RecitationRepository.recordPageAttempt relies on exactly this)', () {
+      // Al-Ikhlas 1-2 concatenated, as recordPageAttempt would flatten them.
+      final expected = _words('قل هو الله أحد الله الصمد');
+      final said = _words('قل هو الله أحد الله الصمد'); // recited perfectly straight through
+      final result = alignRecitation(expectedWords: expected, saidWords: said);
+      expect(result.score, 1.0);
+      expect(result.words.length, 6);
+
+      // Manually replicate RecitationRepository.recordPageAttempt's slicing
+      // to verify the boundary logic without needing a real database.
+      final ayahWordCounts = [4, 2]; // "قل هو الله أحد" | "الله الصمد"
+      var cursor = 0;
+      final slices = <List<RecitationWordResult>>[];
+      for (final count in ayahWordCounts) {
+        slices.add(result.words.sublist(cursor, cursor + count));
+        cursor += count;
+      }
+      expect(slices[0].map((w) => w.expectedWord).toList(), ['قل', 'هو', 'الله', 'أحد']);
+      expect(slices[1].map((w) => w.expectedWord).toList(), ['الله', 'الصمد']);
     });
   });
 }

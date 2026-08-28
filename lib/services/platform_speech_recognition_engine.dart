@@ -16,6 +16,16 @@ class PlatformSpeechRecognitionEngine implements SpeechRecognitionEngine {
   final _speech = SpeechToText();
   bool _initialized = false;
 
+  // Held so a finished segment can restart listening automatically —
+  // see the class doc and startListening's doc comment for why a single
+  // `listen()` call isn't enough for a continuous page-level session.
+  bool _continuous = false;
+  void Function(String text)? _onPartialResult;
+  void Function(String text)? _onFinalResult;
+  String? _localeId;
+  Duration _listenFor = const Duration(seconds: 30);
+  Duration _pauseFor = const Duration(seconds: 5);
+
   @override
   bool get isAvailable => _initialized && _speech.isAvailable;
 
@@ -43,27 +53,53 @@ class PlatformSpeechRecognitionEngine implements SpeechRecognitionEngine {
     required void Function(String text) onPartialResult,
     required void Function(String text) onFinalResult,
     String? localeId,
+    Duration listenFor = const Duration(seconds: 30),
+    Duration pauseFor = const Duration(seconds: 5),
   }) async {
     if (!_initialized) {
       throw StateError('PlatformSpeechRecognitionEngine.initialize() must succeed before startListening()');
     }
+    _continuous = true;
+    _onPartialResult = onPartialResult;
+    _onFinalResult = onFinalResult;
+    _localeId = localeId;
+    _listenFor = listenFor;
+    _pauseFor = pauseFor;
+    await _listenOneSegment();
+  }
+
+  Future<void> _listenOneSegment() async {
     await _speech.listen(
-      listenOptions: SpeechListenOptions(localeId: localeId, partialResults: true),
+      listenOptions: SpeechListenOptions(
+        localeId: _localeId,
+        partialResults: true,
+        listenFor: _listenFor,
+        pauseFor: _pauseFor,
+      ),
       onResult: (result) {
         if (result.finalResult) {
-          onFinalResult(result.recognizedWords);
+          _onFinalResult?.call(result.recognizedWords);
+          // A "final" result here just means the recognizer detected a
+          // pause and closed this segment, not that the student is done
+          // reciting — restart automatically so the next ayah is caught
+          // too, unless the caller has meanwhile called stopListening().
+          if (_continuous) _listenOneSegment();
         } else {
-          onPartialResult(result.recognizedWords);
+          _onPartialResult?.call(result.recognizedWords);
         }
       },
     );
   }
 
   @override
-  Future<void> stopListening() => _speech.stop();
+  Future<void> stopListening() async {
+    _continuous = false;
+    await _speech.stop();
+  }
 
   @override
   void dispose() {
+    _continuous = false;
     if (_speech.isListening) _speech.cancel();
   }
 }
