@@ -21,6 +21,22 @@ class AppColors {
     'newMuslim': (Color(0xFFFCE0EA), Color(0xFFB8386B)),
     'otherActivity': (Color(0xFFE2E8E6), Color(0xFF4B5B57)),
   };
+
+  /// Study-annotation highlight colours (Phase 79 «علامات الدراسة»), keyed by
+  /// the semantic `color_key`: (light tint, night tint, solid accent). The
+  /// tints are low-saturation and translucent so text stays readable on
+  /// both the off-white and the night backgrounds; the accent is for the
+  /// colour chips / the dot in the annotation sheet.
+  static const studyAnnotationColors = <String, (Color, Color, Color)>{
+    'benefit': (Color(0x40F2C200), Color(0x59B8860B), Color(0xFFD97706)), // 🟨 فائدة
+    'explain': (Color(0x333B82F6), Color(0x552563EB), Color(0xFF2563EB)), // 🟦 شرح
+    'memorize': (Color(0x3322C55E), Color(0x5516A34A), Color(0xFF16A34A)), // 🟩 للحفظ والمراجعة
+    'important': (Color(0x33EF4444), Color(0x55B91C1C), Color(0xFFDC2626)), // 🟥 مهم جدًا
+    'question': (Color(0x33A855F7), Color(0x557E22CE), Color(0xFF9333EA)), // 🟪 سؤال / إشكال
+  };
+
+  static (Color, Color, Color) studyAnnotation(String key) =>
+      studyAnnotationColors[key] ?? studyAnnotationColors['benefit']!;
 }
 
 /// Shared corner-radius vocabulary — added 2026-08-16 after a grep across

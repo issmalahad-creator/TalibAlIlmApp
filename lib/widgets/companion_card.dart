@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/basic_translations.dart';
 import '../screens/companion_chat_screen.dart';
 import '../screens/knowledge_review_screen.dart';
-import '../screens/quran_reading_screen.dart';
+import '../screens/mushaf_semantic_reader_screen.dart';
 import '../services/companion_context_service.dart';
 import '../services/companion_engine.dart';
 import '../services/language_preference_service.dart';
@@ -49,7 +49,7 @@ class _CompanionCardState extends State<CompanionCard> {
 
   void _onStart() {
     final target = _message?.state == CompanionState.dailyInvite
-        ? const QuranReadingScreen()
+        ? const MushafSemanticReaderScreen()
         : const KnowledgeReviewScreen();
     Navigator.push(context, MaterialPageRoute(builder: (_) => target));
   }

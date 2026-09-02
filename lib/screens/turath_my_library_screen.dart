@@ -43,6 +43,24 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
     });
   }
 
+  Future<void> _editNote(TurathNote n, String lang) async {
+    final controller = TextEditingController(text: n.note);
+    final newText = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(basicText('edit_action', lang)),
+        content: TextField(controller: controller, textDirection: TextDirection.rtl, autofocus: true, maxLines: 4),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(basicText('cancel_action', lang))),
+          TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: Text(basicText('save_action', lang))),
+        ],
+      ),
+    );
+    if (newText == null || newText.isEmpty) return;
+    await _repo.updateNote(n.id, newText);
+    _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<String>(
@@ -141,12 +159,18 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
               ],
             ),
             isThreeLine: n.selectedText != null && n.selectedText!.trim().isNotEmpty,
-            trailing: IconButton(
-              icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.textMuted),
-              onPressed: () async {
-                await _repo.deleteNote(n.id);
-                _load();
-              },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(icon: const Icon(Icons.edit_outlined, size: 20), onPressed: () => _editNote(n, lang)),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20, color: AppColors.textMuted),
+                  onPressed: () async {
+                    await _repo.deleteNote(n.id);
+                    _load();
+                  },
+                ),
+              ],
             ),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: n.bookId, bookName: n.bookName, pageNumber: n.pageNumber))),
           ),

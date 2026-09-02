@@ -1,14 +1,23 @@
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../utils/arabic_normalize.dart';
+import 'turath_annotations_migration.dart';
 
 class DatabaseHelper {
   DatabaseHelper._internal();
   static final DatabaseHelper instance = DatabaseHelper._internal();
 
   Database? _db;
+
+  /// Overrides the on-disk database filename. Tests set this (before the
+  /// first `database` access) so a DB-heavy suite gets its own file and
+  /// doesn't race other DB-backed suites for the shared one when
+  /// `flutter test` runs suites in parallel. Never set in production.
+  @visibleForTesting
+  static String databaseName = 'talib_alilm.db';
 
   Future<Database> get database async {
     _db ??= await _init();
@@ -17,10 +26,10 @@ class DatabaseHelper {
 
   Future<Database> _init() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'talib_alilm.db');
+    final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 46,
+      version: 53,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -77,6 +86,13 @@ class DatabaseHelper {
         await _createV44Tables(db);
         await _createV45Tables(db);
         await _createV46Tables(db);
+        await _createV47Tables(db);
+        await _createV48Tables(db);
+        await _createV49Tables(db);
+        await _createV50Tables(db);
+        await _createV51Tables(db);
+        await _createV52Tables(db);
+        await _createV53Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -127,6 +143,21 @@ class DatabaseHelper {
         if (oldVersion < 44) await _createV44Tables(db);
         if (oldVersion < 45) await _createV45Tables(db);
         if (oldVersion < 46) await _createV46Tables(db);
+        if (oldVersion < 47) await _createV47Tables(db);
+        if (oldVersion < 48) await _createV48Tables(db);
+        if (oldVersion < 49) {
+          await _createV49Tables(db);
+          // Copying legacy notes/quotes into the new table is best-effort:
+          // the old rows are untouched, so a hiccup here must not fail the
+          // whole upgrade (and brick every DB-backed screen).
+          try {
+            await migrateLegacyToAnnotations(db);
+          } catch (_) {/* legacy copy can be retried later */}
+        }
+        if (oldVersion < 50) await _createV50Tables(db);
+        if (oldVersion < 51) await _createV51Tables(db);
+        if (oldVersion < 52) await _createV52Tables(db);
+        if (oldVersion < 53) await _createV53Tables(db);
       },
     );
   }
@@ -1418,6 +1449,495 @@ class DatabaseHelper {
         headings_json TEXT NOT NULL,
         cached_at TEXT NOT NULL,
         PRIMARY KEY (book_id, page_number)
+      )
+    ''');
+  }
+
+  /// Quotes and benefits (Ismail 2026-08-29: "أين نظام الاقتباسات؟... هذا
+  /// مهم جدًا لطالب العلم") -- deliberately separate tables from
+  /// `turath_notes` (v46): a quote is a saved excerpt with its real
+  /// citation (book/author/volume/page), a benefit is a standalone
+  /// learning takeaway that may or may not have a source. Different data,
+  /// different screens, not the same concept reused.
+  Future<void> _createV47Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE turath_quotes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book_id INTEGER NOT NULL,
+        book_name TEXT NOT NULL,
+        author_name TEXT,
+        volume TEXT,
+        page_number INTEGER NOT NULL,
+        quoted_text TEXT NOT NULL,
+        note TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_benefits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        text TEXT NOT NULL,
+        topic TEXT,
+        source_book_id INTEGER,
+        source_book_name TEXT,
+        source_page_number INTEGER,
+        source_quote_id INTEGER,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (source_quote_id) REFERENCES turath_quotes (id)
+      )
+    ''');
+  }
+
+  /// Phase 79 `79-membership-index` — the local canonical catalog of the
+  /// turath.io library, seeded from `assets/turath/catalog-v3.json.gz`
+  /// (turath.io's own `files.turath.io/data-v3.json` manifest) and later
+  /// refreshed from the network by `TurathCatalogSync`. This is what makes a
+  /// category's book count *deterministic*: the count is read straight from
+  /// `total_books` / the `turath_catalog_category_books` join table, never
+  /// counted from full-text search results (Ismail 2026-08-29: "Stop
+  /// treating full-text search as the source of truth for category
+  /// membership"). Kept entirely separate from the local user-data tables
+  /// (`turath_favorites`/`turath_notes`/…) — this holds only the upstream
+  /// library index, rebuilt wholesale on each sync.
+  Future<void> _createV48Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE turath_catalog_categories (
+        cat_id INTEGER PRIMARY KEY,
+        name_ar TEXT NOT NULL,
+        total_books INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_catalog_authors (
+        author_id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        death_year INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_catalog_books (
+        book_id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        author_id INTEGER,
+        cat_id INTEGER NOT NULL,
+        has_pdf INTEGER NOT NULL DEFAULT 0,
+        page_count INTEGER,
+        size INTEGER
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_turath_catalog_books_cat ON turath_catalog_books(cat_id, name)');
+    await db.execute('CREATE INDEX idx_turath_catalog_books_author ON turath_catalog_books(author_id)');
+    // Explicit membership relation with a unique (cat_id, book_id) key --
+    // redundant with turath_catalog_books.cat_id while every book sits in
+    // exactly one category (true in the 2026-02-03 manifest), but kept as a
+    // real join table so multi-category membership needs no schema change
+    // later (Ismail's explicit instruction).
+    await db.execute('''
+      CREATE TABLE turath_catalog_category_books (
+        cat_id INTEGER NOT NULL,
+        book_id INTEGER NOT NULL,
+        PRIMARY KEY (cat_id, book_id)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE turath_catalog_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// Phase 79 «علامات الدراسة» / Study Annotations
+  /// (`docs/STUDY_ANNOTATIONS_DESIGN.md`). One anchored model that replaces
+  /// the three overlapping "keep this" tables (`turath_notes`,
+  /// `turath_quotes`, and sourced `turath_benefits`). Three layers in one
+  /// row: `selected_text` = the FULL selection verbatim (never a first-word
+  /// fragment); the anchor columns = where it is / how to re-find it after
+  /// the page text drifts; `color_key` + `note_*` = the highlight and its
+  /// note. Legacy rows are copied in by `migrateLegacyToAnnotations` on
+  /// upgrade; the old tables stay as a read-only safety net for one release.
+  Future<void> _createV49Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS turath_annotations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        span_group_id TEXT,
+        book_id INTEGER NOT NULL,
+        page_number INTEGER NOT NULL,
+        volume TEXT,
+        selected_text TEXT,
+        selected_len INTEGER,
+        char_start INTEGER,
+        char_end INTEGER,
+        norm_version INTEGER NOT NULL DEFAULT 0,
+        text_checksum TEXT,
+        text_length INTEGER,
+        prefix_context TEXT,
+        suffix_context TEXT,
+        head_anchor TEXT,
+        tail_anchor TEXT,
+        occurrence_index INTEGER NOT NULL DEFAULT 0,
+        color_key TEXT NOT NULL DEFAULT 'benefit',
+        note_type TEXT,
+        note_body TEXT,
+        anchor_status TEXT NOT NULL DEFAULT 'exact',
+        source_kind TEXT NOT NULL DEFAULT 'annotation',
+        legacy_id INTEGER,
+        book_name TEXT NOT NULL,
+        author_name TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_turath_annotations_page ON turath_annotations(book_id, page_number)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_turath_annotations_color ON turath_annotations(color_key)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_turath_annotations_group ON turath_annotations(span_group_id)');
+    // Standalone benefits leave this NULL; a benefit promoted from a
+    // highlight points back at its annotation. Guarded: SQLite has no
+    // "ADD COLUMN IF NOT EXISTS", and a partial earlier run of this
+    // migration may have already added it — a duplicate-column error here
+    // must not fail the whole database open.
+    try {
+      await db.execute('ALTER TABLE turath_benefits ADD COLUMN annotation_id INTEGER');
+    } catch (_) {/* column already present */}
+  }
+
+  /// Phase 79 `79-sa-D-ayah` — Quran Ayah Study Notebook
+  /// (`docs/AYAH_STUDY_NOTEBOOK_DESIGN.md`). A per-ayah study page that
+  /// accumulates the student's own tafsir excerpts, meanings, benefits,
+  /// questions, lesson summaries and links over the years. Anchor is
+  /// numeric `(surah, ayah[, word range])` — never drifts, so no
+  /// re-anchoring engine. Structurally symmetric to `turath_annotations`
+  /// (stable id, timestamps, typed) but a separate table on purpose:
+  /// unification into one `StudyItem` model is a later, clean merge. Does
+  /// NOT touch `turath_annotations`, `quran_ayat`, `tafsir_entries`.
+  Future<void> _createV50Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ayah_study_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        word_start INTEGER,
+        word_end INTEGER,
+        entry_type TEXT NOT NULL DEFAULT 'personal',
+        topic TEXT,
+        stance TEXT,
+        color_key TEXT,
+        body TEXT NOT NULL,
+        source_type TEXT,
+        source_name TEXT,
+        source_author TEXT,
+        source_ref TEXT,
+        source_date TEXT,
+        source_detail TEXT,
+        status TEXT NOT NULL DEFAULT 'none',
+        resolved_at TEXT,
+        sort_order INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ayah_entries_ayah ON ayah_study_entries(surah, ayah)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ayah_entries_type ON ayah_study_entries(entry_type)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ayah_entries_status ON ayah_study_entries(status)');
+    // Reserved for future typed cross-links; ships empty (a `link` entry
+    // just holds free text in `body` for v1).
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ayah_entry_links (
+        entry_id INTEGER NOT NULL,
+        target_kind TEXT NOT NULL,
+        target_id TEXT NOT NULL,
+        rel TEXT,
+        PRIMARY KEY (entry_id, target_kind, target_id)
+      )
+    ''');
+  }
+
+  /// Phase 79 `79-mushaf` — the **Semantic Layer** of the 604-page Madani
+  /// Mushaf (`docs/MUSHAF_DATABASE_INTEGRATION_DESIGN.md`). Every word is
+  /// addressable `page → line → word → ayah → surah`, keeping its Uthmani
+  /// (`hafs`) and simplified (`imlaey`) forms, its `word_index` within the
+  /// ayah (verbatim from the MushafDatabase dataset) and a geometric bbox in
+  /// the source `viewBox`. Purely structural data — **not coupled to any
+  /// rendering method**: the box columns are only a hit-test / highlight aid
+  /// a renderer may use or ignore. Seeded once from the bundled
+  /// `assets/mushaf/mushaf_layout.json.gz` by `MushafLayoutSync`, after
+  /// internal validation (604 pages, contiguous per-ayah word_index, 6236
+  /// ayah marks, per-surah counts vs the canonical list). Independent of
+  /// `quran_ayat`, the polygon-JSON reader, and the Phase 71 own-engine
+  /// renderer — those stay untouched until this layer is verified on device.
+  Future<void> _createV51Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mushaf_pages (
+        page INTEGER PRIMARY KEY,
+        rect_x REAL, rect_y REAL, rect_w REAL, rect_h REAL,
+        vb_w REAL NOT NULL,
+        vb_h REAL NOT NULL,
+        line_count INTEGER NOT NULL,
+        surah_first INTEGER NOT NULL,
+        surah_last INTEGER NOT NULL,
+        ayah_first INTEGER NOT NULL,
+        ayah_last INTEGER NOT NULL,
+        word_count INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mushaf_lines (
+        page INTEGER NOT NULL,
+        line INTEGER NOT NULL,
+        line_type TEXT NOT NULL,
+        PRIMARY KEY (page, line)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mushaf_words (
+        page INTEGER NOT NULL,
+        line INTEGER NOT NULL,
+        word_order INTEGER NOT NULL,
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        word_index INTEGER NOT NULL,
+        word_type TEXT NOT NULL DEFAULT 'text',
+        text_uthmani TEXT NOT NULL,
+        text_imlaey TEXT NOT NULL,
+        bbox_x REAL NOT NULL, bbox_y REAL NOT NULL, bbox_w REAL NOT NULL, bbox_h REAL NOT NULL,
+        PRIMARY KEY (page, word_order)
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mushaf_words_ayah ON mushaf_words(surah, ayah)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mushaf_words_page ON mushaf_words(page)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mushaf_aya_marks (
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        page INTEGER NOT NULL,
+        line INTEGER NOT NULL,
+        bbox_x REAL, bbox_y REAL, bbox_w REAL, bbox_h REAL,
+        PRIMARY KEY (surah, ayah)
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mushaf_aya_marks_page ON mushaf_aya_marks(page)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mushaf_markers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        page INTEGER NOT NULL,
+        kind TEXT NOT NULL,
+        line INTEGER,
+        surah INTEGER,
+        bbox_x REAL, bbox_y REAL, bbox_w REAL, bbox_h REAL
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mushaf_markers_page ON mushaf_markers(page)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mushaf_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// Phase 79 `79-ql` — the **Quran Learning Layer** (`docs/quran/QURAN_LEARNING_LAYER.md`).
+  /// The mushaf becomes an entry point to organised study: a tapped word
+  /// resolves to sourced ṣarf / naḥw / tajwīd facts, "تعلّم هذا" opens a
+  /// concept lesson in the student's notebook, and "طبّق" returns to the
+  /// same `(surah, ayah, word_index)`. Deterministic — every fact carries a
+  /// `source_ref_id`; nothing is AI-generated. Additive only: `mushaf_*`,
+  /// `quran_ayat`, `tafsir_entries`, `ayah_study_entries` structure are all
+  /// untouched (one guarded `ALTER` adds `ayah_study_entries.concept_id`).
+  Future<void> _createV52Tables(Database db) async {
+    // Provenance registry — nothing scholarly is stored/shown without one.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS source_references (
+        id TEXT PRIMARY KEY,
+        source_type TEXT NOT NULL,
+        name TEXT NOT NULL,
+        author TEXT,
+        book TEXT,
+        edition TEXT,
+        volume TEXT,
+        page TEXT,
+        reference TEXT,
+        url TEXT,
+        license TEXT NOT NULL,
+        license_use TEXT NOT NULL DEFAULT 'unknown',
+        authority TEXT,
+        retrieved_at TEXT,
+        confidence REAL NOT NULL DEFAULT 0.0,
+        classification TEXT NOT NULL DEFAULT 'UNKNOWN',
+        notes TEXT
+      )
+    ''');
+    // One verified scholarly fact, anchored to a word / range / ayah.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS knowledge_facts (
+        id TEXT PRIMARY KEY,
+        domain TEXT NOT NULL,
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        word_start INTEGER,
+        word_end INTEGER,
+        char_start INTEGER,
+        char_end INTEGER,
+        scope TEXT NOT NULL DEFAULT 'word',
+        segmentation TEXT NOT NULL DEFAULT 'mushafdb-v1.01',
+        mapping_status TEXT NOT NULL DEFAULT 'mapped',
+        payload_json TEXT NOT NULL,
+        source_ref_id TEXT NOT NULL,
+        data_state TEXT NOT NULL DEFAULT 'local'
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_knowledge_facts_anchor ON knowledge_facts(surah, ayah, word_start)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_knowledge_facts_domain ON knowledge_facts(domain)');
+    // Organised teaching material — a concept and its lesson blocks.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS knowledge_concepts (
+        id TEXT PRIMARY KEY,
+        domain TEXT NOT NULL,
+        title_ar TEXT NOT NULL,
+        short_def_ar TEXT,
+        blocks_json TEXT NOT NULL,
+        source_ref_ids_json TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'authored'
+      )
+    ''');
+    // A concept the student chose to learn, originating from a mushaf spot.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS learning_path_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        concept_id TEXT NOT NULL,
+        origin_surah INTEGER NOT NULL,
+        origin_ayah INTEGER NOT NULL,
+        origin_word_start INTEGER,
+        origin_word_end INTEGER,
+        state TEXT NOT NULL DEFAULT 'learning',
+        first_opened_at TEXT NOT NULL,
+        last_touched_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_learning_path_concept ON learning_path_items(concept_id)');
+    // Append-only interaction log — feeds the future maths engine.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS study_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ts TEXT NOT NULL,
+        verb TEXT NOT NULL,
+        target_kind TEXT NOT NULL,
+        target_id TEXT NOT NULL,
+        surah INTEGER,
+        ayah INTEGER,
+        word_start INTEGER,
+        layer TEXT,
+        dwell_ms INTEGER,
+        meta_json TEXT
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_study_events_target ON study_events(target_kind, target_id)');
+    // HYBRID/ONLINE providers cache here, per each source's terms.
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS knowledge_cache (
+        cache_key TEXT PRIMARY KEY,
+        payload_json TEXT NOT NULL,
+        source_ref_id TEXT NOT NULL,
+        source_version TEXT,
+        fetched_at TEXT NOT NULL,
+        expires_at TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_learning_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
+    // Link a notebook entry to a concept it's about (nullable; SQLite has
+    // no "ADD COLUMN IF NOT EXISTS", so guard against a partial re-run).
+    try {
+      await db.execute('ALTER TABLE ayah_study_entries ADD COLUMN concept_id TEXT');
+    } catch (_) {/* column already present */}
+  }
+
+  /// «مساجدنا» (Phase 74) — the local layer of the mosque platform. Kept
+  /// deliberately lean (`docs/MOSQUE_PLATFORM_VISION.md`: "do NOT create
+  /// 15 tables up front"): one row per mosque, its data-driven sections,
+  /// one polymorphic content table (lessons / khutbahs / announcements /
+  /// recordings / library / needs / activities — `kind` + optional event
+  /// columns), and a separate media table so photos never mix with text
+  /// content. Offline-first: these are the read-cache of whatever backend
+  /// Phase 4 picks; `synced_at` marks server-sourced rows, and a single
+  /// seeded demo mosque lets the UI work before any backend exists. The
+  /// backend, not `chat_id`, owns mosque identity — `id` is permanent.
+  Future<void> _createV53Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mosques (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        imam_name TEXT,
+        description TEXT,
+        city TEXT,
+        area TEXT,
+        lat REAL,
+        lng REAL,
+        phone TEXT,
+        image_url TEXT,
+        verified INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'active',
+        is_mine INTEGER NOT NULL DEFAULT 0,
+        is_demo INTEGER NOT NULL DEFAULT 0,
+        synced_at TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mosque_sections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        mosque_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        title TEXT NOT NULL,
+        icon TEXT,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(mosque_id, type)
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mosque_sections_mosque ON mosque_sections(mosque_id)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mosque_content (
+        id TEXT PRIMARY KEY,
+        mosque_id TEXT NOT NULL,
+        kind TEXT NOT NULL,
+        title TEXT,
+        description TEXT,
+        media_url TEXT,
+        media_kind TEXT,
+        event_date TEXT,
+        starts_at TEXT,
+        ends_at TEXT,
+        location TEXT,
+        organizer TEXT,
+        status TEXT NOT NULL DEFAULT 'published',
+        pinned INTEGER NOT NULL DEFAULT 0,
+        created_by TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mosque_content_mosque_kind ON mosque_content(mosque_id, kind, status)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mosque_media (
+        id TEXT PRIMARY KEY,
+        mosque_id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        content_id TEXT,
+        url TEXT NOT NULL,
+        caption TEXT,
+        date TEXT
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mosque_media_mosque ON mosque_media(mosque_id, category)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mosque_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
       )
     ''');
   }

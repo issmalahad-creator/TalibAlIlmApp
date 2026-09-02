@@ -20,7 +20,8 @@ No screen ever imports `TurathApiClient` or makes an HTTP call directly. `Turath
 
 Files:
 - `lib/services/turath_api_client.dart` — raw HTTP: requests, retry, throttling, JSON parsing quirks.
-- `lib/repositories/turath_repository.dart` — everything a screen actually calls: search, book/page fetch with cache fallback, favorites, last-read, notes.
+- `lib/repositories/turath_repository.dart` — everything a screen actually calls: search, book/page fetch with cache fallback, favorites, last-read, notes, and the canonical-catalog reads (`categories`, `categoryBookCount`, `booksInCategory`, `catalogAuthors`, `booksByAuthor`).
+- `lib/repositories/turath_catalog_sync.dart` — builds/refreshes the local canonical catalog from `files.turath.io/data-v3.json` (validate → single transaction → wholesale rebuild); called once from `main.dart` startup.
 - `lib/models/turath_models.dart` — `TurathSearchResult`, `TurathBook`, `TurathIndexEntry`, `TurathPage`, `TurathAuthor`, `TurathFavorite`, `TurathLastRead`, `TurathNote`. Deliberately independent of any widget.
 - `lib/screens/turath_*.dart` — `turath_library_screen` (search + topic shortcuts + entry to "مكتبتي"), `turath_topic_books_screen` (topic → grouped book results), `turath_book_screen` (book detail: read/index/search-in-book/favorite), `turath_book_search_screen` (in-book search), `turath_index_screen` (table of contents), `turath_reader_screen` (the actual page reader), `turath_my_library_screen` (favorites/recently-read/notes, tabbed).
 
@@ -52,12 +53,69 @@ Real, live-verified endpoints (curl-tested against `api.turath.io`, not assumed 
 
 `TurathApiException` carries a real HTTP status when available. A real 404 is never retried (retrying `maxRetries` times on a genuine 404 is documented as intentionally-not-worth-it); other failures retry with 300ms×attempt backoff. Every screen maps failure states to an honest, non-technical message (`turath_network_error`/`turath_page_load_error`) with a retry button — never a raw stack trace shown to the student.
 
+## Catalog (canonical membership index)
+
+`turath_catalog_*` tables (migration v48), seeded by `TurathCatalogSync` from
+**`https://files.turath.io/data-v3.json`** — turath.io's own complete manifest,
+the same file `app.turath.io` downloads on startup. A dated snapshot ships as
+`assets/turath/catalog-v3.json.gz` so browsing works offline on first launch;
+the network copy is pulled in the background when the local one is stale
+(> 14 days) *and* reports a newer `version`.
+
+The manifest has three parts: `cats` (40 categories, each `{id, name, books:[bookId…]}`),
+`books` (8,593 `{id, name, author_id, cat_id, has_pdf, page_count, size}`), and
+`authors` (3,188 `{id, name, death, books:[…]}`).
+
+Tables:
+- `turath_catalog_categories(cat_id, name_ar, total_books, sort_order)` — `total_books` is **authoritative**.
+- `turath_catalog_category_books(cat_id, book_id, PRIMARY KEY(cat_id, book_id))` — the explicit membership relation. Every query for "which books are in this category" goes through here, not `turath_catalog_books.cat_id`, so multi-category membership needs no query change later.
+- `turath_catalog_books(book_id, name, author_id, cat_id, has_pdf, page_count, size)`.
+- `turath_catalog_authors(author_id, name, death_year)`.
+- `turath_catalog_meta(key, value)` — `version`, `date`, `synced_at`, `synced_at_ms`, `source`.
+
+**A category's book count is never counted from search results.** `TurathCategoriesScreen`
+reads `total_books`; `TurathTopicBooksScreen` pages `booksInCategory(catId, limit, offset)`
+straight from the join table, so the count (808 for العقيدة) is identical whether you
+just opened the category, scrolled to the end, or searched inside it.
+
+**Validation before any write** (`TurathCatalogSync.validate`): a `GET` succeeding is
+not proof the data is good. The parsed payload must have exactly 40 categories,
+8,593 books, 3,188 authors, membership rows summing to 8,593, zero books with no
+category, zero dangling memberships, zero duplicate `(cat_id, book_id)` pairs — plus
+a post-insert cross-check inside the transaction. Any failure **rejects the sync and
+keeps the existing catalog**; it never half-writes.
+
+> **Note — the `8593` / `3188` totals are a `version: 1` baseline, not a permanent
+> truth.** Today only one catalog version is published, so exact-match on the totals
+> is a fine corruption check. When turath.io ships a newer catalog (`version: 2` with,
+> say, 8,700 books; `version: 3` with 9,000; …) `validate()` must be reworked to gate
+> on the payload's **internal consistency + `version`/`date`**, not to reject a new
+> version just because the book count changed. The invariants that always hold:
+> every membership references an existing book, every book has a valid category, no
+> duplicate `(cat_id, book_id)`, and `sum(membership) == distinct member books ==
+> books.length` with zero orphans/dangling. The absolute totals then become
+> "expected for this version" (log a warning on mismatch), not a hard reject. This
+> is a deliberate future step — see `TODO.md` `79-mi-future-validation`.
+
+`lib/data/turath_categories.dart` remains only as an offline fallback (the 40 names +
+a dated count snapshot) for the brief window before the catalog is seeded.
+
 ## Search
 
-Three real search surfaces, all going through the same `TurathRepository.search`:
-1. **Library-wide** (`turath_library_screen.dart`) — free text, results are individual page snippets, tapping one jumps straight to that page.
-2. **Topic browse** (`turath_topic_books_screen.dart`) — a curated Arabic subject term (العقيدة، التفسير، الحديث...) run as a real search, results **grouped and de-duplicated by book** into a book list. This is *not* turath.io's real category taxonomy — the public API has no endpoint to list categories, verified by reading the real `turath-sdk` source directly. Faking a category ID→name table would mean guessing IDs, which this project's discipline forbids. This is an honest substitute, not a hidden shortcut.
+Search is for *finding text*; the catalog is for *membership*. They never mix — a
+search result is filtered **by** membership, it never defines it.
+
+1. **Library-wide** (`turath_library_screen.dart`) — `TurathRepository.search(query)`, no `cat_id`, over the whole library. Results are page snippets; tapping one opens the reader at that page.
+2. **In a category** (`turath_topic_books_screen.dart`) — `TurathRepository.searchInCategory(query, catId)`: the API's `cat_id` filter narrows server-side, then results are intersected with `categoryMemberIds(catId)` (the local `turath_catalog_category_books` set) so a book from another category can never appear. The screen toggles between *browse* (DB pagination, empty search box) and *search-in-category* (snippet results).
 3. **In-book** (`turath_book_search_screen.dart`) — the same search scoped with `book_id`.
+
+The old `_neutralQuery = 'الله'` category-browse hack is gone entirely.
+
+## Category browsing (`turath_topic_books_screen.dart`)
+
+- **Browse**: `booksInCategory(catId, limit, offset, pdfOnly)` — deterministic order (`name`, then `book_id`), paged through the membership join table. Header shows `categoryBookCount` (808 for العقيدة) and it never moves — not for scrolling, not for search, not for the PDF filter.
+- **PDF only**: a `FilterChip` in browse mode; narrows the list to `has_pdf = 1` and shows `categoryPdfBookCount(catId) / total`. The canonical count is untouched.
+- **Per-book metadata** shown from the catalog with no network call: author name, `page_count`, and a PDF icon when `has_pdf`.
 
 ## Reader
 

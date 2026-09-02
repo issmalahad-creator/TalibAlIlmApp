@@ -1,0 +1,3743 @@
+{
+ "version": 3,
+ "scope": "prototype",
+ "ayat": [
+  "1:1",
+  "1:2",
+  "1:3",
+  "1:4",
+  "1:5",
+  "1:6",
+  "1:7",
+  "112:1",
+  "112:2",
+  "112:3",
+  "112:4"
+ ],
+ "generated_from": {
+  "morphology": "Quranic Arabic Corpus (via quran.com word-morphology), attribution + link required",
+  "tajweed": "cpfair/quran-tajweed output/tajweed.hafs.uthmani-pause-sajdah.json (CC BY 4.0), remapped to mushafdb-v1.01",
+  "nahw": "derived iʿrāb of these universally-parsed short verses; cited src:nahw-basic"
+ },
+ "sources": [
+  {
+   "id": "src:tanzil",
+   "source_type": "primary_text",
+   "name": "Tanzil Quran Text",
+   "author": "Tanzil Project",
+   "edition": "v1.1 (2021)",
+   "url": "https://tanzil.net/",
+   "license": "CC BY 3.0",
+   "license_use": "bundled_ok",
+   "authority": "institutional",
+   "retrieved_at": "2026-08-15",
+   "confidence": 1.0,
+   "classification": "VERIFIED",
+   "notes": "Uthmani text; no modification permitted."
+  },
+  {
+   "id": "src:mushafdb",
+   "source_type": "primary_text",
+   "name": "MushafDatabase — Ligature-Based SVG",
+   "author": "Altara Innovation Group",
+   "edition": "V1.01",
+   "url": "https://github.com/mushafdatabase/MushafDatabase-Ligature-Based-SVG",
+   "license": "Sadaqa-e-Jaria (open, incl. commercial)",
+   "license_use": "bundled_ok",
+   "authority": "institutional",
+   "retrieved_at": "2026-08-29",
+   "confidence": 1.0,
+   "classification": "VERIFIED",
+   "notes": "Word identity + geometry; segmentation mushafdb-v1.01."
+  },
+  {
+   "id": "src:qac",
+   "source_type": "morphology_dataset",
+   "name": "Quranic Arabic Corpus — morphology",
+   "author": "Kais Dukes et al. (University of Leeds)",
+   "edition": "v0.4",
+   "url": "https://corpus.quran.com/",
+   "license": "verbatim copy permitted; use in any application with source shown + link to corpus.quran.com; modification not allowed",
+   "license_use": "bundled_ok",
+   "authority": "academic_peer_reviewed",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.9,
+   "classification": "SOURCE_BACKED",
+   "notes": "root / lemma / pattern / POS / features. Attribution + link required. Not modified."
+  },
+  {
+   "id": "src:irab-classical",
+   "source_type": "grammar_reference",
+   "name": "إعراب القرآن — على مقتضى مراجع الإعراب المعتمدة",
+   "author": "أبو البقاء العكبري (ت 616هـ)؛ محمود صافي",
+   "book": "التبيان في إعراب القرآن؛ الجدول في إعراب القرآن",
+   "edition": "طبعات محقّقة (مكتبة الشاملة / archive.org)",
+   "url": "https://shamela.ws/book/22928",
+   "license": "classical works (public domain); text here is a faithful rendering with citation, not wholesale copy",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.9,
+   "classification": "SOURCE_BACKED",
+   "notes": "The iʿrāb of al-Fātiḥa + al-Ikhlāṣ is agreed across التبيان (العكبري) and الجدول (صافي). At widening, replace with a verified per-ayah quotation (or MASAQ's 72-role tagset). Morphological features cross-checked with the Quranic Arabic Corpus (src:qac)."
+  },
+  {
+   "id": "src:balagha-classical",
+   "source_type": "grammar_reference",
+   "name": "البلاغة والإعجاز البياني — مراجع مقترحة (لطبقة البيان، لم تُبنَ بعد)",
+   "author": "عبد القاهر الجرجاني؛ الزمخشري؛ الزركشي؛ الباقلاني؛ عبد الله دراز؛ ابن عاشور",
+   "book": "دلائل الإعجاز؛ الكشاف؛ البرهان في علوم القرآن؛ إعجاز القرآن؛ النبأ العظيم؛ التحرير والتنوير",
+   "edition": "—",
+   "url": "",
+   "license": "classical works; any modern printed edition per its publisher",
+   "license_use": "link_only",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.0,
+   "classification": "UNKNOWN",
+   "notes": "Registered for the future البيان/الإعجاز domain. The app never infers iʿjāz — every rhetorical aspect must cite one of these by book/edition/page. Not used by any fact yet."
+  },
+  {
+   "id": "src:cpfair-tajweed",
+   "source_type": "tajweed_dataset",
+   "name": "quran-tajweed — rule annotations",
+   "author": "Chris Pearce (cpfair)",
+   "edition": "output/tajweed.hafs.uthmani-pause-sajdah.json (2017-04-06 base)",
+   "url": "https://github.com/cpfair/quran-tajweed",
+   "license": "CC BY 4.0",
+   "license_use": "bundled_ok",
+   "authority": "community",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.8,
+   "classification": "SOURCE_BACKED",
+   "notes": "Char-offset rule spans over a specific Tanzil Uthmani file; remapped here to mushafdb-v1.01 word_index."
+  },
+  {
+   "id": "src:tuhfa",
+   "source_type": "grammar_reference",
+   "name": "تحفة الأطفال والغلمان",
+   "author": "سليمان الجمزوري",
+   "edition": "متن (القرن 18)",
+   "url": "",
+   "license": "public domain (matn)",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.95,
+   "classification": "VERIFIED",
+   "notes": "Standard beginner tajwīd poem; cited for tajwīd concept prose."
+  },
+  {
+   "id": "src:jazariyyah",
+   "source_type": "grammar_reference",
+   "name": "المقدمة الجزرية",
+   "author": "ابن الجزري (ت 833هـ)",
+   "edition": "متن",
+   "url": "",
+   "license": "public domain (matn)",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.95,
+   "classification": "VERIFIED",
+   "notes": "Authoritative classical tajwīd text; cited for tajwīd concept prose."
+  },
+  {
+   "id": "src:tafsir:ibn_kathir_full",
+   "source_type": "tafsir_edition",
+   "name": "تفسير القرآن العظيم",
+   "author": "ابن كثير (ت 774هـ)",
+   "edition": "bundled jsonl (ibn_kathir_full)",
+   "url": "https://quran.com",
+   "license": "free scholarly use",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.85,
+   "classification": "SOURCE_BACKED",
+   "notes": "Arabic tafsir edition bundled with the app; shown as a sourced snippet, full text in AyahStudyScreen."
+  },
+  {
+   "id": "src:tafsir:saadi",
+   "source_type": "tafsir_edition",
+   "name": "تيسير الكريم الرحمن",
+   "author": "عبد الرحمن السعدي (ت 1376هـ)",
+   "edition": "bundled jsonl (saadi)",
+   "url": "https://quran.com",
+   "license": "free scholarly use",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.85,
+   "classification": "SOURCE_BACKED",
+   "notes": "Arabic tafsir edition bundled with the app; shown as a sourced snippet, full text in AyahStudyScreen."
+  },
+  {
+   "id": "src:tafsir:muyassar",
+   "source_type": "tafsir_edition",
+   "name": "التفسير الميسّر",
+   "author": "مجمع الملك فهد / نخبة من العلماء",
+   "edition": "bundled jsonl (muyassar)",
+   "url": "https://quran.com",
+   "license": "free scholarly use",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.85,
+   "classification": "SOURCE_BACKED",
+   "notes": "Arabic tafsir edition bundled with the app; shown as a sourced snippet, full text in AyahStudyScreen."
+  },
+  {
+   "id": "src:tafsir:almukhtasar",
+   "source_type": "tafsir_edition",
+   "name": "المختصر في تفسير القرآن الكريم",
+   "author": "مركز تفسير للدراسات القرآنية",
+   "edition": "bundled jsonl (almukhtasar)",
+   "url": "https://quran.com",
+   "license": "free scholarly use",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.85,
+   "classification": "SOURCE_BACKED",
+   "notes": "Arabic tafsir edition bundled with the app; shown as a sourced snippet, full text in AyahStudyScreen."
+  },
+  {
+   "id": "src:tafsir:ibn_ashur",
+   "source_type": "tafsir_edition",
+   "name": "التحرير والتنوير",
+   "author": "محمد الطاهر بن عاشور (ت 1393هـ)",
+   "edition": "bundled jsonl (ibn_ashur)",
+   "url": "https://quran.com",
+   "license": "free scholarly use",
+   "license_use": "bundled_ok",
+   "authority": "classical_scholarly",
+   "retrieved_at": "2026-08-30",
+   "confidence": 0.85,
+   "classification": "SOURCE_BACKED",
+   "notes": "Arabic tafsir edition bundled with the app; shown as a sourced snippet, full text in AyahStudyScreen."
+  }
+ ],
+ "concepts": [
+  {
+   "id": "concept:tajweed:hamzat_wasl",
+   "domain": "tajweed",
+   "title_ar": "همزة الوصل",
+   "short_def_ar": "همزة تُنطق في بدء الكلام وتسقط في وصله؛ تُرسم ألفًا عليها صاد صغيرة (ٱ).",
+   "source_ref_ids": [
+    "src:jazariyyah",
+    "src:tuhfa"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "همزة الوصل: همزة زائدة يُؤتى بها للتوصّل إلى النطق بالساكن، تثبت ابتداءً وتسقط وصلًا.",
+     "src:jazariyyah"
+    ],
+    [
+     "explanation",
+     "تقع في: «ال» التعريف، وأمر الفعل الثلاثي، وبعض الأسماء (اسم، ابن…)، وماضي وأمر الخماسي والسداسي ومصدرهما.",
+     "src:jazariyyah"
+    ],
+    [
+     "quranic_example",
+     "في «بِسْمِ ٱللَّهِ» تسقط همزة «ٱللَّهِ» وصلًا فتُقرأ «بِسْمِ لله».",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:lam_shamsiyyah",
+   "domain": "tajweed",
+   "title_ar": "اللام الشمسية",
+   "short_def_ar": "لام «ال» إذا جاء بعدها حرف شمسي تُدغم فيه ولا تُنطق، وتُشدَّد ما بعدها.",
+   "source_ref_ids": [
+    "src:tuhfa"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "اللام الشمسية: لام التعريف تُكتب ولا تُلفظ، ويُدغم بعدها أحد أربعة عشر حرفًا شمسيًّا.",
+     "src:tuhfa"
+    ],
+    [
+     "explanation",
+     "الحروف الشمسية مجموعة في أوائل كلمات البيت: «طب ثم صل رحمًا تفز ضف ذا نعم — دع سوء ظن زر شريفًا للكرم».",
+     "src:tuhfa"
+    ],
+    [
+     "quranic_example",
+     "«ٱلرَّحْمَٰنِ»: لام «ال» شمسية مدغمة في الراء، فتُقرأ «أرْ رَحمٰن».",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:madd_tabee",
+   "domain": "tajweed",
+   "title_ar": "المدّ الطبيعي",
+   "short_def_ar": "مدّ حرف العلّة بمقدار حركتين إذا لم يقع بعده همز أو سكون.",
+   "source_ref_ids": [
+    "src:tuhfa",
+    "src:jazariyyah"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "المدّ الطبيعي (الأصلي): إطالة الصوت بحرف من حروف المدّ (ا، و، ي) مقدار حركتين.",
+     "src:tuhfa"
+    ],
+    [
+     "quranic_example",
+     "الألف في «ٱلرَّحْمَٰن» تُمدّ حركتين.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:madd_aarid",
+   "domain": "tajweed",
+   "title_ar": "المدّ العارض للسكون",
+   "short_def_ar": "إذا وقع حرف المدّ قبل حرف موقوف عليه بالسكون جاز مدّه 2 أو 4 أو 6 حركات.",
+   "source_ref_ids": [
+    "src:jazariyyah"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "المدّ العارض للسكون: سكونٌ عارض بسبب الوقف يقع بعد حرف مدّ، يُمدّ حركتين أو أربعًا أو ستًّا.",
+     "src:jazariyyah"
+    ],
+    [
+     "quranic_example",
+     "«ٱلرَّحِيمِ» عند الوقف: الياء تُمدّ 2 أو 4 أو 6.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:madd_lazim",
+   "domain": "tajweed",
+   "title_ar": "المدّ اللازم",
+   "short_def_ar": "إذا جاء بعد حرف المدّ سكونٌ أصليّ لازم، مُدّ ستّ حركات وجوبًا.",
+   "source_ref_ids": [
+    "src:jazariyyah"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "المدّ اللازم: أن يقع بعد حرف المدّ حرف ساكن سكونًا أصليًّا (لازمًا وصلًا ووقفًا)، فيُمدّ ستّ حركات.",
+     "src:jazariyyah"
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:idgham_no_ghunnah",
+   "domain": "tajweed",
+   "title_ar": "الإدغام بغير غنّة",
+   "short_def_ar": "النون الساكنة أو التنوين إذا جاء بعدها لام أو راء تُدغم فيهما بلا غنّة.",
+   "source_ref_ids": [
+    "src:tuhfa"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الإدغام بغير غنّة: إذا وقعت اللام أو الراء بعد النون الساكنة أو التنوين، أُدغمت النون فيهما إدغامًا كاملًا بلا غنّة.",
+     "src:tuhfa"
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:qalqalah",
+   "domain": "tajweed",
+   "title_ar": "القلقلة",
+   "short_def_ar": "اضطراب المخرج عند النطق بحروف «قطب جد» ساكنةً حتى يُسمع لها نبرة.",
+   "source_ref_ids": [
+    "src:tuhfa"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "القلقلة: تحريك المخرج بحرف من «قُطْبُ جَدٍّ» (ق ط ب ج د) إذا كان ساكنًا حتى تُسمع نبرة قويّة.",
+     "src:tuhfa"
+    ],
+    [
+     "quranic_example",
+     "«أَحَدٌ» عند الوقف: الدال ساكنة فتُقلقل.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:ghunnah",
+   "domain": "tajweed",
+   "title_ar": "الغنّة",
+   "short_def_ar": "صوت يخرج من الخيشوم يصاحب النون والميم المشدّدتين وأحكامهما.",
+   "source_ref_ids": [
+    "src:tuhfa"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الغنّة: صوت أنفيّ لازم للنون والميم، أكمل ما يكون في المشدّد.",
+     "src:tuhfa"
+    ],
+    [
+     "quranic_example",
+     "«ٱلنَّاسِ»: نون مشدّدة تُغنّ بمقدار حركتين.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:tajweed:ikhfa",
+   "domain": "tajweed",
+   "title_ar": "الإخفاء الحقيقي",
+   "short_def_ar": "النون الساكنة أو التنوين إذا جاء بعدها أحد حروف الإخفاء تُنطق بين الإظهار والإدغام مع غنّة.",
+   "source_ref_ids": [
+    "src:tuhfa"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الإخفاء: نطق النون الساكنة/التنوين بصفة بين الإظهار والإدغام، مع بقاء الغنّة، عند أحد خمسة عشر حرفًا.",
+     "src:tuhfa"
+    ],
+    [
+     "quranic_example",
+     "«مِن نِّعمة» ونحوها.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:nahw:mubtada_khabar",
+   "domain": "nahw",
+   "title_ar": "المبتدأ والخبر",
+   "short_def_ar": "الجملة الاسمية تتكوّن من مبتدأ (اسم مرفوع يُبتدأ به) وخبر (ما يُخبَر به عنه) مرفوع.",
+   "source_ref_ids": [
+    "src:irab-classical"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "المبتدأ: اسم مرفوع في أوّل الجملة الاسمية. الخبر: ما يُتمّ معنى المبتدأ، وهو مرفوع، وقد يكون مفردًا أو جملة أو شبه جملة.",
+     "src:irab-classical"
+    ],
+    [
+     "quranic_example",
+     "«ٱللَّهُ ٱلصَّمَدُ» (الإخلاص 2): «اللهُ» مبتدأ، «الصمدُ» خبر، وكلاهما مرفوع.",
+     null
+    ],
+    [
+     "application",
+     "انظر إلى «ٱلْحَمْدُ لِلَّهِ»: «الحمدُ» مبتدأ، و«لله» جار ومجرور متعلّق بخبر محذوف.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:nahw:maful_bihi",
+   "domain": "nahw",
+   "title_ar": "المفعول به",
+   "short_def_ar": "اسم منصوب يقع عليه فعل الفاعل. وقد يتقدّم على الفعل لإفادة الحصر.",
+   "source_ref_ids": [
+    "src:irab-classical"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "المفعول به: اسم منصوب دلّ على من وقع عليه فعل الفاعل.",
+     "src:irab-classical"
+    ],
+    [
+     "quranic_example",
+     "«إِيَّاكَ نَعْبُدُ» (الفاتحة 5): «إياكَ» مفعول به مقدَّم في محل نصب، وتقديمه يفيد الحصر: لا نعبد إلا إياك.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:nahw:jar_majrur",
+   "domain": "nahw",
+   "title_ar": "الجار والمجرور",
+   "short_def_ar": "حرف جر + اسم مجرور بعده، ويتعلّقان بفعل أو بمحذوف.",
+   "source_ref_ids": [
+    "src:irab-classical"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الجار والمجرور: تركيب من حرف جر واسم مجرور، لا بدّ له من «متعلَّق» (فعل أو شبهه أو محذوف).",
+     "src:irab-classical"
+    ],
+    [
+     "quranic_example",
+     "«بِسْمِ ٱللَّهِ»: «بِ» حرف جر، «سْمِ» مجرور، والجار والمجرور متعلّق بمحذوف تقديره «أبدأ» أو «ابتدائي».",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:nahw:idafa",
+   "domain": "nahw",
+   "title_ar": "المضاف والمضاف إليه",
+   "short_def_ar": "اسمان بينهما نسبة، الأول «مضاف» يُحذف تنوينه، والثاني «مضاف إليه» مجرور دائمًا.",
+   "source_ref_ids": [
+    "src:irab-classical"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الإضافة: نسبة بين اسمين، يُجرّ بها الثاني أبدًا، ويكتسب الأول التعريف أو التخصيص.",
+     "src:irab-classical"
+    ],
+    [
+     "quranic_example",
+     "«رَبِّ ٱلْعَٰلَمِينَ»: «ربِّ» مضاف، «العالمينَ» مضاف إليه مجرور بالياء.",
+     null
+    ],
+    [
+     "quranic_example",
+     "«مَٰلِكِ يَوْمِ ٱلدِّينِ»: إضافتان متتاليتان.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:nahw:naat",
+   "domain": "nahw",
+   "title_ar": "النعت (الصفة)",
+   "short_def_ar": "تابع يذكر صفة في متبوعه، ويتبعه في الإعراب والتعريف والتذكير والعدد.",
+   "source_ref_ids": [
+    "src:irab-classical"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "النعت: تابع يبيّن صفة في اسم قبله (المنعوت)، ويطابقه في الإعراب والإفراد والتذكير والتعريف.",
+     "src:irab-classical"
+    ],
+    [
+     "quranic_example",
+     "«ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ»: «المستقيمَ» نعت لـ«الصراط» منصوب مثله.",
+     null
+    ],
+    [
+     "quranic_example",
+     "«ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ»: نعتان مجروران للفظ الجلالة.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:nahw:jazm_lam",
+   "domain": "nahw",
+   "title_ar": "جزم المضارع بـ«لم»",
+   "short_def_ar": "«لم» حرف نفي وجزم وقلب: تجزم المضارع وتقلب معناه إلى المضيّ.",
+   "source_ref_ids": [
+    "src:irab-classical"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "«لم»: من الجوازم، تجزم فعلًا واحدًا، وعلامة الجزم السكون في الصحيح الآخر، وتحوّل زمن المضارع إلى الماضي.",
+     "src:irab-classical"
+    ],
+    [
+     "quranic_example",
+     "«لَمْ يَلِدْ وَلَمْ يُولَدْ» (الإخلاص 3): «يلدْ» و«يولدْ» مضارعان مجزومان بـ«لم»، علامة جزمهما السكون.",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:sarf:wazn",
+   "domain": "sarf",
+   "title_ar": "الوزن الصرفي (البنية)",
+   "short_def_ar": "ميزان الكلمة العربية بحروف «فعل»؛ منه يُعرف الزائد والأصلي ونوع الاشتقاق.",
+   "source_ref_ids": [
+    "src:qac"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الوزن الصرفي: مقابلة حروف الكلمة بحروف «ف ع ل» لبيان بنيتها. فالأصول تقابل «فعل» والزوائد تُذكر بلفظها.",
+     "src:qac"
+    ],
+    [
+     "quranic_example",
+     "«نَسْتَعِينُ» على وزن «نَسْتَفْعِلُ» — من الباب العاشر (استفعل)، والجذر «ع و ن».",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:sarf:fil_madi_mudari_amr",
+   "domain": "sarf",
+   "title_ar": "الماضي والمضارع والأمر",
+   "short_def_ar": "الفعل ثلاثة أزمنة: ماضٍ (وقع وانقضى)، ومضارع (يقع الآن أو مستقبلًا)، وأمر (طلب الفعل).",
+   "source_ref_ids": [
+    "src:qac"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الماضي مبنيّ. المضارع معرب يرفع ويُنصب ويُجزم. الأمر مبنيّ ويدلّ على الطلب.",
+     "src:qac"
+    ],
+    [
+     "quranic_example",
+     "«أَنْعَمْتَ» ماضٍ، «نَعْبُدُ» مضارع، «ٱهْدِنَا» أمر — كلها في الفاتحة.",
+     null
+    ]
+   ]
+  }
+ ],
+ "facts": [
+  {
+   "id": "sarf:1:1:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "س م و",
+    "lemma": "اسْم",
+    "pos": "N",
+    "pos_ar": "اسم مجرور",
+    "case": "genitive",
+    "pattern": "جار ومجرور (بِ + اسم)",
+    "note": "مؤلَّف من: حرف جر «بِ» + اسم «سْمِ» مجرور بالكسرة. الجذر س م و.",
+    "surface": "بِسۡمِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:1:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "jar_majrur",
+    "role_ar": "جار ومجرور",
+    "sign_ar": "الكسرة",
+    "irab_text": "«بِ» حرف جر، و«اسمِ» اسم مجرور بالكسرة، والجار والمجرور متعلّق بمحذوف تقديره «أبدأُ» أو «ابتدائي». و«اسم» مضاف.",
+    "surface": "بِسۡمِ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "mudaf",
+      "rel_ar": "مضاف إلى لفظ الجلالة"
+     }
+    ],
+    "concept_id": "concept:nahw:jar_majrur"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:1:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "أ ل ه",
+    "lemma": "اللَّه",
+    "pos": "PN",
+    "pos_ar": "اسم علم مجرور",
+    "case": "genitive",
+    "pattern": "لفظ الجلالة",
+    "note": "اسم علم في محل جر، مضاف إليه. الجذر أ ل ه.",
+    "surface": "ٱللَّهِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:1:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mudaf_ilayh",
+    "role_ar": "مضاف إليه",
+    "sign_ar": "الكسرة",
+    "irab_text": "لفظ الجلالة: مضاف إليه مجرور وعلامة جرّه الكسرة.",
+    "surface": "ٱللَّهِ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "mudaf_ilayh_of",
+      "rel_ar": "مضاف إليه لـ«اسم»"
+     }
+    ],
+    "concept_id": "concept:nahw:idafa"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:1:2",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     }
+    ],
+    "surface": "ٱللَّهِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:1:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ر ح م",
+    "lemma": "رَحْمٰن",
+    "pos": "ADJ",
+    "pos_ar": "صفة مشبّهة مجرورة",
+    "case": "genitive",
+    "pattern": "فَعْلان (صيغة مبالغة)",
+    "note": "نعت للفظ الجلالة مجرور. الجذر ر ح م.",
+    "surface": "ٱلرَّحۡمَٰنِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:1:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "naat",
+    "role_ar": "نعت",
+    "sign_ar": "الكسرة",
+    "irab_text": "«الرحمٰن»: نعت للفظ الجلالة مجرور وعلامة جرّه الكسرة.",
+    "surface": "ٱلرَّحۡمَٰنِ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "naat_of",
+      "rel_ar": "نعت لـ«الله»"
+     }
+    ],
+    "concept_id": "concept:nahw:naat"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:1:3",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "madd_2",
+      "rule_ar": "مدّ طبيعي (حركتان)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_tabee"
+     }
+    ],
+    "surface": "ٱلرَّحۡمَٰنِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:1:4",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ر ح م",
+    "lemma": "رَحِيم",
+    "pos": "ADJ",
+    "pos_ar": "صفة مشبّهة مجرورة",
+    "case": "genitive",
+    "pattern": "فَعِيل (صيغة مبالغة)",
+    "note": "نعت ثانٍ مجرور. الجذر ر ح م.",
+    "surface": "ٱلرَّحِيمِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:1:4",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "naat",
+    "role_ar": "نعت ثانٍ",
+    "sign_ar": "الكسرة",
+    "irab_text": "«الرحيم»: نعت ثانٍ للفظ الجلالة مجرور بالكسرة.",
+    "surface": "ٱلرَّحِيمِ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "naat_of",
+      "rel_ar": "نعت لـ«الله»"
+     }
+    ],
+    "concept_id": "concept:nahw:naat"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:1:4",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 1,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "madd_246",
+      "rule_ar": "مدّ عارض/لين (2 أو 4 أو 6)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_aarid"
+     }
+    ],
+    "surface": "ٱلرَّحِيمِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:2:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ح م د",
+    "lemma": "حَمْد",
+    "pos": "N",
+    "pos_ar": "اسم مرفوع",
+    "case": "nominative",
+    "pattern": "مصدر على وزن فَعْل",
+    "note": "اسم مذكّر مرفوع بالضمة. الجذر ح م د.",
+    "surface": "ٱلۡحَمۡدُ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:2:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mubtada",
+    "role_ar": "مبتدأ",
+    "sign_ar": "الضمة",
+    "irab_text": "«الحمدُ»: مبتدأ مرفوع وعلامة رفعه الضمة.",
+    "surface": "ٱلۡحَمۡدُ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "khabar_is",
+      "rel_ar": "خبره شبه الجملة «لله»"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:2:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "أ ل ه",
+    "lemma": "اللَّه",
+    "pos": "PN",
+    "pos_ar": "جار ومجرور",
+    "case": "genitive",
+    "pattern": "لِ + لفظ الجلالة",
+    "note": "حرف جر «لِ» + لفظ الجلالة مجرور. الجذر أ ل ه.",
+    "surface": "لِلَّهِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:2:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "khabar",
+    "role_ar": "خبر (شبه جملة)",
+    "sign_ar": "الكسرة",
+    "irab_text": "«لله»: جار ومجرور متعلّق بمحذوف خبر المبتدأ، تقديره «كائنٌ» أو «مستقرٌّ».",
+    "surface": "لِلَّهِ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "khabar_of",
+      "rel_ar": "خبر عن «الحمد»"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:2:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ر ب ب",
+    "lemma": "رَبّ",
+    "pos": "N",
+    "pos_ar": "اسم مجرور",
+    "case": "genitive",
+    "pattern": "فَعْل",
+    "note": "اسم مذكّر مجرور، نعت/بدل من لفظ الجلالة. الجذر ر ب ب.",
+    "surface": "رَبِّ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:2:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "naat",
+    "role_ar": "نعت / بدل",
+    "sign_ar": "الكسرة",
+    "irab_text": "«ربِّ»: نعت (أو بدل) من لفظ الجلالة مجرور بالكسرة، وهو مضاف.",
+    "surface": "رَبِّ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "naat_of",
+      "rel_ar": "نعت لـ«الله»"
+     },
+     {
+      "to_word": 4,
+      "rel": "mudaf",
+      "rel_ar": "مضاف إلى «العالمين»"
+     }
+    ],
+    "concept_id": "concept:nahw:naat"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:2:4",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ع ل م",
+    "lemma": "عالَم",
+    "pos": "N",
+    "pos_ar": "اسم مجرور (جمع)",
+    "case": "genitive",
+    "pattern": "فاعَل، جمعه بالياء والنون",
+    "note": "اسم مذكّر جمع مجرور، مضاف إليه. الجذر ع ل م.",
+    "surface": "ٱلۡعَٰلَمِينَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:2:4",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mudaf_ilayh",
+    "role_ar": "مضاف إليه",
+    "sign_ar": "الياء",
+    "irab_text": "«العالمينَ»: مضاف إليه مجرور وعلامة جرّه الياء لأنه ملحق بجمع المذكّر السالم.",
+    "surface": "ٱلۡعَٰلَمِينَ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "mudaf_ilayh_of",
+      "rel_ar": "مضاف إليه لـ«ربّ»"
+     }
+    ],
+    "concept_id": "concept:nahw:idafa"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:2:4",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 2,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "madd_2",
+      "rule_ar": "مدّ طبيعي (حركتان)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_tabee"
+     },
+     {
+      "rule_id": "madd_246",
+      "rule_ar": "مدّ عارض/لين (2 أو 4 أو 6)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_aarid"
+     }
+    ],
+    "surface": "ٱلۡعَٰلَمِينَ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:3:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 3,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ر ح م",
+    "lemma": "رَحْمٰن",
+    "pos": "ADJ",
+    "pos_ar": "صفة مشبّهة مجرورة",
+    "case": "genitive",
+    "pattern": "فَعْلان",
+    "note": "نعت لله مجرور. الجذر ر ح م.",
+    "surface": "ٱلرَّحۡمَٰنِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:3:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 3,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "naat",
+    "role_ar": "نعت",
+    "sign_ar": "الكسرة",
+    "irab_text": "«الرحمٰنِ»: نعت للفظ الجلالة في الآية السابقة مجرور بالكسرة.",
+    "surface": "ٱلرَّحۡمَٰنِ",
+    "relations": [],
+    "concept_id": "concept:nahw:naat"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:3:1",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 3,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "madd_2",
+      "rule_ar": "مدّ طبيعي (حركتان)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_tabee"
+     }
+    ],
+    "surface": "ٱلرَّحۡمَٰنِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:3:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 3,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ر ح م",
+    "lemma": "رَحِيم",
+    "pos": "ADJ",
+    "pos_ar": "صفة مشبّهة مجرورة",
+    "case": "genitive",
+    "pattern": "فَعِيل",
+    "note": "نعت ثانٍ مجرور. الجذر ر ح م.",
+    "surface": "ٱلرَّحِيمِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:3:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 3,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "naat",
+    "role_ar": "نعت ثانٍ",
+    "sign_ar": "الكسرة",
+    "irab_text": "«الرحيمِ»: نعت ثانٍ مجرور بالكسرة.",
+    "surface": "ٱلرَّحِيمِ",
+    "relations": [],
+    "concept_id": "concept:nahw:naat"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:3:2",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 3,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "madd_246",
+      "rule_ar": "مدّ عارض/لين (2 أو 4 أو 6)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_aarid"
+     }
+    ],
+    "surface": "ٱلرَّحِيمِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:4:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "م ل ك",
+    "lemma": "مالِك",
+    "pos": "N",
+    "pos_ar": "اسم فاعل مجرور",
+    "case": "genitive",
+    "pattern": "فاعِل (اسم فاعل)",
+    "note": "اسم فاعل مذكّر مجرور، نعت لله. الجذر م ل ك.",
+    "surface": "مَٰلِكِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:4:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "naat",
+    "role_ar": "نعت",
+    "sign_ar": "الكسرة",
+    "irab_text": "«مالكِ»: نعت رابع للفظ الجلالة مجرور بالكسرة، وهو مضاف. وأصله اسم فاعل.",
+    "surface": "مَٰلِكِ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "mudaf",
+      "rel_ar": "مضاف إلى «يوم»"
+     }
+    ],
+    "concept_id": "concept:nahw:naat"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:4:1",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "madd_2",
+      "rule_ar": "مدّ طبيعي (حركتان)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_tabee"
+     }
+    ],
+    "surface": "مَٰلِكِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:4:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ي و م",
+    "lemma": "يَوْم",
+    "pos": "N",
+    "pos_ar": "اسم مجرور",
+    "case": "genitive",
+    "pattern": "فَعْل",
+    "note": "اسم مذكّر مجرور، مضاف إليه. الجذر ي و م.",
+    "surface": "يَوۡمِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:4:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mudaf_ilayh",
+    "role_ar": "مضاف إليه",
+    "sign_ar": "الكسرة",
+    "irab_text": "«يومِ»: مضاف إليه مجرور بالكسرة، وهو مضاف.",
+    "surface": "يَوۡمِ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "mudaf_ilayh_of",
+      "rel_ar": "مضاف إليه لـ«مالك»"
+     },
+     {
+      "to_word": 3,
+      "rel": "mudaf",
+      "rel_ar": "مضاف إلى «الدين»"
+     }
+    ],
+    "concept_id": "concept:nahw:idafa"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:4:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "د ي ن",
+    "lemma": "دِين",
+    "pos": "N",
+    "pos_ar": "اسم مجرور",
+    "case": "genitive",
+    "pattern": "فِعْل",
+    "note": "اسم مذكّر مجرور، مضاف إليه. الجذر د ي ن.",
+    "surface": "ٱلدِّينِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:4:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mudaf_ilayh",
+    "role_ar": "مضاف إليه",
+    "sign_ar": "الكسرة",
+    "irab_text": "«الدينِ»: مضاف إليه مجرور بالكسرة.",
+    "surface": "ٱلدِّينِ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "mudaf_ilayh_of",
+      "rel_ar": "مضاف إليه لـ«يوم»"
+     }
+    ],
+    "concept_id": "concept:nahw:idafa"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:4:3",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 4,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "madd_246",
+      "rule_ar": "مدّ عارض/لين (2 أو 4 أو 6)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_aarid"
+     }
+    ],
+    "surface": "ٱلدِّينِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:5:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "إِيّا",
+    "pos": "PRON",
+    "pos_ar": "ضمير نصب منفصل",
+    "case": null,
+    "person": "2",
+    "gender": "masculine",
+    "number": "singular",
+    "pattern": "ضمير المخاطب المنفصل",
+    "note": "ضمير مخاطب مذكّر مفرد في محل نصب، مفعول به مقدّم.",
+    "surface": "إِيَّاكَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:5:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "maful_bihi",
+    "role_ar": "مفعول به مقدَّم",
+    "sign_ar": "محلّيًّا",
+    "irab_text": "«إياكَ»: ضمير نصب منفصل مبنيّ في محل نصب مفعول به مقدَّم لـ«نعبد»، وتقديمه يفيد الحصر: لا نعبد إلا إياك.",
+    "surface": "إِيَّاكَ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "maful_of",
+      "rel_ar": "مفعول به لـ«نعبد»"
+     }
+    ],
+    "concept_id": "concept:nahw:maful_bihi"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:5:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ع ب د",
+    "lemma": "عَبَدَ",
+    "pos": "V",
+    "pos_ar": "فعل مضارع مرفوع",
+    "case": null,
+    "person": "1",
+    "number": "plural",
+    "aspect": "imperfect",
+    "mood": "indicative",
+    "voice": "active",
+    "form": 1,
+    "pattern": "نَفْعُلُ (مضارع، للمتكلّمين)",
+    "note": "فعل مضارع مرفوع بالضمة، فاعله «نحن» مستتر. الجذر ع ب د.",
+    "surface": "نَعۡبُدُ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:5:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "fil_mudari",
+    "role_ar": "فعل مضارع مرفوع",
+    "sign_ar": "الضمة",
+    "irab_text": "«نعبدُ»: فعل مضارع مرفوع بالضمة، والفاعل ضمير مستتر وجوبًا تقديره «نحن».",
+    "surface": "نَعۡبُدُ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "amil_of",
+      "rel_ar": "عاملٌ في «إياك»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:5:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "إِيّا",
+    "pos": "PRON",
+    "pos_ar": "واو العطف + ضمير نصب منفصل",
+    "case": null,
+    "person": "2",
+    "gender": "masculine",
+    "number": "singular",
+    "pattern": "وَ + إِيّاكَ",
+    "note": "حرف عطف «وَ» + ضمير مخاطب مذكّر مفرد في محل نصب، مفعول به مقدّم.",
+    "surface": "وَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:5:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "maful_bihi",
+    "role_ar": "حرف عطف + مفعول به مقدَّم",
+    "sign_ar": "محلّيًّا",
+    "irab_text": "«وإياكَ»: «الواو» عاطفة، و«إياك» مفعول به مقدَّم لـ«نستعين».",
+    "surface": "وَ",
+    "relations": [
+     {
+      "to_word": 4,
+      "rel": "maful_of",
+      "rel_ar": "مفعول به لـ«نستعين»"
+     }
+    ],
+    "concept_id": "concept:nahw:maful_bihi"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:5:4",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ع و ن",
+    "lemma": "اسْتَعِينُ",
+    "pos": "V",
+    "pos_ar": "فعل مضارع مرفوع (باب الاستفعال)",
+    "case": null,
+    "person": "1",
+    "number": "plural",
+    "aspect": "imperfect",
+    "mood": "indicative",
+    "voice": "active",
+    "form": 10,
+    "pattern": "نَسْتَفْعِلُ (وزن استفعل)",
+    "note": "فعل مضارع مرفوع بالضمة، على وزن «استفعل»، فاعله «نحن» مستتر. الجذر ع و ن.",
+    "surface": "إِيَّاكَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:5:4",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "fil_mudari",
+    "role_ar": "فعل مضارع مرفوع",
+    "sign_ar": "الضمة",
+    "irab_text": "«نستعينُ»: فعل مضارع مرفوع بالضمة، على وزن «استفعل»، والفاعل مستتر «نحن».",
+    "surface": "إِيَّاكَ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "amil_of",
+      "rel_ar": "عاملٌ في «إياك» الثانية"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:5:4",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 5,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "madd_246",
+      "rule_ar": "مدّ عارض/لين (2 أو 4 أو 6)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_aarid"
+     }
+    ],
+    "surface": "إِيَّاكَ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:6:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ه د ي",
+    "lemma": "هَدَى",
+    "pos": "V",
+    "pos_ar": "فعل أمر مبنيّ + ضمير نصب متّصل",
+    "case": null,
+    "person": "2",
+    "gender": "masculine",
+    "number": "singular",
+    "aspect": "imperative",
+    "voice": "active",
+    "form": 1,
+    "pattern": "اِفْعِلْ + نا",
+    "note": "فعل أمر مبنيّ على حذف حرف العلّة، فاعله «أنت» مستتر، و«نا» ضمير متّصل في محل نصب مفعول به. الجذر ه د ي.",
+    "surface": "ٱهۡدِنَا"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:6:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "fil_amr",
+    "role_ar": "فعل أمر مبنيّ",
+    "sign_ar": "حذف حرف العلّة",
+    "irab_text": "«اهدِ»: فعل أمر مبنيّ على حذف حرف العلّة، الفاعل مستتر «أنت»، و«نا» ضمير متّصل في محل نصب مفعول به أوّل.",
+    "surface": "ٱهۡدِنَا",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "amil_of",
+      "rel_ar": "عاملٌ في «الصراط»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:6:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ص ر ط",
+    "lemma": "صِراط",
+    "pos": "N",
+    "pos_ar": "اسم منصوب",
+    "case": "accusative",
+    "pattern": "فِعال",
+    "note": "اسم مذكّر منصوب بالفتحة، مفعول به ثانٍ. الجذر ص ر ط.",
+    "surface": "ٱلصِّرَٰطَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:6:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "maful_bihi",
+    "role_ar": "مفعول به (ثانٍ)",
+    "sign_ar": "الفتحة",
+    "irab_text": "«الصراطَ»: مفعول به منصوب بالفتحة.",
+    "surface": "ٱلصِّرَٰطَ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "maful_of",
+      "rel_ar": "مفعول به لـ«اهدنا»"
+     },
+     {
+      "to_word": 3,
+      "rel": "manut_of",
+      "rel_ar": "منعوت بـ«المستقيم»"
+     }
+    ],
+    "concept_id": "concept:nahw:maful_bihi"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:6:2",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "madd_2",
+      "rule_ar": "مدّ طبيعي (حركتان)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_tabee"
+     }
+    ],
+    "surface": "ٱلصِّرَٰطَ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:6:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ق و م",
+    "lemma": "مُسْتَقِيم",
+    "pos": "ADJ",
+    "pos_ar": "اسم فاعل منصوب (باب استفعل)",
+    "case": "accusative",
+    "pattern": "مُسْتَفْعِل",
+    "note": "اسم فاعل مذكّر منصوب، نعت للصراط. الجذر ق و م.",
+    "surface": "ٱلۡمُسۡتَقِيمَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:6:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "naat",
+    "role_ar": "نعت",
+    "sign_ar": "الفتحة",
+    "irab_text": "«المستقيمَ»: نعت لـ«الصراط» منصوب بالفتحة، وأصله اسم فاعل من «استقام».",
+    "surface": "ٱلۡمُسۡتَقِيمَ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "naat_of",
+      "rel_ar": "نعت لـ«الصراط»"
+     }
+    ],
+    "concept_id": "concept:nahw:naat"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:6:3",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "madd_246",
+      "rule_ar": "مدّ عارض/لين (2 أو 4 أو 6)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_aarid"
+     }
+    ],
+    "surface": "ٱلۡمُسۡتَقِيمَ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:7:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ص ر ط",
+    "lemma": "صِراط",
+    "pos": "N",
+    "pos_ar": "اسم منصوب",
+    "case": "accusative",
+    "pattern": "فِعال",
+    "note": "بدل من «الصراط» منصوب، مضاف. الجذر ص ر ط.",
+    "surface": "صِرَٰطَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "badal",
+    "role_ar": "بدل",
+    "sign_ar": "الفتحة",
+    "irab_text": "«صراطَ»: بدل من «الصراط» في الآية السابقة منصوب بالفتحة، وهو مضاف.",
+    "surface": "صِرَٰطَ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "mudaf",
+      "rel_ar": "مضاف إلى «الذين»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:7:1",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "madd_2",
+      "rule_ar": "مدّ طبيعي (حركتان)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_tabee"
+     }
+    ],
+    "surface": "صِرَٰطَ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:7:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "الَّذِي",
+    "pos": "REL",
+    "pos_ar": "اسم موصول (جمع مذكّر)",
+    "case": null,
+    "number": "plural",
+    "gender": "masculine",
+    "pattern": "الَّذِينَ",
+    "note": "اسم موصول للجمع المذكّر في محل جر، مضاف إليه.",
+    "surface": "ٱلَّذِينَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mudaf_ilayh",
+    "role_ar": "مضاف إليه (اسم موصول)",
+    "sign_ar": "محلّيًّا",
+    "irab_text": "«الذينَ»: اسم موصول مبنيّ في محل جر مضاف إليه.",
+    "surface": "ٱلَّذِينَ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "mudaf_ilayh_of",
+      "rel_ar": "مضاف إليه لـ«صراط»"
+     },
+     {
+      "to_word": 3,
+      "rel": "silah_is",
+      "rel_ar": "صلته جملة «أنعمت عليهم»"
+     }
+    ],
+    "concept_id": "concept:nahw:idafa"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:7:2",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     }
+    ],
+    "surface": "ٱلَّذِينَ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:7:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ن ع م",
+    "lemma": "أَنْعَمَ",
+    "pos": "V",
+    "pos_ar": "فعل ماضٍ (باب أفعل) + ضمير رفع متّصل",
+    "case": null,
+    "person": "2",
+    "gender": "masculine",
+    "number": "singular",
+    "aspect": "perfect",
+    "voice": "active",
+    "form": 4,
+    "pattern": "أَفْعَلَ + تَ",
+    "note": "فعل ماضٍ مبنيّ على السكون، على وزن «أفعل»، و«التاء» ضمير رفع متّصل في محل رفع فاعل. الجذر ن ع م. والجملة صلة الموصول.",
+    "surface": "أَنۡعَمۡتَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "silah",
+    "role_ar": "صلة الموصول (فعل + فاعل)",
+    "sign_ar": "السكون",
+    "irab_text": "«أنعمتَ»: فعل ماضٍ مبنيّ على السكون، و«التاء» ضمير رفع في محل رفع فاعل. والجملة صلة الموصول لا محل لها.",
+    "surface": "أَنۡعَمۡتَ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "silah_of",
+      "rel_ar": "صلة لـ«الذين»"
+     },
+     {
+      "to_word": 4,
+      "rel": "amil_of",
+      "rel_ar": "متعلَّقه «عليهم»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:7:4",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "عَلَى",
+    "pos": "P",
+    "pos_ar": "جار ومجرور",
+    "case": null,
+    "pattern": "عَلَى + هم",
+    "note": "حرف جر «على» + ضمير الغائبين «هم» في محل جر، متعلّق بـ«أنعمت».",
+    "surface": "عَلَيۡهِمۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:4",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "jar_majrur",
+    "role_ar": "جار ومجرور",
+    "sign_ar": "محلّيًّا",
+    "irab_text": "«عليهم»: جار ومجرور متعلّق بـ«أنعمت».",
+    "surface": "عَلَيۡهِمۡ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "mutaalliq_of",
+      "rel_ar": "متعلّق بـ«أنعمت»"
+     }
+    ],
+    "concept_id": "concept:nahw:jar_majrur"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:7:5",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 5,
+    "word_end": 5,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "غ ي ر",
+    "lemma": "غَيْر",
+    "pos": "N",
+    "pos_ar": "اسم مجرور",
+    "case": "genitive",
+    "pattern": "فَعْل",
+    "note": "اسم مجرور، بدل من الضمير في «عليهم» أو نعت. الجذر غ ي ر.",
+    "surface": "غَيۡرِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:5",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 5,
+    "word_end": 5,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "badal",
+    "role_ar": "بدل",
+    "sign_ar": "الكسرة",
+    "irab_text": "«غيرِ»: بدل من الضمير في «عليهم» مجرور بالكسرة، وهو مضاف.",
+    "surface": "غَيۡرِ",
+    "relations": [
+     {
+      "to_word": 6,
+      "rel": "mudaf",
+      "rel_ar": "مضاف إلى «المغضوب»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:7:6",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 6,
+    "word_end": 6,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "غ ض ب",
+    "lemma": "مَغْضُوب",
+    "pos": "N",
+    "pos_ar": "اسم مفعول مجرور",
+    "case": "genitive",
+    "pattern": "مَفْعُول",
+    "note": "اسم مفعول مذكّر مجرور، مضاف إليه. الجذر غ ض ب.",
+    "surface": "ٱلۡمَغۡضُوبِ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:6",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 6,
+    "word_end": 6,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mudaf_ilayh",
+    "role_ar": "مضاف إليه (اسم مفعول)",
+    "sign_ar": "الكسرة",
+    "irab_text": "«المغضوبِ»: مضاف إليه مجرور بالكسرة، وهو اسم مفعول.",
+    "surface": "ٱلۡمَغۡضُوبِ",
+    "relations": [
+     {
+      "to_word": 5,
+      "rel": "mudaf_ilayh_of",
+      "rel_ar": "مضاف إليه لـ«غير»"
+     },
+     {
+      "to_word": 7,
+      "rel": "amil_of",
+      "rel_ar": "نائب فاعله «عليهم»"
+     }
+    ],
+    "concept_id": "concept:nahw:idafa"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:7:6",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 6,
+    "word_end": 6,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     }
+    ],
+    "surface": "ٱلۡمَغۡضُوبِ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:7:7",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 7,
+    "word_end": 7,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "عَلَى",
+    "pos": "P",
+    "pos_ar": "جار ومجرور",
+    "case": null,
+    "pattern": "عَلَى + هم",
+    "note": "حرف جر + ضمير في محل جر، متعلّق بـ«المغضوب» (نائب فاعل اسم المفعول).",
+    "surface": "عَلَيۡهِمۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:7",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 7,
+    "word_end": 7,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "jar_majrur",
+    "role_ar": "جار ومجرور (نائب فاعل)",
+    "sign_ar": "محلّيًّا",
+    "irab_text": "«عليهم»: جار ومجرور في محل رفع نائب فاعل لاسم المفعول «المغضوب».",
+    "surface": "عَلَيۡهِمۡ",
+    "relations": [
+     {
+      "to_word": 6,
+      "rel": "mutaalliq_of",
+      "rel_ar": "متعلّق بـ«المغضوب»"
+     }
+    ],
+    "concept_id": "concept:nahw:jar_majrur"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:7:8",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 8,
+    "word_end": 8,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "و",
+    "pos": "CONJ",
+    "pos_ar": "حرف عطف",
+    "case": null,
+    "pattern": "وَ",
+    "note": "حرف عطف مبنيّ لا محل له.",
+    "surface": "وَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:8",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 8,
+    "word_end": 8,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "harf_atf",
+    "role_ar": "حرف عطف",
+    "sign_ar": "—",
+    "irab_text": "«الواو»: حرف عطف مبنيّ لا محل له.",
+    "surface": "وَ",
+    "relations": [
+     {
+      "to_word": 10,
+      "rel": "atf_link",
+      "rel_ar": "تعطف «الضالين» على «المغضوب»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:1:7:9",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 9,
+    "word_end": 9,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "لا",
+    "pos": "NEG",
+    "pos_ar": "حرف نفي",
+    "case": null,
+    "pattern": "لَا",
+    "note": "حرف نفي زائد للتأكيد، مبنيّ لا محل له.",
+    "surface": "لَا"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:9",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 9,
+    "word_end": 9,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "harf_zaid",
+    "role_ar": "حرف نفي زائد للتأكيد",
+    "sign_ar": "—",
+    "irab_text": "«لا»: نافية زائدة لتأكيد النفي، مبنيّة لا محل لها.",
+    "surface": "لَا",
+    "relations": [],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:1:7:9",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 9,
+    "word_end": 9,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "madd_6",
+      "rule_ar": "مدّ لازم (6 حركات)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_lazim"
+     },
+     {
+      "rule_id": "madd_246",
+      "rule_ar": "مدّ عارض/لين (2 أو 4 أو 6)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_aarid"
+     }
+    ],
+    "surface": "لَا"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:1:7:10",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 10,
+    "word_end": 10,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ض ل ل",
+    "lemma": "ضالّ",
+    "pos": "N",
+    "pos_ar": "اسم فاعل مجرور (جمع)",
+    "case": "genitive",
+    "pattern": "فاعِل، جمعه بالياء والنون",
+    "note": "اسم فاعل مذكّر جمع مجرور، معطوف على «المغضوب». الجذر ض ل ل.",
+    "surface": "ٱلضَّآلِّينَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:1:7:10",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 1,
+    "ayah": 7,
+    "word_start": 10,
+    "word_end": 10,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "atf",
+    "role_ar": "معطوف",
+    "sign_ar": "الياء",
+    "irab_text": "«الضالينَ»: معطوف على «المغضوب» مجرور وعلامة جرّه الياء (جمع مذكّر سالم)، وهو اسم فاعل.",
+    "surface": "ٱلضَّآلِّينَ",
+    "relations": [
+     {
+      "to_word": 6,
+      "rel": "matuf_alayh",
+      "rel_ar": "معطوف على «المغضوب»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:1:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ق و ل",
+    "lemma": "قالَ",
+    "pos": "V",
+    "pos_ar": "فعل أمر مبنيّ",
+    "case": null,
+    "person": "2",
+    "gender": "masculine",
+    "number": "singular",
+    "aspect": "imperative",
+    "voice": "active",
+    "form": 1,
+    "pattern": "قُلْ (أمر)",
+    "note": "فعل أمر مبنيّ على السكون، فاعله «أنت» مستتر. الجذر ق و ل.",
+    "surface": "قُلۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:1:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "fil_amr",
+    "role_ar": "فعل أمر مبنيّ",
+    "sign_ar": "السكون",
+    "irab_text": "«قلْ»: فعل أمر مبنيّ على السكون، الفاعل مستتر وجوبًا «أنت». ومقول القول جملة «هو الله أحد».",
+    "surface": "قُلۡ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "maqul_is",
+      "rel_ar": "مقول القول: «هو الله أحد»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:1:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "هو",
+    "pos": "PRON",
+    "pos_ar": "ضمير رفع منفصل",
+    "case": null,
+    "person": "3",
+    "gender": "masculine",
+    "number": "singular",
+    "pattern": "ضمير الغائب المنفصل",
+    "note": "ضمير غائب مذكّر مفرد في محل رفع، مبتدأ.",
+    "surface": "هُوَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:1:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mubtada",
+    "role_ar": "مبتدأ",
+    "sign_ar": "محلّيًّا",
+    "irab_text": "«هو»: ضمير رفع منفصل مبنيّ في محل رفع مبتدأ.",
+    "surface": "هُوَ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "khabar_is",
+      "rel_ar": "خبره «الله» / أو «الله أحد» جملة"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:1:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "أ ل ه",
+    "lemma": "اللَّه",
+    "pos": "PN",
+    "pos_ar": "لفظ الجلالة مرفوع",
+    "case": "nominative",
+    "pattern": "لفظ الجلالة",
+    "note": "اسم علم مرفوع بالضمة، خبر «هو» (أو مبتدأ ثانٍ). الجذر أ ل ه.",
+    "surface": "ٱللَّهُ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:1:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "khabar",
+    "role_ar": "خبر (أو مبتدأ ثانٍ)",
+    "sign_ar": "الضمة",
+    "irab_text": "«اللهُ»: خبر «هو» مرفوع بالضمة (وقيل: مبتدأ ثانٍ، و«أحدٌ» خبره، والجملة خبر «هو»).",
+    "surface": "ٱللَّهُ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "khabar_of",
+      "rel_ar": "خبر عن «هو»"
+     },
+     {
+      "to_word": 4,
+      "rel": "khabar_is",
+      "rel_ar": "«أحد» خبره على الوجه الثاني"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:1:3",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     }
+    ],
+    "surface": "ٱللَّهُ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:1:4",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "أ ح د",
+    "lemma": "أَحَد",
+    "pos": "N",
+    "pos_ar": "اسم نكرة مرفوع",
+    "case": "nominative",
+    "definiteness": "indefinite",
+    "pattern": "فَعَل",
+    "note": "اسم نكرة مذكّر مرفوع بالضمة، خبر. الجذر أ ح د.",
+    "surface": "أَحَدٌ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:1:4",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "khabar",
+    "role_ar": "خبر",
+    "sign_ar": "الضمة",
+    "irab_text": "«أحدٌ»: خبر مرفوع بالضمة (خبر ثانٍ لـ«هو»، أو خبر «الله»).",
+    "surface": "أَحَدٌ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "khabar_of",
+      "rel_ar": "خبر عن «الله» / «هو»"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:1:4",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 1,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "qalqalah",
+      "rule_ar": "قلقلة",
+      "rule_family": "القلقلة",
+      "concept_id": "concept:tajweed:qalqalah"
+     }
+    ],
+    "surface": "أَحَدٌ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:2:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 2,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "أ ل ه",
+    "lemma": "اللَّه",
+    "pos": "PN",
+    "pos_ar": "لفظ الجلالة مرفوع",
+    "case": "nominative",
+    "pattern": "لفظ الجلالة",
+    "note": "اسم علم مرفوع، مبتدأ. الجذر أ ل ه.",
+    "surface": "ٱللَّهُ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:2:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 2,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "mubtada",
+    "role_ar": "مبتدأ",
+    "sign_ar": "الضمة",
+    "irab_text": "«اللهُ»: مبتدأ مرفوع بالضمة.",
+    "surface": "ٱللَّهُ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "khabar_is",
+      "rel_ar": "خبره «الصمد»"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:2:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 2,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ص م د",
+    "lemma": "صَمَد",
+    "pos": "N",
+    "pos_ar": "اسم مرفوع",
+    "case": "nominative",
+    "pattern": "فَعَل",
+    "note": "اسم مذكّر مفرد مرفوع بالضمة، خبر. لم يرد إلا مرة واحدة في القرآن. الجذر ص م د.",
+    "surface": "ٱلصَّمَدُ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:2:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 2,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "khabar",
+    "role_ar": "خبر",
+    "sign_ar": "الضمة",
+    "irab_text": "«الصمدُ»: خبر مرفوع بالضمة. ولفظ لم يرد في القرآن إلا هنا.",
+    "surface": "ٱلصَّمَدُ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "khabar_of",
+      "rel_ar": "خبر عن «الله»"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:2:2",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 2,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "hamzat_wasl",
+      "rule_ar": "همزة الوصل",
+      "rule_family": "أحكام الهمز",
+      "concept_id": "concept:tajweed:hamzat_wasl"
+     },
+     {
+      "rule_id": "lam_shamsiyyah",
+      "rule_ar": "اللام الشمسية",
+      "rule_family": "أحكام اللام",
+      "concept_id": "concept:tajweed:lam_shamsiyyah"
+     },
+     {
+      "rule_id": "qalqalah",
+      "rule_ar": "قلقلة",
+      "rule_family": "القلقلة",
+      "concept_id": "concept:tajweed:qalqalah"
+     }
+    ],
+    "surface": "ٱلصَّمَدُ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:3:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "لَم",
+    "pos": "NEG",
+    "pos_ar": "حرف نفي وجزم وقلب",
+    "case": null,
+    "pattern": "لَمْ",
+    "note": "حرف نفي يجزم المضارع ويقلب زمنه إلى المضيّ.",
+    "surface": "لَمۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:3:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "harf_nafi_jazm",
+    "role_ar": "حرف نفي وجزم وقلب",
+    "sign_ar": "—",
+    "irab_text": "«لم»: حرف نفي يجزم المضارع ويقلب زمنه إلى المضيّ، مبنيّ لا محل له.",
+    "surface": "لَمۡ",
+    "relations": [
+     {
+      "to_word": 2,
+      "rel": "amil_of",
+      "rel_ar": "تجزم «يلد»"
+     }
+    ],
+    "concept_id": "concept:nahw:jazm_lam"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:3:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "و ل د",
+    "lemma": "وَلَدَ",
+    "pos": "V",
+    "pos_ar": "فعل مضارع مجزوم",
+    "case": null,
+    "person": "3",
+    "gender": "masculine",
+    "number": "singular",
+    "aspect": "imperfect",
+    "mood": "jussive",
+    "voice": "active",
+    "form": 1,
+    "pattern": "يَفْعِلْ",
+    "note": "فعل مضارع مجزوم بـ«لم»، وعلامة جزمه السكون، فاعله «هو» مستتر. الجذر و ل د.",
+    "surface": "يَلِدۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:3:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "fil_majzum",
+    "role_ar": "فعل مضارع مجزوم",
+    "sign_ar": "السكون",
+    "irab_text": "«يلدْ»: فعل مضارع مجزوم بـ«لم» وعلامة جزمه السكون، الفاعل مستتر «هو».",
+    "surface": "يَلِدۡ",
+    "relations": [
+     {
+      "to_word": 1,
+      "rel": "majzum_by",
+      "rel_ar": "مجزوم بـ«لم»"
+     }
+    ],
+    "concept_id": "concept:nahw:jazm_lam"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:3:2",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "qalqalah",
+      "rule_ar": "قلقلة",
+      "rule_family": "القلقلة",
+      "concept_id": "concept:tajweed:qalqalah"
+     }
+    ],
+    "surface": "يَلِدۡ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:3:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "و",
+    "pos": "CONJ",
+    "pos_ar": "حرف عطف",
+    "case": null,
+    "pattern": "وَ",
+    "note": "حرف عطف مبنيّ.",
+    "surface": "وَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:3:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "harf_atf",
+    "role_ar": "حرف عطف",
+    "sign_ar": "—",
+    "irab_text": "«الواو»: عاطفة، تعطف جملة «لم يولد» على «لم يلد».",
+    "surface": "وَ",
+    "relations": [
+     {
+      "to_word": 5,
+      "rel": "atf_link",
+      "rel_ar": "تعطف «لم يولد»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:3:4",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "لَم",
+    "pos": "NEG",
+    "pos_ar": "حرف نفي وجزم وقلب",
+    "case": null,
+    "pattern": "لَمْ",
+    "note": "معطوفة على الأولى.",
+    "surface": "لَمۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:3:4",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "harf_nafi_jazm",
+    "role_ar": "حرف نفي وجزم وقلب",
+    "sign_ar": "—",
+    "irab_text": "«لم» الثانية: حرف نفي وجزم وقلب.",
+    "surface": "لَمۡ",
+    "relations": [
+     {
+      "to_word": 5,
+      "rel": "amil_of",
+      "rel_ar": "تجزم «يولد»"
+     }
+    ],
+    "concept_id": "concept:nahw:jazm_lam"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:3:4",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "qalqalah",
+      "rule_ar": "قلقلة",
+      "rule_family": "القلقلة",
+      "concept_id": "concept:tajweed:qalqalah"
+     }
+    ],
+    "surface": "لَمۡ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:3:5",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 5,
+    "word_end": 5,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "و ل د",
+    "lemma": "وَلَدَ",
+    "pos": "V",
+    "pos_ar": "فعل مضارع مبنيّ للمجهول مجزوم",
+    "case": null,
+    "person": "3",
+    "gender": "masculine",
+    "number": "singular",
+    "aspect": "imperfect",
+    "mood": "jussive",
+    "voice": "passive",
+    "form": 1,
+    "pattern": "يُفْعَلْ (مبنيّ للمجهول)",
+    "note": "فعل مضارع مبنيّ للمجهول مجزوم بـ«لم»، نائب الفاعل «هو» مستتر. الجذر و ل د.",
+    "surface": "يُولَدۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:3:5",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 3,
+    "word_start": 5,
+    "word_end": 5,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "fil_majhul",
+    "role_ar": "فعل مضارع مبنيّ للمجهول مجزوم",
+    "sign_ar": "السكون",
+    "irab_text": "«يولدْ»: فعل مضارع مبنيّ للمجهول مجزوم بـ«لم»، ونائب الفاعل مستتر «هو».",
+    "surface": "يُولَدۡ",
+    "relations": [
+     {
+      "to_word": 4,
+      "rel": "majzum_by",
+      "rel_ar": "مجزوم بـ«لم»"
+     }
+    ],
+    "concept_id": "concept:nahw:jazm_lam"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:4:1",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "و",
+    "pos": "CONJ",
+    "pos_ar": "حرف عطف",
+    "case": null,
+    "pattern": "وَ",
+    "note": "حرف عطف مبنيّ.",
+    "surface": "وَ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:4:1",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 1,
+    "word_end": 1,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "harf_atf",
+    "role_ar": "حرف عطف",
+    "sign_ar": "—",
+    "irab_text": "«الواو»: عاطفة، تعطف الجملة على ما قبلها.",
+    "surface": "وَ",
+    "relations": [],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:4:2",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "لَم",
+    "pos": "NEG",
+    "pos_ar": "حرف نفي وجزم وقلب",
+    "case": null,
+    "pattern": "لَمْ",
+    "note": "حرف نفي وجزم وقلب.",
+    "surface": "لَمۡ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:4:2",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "harf_nafi_jazm",
+    "role_ar": "حرف نفي وجزم وقلب",
+    "sign_ar": "—",
+    "irab_text": "«لم»: حرف نفي وجزم وقلب.",
+    "surface": "لَمۡ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "amil_of",
+      "rel_ar": "تجزم «يكن»"
+     }
+    ],
+    "concept_id": "concept:nahw:jazm_lam"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:4:2",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 2,
+    "word_end": 2,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "idghaam_no_ghunnah",
+      "rule_ar": "إدغام بغير غنّة",
+      "rule_family": "أحكام النون الساكنة والتنوين",
+      "concept_id": "concept:tajweed:idgham_no_ghunnah"
+     }
+    ],
+    "surface": "لَمۡ"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:4:3",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ك و ن",
+    "lemma": "كانَ",
+    "pos": "V",
+    "pos_ar": "فعل مضارع ناقص مجزوم",
+    "case": null,
+    "person": "3",
+    "gender": "masculine",
+    "number": "singular",
+    "aspect": "imperfect",
+    "mood": "jussive",
+    "voice": "active",
+    "form": 1,
+    "pattern": "يَكُنْ (من كان وأخواتها)",
+    "note": "فعل مضارع ناقص مجزوم بـ«لم» وعلامة جزمه السكون، من «كان وأخواتها» يرفع الاسم وينصب الخبر. الجذر ك و ن.",
+    "surface": "يَكُن"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:4:3",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "fil_naqis",
+    "role_ar": "فعل مضارع ناقص مجزوم (كان وأخواتها)",
+    "sign_ar": "السكون",
+    "irab_text": "«يكنْ»: فعل مضارع ناقص مجزوم بـ«لم» وعلامة جزمه السكون؛ من «كان وأخواتها» يرفع الاسم وينصب الخبر.",
+    "surface": "يَكُن",
+    "relations": [
+     {
+      "to_word": 6,
+      "rel": "amil_ism",
+      "rel_ar": "يرفع اسمه «أحد»"
+     },
+     {
+      "to_word": 4,
+      "rel": "amil_khabar",
+      "rel_ar": "خبره المقدَّم «له»"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:4:3",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 3,
+    "word_end": 3,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "madd_2",
+      "rule_ar": "مدّ طبيعي (حركتان)",
+      "rule_family": "أحكام المدود",
+      "concept_id": "concept:tajweed:madd_tabee"
+     }
+    ],
+    "surface": "يَكُن"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:4:4",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": null,
+    "lemma": "ل",
+    "pos": "P",
+    "pos_ar": "جار ومجرور",
+    "case": null,
+    "pattern": "لَّ + هُ",
+    "note": "حرف جر «لـ» + ضمير الغائب «ه» في محل جر، والجار والمجرور خبر «يكن» مقدّم.",
+    "surface": "لَّهُۥ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:4:4",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 4,
+    "word_end": 4,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "khabar_kana",
+    "role_ar": "خبر «يكن» مقدَّم (شبه جملة)",
+    "sign_ar": "محلّيًّا",
+    "irab_text": "«له»: جار ومجرور متعلّق بمحذوف خبر «يكن» مقدَّم، في محل نصب.",
+    "surface": "لَّهُۥ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "khabar_of",
+      "rel_ar": "خبر «يكن» المقدَّم"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "sarf:112:4:5",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 5,
+    "word_end": 5,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "ك ف أ",
+    "lemma": "كُفُو",
+    "pos": "N",
+    "pos_ar": "اسم نكرة منصوب",
+    "case": "accusative",
+    "definiteness": "indefinite",
+    "pattern": "فُعُل",
+    "note": "اسم نكرة مذكّر منصوب بالفتحة، خبر «يكن» (أو حال). لم يرد إلا مرة واحدة. الجذر ك ف أ.",
+    "surface": "كُفُوًا"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:4:5",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 5,
+    "word_end": 5,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "hal",
+    "role_ar": "حال (أو خبر ثانٍ)",
+    "sign_ar": "الفتحة",
+    "irab_text": "«كُفُوًا»: منصوب على الحال من «أحد» (وقيل خبر «يكن»)، وهو نكرة. لم يرد في القرآن إلا هنا.",
+    "surface": "كُفُوًا",
+    "relations": [
+     {
+      "to_word": 6,
+      "rel": "hal_of",
+      "rel_ar": "حال من «أحد»"
+     }
+    ],
+    "concept_id": null
+   },
+   "source_ref_id": "src:irab-classical"
+  },
+  {
+   "id": "tajweed:112:4:5",
+   "domain": "tajweed",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 5,
+    "word_end": 5,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "rules": [
+     {
+      "rule_id": "qalqalah",
+      "rule_ar": "قلقلة",
+      "rule_family": "القلقلة",
+      "concept_id": "concept:tajweed:qalqalah"
+     }
+    ],
+    "surface": "كُفُوًا"
+   },
+   "source_ref_id": "src:cpfair-tajweed"
+  },
+  {
+   "id": "sarf:112:4:6",
+   "domain": "sarf",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 6,
+    "word_end": 6,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "root": "أ ح د",
+    "lemma": "أَحَد",
+    "pos": "N",
+    "pos_ar": "اسم نكرة مرفوع",
+    "case": "nominative",
+    "definiteness": "indefinite",
+    "pattern": "فَعَل",
+    "note": "اسم «يكن» مرفوع بالضمة (مؤخّر). الجذر أ ح د.",
+    "surface": "أَحَدُۢ"
+   },
+   "source_ref_id": "src:qac"
+  },
+  {
+   "id": "nahw:112:4:6",
+   "domain": "nahw",
+   "anchor": {
+    "surah": 112,
+    "ayah": 4,
+    "word_start": 6,
+    "word_end": 6,
+    "scope": "word",
+    "segmentation": "mushafdb-v1.01"
+   },
+   "payload": {
+    "role": "ism_kana",
+    "role_ar": "اسم «يكن» مؤخَّر",
+    "sign_ar": "الضمة",
+    "irab_text": "«أحدٌ»: اسم «يكن» مرفوع مؤخَّر بالضمة.",
+    "surface": "أَحَدُۢ",
+    "relations": [
+     {
+      "to_word": 3,
+      "rel": "ism_of",
+      "rel_ar": "اسم «يكن»"
+     }
+    ],
+    "concept_id": "concept:nahw:mubtada_khabar"
+   },
+   "source_ref_id": "src:irab-classical"
+  }
+ ]
+}

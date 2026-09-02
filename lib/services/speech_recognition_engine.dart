@@ -38,9 +38,22 @@ abstract class SpeechRecognitionEngine {
   /// (kept short so ayah-to-ayah pauses are detected promptly),
   /// [listenFor] is a safety cap per segment before it's force-cut and
   /// automatically restarted.
+  ///
+  /// [onError] fires on a real recognizer error (real device bug found
+  /// 2026-08-29, Ismail: "لا يدخل الصوت... فقط أزرار جميلة" -- a segment
+  /// that ends via error rather than a normal final result used to just
+  /// silently stop the whole continuous session at the OS level while the
+  /// UI kept showing "listening" forever, since only a normal final result
+  /// triggered the auto-restart). A transient error (e.g. a brief silence
+  /// before the student starts speaking) is now handled internally by
+  /// restarting the segment automatically -- [onError]'s `permanent` flag
+  /// tells the caller whether the whole session actually stopped (so it
+  /// can show a real message) or whether this is just visibility into a
+  /// transient hiccup that's already being retried.
   Future<void> startListening({
     required void Function(String text) onPartialResult,
     required void Function(String text) onFinalResult,
+    void Function(String message, bool permanent)? onError,
     String? localeId,
     Duration listenFor = const Duration(seconds: 30),
     Duration pauseFor = const Duration(seconds: 5),

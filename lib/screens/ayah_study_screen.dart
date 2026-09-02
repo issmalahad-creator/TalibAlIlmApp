@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
 import '../repositories/quran_reading_repository.dart';
+import 'ayah_notebook_screen.dart';
 import '../repositories/quran_search_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
@@ -124,6 +125,14 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
             style: const TextStyle(fontSize: 15),
           ),
           actions: [
+            IconButton(
+              tooltip: basicText('ayah_notebook_open_action', lang),
+              icon: const Icon(Icons.auto_stories_outlined),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AyahNotebookScreen(surah: _surah, ayah: _ayah)),
+              ),
+            ),
             IconButton(
               tooltip: basicText('font_size_tooltip', lang),
               icon: const Icon(Icons.text_fields_rounded),

@@ -112,6 +112,15 @@ class _RecitationPracticeScreenState extends State<RecitationPracticeScreen> {
     setState(() => _status = _Status.listening);
     await _engine.startListening(
       localeId: arabicLocales.isNotEmpty ? arabicLocales.first : null,
+      // Real device bug found 2026-08-29 ("لا يدخل الصوت"): a segment that
+      // ends via error (very commonly just a pre-speech silence timeout)
+      // used to silently kill the whole listen session with no visible
+      // sign anything was wrong. The engine now auto-retries transient
+      // errors on its own; only a real, non-recoverable error reaches here.
+      onError: (message, permanent) {
+        if (!mounted || !permanent) return;
+        setState(() => _status = _Status.unavailable);
+      },
       onPartialResult: (text) {
         if (!mounted) return;
         setState(() => _partialTranscript = text);

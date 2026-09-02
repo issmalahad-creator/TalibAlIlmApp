@@ -7,7 +7,7 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'adhkar_screen.dart';
 import 'madarij_screen.dart';
-import 'quran_reading_screen.dart';
+import 'mushaf_semantic_reader_screen.dart';
 import 'quran_search_screen.dart';
 import 'wasitiyyah_screen.dart';
 import '../widgets/loading_view.dart';
@@ -82,7 +82,7 @@ class _WirdScreenState extends State<WirdScreen> {
 
   void _openItem(WirdTemplateItem item) {
     final Widget? target = switch (item.key) {
-      'quran' => const QuranReadingScreen(),
+      'quran' => const MushafSemanticReaderScreen(),
       'adhkar' => const AdhkarScreen(),
       'reading' => switch (_template.key) {
           'ibn_kathir' => const QuranSearchScreen(),

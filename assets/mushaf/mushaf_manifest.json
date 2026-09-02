@@ -1,0 +1,814 @@
+{
+  "version": 1,
+  "source": "MushafDatabase-Ligature-Based-SVG V1.01 (Sadaqa-e-Jaria)",
+  "page_count": 604,
+  "surah_count": 114,
+  "total_words": 91451,
+  "word_type_counts": {
+    "text": 91237,
+    "juz-star": 199,
+    "sajda-mehrab": 15
+  },
+  "total_aya_marks": 6236,
+  "layout_sha256": "6066f88dac87a70e8f2e09b6c0fa019c122d457fcdba01a48a4cae3f44e4f1e3",
+  "per_surah": {
+    "1": {
+      "ayah_count": 7,
+      "max_ayah": 7,
+      "word_count": 31,
+      "first_page": 1,
+      "last_page": 1
+    },
+    "2": {
+      "ayah_count": 286,
+      "max_ayah": 286,
+      "word_count": 7427,
+      "first_page": 2,
+      "last_page": 49
+    },
+    "3": {
+      "ayah_count": 200,
+      "max_ayah": 200,
+      "word_count": 4169,
+      "first_page": 50,
+      "last_page": 76
+    },
+    "4": {
+      "ayah_count": 176,
+      "max_ayah": 176,
+      "word_count": 4521,
+      "first_page": 77,
+      "last_page": 106
+    },
+    "5": {
+      "ayah_count": 120,
+      "max_ayah": 120,
+      "word_count": 3362,
+      "first_page": 106,
+      "last_page": 127
+    },
+    "6": {
+      "ayah_count": 165,
+      "max_ayah": 165,
+      "word_count": 3678,
+      "first_page": 128,
+      "last_page": 150
+    },
+    "7": {
+      "ayah_count": 206,
+      "max_ayah": 206,
+      "word_count": 3899,
+      "first_page": 151,
+      "last_page": 176
+    },
+    "8": {
+      "ayah_count": 75,
+      "max_ayah": 75,
+      "word_count": 1491,
+      "first_page": 177,
+      "last_page": 186
+    },
+    "9": {
+      "ayah_count": 129,
+      "max_ayah": 129,
+      "word_count": 3012,
+      "first_page": 187,
+      "last_page": 207
+    },
+    "10": {
+      "ayah_count": 109,
+      "max_ayah": 109,
+      "word_count": 2136,
+      "first_page": 208,
+      "last_page": 221
+    },
+    "11": {
+      "ayah_count": 123,
+      "max_ayah": 123,
+      "word_count": 2272,
+      "first_page": 221,
+      "last_page": 235
+    },
+    "12": {
+      "ayah_count": 111,
+      "max_ayah": 111,
+      "word_count": 2073,
+      "first_page": 235,
+      "last_page": 248
+    },
+    "13": {
+      "ayah_count": 43,
+      "max_ayah": 43,
+      "word_count": 1047,
+      "first_page": 249,
+      "last_page": 255
+    },
+    "14": {
+      "ayah_count": 52,
+      "max_ayah": 52,
+      "word_count": 986,
+      "first_page": 255,
+      "last_page": 261
+    },
+    "15": {
+      "ayah_count": 99,
+      "max_ayah": 99,
+      "word_count": 734,
+      "first_page": 262,
+      "last_page": 267
+    },
+    "16": {
+      "ayah_count": 128,
+      "max_ayah": 128,
+      "word_count": 2185,
+      "first_page": 267,
+      "last_page": 281
+    },
+    "17": {
+      "ayah_count": 111,
+      "max_ayah": 111,
+      "word_count": 1826,
+      "first_page": 282,
+      "last_page": 293
+    },
+    "18": {
+      "ayah_count": 110,
+      "max_ayah": 110,
+      "word_count": 1814,
+      "first_page": 293,
+      "last_page": 304
+    },
+    "19": {
+      "ayah_count": 98,
+      "max_ayah": 98,
+      "word_count": 1124,
+      "first_page": 305,
+      "last_page": 312
+    },
+    "20": {
+      "ayah_count": 135,
+      "max_ayah": 135,
+      "word_count": 1536,
+      "first_page": 312,
+      "last_page": 321
+    },
+    "21": {
+      "ayah_count": 112,
+      "max_ayah": 112,
+      "word_count": 1384,
+      "first_page": 322,
+      "last_page": 331
+    },
+    "22": {
+      "ayah_count": 78,
+      "max_ayah": 78,
+      "word_count": 1518,
+      "first_page": 332,
+      "last_page": 341
+    },
+    "23": {
+      "ayah_count": 118,
+      "max_ayah": 118,
+      "word_count": 1197,
+      "first_page": 342,
+      "last_page": 349
+    },
+    "24": {
+      "ayah_count": 64,
+      "max_ayah": 64,
+      "word_count": 1574,
+      "first_page": 350,
+      "last_page": 359
+    },
+    "25": {
+      "ayah_count": 77,
+      "max_ayah": 77,
+      "word_count": 1061,
+      "first_page": 359,
+      "last_page": 366
+    },
+    "26": {
+      "ayah_count": 227,
+      "max_ayah": 227,
+      "word_count": 1494,
+      "first_page": 367,
+      "last_page": 376
+    },
+    "27": {
+      "ayah_count": 93,
+      "max_ayah": 93,
+      "word_count": 1329,
+      "first_page": 377,
+      "last_page": 385
+    },
+    "28": {
+      "ayah_count": 88,
+      "max_ayah": 88,
+      "word_count": 1660,
+      "first_page": 385,
+      "last_page": 396
+    },
+    "29": {
+      "ayah_count": 69,
+      "max_ayah": 69,
+      "word_count": 1181,
+      "first_page": 396,
+      "last_page": 404
+    },
+    "30": {
+      "ayah_count": 60,
+      "max_ayah": 60,
+      "word_count": 964,
+      "first_page": 404,
+      "last_page": 410
+    },
+    "31": {
+      "ayah_count": 34,
+      "max_ayah": 34,
+      "word_count": 645,
+      "first_page": 411,
+      "last_page": 414
+    },
+    "32": {
+      "ayah_count": 30,
+      "max_ayah": 30,
+      "word_count": 423,
+      "first_page": 415,
+      "last_page": 417
+    },
+    "33": {
+      "ayah_count": 73,
+      "max_ayah": 73,
+      "word_count": 1582,
+      "first_page": 418,
+      "last_page": 427
+    },
+    "34": {
+      "ayah_count": 54,
+      "max_ayah": 54,
+      "word_count": 1049,
+      "first_page": 428,
+      "last_page": 434
+    },
+    "35": {
+      "ayah_count": 45,
+      "max_ayah": 45,
+      "word_count": 934,
+      "first_page": 434,
+      "last_page": 440
+    },
+    "36": {
+      "ayah_count": 83,
+      "max_ayah": 83,
+      "word_count": 825,
+      "first_page": 440,
+      "last_page": 445
+    },
+    "37": {
+      "ayah_count": 182,
+      "max_ayah": 182,
+      "word_count": 967,
+      "first_page": 446,
+      "last_page": 452
+    },
+    "38": {
+      "ayah_count": 88,
+      "max_ayah": 88,
+      "word_count": 855,
+      "first_page": 453,
+      "last_page": 458
+    },
+    "39": {
+      "ayah_count": 75,
+      "max_ayah": 75,
+      "word_count": 1352,
+      "first_page": 458,
+      "last_page": 467
+    },
+    "40": {
+      "ayah_count": 85,
+      "max_ayah": 85,
+      "word_count": 1412,
+      "first_page": 467,
+      "last_page": 476
+    },
+    "41": {
+      "ayah_count": 54,
+      "max_ayah": 54,
+      "word_count": 937,
+      "first_page": 477,
+      "last_page": 482
+    },
+    "42": {
+      "ayah_count": 53,
+      "max_ayah": 53,
+      "word_count": 1052,
+      "first_page": 483,
+      "last_page": 489
+    },
+    "43": {
+      "ayah_count": 89,
+      "max_ayah": 89,
+      "word_count": 967,
+      "first_page": 489,
+      "last_page": 495
+    },
+    "44": {
+      "ayah_count": 59,
+      "max_ayah": 59,
+      "word_count": 398,
+      "first_page": 496,
+      "last_page": 498
+    },
+    "45": {
+      "ayah_count": 37,
+      "max_ayah": 37,
+      "word_count": 578,
+      "first_page": 499,
+      "last_page": 502
+    },
+    "46": {
+      "ayah_count": 35,
+      "max_ayah": 35,
+      "word_count": 746,
+      "first_page": 502,
+      "last_page": 506
+    },
+    "47": {
+      "ayah_count": 38,
+      "max_ayah": 38,
+      "word_count": 639,
+      "first_page": 507,
+      "last_page": 510
+    },
+    "48": {
+      "ayah_count": 29,
+      "max_ayah": 29,
+      "word_count": 678,
+      "first_page": 511,
+      "last_page": 515
+    },
+    "49": {
+      "ayah_count": 18,
+      "max_ayah": 18,
+      "word_count": 416,
+      "first_page": 515,
+      "last_page": 517
+    },
+    "50": {
+      "ayah_count": 45,
+      "max_ayah": 45,
+      "word_count": 439,
+      "first_page": 518,
+      "last_page": 520
+    },
+    "51": {
+      "ayah_count": 60,
+      "max_ayah": 60,
+      "word_count": 404,
+      "first_page": 520,
+      "last_page": 523
+    },
+    "52": {
+      "ayah_count": 49,
+      "max_ayah": 49,
+      "word_count": 354,
+      "first_page": 523,
+      "last_page": 525
+    },
+    "53": {
+      "ayah_count": 62,
+      "max_ayah": 62,
+      "word_count": 421,
+      "first_page": 526,
+      "last_page": 528
+    },
+    "54": {
+      "ayah_count": 55,
+      "max_ayah": 55,
+      "word_count": 390,
+      "first_page": 528,
+      "last_page": 531
+    },
+    "55": {
+      "ayah_count": 78,
+      "max_ayah": 78,
+      "word_count": 388,
+      "first_page": 531,
+      "last_page": 534
+    },
+    "56": {
+      "ayah_count": 96,
+      "max_ayah": 96,
+      "word_count": 423,
+      "first_page": 534,
+      "last_page": 537
+    },
+    "57": {
+      "ayah_count": 29,
+      "max_ayah": 29,
+      "word_count": 717,
+      "first_page": 537,
+      "last_page": 541
+    },
+    "58": {
+      "ayah_count": 22,
+      "max_ayah": 22,
+      "word_count": 566,
+      "first_page": 542,
+      "last_page": 545
+    },
+    "59": {
+      "ayah_count": 24,
+      "max_ayah": 24,
+      "word_count": 527,
+      "first_page": 545,
+      "last_page": 548
+    },
+    "60": {
+      "ayah_count": 13,
+      "max_ayah": 13,
+      "word_count": 417,
+      "first_page": 549,
+      "last_page": 551
+    },
+    "61": {
+      "ayah_count": 14,
+      "max_ayah": 14,
+      "word_count": 256,
+      "first_page": 551,
+      "last_page": 552
+    },
+    "62": {
+      "ayah_count": 11,
+      "max_ayah": 11,
+      "word_count": 203,
+      "first_page": 553,
+      "last_page": 554
+    },
+    "63": {
+      "ayah_count": 11,
+      "max_ayah": 11,
+      "word_count": 214,
+      "first_page": 554,
+      "last_page": 555
+    },
+    "64": {
+      "ayah_count": 18,
+      "max_ayah": 18,
+      "word_count": 308,
+      "first_page": 556,
+      "last_page": 557
+    },
+    "65": {
+      "ayah_count": 12,
+      "max_ayah": 12,
+      "word_count": 342,
+      "first_page": 558,
+      "last_page": 559
+    },
+    "66": {
+      "ayah_count": 12,
+      "max_ayah": 12,
+      "word_count": 295,
+      "first_page": 560,
+      "last_page": 561
+    },
+    "67": {
+      "ayah_count": 30,
+      "max_ayah": 30,
+      "word_count": 377,
+      "first_page": 562,
+      "last_page": 564
+    },
+    "68": {
+      "ayah_count": 52,
+      "max_ayah": 52,
+      "word_count": 330,
+      "first_page": 564,
+      "last_page": 566
+    },
+    "69": {
+      "ayah_count": 52,
+      "max_ayah": 52,
+      "word_count": 288,
+      "first_page": 566,
+      "last_page": 568
+    },
+    "70": {
+      "ayah_count": 44,
+      "max_ayah": 44,
+      "word_count": 246,
+      "first_page": 568,
+      "last_page": 570
+    },
+    "71": {
+      "ayah_count": 28,
+      "max_ayah": 28,
+      "word_count": 267,
+      "first_page": 570,
+      "last_page": 571
+    },
+    "72": {
+      "ayah_count": 28,
+      "max_ayah": 28,
+      "word_count": 327,
+      "first_page": 572,
+      "last_page": 573
+    },
+    "73": {
+      "ayah_count": 20,
+      "max_ayah": 20,
+      "word_count": 239,
+      "first_page": 574,
+      "last_page": 575
+    },
+    "74": {
+      "ayah_count": 56,
+      "max_ayah": 56,
+      "word_count": 294,
+      "first_page": 575,
+      "last_page": 577
+    },
+    "75": {
+      "ayah_count": 40,
+      "max_ayah": 40,
+      "word_count": 180,
+      "first_page": 577,
+      "last_page": 578
+    },
+    "76": {
+      "ayah_count": 31,
+      "max_ayah": 31,
+      "word_count": 285,
+      "first_page": 578,
+      "last_page": 580
+    },
+    "77": {
+      "ayah_count": 50,
+      "max_ayah": 50,
+      "word_count": 199,
+      "first_page": 580,
+      "last_page": 581
+    },
+    "78": {
+      "ayah_count": 40,
+      "max_ayah": 40,
+      "word_count": 201,
+      "first_page": 582,
+      "last_page": 583
+    },
+    "79": {
+      "ayah_count": 46,
+      "max_ayah": 46,
+      "word_count": 196,
+      "first_page": 583,
+      "last_page": 584
+    },
+    "80": {
+      "ayah_count": 42,
+      "max_ayah": 42,
+      "word_count": 151,
+      "first_page": 585,
+      "last_page": 586
+    },
+    "81": {
+      "ayah_count": 29,
+      "max_ayah": 29,
+      "word_count": 122,
+      "first_page": 586,
+      "last_page": 586
+    },
+    "82": {
+      "ayah_count": 19,
+      "max_ayah": 19,
+      "word_count": 90,
+      "first_page": 587,
+      "last_page": 587
+    },
+    "83": {
+      "ayah_count": 36,
+      "max_ayah": 36,
+      "word_count": 181,
+      "first_page": 587,
+      "last_page": 589
+    },
+    "84": {
+      "ayah_count": 25,
+      "max_ayah": 25,
+      "word_count": 125,
+      "first_page": 589,
+      "last_page": 590
+    },
+    "85": {
+      "ayah_count": 22,
+      "max_ayah": 22,
+      "word_count": 126,
+      "first_page": 590,
+      "last_page": 590
+    },
+    "86": {
+      "ayah_count": 17,
+      "max_ayah": 17,
+      "word_count": 70,
+      "first_page": 591,
+      "last_page": 591
+    },
+    "87": {
+      "ayah_count": 19,
+      "max_ayah": 19,
+      "word_count": 83,
+      "first_page": 591,
+      "last_page": 592
+    },
+    "88": {
+      "ayah_count": 26,
+      "max_ayah": 26,
+      "word_count": 100,
+      "first_page": 592,
+      "last_page": 593
+    },
+    "89": {
+      "ayah_count": 30,
+      "max_ayah": 30,
+      "word_count": 158,
+      "first_page": 593,
+      "last_page": 594
+    },
+    "90": {
+      "ayah_count": 20,
+      "max_ayah": 20,
+      "word_count": 92,
+      "first_page": 594,
+      "last_page": 595
+    },
+    "91": {
+      "ayah_count": 15,
+      "max_ayah": 15,
+      "word_count": 69,
+      "first_page": 595,
+      "last_page": 595
+    },
+    "92": {
+      "ayah_count": 21,
+      "max_ayah": 21,
+      "word_count": 87,
+      "first_page": 595,
+      "last_page": 596
+    },
+    "93": {
+      "ayah_count": 11,
+      "max_ayah": 11,
+      "word_count": 49,
+      "first_page": 596,
+      "last_page": 596
+    },
+    "94": {
+      "ayah_count": 8,
+      "max_ayah": 8,
+      "word_count": 30,
+      "first_page": 596,
+      "last_page": 597
+    },
+    "95": {
+      "ayah_count": 8,
+      "max_ayah": 8,
+      "word_count": 39,
+      "first_page": 597,
+      "last_page": 597
+    },
+    "96": {
+      "ayah_count": 19,
+      "max_ayah": 19,
+      "word_count": 77,
+      "first_page": 597,
+      "last_page": 598
+    },
+    "97": {
+      "ayah_count": 5,
+      "max_ayah": 5,
+      "word_count": 32,
+      "first_page": 598,
+      "last_page": 598
+    },
+    "98": {
+      "ayah_count": 8,
+      "max_ayah": 8,
+      "word_count": 107,
+      "first_page": 598,
+      "last_page": 599
+    },
+    "99": {
+      "ayah_count": 8,
+      "max_ayah": 8,
+      "word_count": 39,
+      "first_page": 599,
+      "last_page": 599
+    },
+    "100": {
+      "ayah_count": 11,
+      "max_ayah": 11,
+      "word_count": 45,
+      "first_page": 599,
+      "last_page": 600
+    },
+    "101": {
+      "ayah_count": 11,
+      "max_ayah": 11,
+      "word_count": 40,
+      "first_page": 600,
+      "last_page": 600
+    },
+    "102": {
+      "ayah_count": 8,
+      "max_ayah": 8,
+      "word_count": 28,
+      "first_page": 600,
+      "last_page": 600
+    },
+    "103": {
+      "ayah_count": 3,
+      "max_ayah": 3,
+      "word_count": 18,
+      "first_page": 601,
+      "last_page": 601
+    },
+    "104": {
+      "ayah_count": 9,
+      "max_ayah": 9,
+      "word_count": 36,
+      "first_page": 601,
+      "last_page": 601
+    },
+    "105": {
+      "ayah_count": 5,
+      "max_ayah": 5,
+      "word_count": 24,
+      "first_page": 601,
+      "last_page": 601
+    },
+    "106": {
+      "ayah_count": 4,
+      "max_ayah": 4,
+      "word_count": 19,
+      "first_page": 602,
+      "last_page": 602
+    },
+    "107": {
+      "ayah_count": 7,
+      "max_ayah": 7,
+      "word_count": 27,
+      "first_page": 602,
+      "last_page": 602
+    },
+    "108": {
+      "ayah_count": 3,
+      "max_ayah": 3,
+      "word_count": 11,
+      "first_page": 602,
+      "last_page": 602
+    },
+    "109": {
+      "ayah_count": 6,
+      "max_ayah": 6,
+      "word_count": 30,
+      "first_page": 603,
+      "last_page": 603
+    },
+    "110": {
+      "ayah_count": 3,
+      "max_ayah": 3,
+      "word_count": 23,
+      "first_page": 603,
+      "last_page": 603
+    },
+    "111": {
+      "ayah_count": 5,
+      "max_ayah": 5,
+      "word_count": 26,
+      "first_page": 603,
+      "last_page": 603
+    },
+    "112": {
+      "ayah_count": 4,
+      "max_ayah": 4,
+      "word_count": 17,
+      "first_page": 604,
+      "last_page": 604
+    },
+    "113": {
+      "ayah_count": 5,
+      "max_ayah": 5,
+      "word_count": 26,
+      "first_page": 604,
+      "last_page": 604
+    },
+    "114": {
+      "ayah_count": 6,
+      "max_ayah": 6,
+      "word_count": 21,
+      "first_page": 604,
+      "last_page": 604
+    }
+  }
+}

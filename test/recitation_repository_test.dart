@@ -25,7 +25,12 @@ void main() {
   setUpAll(() async {
     final dbDir = join('.dart_tool', 'sqflite_common_ffi', 'databases');
     final dbFile = File(join(dbDir, 'talib_alilm.db'));
-    if (dbFile.existsSync()) dbFile.deleteSync();
+    // Best-effort: another DB-backed suite may hold this file open when
+    // `flutter test` runs suites in parallel. Per-table cleanup in setUp is
+    // what actually isolates this suite, so a locked file here is fine.
+    try {
+      if (dbFile.existsSync()) dbFile.deleteSync();
+    } on FileSystemException catch (_) {}
   });
 
   setUp(() async {

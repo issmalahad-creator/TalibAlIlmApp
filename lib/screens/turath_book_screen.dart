@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import 'turath_book_search_screen.dart';
 import 'turath_index_screen.dart';
 import 'turath_reader_screen.dart';
+import 'turath_study_notebook_screen.dart';
 
 /// "فتح الكتاب" (spec item 4/10) — real book detail screen: title, real
 /// info text and volume count from `getBookInfo` (never fabricated),
@@ -34,6 +35,7 @@ class _TurathBookScreenState extends State<TurathBookScreen> {
   TurathBook? _book;
   TurathLastRead? _lastRead;
   bool _isFavorite = false;
+  int _noteCount = 0;
 
   @override
   void initState() {
@@ -48,12 +50,14 @@ class _TurathBookScreenState extends State<TurathBookScreen> {
         _repo.getBookInfo(widget.bookId),
         _repo.lastRead(widget.bookId),
         _repo.isFavoriteBook(widget.bookId),
+        _repo.annotationCountForBook(widget.bookId),
       ]);
       if (!mounted) return;
       setState(() {
         _book = results[0] as TurathBook;
         _lastRead = results[1] as TurathLastRead?;
         _isFavorite = results[2] as bool;
+        _noteCount = results[3] as int;
         _status = _Status.success;
       });
     } catch (_) {
@@ -150,6 +154,25 @@ class _TurathBookScreenState extends State<TurathBookScreen> {
               tileColor: AppColors.surface,
               onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathBookSearchScreen(bookId: widget.bookId, bookName: widget.bookName))),
             ),
+            if (_noteCount > 0) ...[
+              const SizedBox(height: 8),
+              ListTile(
+                leading: const Icon(Icons.auto_stories_outlined),
+                title: Text('${basicText('turath_my_notes_in_book', lang)} ($_noteCount)'),
+                trailing: const Icon(Icons.chevron_left_rounded),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: AppColors.divider)),
+                tileColor: AppColors.surface,
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TurathStudyNotebookScreen(bookId: widget.bookId, bookTitle: widget.bookName),
+                    ),
+                  );
+                  _load();
+                },
+              ),
+            ],
             if (book.info != null && book.info!.trim().isNotEmpty) ...[
               const SizedBox(height: 20),
               Text(basicText('turath_about_book_label', lang), style: const TextStyle(fontWeight: FontWeight.w700)),

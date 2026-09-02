@@ -29,6 +29,12 @@ const _bubbleSize = 54.0;
 class CompanionFloatingBubble extends StatefulWidget {
   const CompanionFloatingBubble({super.key});
 
+  /// Immersive full-bleed reading surfaces (the mushaf reader) bump this on
+  /// entry and drop it on exit so the bubble doesn't float over the page /
+  /// its app bar. `> 0` → hidden. A counter, not a bool, so nested pushes
+  /// are safe.
+  static final ValueNotifier<int> suppressed = ValueNotifier<int>(0);
+
   @override
   State<CompanionFloatingBubble> createState() => _CompanionFloatingBubbleState();
 }
@@ -82,6 +88,14 @@ class _CompanionFloatingBubbleState extends State<CompanionFloatingBubble> {
     // what let a second tap open a second sheet.
     if (_sheetOpen) return const SizedBox.shrink();
 
+    return ValueListenableBuilder<int>(
+      valueListenable: CompanionFloatingBubble.suppressed,
+      builder: (context, n, _) =>
+          n > 0 ? const SizedBox.shrink() : _bubble(context),
+    );
+  }
+
+  Widget _bubble(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final defaultPosition = Offset(screenSize.width - _bubbleSize - 16, screenSize.height - _bubbleSize - 100);
     _position ??= defaultPosition;

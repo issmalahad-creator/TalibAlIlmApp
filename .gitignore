@@ -48,3 +48,16 @@ app.*.map.json
 # Full values are mirrored in Claude's private memory file (see CLAUDE.md)
 # so this file can always be reconstructed if lost.
 lib/config/app_config.dart
+
+# Phase 79-mushaf: raw MushafDatabase Ligature-Based SVG source set (~760 MB,
+# license "Sadaqa-e-Jaria"). Build-time input for tool/extract_mushaf_svg.py
+# only — the committed artefact is assets/mushaf/mushaf_layout.json.gz. Keep a
+# local copy to regenerate; never commit the raw SVGs.
+/MushafDatabase-Ligature-Based-SVG-main_2/
+/svg/
+/svg2/
+/quran-svg-main_3.zip
+
+# Stray local files at repo root — not part of the app source.
+/*.xlsx
+/22780766_6685158.svg

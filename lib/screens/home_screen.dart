@@ -35,13 +35,14 @@ import 'onboarding_screen.dart';
 import 'adhkar_screen.dart';
 import 'daily_session_screen.dart';
 import 'prayer_times_screen.dart';
+import 'mosque/mosques_screen.dart';
 import 'tasbih_screen.dart';
 import 'turath_library_screen.dart';
 import 'profile_screen.dart';
 import 'qibla_screen.dart';
 import 'salah_tracker_screen.dart';
 import 'audio_library_screen.dart';
-import 'quran_reading_screen.dart';
+import 'mushaf_semantic_reader_screen.dart';
 import 'review_screen.dart';
 import 'time_awareness_screen.dart';
 import 'curriculum_map_screen.dart';
@@ -164,7 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     memorizedCount: _hifzMemorizedCount,
                     lang: lang,
                     onTap: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranReadingScreen()));
+                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const MushafSemanticReaderScreen()));
                       _load();
                     },
                   ),
@@ -247,6 +248,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: basicText('turath_library_title', lang),
                       color: NavColors.brown,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathLibraryScreen())),
+                    ),
+                    NavTileData(
+                      icon: Icons.mosque_outlined,
+                      label: basicText('mosques_title', lang),
+                      color: NavColors.green,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MosquesScreen())),
                     ),
                         ]),
                       ],

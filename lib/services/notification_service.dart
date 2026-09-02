@@ -147,11 +147,17 @@ class NotificationService {
 
   Future<void> init() => _ensureInitialized();
 
+  /// False until the local-notifications platform plugin has initialised
+  /// successfully. Stays false on a plain test VM / unsupported platform —
+  /// every public method below then no-ops instead of throwing.
+  bool _ready = false;
+
   /// Returns the payload of the notification that launched the app from a
   /// fully-closed state, if any — call once from `main.dart` after
   /// `init()`. Null on every ordinary (non-notification) launch.
   Future<String?> getLaunchPayload() async {
     await _ensureInitialized();
+    if (!_ready) return null;
     final details = await _plugin.getNotificationAppLaunchDetails();
     if (details?.didNotificationLaunchApp != true) return null;
     return details?.notificationResponse?.payload;
@@ -171,29 +177,40 @@ class NotificationService {
       // reminder still fires, just possibly a few hours off.
     }
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    await _plugin.initialize(
-      settings: const InitializationSettings(android: androidInit),
-      onDidReceiveNotificationResponse: (response) {
-        final payload = response.payload;
-        if (payload != null) onNotificationTap?.call(payload);
-      },
-    );
+    // Everything below touches the local-notifications platform plugin. If
+    // that plugin isn't registered (a plain test VM, a headless / unsupported
+    // platform), `initialize` throws a LateInitializationError — swallow it
+    // so a launch-time reminder setup never becomes an unhandled async error
+    // that breaks the app tree. Reminders simply don't schedule in that case.
+    try {
+      const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+      await _plugin.initialize(
+        settings: const InitializationSettings(android: androidInit),
+        onDidReceiveNotificationResponse: (response) {
+          final payload = response.payload;
+          if (payload != null) onNotificationTap?.call(payload);
+        },
+      );
 
-    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await android?.requestNotificationsPermission();
-    // Prayer-time notifications only (2026-08-17 reliability pass) — asks
-    // once for exact-alarm scheduling so Doze mode can't delay the adhan
-    // notification by several minutes. A no-op if already granted; opens
-    // Android's own settings screen on 12+ if not. `schedulePrayerTimeNotifications`
-    // checks `canScheduleExactNotifications()` itself and silently falls
-    // back to inexact scheduling if this was denied — never blocks or throws.
-    await android?.requestExactAlarmsPermission();
+      final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      await android?.requestNotificationsPermission();
+      // Prayer-time notifications only (2026-08-17 reliability pass) — asks
+      // once for exact-alarm scheduling so Doze mode can't delay the adhan
+      // notification by several minutes. A no-op if already granted; opens
+      // Android's own settings screen on 12+ if not.
+      // `schedulePrayerTimeNotifications` checks `canScheduleExactNotifications()`
+      // itself and silently falls back to inexact scheduling if this was
+      // denied — never blocks or throws.
+      await android?.requestExactAlarmsPermission();
 
-    // Report-deadline reminder removed with the Report feature (Phase -1).
-    // Cancel any reminder a previous app version may have already scheduled
-    // on this device so it doesn't keep firing with stale copy.
-    await _plugin.cancel(id: _reminderNotificationId);
+      // Report-deadline reminder removed with the Report feature (Phase -1).
+      // Cancel any reminder a previous app version may have already scheduled
+      // on this device so it doesn't keep firing with stale copy.
+      await _plugin.cancel(id: _reminderNotificationId);
+      _ready = true;
+    } catch (_) {
+      // Notifications unavailable in this environment — degrade silently.
+    }
   }
 
   /// Whether the OS notification permission is currently granted — read by
@@ -201,6 +218,7 @@ class NotificationService {
   /// plugin already no-ops safely if denied).
   Future<bool> notificationsEnabled() async {
     await _ensureInitialized();
+    if (!_ready) return false;
     final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     return await android?.areNotificationsEnabled() ?? false;
   }
@@ -210,6 +228,7 @@ class NotificationService {
   /// to decide `exactAllowWhileIdle` vs. `inexactAllowWhileIdle`.
   Future<bool> exactAlarmsEnabled() async {
     await _ensureInitialized();
+    if (!_ready) return false;
     final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     return await android?.canScheduleExactNotifications() ?? false;
   }
@@ -219,6 +238,7 @@ class NotificationService {
   /// actually queued, not just that a preference was saved.
   Future<List<PendingNotificationRequest>> pendingNotifications() async {
     await _ensureInitialized();
+    if (!_ready) return const [];
     return _plugin.pendingNotificationRequests();
   }
 
@@ -228,6 +248,7 @@ class NotificationService {
     required DateTime dateTime,
   }) async {
     await _ensureInitialized();
+    if (!_ready) return;
     final id = _taskNotificationIdBase + taskId;
     await _plugin.cancel(id: id);
     if (dateTime.isBefore(DateTime.now())) return;
@@ -253,6 +274,7 @@ class NotificationService {
 
   Future<void> cancelTaskReminder(int taskId) async {
     await _ensureInitialized();
+    if (!_ready) return;
     await _plugin.cancel(id: _taskNotificationIdBase + taskId);
   }
 
@@ -263,6 +285,7 @@ class NotificationService {
   /// in a row; opening any book resets the clock.
   Future<void> scheduleReadingReminder() async {
     await _ensureInitialized();
+    if (!_ready) return;
     await _plugin.cancel(id: _readingReminderNotificationId);
     final fireAt = DateTime.now().add(const Duration(days: _readingReminderInactiveDays));
     await _plugin.zonedSchedule(
@@ -290,6 +313,7 @@ class NotificationService {
   /// consistency is the whole point of a memorization streak.
   Future<void> scheduleHifzReminder() async {
     await _ensureInitialized();
+    if (!_ready) return;
     await _plugin.cancel(id: _hifzReminderNotificationId);
     final fireAt = DateTime.now().add(const Duration(days: _hifzReminderInactiveDays));
     await _plugin.zonedSchedule(
@@ -324,6 +348,7 @@ class NotificationService {
     required String dailyTargetLabel,
   }) async {
     await _ensureInitialized();
+    if (!_ready) return;
     final id = _goalReminderNotificationIdBase + goalId;
     await _plugin.cancel(id: id);
 
@@ -351,6 +376,7 @@ class NotificationService {
 
   Future<void> cancelGoalReminder(int goalId) async {
     await _ensureInitialized();
+    if (!_ready) return;
     await _plugin.cancel(id: _goalReminderNotificationIdBase + goalId);
   }
 
@@ -371,6 +397,7 @@ class NotificationService {
   /// entirely, via `AdhkarNotificationPrefs`.
   Future<void> scheduleAdhkarReminders() async {
     await _ensureInitialized();
+    if (!_ready) return;
     final prefs = AdhkarNotificationPrefs();
 
     int? fajrHour, asrHour, ishaHour;
@@ -451,6 +478,7 @@ class NotificationService {
   /// same graceful-fallback spirit as the adhkar prayer-time anchoring.
   Future<void> schedulePrayerTimeNotifications() async {
     await _ensureInitialized();
+    if (!_ready) return;
     final ids = [_fajrNotificationId, _dhuhrNotificationId, _asrNotificationId, _maghribNotificationId, _ishaNotificationId];
 
     if (!await PrayerNotificationPrefs().isEnabled()) {
@@ -526,6 +554,7 @@ class NotificationService {
   /// and from `NotificationSettingsScreen`'s "أضف ذكرًا" flow.
   Future<void> scheduleCustomAdhkarReminder({required int categoryId, required String categoryTitle, required int hour}) async {
     await _ensureInitialized();
+    if (!_ready) return;
     final minutes = await _estimatedMinutesForCategory(categoryTitle);
     await _scheduleDailyAt(
       id: _customAdhkarReminderIdBase + categoryId,
@@ -541,6 +570,7 @@ class NotificationService {
 
   Future<void> cancelCustomAdhkarReminder(int categoryId) async {
     await _ensureInitialized();
+    if (!_ready) return;
     await _plugin.cancel(id: _customAdhkarReminderIdBase + categoryId);
   }
 
@@ -572,6 +602,7 @@ class NotificationService {
   /// prompt regardless of yesterday's entry.
   Future<void> scheduleTimeLogReminder() async {
     await _ensureInitialized();
+    if (!_ready) return;
     await _scheduleDailyAt(
       id: _timeLogReminderNotificationId,
       hour: _timeLogReminderHour,
@@ -639,6 +670,7 @@ class NotificationService {
   /// hasn't been notified about yet — see that service for the dedupe logic.
   Future<void> showNewContentNotification(String body) async {
     await _ensureInitialized();
+    if (!_ready) return;
     await _plugin.show(
       id: _contentNotificationId,
       title: '📚 محتوى جديد',
@@ -666,6 +698,7 @@ class NotificationService {
   /// day with nothing to say gets no notification at all.
   Future<void> scheduleOrCancelCompanionMessage(CompanionMessage? message) async {
     await _ensureInitialized();
+    if (!_ready) return;
     if (message == null) {
       await _plugin.cancel(id: _companionNotificationId);
       return;

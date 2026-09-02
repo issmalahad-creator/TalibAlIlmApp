@@ -7,6 +7,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'repositories/adhkar_repository.dart';
 import 'repositories/custom_adhkar_reminder_repository.dart';
 import 'repositories/milestone_repository.dart';
+import 'repositories/mushaf_layout_sync.dart';
+import 'repositories/quran_learning_sync.dart';
+import 'repositories/turath_catalog_sync.dart';
 import 'screens/adhkar_screen.dart';
 import 'screens/completion_goals_screen.dart';
 import 'screens/knowledge_review_screen.dart';
@@ -109,12 +112,18 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   final _notificationService = NotificationService();
   final _bookContentService = BookContentService();
   final _quranImportService = QuranImportService();
+  final _turathCatalogSync = TurathCatalogSync();
+  final _mushafLayoutSync = MushafLayoutSync();
+  final _quranLearningSync = QuranLearningSync();
   final _milestoneRepository = MilestoneRepository();
 
   @override
   void initState() {
     super.initState();
     _quranImportService.importIfNeeded();
+    _turathCatalogSync.syncCatalog();
+    _mushafLayoutSync.sync();
+    _quranLearningSync.sync();
     _milestoneRepository.seedIfNeeded();
     _notificationService.scheduleAdhkarReminders();
     _notificationService.scheduleTimeLogReminder();

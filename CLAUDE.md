@@ -6,6 +6,10 @@ Single reference for this project. Read this before touching any code — same d
 
 This started as a near-clone of `DawahReportApp` (same architecture, forked early). As of 2026-08-15 it is being rebuilt into a Quran memorization/understanding/application companion — full product spec, database schema, algorithms, and phased build order live in **[`QURAN_COMPANION_ROADMAP.md`](QURAN_COMPANION_ROADMAP.md)**. Read that file in full before writing any feature code. Don't re-derive the plan from scratch or from memory — the roadmap is long and was built deliberately (including real web research for every scholar/text named in it); trust it over improvisation.
 
+**Before building or changing any Quran/mushaf feature, load the `quran-engineering` skill** (`.claude/skills/quran-engineering/SKILL.md`) — it fronts a permanent engineering knowledge base in **[`docs/quran/`](docs/quran/)** (SOURCES, KNOWLEDGE, MUSHAF_ENGINEERING, QURAN_DATA_MODEL, QURAN_LAYOUT, QURAN_INTERACTION, QURAN_TERMINOLOGY, ERRATA) that records the correct model, the source of truth, the right identity, and the mistakes already made for mushaf rendering/layout, Uthmani vs imlaei vs normalized text, word/ayah identity, markers, tajweed, qira'at, hifz, and the Ayah Notebook.
+
+The **Quran Learning Engine** design (the mushaf as a teaching surface: tap a word → sourced ṣarf/naḥw/tajwīd/tafsīr → learn in the notebook → apply back on the page; deterministic, no AI, no quizzes) lives in **[`docs/QURAN_LEARNING_ARCHITECTURE.md`](docs/QURAN_LEARNING_ARCHITECTURE.md)** + `QURAN_DATA_CONTRACTS.md` + `QURAN_SOURCES_AND_LICENSES.md` + `QURAN_DATA_VALIDATION.md` + `QURAN_LEARNING_ROADMAP.md`. **Design only — not approved for build. First code is the Prototype (roadmap §P).**
+
 ## Where the project stands (updated 2026-08-25)
 
 `TODO.md` is the authoritative live tracker — phase by phase, with commit hashes and verification notes. This section is only a compass, not a duplicate of it.

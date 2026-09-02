@@ -40,7 +40,7 @@ class PageRecitationScreen extends StatefulWidget {
   State<PageRecitationScreen> createState() => _PageRecitationScreenState();
 }
 
-enum _Status { loading, idle, initializing, listening, scoring, done, permissionDenied }
+enum _Status { loading, idle, initializing, listening, scoring, done, permissionDenied, error }
 
 class _PageRecitationScreenState extends State<PageRecitationScreen> {
   final _repo = QuranReadingRepository();
@@ -64,6 +64,7 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
 
   _Status _status = _Status.loading;
   PageRecitationResult? _result;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -116,6 +117,23 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
       // promptly, generous listenFor as a per-segment safety cap.
       listenFor: const Duration(seconds: 25),
       pauseFor: const Duration(seconds: 3),
+      onError: (message, permanent) {
+        if (!mounted) return;
+        if (!permanent) {
+          // Transient (e.g. a pre-speech silence timeout) -- the engine is
+          // already restarting the segment on its own; just clear any
+          // stale partial text so the UI doesn't show leftover words.
+          setState(() {
+            _liveWords = [];
+            _liveResult = [];
+          });
+          return;
+        }
+        setState(() {
+          _status = _Status.error;
+          _errorMessage = message;
+        });
+      },
       onPartialResult: (text) {
         if (!mounted || _committedCount >= _flatWords.length) return;
         final words = text.trim().isEmpty ? <String>[] : text.trim().split(RegExp(r'\s+'));
@@ -265,12 +283,58 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
     return TextSpan(text: word.text, style: base.copyWith(color: AppColors.textMuted.withValues(alpha: 0.65)));
   }
 
+  // Real Android SpeechRecognizer error codes (verified against the real
+  // speech_to_text plugin source) mapped to honest, non-technical Arabic
+  // messages -- never a raw error code shown to the student.
+  String _friendlyError(String? code, String lang) {
+    switch (code) {
+      case 'error_permission':
+        return basicText('recitation_mic_permission_denied', lang);
+      case 'error_network':
+      case 'error_network_timeout':
+        return basicText('recitation_network_error', lang);
+      case 'error_language_not_supported':
+      case 'error_language_unavailable':
+        return basicText('recitation_no_arabic_locale', lang);
+      default:
+        return basicText('recitation_generic_error', lang);
+    }
+  }
+
   Widget _buildStatusBar(String lang) {
     switch (_status) {
       case _Status.listening:
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Text(basicText('recitation_listening_status', lang), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+          child: Column(
+            children: [
+              Text(basicText('recitation_listening_status', lang), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+              // Real, visible proof the microphone is actually capturing
+              // speech (real device bug found 2026-08-29, Ismail: "لا يدخل
+              // الصوت" -- with no visible transcript there was no way to
+              // tell audio capture from a silently-stalled session).
+              if (_liveWords.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    '${basicText('recitation_heard_label', lang)} ${_liveWords.join(' ')}',
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  ),
+                ),
+            ],
+          ),
+        );
+      case _Status.error:
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          child: Column(
+            children: [
+              Text(_friendlyError(_errorMessage, lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
+              TextButton(onPressed: _start, child: Text(basicText('retry_action', lang))),
+            ],
+          ),
         );
       case _Status.scoring:
         return const Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator());

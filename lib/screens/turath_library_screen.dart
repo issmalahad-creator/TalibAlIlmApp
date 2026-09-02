@@ -7,21 +7,17 @@ import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import 'turath_benefits_screen.dart';
+import 'turath_categories_screen.dart';
 import 'turath_my_library_screen.dart';
+import 'turath_quotes_screen.dart';
 import 'turath_reader_screen.dart';
-import 'turath_topic_books_screen.dart';
+import 'turath_study_notebook_screen.dart';
 
-/// Real Arabic subject terms used as "تصفح حسب الموضوع" shortcuts -- NOT a
-/// real Turath category taxonomy (the public API has none, see
-/// `TurathTopicBooksScreen`'s doc comment) -- just honest, useful search
-/// shortcuts for the subjects a student of Islamic knowledge browses most.
-const _turathTopics = ['العقيدة', 'التفسير', 'علوم القرآن', 'الحديث', 'الفقه', 'أصول الفقه', 'السيرة', 'اللغة العربية', 'الرقائق'];
-
-/// "📚 المكتبة التراثية" — Phase 79.7's search entry point (chosen as the
-/// *first* screen rather than a categories browser: turath.io's real API
-/// has no "list all categories" endpoint in either reference SDK, verified
-/// live 2026-08-27 — TODO.md 79.3 tracks adding category browsing once
-/// that's real, not guessed). Search itself is fully live-verified.
+/// "📚 المكتبة التراثية" — real search entry point. Category browsing lives
+/// in [TurathCategoriesScreen] (a real, complete, vertical list of all 40
+/// subjects, 2026-08-29) reached via the tile below -- not crammed into
+/// this screen as a horizontal chip row that hid most of them.
 class TurathLibraryScreen extends StatefulWidget {
   const TurathLibraryScreen({super.key});
 
@@ -107,24 +103,53 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
             ),
             if (_status == _SearchStatus.idle) ...[
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Align(alignment: Alignment.centerRight, child: Text(basicText('turath_topics_title', lang), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textMuted))),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  color: AppColors.primaryLight,
+                  child: ListTile(
+                    leading: const Icon(Icons.category_outlined, color: AppColors.primary),
+                    title: Text(basicText('turath_categories_title', lang), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text(basicText('turath_categories_subtitle', lang), style: const TextStyle(fontSize: 11.5)),
+                    trailing: const Icon(Icons.chevron_left_rounded),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathCategoriesScreen())),
+                  ),
+                ),
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: _turathTopics
-                      .map((topic) => Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: ActionChip(
-                              label: Text(topic),
-                              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathTopicBooksScreen(topicQuery: topic, topicLabel: topic))),
-                            ),
-                          ))
-                      .toList(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  color: AppColors.primaryLight,
+                  child: ListTile(
+                    leading: const Icon(Icons.auto_stories_rounded, color: AppColors.primary),
+                    title: Text(basicText('turath_notebook_title', lang), style: const TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text(basicText('turath_notebook_subtitle', lang), style: const TextStyle(fontSize: 11.5)),
+                    trailing: const Icon(Icons.chevron_left_rounded),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathStudyNotebookScreen())),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.format_quote_rounded, size: 18),
+                        label: Text(basicText('turath_quotes_title', lang), overflow: TextOverflow.ellipsis),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathQuotesScreen())),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.lightbulb_outline_rounded, size: 18),
+                        label: Text(basicText('turath_benefits_title', lang), overflow: TextOverflow.ellipsis),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathBenefitsScreen())),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
