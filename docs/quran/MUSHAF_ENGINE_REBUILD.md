@@ -1,12 +1,14 @@
 # Mushaf Rendering Engine — Rebuild Audit & Plan
 
-Status: **PLAN APPROVED 2026‑09‑03 (Ismail). M0 only for now** — git
-checkpoint of the stable tree + this audit, verified against the real data
-(§1.6). **No M1 code** until the baseline is reviewed. This is the project's
-single active front; Supabase (`docs/SUPABASE_ARCHITECTURE.md`) stays
-untouched until the mushaf engine ships **604/604 QA + real-device proof**.
-Ordered exactly as Ismail asked: CURRENT ARCHITECTURE → PROBLEMS → ROOT
-CAUSES → PROPOSED ARCHITECTURE → MIGRATION PLAN → QA PLAN.
+Status: **PLAN APPROVED 2026‑09‑03 (Ismail). M0 ✅ · M1 ✅ (`ad49877`) · M2 ✅
+(`7e59639`). M3 NOT started — waiting on Ismail.** Each M step is its own
+revertable commit, verified with `flutter analyze` + `flutter test` + the
+Android emulator, no visual change until M3. Recto/verso shift root‑caused
+before M3 (`docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md`). This is the
+project's single active front; Supabase (`docs/SUPABASE_ARCHITECTURE.md`)
+stays untouched until the mushaf engine ships **604/604 QA + real‑device
+proof**. Ordered exactly as Ismail asked: CURRENT ARCHITECTURE → PROBLEMS →
+ROOT CAUSES → PROPOSED ARCHITECTURE → MIGRATION PLAN → QA PLAN.
 
 Load `.claude/skills/quran-engineering` + `docs/quran/MUSHAF_ENGINEERING.md`
 before acting on this. This doc does **not** restate what those already say
