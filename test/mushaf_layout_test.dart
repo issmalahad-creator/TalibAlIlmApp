@@ -56,6 +56,9 @@ void main() {
       expect(v.degenerateBoxes, 0);
       expect(v.pagesWithoutWords, 0);
       expect(v.words, greaterThan(77000));
+      // Phase 80 / M1 — md-page-inner data-rect (x0,y0,x1,y1) is authored and
+      // valid for all 604 pages.
+      expect(v.badContentRects, 0, reason: v.toString());
     });
 
     test('a truncated layout (one page missing) is rejected, not ingested', () async {
@@ -153,6 +156,36 @@ void main() {
       expect((bad.first['c'] as num).toInt(), 0);
     });
 
+    test('Phase 80/M1 — every page content rect is a valid x,y,w,h box '
+        'inside the viewBox (data-rect corners converted correctly)', () async {
+      final db = await DatabaseHelper.instance.database;
+      // Would have failed for the ~301 recto pages when data-rect x0,y0,x1,y1
+      // was mis-read as x,y,w,h (rect_w held x_max).
+      final bad = await db.rawQuery('''
+        SELECT COUNT(*) AS c FROM mushaf_pages
+        WHERE rect_x IS NULL OR rect_w IS NULL
+           OR rect_w <= 0 OR rect_h <= 0
+           OR rect_x < -1 OR rect_y < -1
+           OR rect_x + rect_w > ${kMushafViewBoxWidth + 1}
+           OR rect_y + rect_h > ${kMushafViewBoxHeight + 1}
+      ''');
+      expect((bad.first['c'] as num).toInt(), 0);
+
+      // Spot-check page 50 (a recto page): frame ~ x90,y75 w248 h400, NOT the
+      // old (90, 75, 339, 475).
+      final p50 = await repo.pageLayout(50);
+      expect(p50!.rect, isNotNull);
+      expect(p50.rect!.w, closeTo(248.2, 0.5));
+      expect(p50.rect!.h, closeTo(400.5, 0.5));
+      expect(p50.rect!.right, lessThan(kMushafViewBoxWidth));
+
+      // Frame width is uniform across the mushaf (recto/verso only shifts x).
+      final widths = await db.rawQuery(
+          'SELECT MIN(rect_w) AS lo, MAX(rect_w) AS hi FROM mushaf_pages');
+      expect((widths.first['lo'] as num).toDouble(), greaterThan(180));
+      expect((widths.first['hi'] as num).toDouble(), lessThan(255));
+    });
+
     test('page 1 starts the Quran and page 604 ends it', () async {
       final p1 = await repo.pageLayout(1);
       expect(p1, isNotNull);
@@ -212,8 +245,19 @@ void main() {
       final rows = await db.query('mushaf_meta');
       final meta = {for (final r in rows) r['key'] as String: r['value'] as String};
       expect(meta['layout_version'], '$kMushafLayoutVersion');
+      expect(meta['layout_version'], '2'); // Phase 80 / M1 bump
       expect(int.parse(meta['aya_marks']!), canonTotalAyat);
       expect(int.parse(meta['words']!), greaterThan(77000));
+      expect(meta['content_rects_ok'], '604');
     });
+  });
+
+  test('manifest carries a valid art_set_sha256 (artwork integrity hash)', () {
+    final mf = File(join('assets', 'mushaf', 'mushaf_manifest.json'));
+    expect(mf.existsSync(), isTrue);
+    final m = jsonDecode(mf.readAsStringSync()) as Map<String, dynamic>;
+    expect(m['art_set_sha256'], isA<String>());
+    expect(RegExp(r'^[0-9a-f]{64}$').hasMatch(m['art_set_sha256'] as String), isTrue,
+        reason: 'run: python tool/mushaf_art_hash.py --write');
   });
 }

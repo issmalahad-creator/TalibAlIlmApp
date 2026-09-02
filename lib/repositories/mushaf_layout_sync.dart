@@ -44,6 +44,12 @@ class MushafValidation {
   final int ayaMarkAyahMismatch; // |marks set  Δ  word-ayat set|
   final int degenerateBoxes;
   final int pagesWithoutWords;
+
+  /// Phase 80 / M1: pages whose `md-page-inner data-rect` (read as
+  /// `x0,y0,x1,y1` corners) is missing, malformed, non-positive-area, or not
+  /// inside the viewBox. Expected 0 — the content frame is authored for all
+  /// 604 pages.
+  final int badContentRects;
   final List<String> failures;
 
   const MushafValidation({
@@ -58,6 +64,7 @@ class MushafValidation {
     required this.ayaMarkAyahMismatch,
     required this.degenerateBoxes,
     required this.pagesWithoutWords,
+    required this.badContentRects,
     required this.failures,
   });
 
@@ -68,7 +75,8 @@ class MushafValidation {
       'distinctAyat=$distinctAyat, ayaMarks=$ayaMarks, '
       'badWordIndex=$nonContiguousWordIndexAyat, badWordOrder=$nonContiguousWordOrderPages, '
       'surahCountMismatch=$surahAyahCountMismatches, ayaMarkMismatch=$ayaMarkAyahMismatch, '
-      'degenerateBoxes=$degenerateBoxes, pagesWithoutWords=$pagesWithoutWords, ok=$ok'
+      'degenerateBoxes=$degenerateBoxes, pagesWithoutWords=$pagesWithoutWords, '
+      'badContentRects=$badContentRects, ok=$ok'
       '${failures.isEmpty ? "" : ", failures=$failures"})';
 }
 
@@ -83,6 +91,7 @@ class MushafValidation {
 /// and only when the bundled asset's version differs from what's stored.
 class MushafLayoutSync {
   static const _assetPath = 'assets/mushaf/mushaf_layout.json.gz';
+  static const _manifestPath = 'assets/mushaf/mushaf_manifest.json';
 
   /// Entry point (called once from app startup, after migrations). Seeds if
   /// the table is empty or the bundled asset version moved on. Every failure
@@ -116,13 +125,30 @@ class MushafLayoutSync {
         debugPrint('MushafLayoutSync: bundled asset failed validation, not seeding. $v');
         return MushafSyncResult('rejected', validation: v);
       }
-      await _ingest(db, layout, v);
+      await _ingest(db, layout, v, artSetSha256: await _manifestArtHash());
       debugPrint('MushafLayoutSync: seeded from asset. $v');
       return MushafSyncResult('seeded', changed: true, validation: v);
     } catch (e) {
       debugPrint('MushafLayoutSync: asset seed failed ($e).');
       return const MushafSyncResult('skipped');
     }
+  }
+
+  /// The bundled art integrity hash (`tool/mushaf_art_hash.py`), from the
+  /// manifest. Advisory — a bad/missing value is logged, not fatal; the
+  /// structural [validate] is the real gate. Recorded in `mushaf_meta` so the
+  /// M5 QA tool can diff it against a fresh recompute of `pages_svg/`.
+  Future<String?> _manifestArtHash() async {
+    try {
+      final text = await rootBundle.loadString(_manifestPath);
+      final m = jsonDecode(text) as Map<String, dynamic>;
+      final h = m['art_set_sha256'];
+      if (h is String && RegExp(r'^[0-9a-f]{64}$').hasMatch(h)) return h;
+      debugPrint('MushafLayoutSync: manifest art_set_sha256 missing/invalid.');
+    } catch (e) {
+      debugPrint('MushafLayoutSync: could not read manifest ($e).');
+    }
+    return null;
   }
 
   /// Validate then ingest an already-parsed layout map. The seam tests use.
@@ -145,6 +171,8 @@ class MushafLayoutSync {
     var badWordOrderPages = 0;
     var degenerateBoxes = 0;
     var pagesWithoutWords = 0;
+    var badContentRects = 0;
+    final badContentRectPages = <int>[];
     final wordIndicesByAyah = <String, List<int>>{};
     final maxAyahBySurah = <int, int>{};
     final wordAyahKeys = <String>{};
@@ -206,6 +234,28 @@ class MushafLayoutSync {
       final wantOrder = [for (var i = 1; i <= orders.length; i++) i];
       if (!_listEq(orders, wantOrder)) badWordOrderPages++;
 
+      // Content frame — `md-page-inner data-rect` as x0,y0,x1,y1 corners
+      // (kMushafLayoutVersion v2). Must be 4 numbers, positive area, inside
+      // the viewBox. Authored for all 604 pages.
+      final r = p['rect'];
+      var rectOk = false;
+      if (r is List && r.length == 4 && r.every((v) => v is num)) {
+        final x0 = (r[0] as num).toDouble();
+        final y0 = (r[1] as num).toDouble();
+        final x1 = (r[2] as num).toDouble();
+        final y1 = (r[3] as num).toDouble();
+        rectOk = x1 > x0 &&
+            y1 > y0 &&
+            x0 >= -1 &&
+            y0 >= -1 &&
+            x1 <= vbW + 1 &&
+            y1 <= vbH + 1;
+      }
+      if (!rectOk) {
+        badContentRects++;
+        if (badContentRectPages.length < 10) badContentRectPages.add(pn);
+      }
+
       for (final mraw in (p['marks'] as List?) ?? const []) {
         final m = mraw as Map<String, dynamic>;
         ayaMarks++;
@@ -257,6 +307,10 @@ class MushafLayoutSync {
     if (markMismatch != 0) failures.add('aya-mark set vs word-ayat set differ by=$markMismatch');
     if (degenerateBoxes != 0) failures.add('degenerate/out-of-viewBox word boxes=$degenerateBoxes');
     if (pagesWithoutWords != 0) failures.add('pages with zero words=$pagesWithoutWords');
+    if (badContentRects != 0) {
+      failures.add('pages with missing/invalid content rect=$badContentRects '
+          '(e.g. $badContentRectPages)');
+    }
 
     return MushafValidation(
       pages: seenPages.length,
@@ -270,6 +324,7 @@ class MushafLayoutSync {
       ayaMarkAyahMismatch: markMismatch,
       degenerateBoxes: degenerateBoxes,
       pagesWithoutWords: pagesWithoutWords,
+      badContentRects: badContentRects,
       failures: failures,
     );
   }
@@ -277,8 +332,9 @@ class MushafLayoutSync {
   Future<void> _ingest(
     Database db,
     Map<String, dynamic> layout,
-    MushafValidation validation,
-  ) async {
+    MushafValidation validation, {
+    String? artSetSha256,
+  }) async {
     final pages = (layout['pages'] as List).cast<Map<String, dynamic>>();
     final vb = (layout['viewBox'] as List?) ?? const [0, 0, kMushafViewBoxWidth, kMushafViewBoxHeight];
     final vbW = (vb[2] as num).toDouble();
@@ -354,6 +410,8 @@ class MushafLayoutSync {
         'seeded_at_ms': '${DateTime.now().millisecondsSinceEpoch}',
         'words': '${validation.words}',
         'aya_marks': '${validation.ayaMarks}',
+        'content_rects_ok': '${validation.pages - validation.badContentRects}',
+        'art_set_sha256': ?artSetSha256,
       }.entries) {
         await txn.insert('mushaf_meta', {'key': e.key, 'value': e.value});
       }

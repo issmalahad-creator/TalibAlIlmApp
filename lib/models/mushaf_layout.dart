@@ -26,7 +26,15 @@ const double kMushafViewBoxHeight = 547.09;
 /// The bump applied to `norm`/schema-style versioning of the bundled layout
 /// asset. Bump when `tool/extract_mushaf_svg.py` changes in a way that
 /// alters the emitted JSON so a stale seeded copy is rebuilt.
-const int kMushafLayoutVersion = 1;
+///
+/// v2 (Phase 80 / M1, 2026-09-03): the page `rect` (from the source SVG's
+/// `md-page-inner data-rect`) is given as `x0,y0,x1,y1` **corner** coords —
+/// verified against all 604 bundled `SVG V1.01` pages. It used to be read as
+/// `x,y,w,h`, which stored `x_max/y_max` into `mushaf_pages.rect_w/rect_h`
+/// for the ~349 pages where that overflows the viewBox. Now converted
+/// correctly in [MushafBox.fromCorners]; the stored `rect_*` columns hold
+/// true `x,y,w,h`. Pure data fix — nothing renders from `rect` yet.
+const int kMushafLayoutVersion = 2;
 
 /// An axis-aligned box in source `viewBox` units. No `dart:ui` dependency.
 class MushafBox {
@@ -57,6 +65,8 @@ class MushafBox {
   /// Box grown by [d] on every side (tap-target padding), clamped to ≥ 0 size.
   MushafBox inflate(double d) => MushafBox(x - d, y - d, w + 2 * d, h + 2 * d);
 
+  /// Parse `[x, y, w, h]` — the form used by every word / aya-mark / marker
+  /// `bbox` in the layout asset (`tool/extract_mushaf_svg.py` `bbox_of`).
   static MushafBox? fromList(Object? v) {
     if (v is List && v.length == 4) {
       return MushafBox(
@@ -65,6 +75,21 @@ class MushafBox {
         (v[2] as num).toDouble(),
         (v[3] as num).toDouble(),
       );
+    }
+    return null;
+  }
+
+  /// Parse `[x0, y0, x1, y1]` — the **corner** form the source SVG uses for
+  /// `md-page-inner data-rect` (the page's 15-line content frame). Returns a
+  /// normal `x,y,w,h` box, or null if the 4 numbers aren't a valid,
+  /// positive-area rectangle. See [kMushafLayoutVersion] v2.
+  static MushafBox? fromCorners(Object? v) {
+    if (v is List && v.length == 4) {
+      final x0 = (v[0] as num).toDouble();
+      final y0 = (v[1] as num).toDouble();
+      final x1 = (v[2] as num).toDouble();
+      final y1 = (v[3] as num).toDouble();
+      if (x1 > x0 && y1 > y0) return MushafBox(x0, y0, x1 - x0, y1 - y0);
     }
     return null;
   }
@@ -312,7 +337,13 @@ class MushafLineInfo {
 /// [MushafLayoutRepository] hands to the [MushafPageView].
 class MushafPageLayout {
   final int page; // 1..604
-  final MushafBox? rect; // md-page-inner content rect
+
+  /// The page's 15-line content frame — the source SVG's `md-page-inner`
+  /// `data-rect`, as a normal `x,y,w,h` box in viewBox units (converted from
+  /// the source's `x0,y0,x1,y1` corner form — see [MushafBox.fromCorners]
+  /// and [kMushafLayoutVersion] v2). Present for all 604 pages. Not yet
+  /// consumed by the renderer (Phase 80 / M3 will centre it).
+  final MushafBox? rect;
   final double viewBoxWidth;
   final double viewBoxHeight;
   final List<MushafLineInfo> lines;
@@ -403,7 +434,8 @@ class MushafPageLayout {
     final page = (j['page'] as num).toInt();
     return MushafPageLayout(
       page: page,
-      rect: MushafBox.fromList(j['rect']),
+      // `j['rect']` is md-page-inner data-rect as x0,y0,x1,y1 corners (v2).
+      rect: MushafBox.fromCorners(j['rect']),
       viewBoxWidth: kMushafViewBoxWidth,
       viewBoxHeight: kMushafViewBoxHeight,
       lines: [
