@@ -442,11 +442,30 @@ manifest + `mushaf_meta` — identical before/after ⇒ artwork untouched.
 change.** The extractor itself was not modified — the asset already carried
 the raw 4 numbers; only the Dart interpretation was wrong.
 
-**M2 — geometry / transform, behaviour-preserving.** Add `ScreenTransform` +
-`PageGeometry` (rename). Wire them into `MushafPageView` but feed the
-transform the **old `_contentBox` result** behind a flag so existing widget
-tests stay green. New unit tests for `ScreenTransform` (scale, offset,
-round-trip, "no line exceeds width" over all 604 via the seeded DB).
+**M2 — geometry / transform, behaviour-preserving. ✅ DONE 2026‑09‑03
+(commit `<pending>`).** `lib/widgets/mushaf/screen_transform.dart` —
+`ScreenTransform` (one scalar scale + offset; `.fit` takes raw doubles so it
+mirrors the pre‑M2 inline math term‑for‑term) + `MushafFitSource` flag
+(`legacyContentBox` default = no visual change; `contentRect` = M3, wired but
+unused). `MushafPageView` now derives `scale`/`dx`/`dy` from `ScreenTransform`
+via `MushafFitSource.legacyContentBox`; the rest of `build` is unchanged.
+`test/screen_transform_test.dart` (10 tests) proves it reproduces the legacy
+`(scale, dx, dy)` **bit‑for‑bit** on 7 realistic frame/viewport cases + exact
+inverse + aspect‑preserved. `flutter analyze` clean · `flutter test` 457/457.
+**Emulator‑verified** (`Medium_Phone_API_35`): pages 1/3/4/255 render
+unchanged; word tap on p3 → `ٱللَّهُ` (al‑Baqara 7, w2) with correct
+highlight. The `PageGeometry`/`*Geometry` model rename in §4.1 was **not**
+bundled here — a wide rename would defeat "prove nothing changed"; do it as
+its own isolated mechanical step (M2b) or fold into M3.
+
+**Recto/verso shift — root cause proven before M3.** `tool/mushaf_svg_qa.py`
+over all 604 SVGs + `docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md`: one viewBox,
+**zero transforms**, uniform text width (~245) and frame width (~283); the
+whole content block's x‑origin alternates ~±23 units recto/verso = the bound
+muṣḥaf's gutter margin, faithfully digitised. **Category A but correct** — do
+NOT edit the SVGs, do NOT add per‑page offsets. M3 = one uniform rule: centre
+the per‑page content region (M1‑corrected `data-rect`, or the frame bbox —
+Ismail's choice) instead of the raw viewBox.
 
 **M3 — renderer switch.** Replace `_contentBox` with the corrected
 `contentRect` centred by `ScreenTransform` (§4.2–4.3); SVG box becomes

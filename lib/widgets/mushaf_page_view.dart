@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/mushaf_layout.dart';
+import 'mushaf/screen_transform.dart';
 
 /// Phase 79 `79-mushaf` / خطة القارئ الموحّد — the **Rendering + Interaction
 /// Layer**.
@@ -53,6 +54,12 @@ class MushafPageView extends StatelessWidget {
   /// Draw each word box outline — debugging / verification aid.
   final bool debugBoxes;
 
+  /// Phase 80 / M2 — which viewBox-unit rectangle the [ScreenTransform] fits
+  /// to the viewport. Default [MushafFitSource.legacyContentBox] reproduces
+  /// the pre-M2 `_contentBox` heuristic **exactly** (no visual change). M3
+  /// flips the default to [MushafFitSource.contentRect].
+  final MushafFitSource fitSource;
+
   const MushafPageView({
     super.key,
     required this.layout,
@@ -65,6 +72,7 @@ class MushafPageView extends StatelessWidget {
     this.textColor = const Color(0xFF1F2937),
     this.artInk,
     this.debugBoxes = false,
+    this.fitSource = MushafFitSource.legacyContentBox,
   });
 
   @override
@@ -76,23 +84,54 @@ class MushafPageView extends StatelessWidget {
         final maxW = constraints.maxWidth.isFinite ? constraints.maxWidth : vbW;
         final maxH = constraints.maxHeight.isFinite ? constraints.maxHeight : vbH;
 
-        // Fit the page's inked content to the viewport (see _contentBox) —
-        // the hit-test, the art and the Selection Layer all share this exact
-        // transform, so a tap lands on the same word the user sees.
-        final content = _contentBox(layout);
-        final cpad = 0.045 * (content.w > content.h ? content.w : content.h);
-        final cx = content.x - cpad;
-        final cy = content.y - cpad;
-        final cw = content.w + 2 * cpad;
-        final ch = content.h + 2 * cpad;
-        final scale = (maxW / cw) < (maxH / ch) ? (maxW / cw) : (maxH / ch);
-        final dx = (maxW - cw * scale) / 2 - cx * scale;
-        final dy = (maxH - ch * scale) / 2 - cy * scale;
-
-        Offset toLocalViewBox(Offset widgetLocal) => Offset(
-              (widgetLocal.dx - dx) / scale,
-              (widgetLocal.dy - dy) / scale,
+        // Fit a viewBox-unit rectangle to the viewport — the hit-test, the
+        // art and the Selection Layer all share this one transform, so a tap
+        // lands on the same word the user sees.
+        //
+        // M2: `legacyContentBox` builds exactly the rectangle the old inline
+        // `_contentBox` math used (union bbox, symmetric-X, line-pitch
+        // headroom, ×1.045 via cpad) and feeds it to ScreenTransform.fit
+        // term-for-term → `scale`/`dx`/`dy` are unchanged from before.
+        final ({double left, double top, double width, double height}) fit;
+        switch (fitSource) {
+          case MushafFitSource.legacyContentBox:
+            final content = _contentBox(layout);
+            final cpad =
+                0.045 * (content.w > content.h ? content.w : content.h);
+            fit = (
+              left: content.x - cpad,
+              top: content.y - cpad,
+              width: content.w + 2 * cpad,
+              height: content.h + 2 * cpad,
             );
+          case MushafFitSource.contentRect:
+            final r = layout.rect;
+            if (r != null && r.w > 0 && r.h > 0) {
+              fit = (left: r.x, top: r.y, width: r.w, height: r.h);
+            } else {
+              final content = _contentBox(layout);
+              final cpad =
+                  0.045 * (content.w > content.h ? content.w : content.h);
+              fit = (
+                left: content.x - cpad,
+                top: content.y - cpad,
+                width: content.w + 2 * cpad,
+                height: content.h + 2 * cpad,
+              );
+            }
+        }
+        final t = ScreenTransform.fit(
+          fitLeft: fit.left,
+          fitTop: fit.top,
+          fitWidth: fit.width,
+          fitHeight: fit.height,
+          available: Size(maxW, maxH),
+        );
+        final scale = t.scale;
+        final dx = t.offset.dx;
+        final dy = t.offset.dy;
+
+        Offset toLocalViewBox(Offset widgetLocal) => t.toViewBox(widgetLocal);
 
         void handleTap(Offset widgetLocal) {
           if (onWordTap == null && onAyaMarkTap == null) return;
