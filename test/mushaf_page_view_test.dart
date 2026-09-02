@@ -74,6 +74,20 @@ Offset _toWidget(MushafPageLayout l, Size size, Offset vb) {
   return Offset(dx + vb.dx * scale, dy + vb.dy * scale);
 }
 
+/// Mirror of the M3 `MushafFitSource.contentRect` transform: fit the page's
+/// own `rect` (md-page-inner data-rect) + a 3%-of-width breathing margin,
+/// centred in the viewport.
+Offset _toWidgetContentRect(MushafPageLayout l, Size size, Offset vb) {
+  final r = l.rect!;
+  final pad = 0.03 * r.w;
+  final cx = r.x - pad, cy = r.y - pad, cw = r.w + 2 * pad, ch = r.h + 2 * pad;
+  final scale =
+      (size.width / cw) < (size.height / ch) ? size.width / cw : size.height / ch;
+  final dx = (size.width - cw * scale) / 2 - cx * scale;
+  final dy = (size.height - ch * scale) / 2 - cy * scale;
+  return Offset(dx + vb.dx * scale, dy + vb.dy * scale);
+}
+
 const _size = Size(kMushafViewBoxWidth, kMushafViewBoxHeight);
 
 void main() {
@@ -185,6 +199,43 @@ void main() {
     await tester.tapAt(topLeft + _toWidget(_layout(), _size, const Offset(250, 15)));
     await tester.pump();
     expect(tapped, isFalse);
+  });
+
+  testWidgets('fitSource: contentRect — hit-test still resolves to the right word',
+      (tester) async {
+    MushafWord? tappedWord;
+    MushafAyaMark? tappedMark;
+    final l = _layout(); // rect = full viewBox
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: kMushafViewBoxWidth,
+          height: kMushafViewBoxHeight,
+          child: MushafPageView(
+            layout: l,
+            fitSource: MushafFitSource.contentRect,
+            onWordTap: (w) => tappedWord = w,
+            onAyaMarkTap: (m) => tappedMark = m,
+          ),
+        ),
+      ),
+    ));
+    final topLeft = tester.getTopLeft(find.byType(MushafPageView));
+    // word 3 centre: box (300,80,40,20) -> viewBox (320, 90)
+    await tester
+        .tapAt(topLeft + _toWidgetContentRect(l, _size, const Offset(320, 90)));
+    await tester.pump();
+    expect(tappedWord, isNotNull);
+    expect(tappedWord!.wordOrder, 3);
+    expect(tappedWord!.surah, 2);
+    expect(tappedWord!.ayah, 7);
+    // and the medallion still wins where it should: mark box (220,42,14,16)
+    await tester
+        .tapAt(topLeft + _toWidgetContentRect(l, _size, const Offset(227, 50)));
+    await tester.pump();
+    expect(tappedMark, isNotNull);
+    expect(tappedMark!.surah, 2);
+    expect(tappedMark!.ayah, 6);
   });
 
   testWidgets('selectedAyah / selectedWord paint the Selection Layer',

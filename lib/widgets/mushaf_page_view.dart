@@ -8,6 +8,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/mushaf_layout.dart';
 import 'mushaf/screen_transform.dart';
 
+export 'mushaf/screen_transform.dart' show MushafFitSource, ScreenTransform;
+
+/// M3 — breathing margin around the `contentRect` fit, as a fraction of the
+/// frame width (uniform ~245 across all 604 pages, so this is ~equal on
+/// every page). ~3% ⇒ text fills ~94% of the available width.
+const double _kContentRectPad = 0.03;
+
 /// Phase 79 `79-mushaf` / خطة القارئ الموحّد — the **Rendering + Interaction
 /// Layer**.
 ///
@@ -107,7 +114,17 @@ class MushafPageView extends StatelessWidget {
           case MushafFitSource.contentRect:
             final r = layout.rect;
             if (r != null && r.w > 0 && r.h > 0) {
-              fit = (left: r.x, top: r.y, width: r.w, height: r.h);
+              // M3: fit the mushaf's own 15-line frame. A small uniform
+              // breathing margin (fraction of the frame width, so it scales)
+              // keeps justified lines off the very screen edge — the printed
+              // page has a hair of margin too. No per-page logic.
+              final pad = _kContentRectPad * r.w;
+              fit = (
+                left: r.x - pad,
+                top: r.y - pad,
+                width: r.w + 2 * pad,
+                height: r.h + 2 * pad,
+              );
             } else {
               final content = _contentBox(layout);
               final cpad =

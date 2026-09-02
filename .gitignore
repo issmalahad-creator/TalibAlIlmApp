@@ -60,4 +60,9 @@ lib/config/app_config.dart
 
 # Stray local files at repo root — not part of the app source.
 /*.xlsx
+/*.zip
 /22780766_6685158.svg
+/mushafs-1.json.gz
+/mushafs-all.zip
+/services-all.zip
+/surahs.json.gz
