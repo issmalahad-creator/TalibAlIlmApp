@@ -443,7 +443,7 @@ change.** The extractor itself was not modified — the asset already carried
 the raw 4 numbers; only the Dart interpretation was wrong.
 
 **M2 — geometry / transform, behaviour-preserving. ✅ DONE 2026‑09‑03
-(commit `<pending>`).** `lib/widgets/mushaf/screen_transform.dart` —
+(commit `7e59639`).** `lib/widgets/mushaf/screen_transform.dart` —
 `ScreenTransform` (one scalar scale + offset; `.fit` takes raw doubles so it
 mirrors the pre‑M2 inline math term‑for‑term) + `MushafFitSource` flag
 (`legacyContentBox` default = no visual change; `contentRect` = M3, wired but
