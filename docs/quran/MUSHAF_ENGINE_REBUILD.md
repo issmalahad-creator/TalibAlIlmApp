@@ -429,12 +429,18 @@ the DB schema.
 
 **M0** — this doc reviewed & approved by Ismail. No code.
 
-**M1 — data only.** First **verify `data-rect` on the raw SVGs** and confirm
-the `x0,y0,x1,y1` reading (§1.6) on a spread of pages, then: convert →
-`x,y,w,h`, emit `contentRect` + `art_sha256`; bump `kMushafLayoutVersion`
-→ 2; re-run extractor; `MushafLayoutSync` re-seeds; extend `MushafValidation`
-(604/604 `contentRect` valid & inside viewBox). `flutter test` (validation +
-layout). No UI change, no visible difference yet.
+**M1 — data only. ✅ DONE 2026‑09‑03 (commit `ad49877`).**
+Verified `data-rect` on all 604 bundled `SVG V1.01` pages (present, no
+transforms, `viewBox 0 0 382.68 547.09`, format `x0,y0,x1,y1` — 604/604 valid
+as corners vs 255/604 as `x,y,w,h`). `MushafBox.fromCorners` converts →
+`x,y,w,h`; `MushafPageLayout.fromJson` uses it; `kMushafLayoutVersion` 1→2
+(auto re-seed); `MushafValidation.badContentRects` gates 604/604;
+`art_set_sha256` (`tool/mushaf_art_hash.py`, `8bf64d88…67d0`) added to the
+manifest + `mushaf_meta` — identical before/after ⇒ artwork untouched.
+`flutter analyze` clean · `flutter test` 447/447 · `pages_svg/` +
+`mushaf_layout.json.gz` byte‑identical. **No renderer/transform/interaction
+change.** The extractor itself was not modified — the asset already carried
+the raw 4 numbers; only the Dart interpretation was wrong.
 
 **M2 — geometry / transform, behaviour-preserving.** Add `ScreenTransform` +
 `PageGeometry` (rename). Wire them into `MushafPageView` but feed the
