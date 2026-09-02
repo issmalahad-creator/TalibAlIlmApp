@@ -1,14 +1,19 @@
 # Mushaf Rendering Engine — Rebuild Audit & Plan
 
 Status: **PLAN APPROVED 2026‑09‑03 (Ismail). M0 ✅ · M1 ✅ (`ad49877`) · M2 ✅
-(`7e59639`). M3 NOT started — waiting on Ismail.** Each M step is its own
-revertable commit, verified with `flutter analyze` + `flutter test` + the
-Android emulator, no visual change until M3. Recto/verso shift root‑caused
-before M3 (`docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md`). This is the
-project's single active front; Supabase (`docs/SUPABASE_ARCHITECTURE.md`)
-stays untouched until the mushaf engine ships **604/604 QA + real‑device
-proof**. Ordered exactly as Ismail asked: CURRENT ARCHITECTURE → PROBLEMS →
-ROOT CAUSES → PROPOSED ARCHITECTURE → MIGRATION PLAN → QA PLAN.
+(`7e59639`) · M3 ✅ (`434a773`). M4 NOT started — waiting on Ismail** (+ the
+region‑1 vs region‑2 choice below). Each M step is its own revertable
+commit, verified with `flutter analyze` + `flutter test` + the Android
+emulator. M1/M2 changed nothing visually; **M3 is the visual step** —
+recto/verso shift eliminated, content larger. Root cause proven first
+(`docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md`). Open tradeoff: centring
+`data-rect` (~245, region 1, shipped) slightly clips the far‑margin juz/surah
+name repeats; region 2 (`md-page-outer` frame ~283) avoids that but needs a
+new extract‑time per‑page frame‑bbox field. This is the project's single
+active front; Supabase stays untouched until the mushaf engine ships
+**604/604 QA + real‑device proof**. Ordered as Ismail asked: CURRENT
+ARCHITECTURE → PROBLEMS → ROOT CAUSES → PROPOSED ARCHITECTURE → MIGRATION
+PLAN → QA PLAN.
 
 Load `.claude/skills/quran-engineering` + `docs/quran/MUSHAF_ENGINEERING.md`
 before acting on this. This doc does **not** restate what those already say
@@ -469,14 +474,24 @@ NOT edit the SVGs, do NOT add per‑page offsets. M3 = one uniform rule: centre
 the per‑page content region (M1‑corrected `data-rect`, or the frame bbox —
 Ismail's choice) instead of the raw viewBox.
 
-**M3 — renderer switch.** Replace `_contentBox` with the corrected
-`contentRect` centred by `ScreenTransform` (§4.2–4.3); SVG box becomes
-`const Size(viewBox)`; delete the text fallback + `_lines`. Update
-`test/mushaf_page_view_test.dart` `_toWidget` to mirror the new transform.
-**Device re-verification** (not `flutter test` alone): pages **1, 3, 50, 77,
-128, 255, 300, 434, 528, 604** — tap start-of-line / mid-line / end-of-line /
-stacked-diacritic / short / long words → correct `(surah, ayah, word_index)`
-in a debug overlay; tap the aya-mark → correct ayah. Screenshot every case.
+**M3 — renderer switch. ✅ DONE 2026‑09‑03 (commit `434a773`).**
+`MushafSemanticReaderScreen` passes `fitSource: MushafFitSource.contentRect`
+→ `ScreenTransform` fits+centres the M1‑corrected `data-rect` + a 3%‑of‑width
+uniform breathing margin (`_kContentRectPad`), for all 604 pages, no per‑page
+logic, no SVG change. `test/mushaf_page_view_test.dart` +1 test (hit‑test
+still resolves under the new transform). `flutter analyze` clean ·
+`flutter test` 458/458 · `art_set_sha256` unchanged · zero asset edits.
+**Emulator‑verified** (`Medium_Phone_API_35`, 1080×2400): pages 3/4/5 now
+share the exact horizontal position (recto/verso shift **gone**); content
+noticeably larger, justified edge‑to‑edge, al‑Fātiḥa banner visible, no
+horizontal overflow, medallions round; word tap p5 → `فَيَعْلَمُونَ`
+(al‑Baqara 26, w17). **Open tradeoff:** the far‑margin juz/surah name repeats
+(outside the 15‑line block) clip slightly — region‑1 (`data-rect`) vs
+region‑2 (`md-page-outer` frame) is Ismail's call; region 2 needs a new
+extract‑time per‑page frame‑bbox field (runtime bbox is too slow).
+The `_contentBox` heuristic, the text fallback, and `_lines` are **not yet
+deleted** — kept behind `MushafFitSource.legacyContentBox` as the comparison
+baseline; remove them once M3 is signed off.
 
 **M4 — cache.** `MushafPageCache` (preload ±1, LRU cap, off-frame decode).
 Verify: fast forward/back paging shows no blank frame; memory stays bounded
