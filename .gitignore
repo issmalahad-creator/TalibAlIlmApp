@@ -60,9 +60,17 @@ lib/config/app_config.dart
 
 # Stray local files at repo root — not part of the app source.
 /*.xlsx
-/*.zip
 /22780766_6685158.svg
-/mushafs-1.json.gz
-/mushafs-all.zip
-/services-all.zip
+
+# Quranpedia.net data dumps (raw, ~1.15 GB) — build-time input only, per
+# docs/quran/QURAN_CORPUS_INTEGRATION.md. The committed artefacts are the
+# curated bundled subset under assets/quran/ + the Supabase mirror. NEVER
+# commit the raw dumps (licence: keep current via /v1/changes; huge).
+/*.zip
+/*.json.gz
+/mushafs-*.json.gz
 /surahs.json.gz
+/topics-index.json.gz
+/reciters-index.json.gz
+/nasekh-book-*.json.gz
+/fatwas.json.gz

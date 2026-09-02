@@ -95,9 +95,10 @@ Knowledge tags used across `docs/quran/`:
 - **URL:** https://corpus.quran.com/ · download https://corpus.quran.com/download/
 - **What it is:** morphological + syntactic (dependency treebank) annotation of every Quran word — segment, POS, **lemma**, **root**, grammatical features.
 - **Version:** morphology **v0.4**.
-- **Licence:** **GNU GPL** (email-gated download). `INFERENCE`: GPL is **incompatible with shipping inside a proprietary/closed app** without care — treat as *study only* unless we confirm terms. Community mirrors exist (`mustafa0x/quran-morphology`).
-- **What we use it for:** *understanding* Arabic morphology concepts (root/lemma/pattern) for the Understanding pillar and word study. **No files bundled.**
-- **What we must NOT assume:** do not copy its data into the repo. Its word indexing follows its own segmentation.
+- **Licence:** **GNU GPL** — visible "corpus.quran.com" credit + link required, **no modification**. For *data* (not linked code), redistribution with attribution is OK; any transform we make of it is itself GPL. Keep it in its own un-forked asset.
+- **Present locally** as `services/morphology.json.gz` inside the **Quranpedia dumps** (§13), which redistributes it verbatim under its own GPL terms. 6236 ayat, per-word segments (role/POS, root, lemma, translation, phonetic).
+- **What we use it for:** *(planned, §13 QC1–QC3)* the ṣarf tier of the Word Knowledge Surface — fills the currently-inert `QacGrammarProvider`.
+- **What we must NOT assume:** its word `number` = **QAC segmentation** — **not** `mushaf_words.word_index`, **not** Tanzil space-split. On-mushaf-page rendering needs the VT‑3 alignment map first.
 
 ## 8. quran-align (cpfair) + QUL segments  ·  reference (recitation timing)
 
@@ -133,3 +134,25 @@ Knowledge tags used across `docs/quran/`:
 - Canonical `fetch_quran` / `fetch_translation` / `fetch_tafsir` / `fetch_quran_metadata` / `fetch_mushaf` / morphology tools, sourced from quran.com.
 - **Use for:** grounding any Quran text/translation/tafsir *I* produce while working; verifying structural metadata (juz/page/hizb/ruku/sajda of an ayah). **Call `fetch_grounding_rules` first.**
 - **Not** a build-time dependency — it does not ship in the app.
+
+## 13. Quranpedia.net data corpus  ·  present locally (raw dumps), **plan only**
+
+- **URL:** https://quranpedia.net/ · API https://quranpedia.net/api-docs · changes feed `https://quranpedia.net/api/v1/changes?since=<version>`
+- **Local:** raw official versioned dumps at repo root (~1.15 GB, git-ignored), brought by Ismail 2026‑09‑03. Full inventory + plan: **[`QURAN_CORPUS_INTEGRATION.md`](QURAN_CORPUS_INTEGRATION.md)**.
+- **Version:** each dump carries `license.version` (2026‑09‑02 snapshot) + `license.resync`. Envelope `{license, schema, data}`.
+- **Licence (`svg2/LICENSE.md` v2026‑09‑02):** **free to use inside apps** — no attribution required (link appreciated); attribution + dump-version required **only** to re-publish the dataset as a downloadable database. **Obligation:** keep any shipped copy current via `/v1/changes` — distributing stale Quranic text is the distributor's responsibility. Public API is *not* a download service (120/min, 10k/day) — the versioned dumps are the sanctioned bulk path.
+- **Third-party carve-outs (NOT covered by the above):**
+  - **`services/morphology.json.gz`** = **Quranic Arabic Corpus v0.4** (Dr. Kais Dukes, Leeds) — **GNU GPL**, visible "corpus.quran.com" credit + link required, **no modification**. Cross-ref §7.
+  - **`services/syntax.json.gz`** = The Quranic Treebank (NoorBayan/Quranic) — **MIT**, attribution.
+  - **Translations** (`translations-all.zip`, 139 editions) — **IP of their authors/publishers**; Quranpedia grants nothing. Per-edition review; ship only PD/CC ones.
+- **What it contains:** 14 riwāyāt full text (Hafs = 6236/114 `VERIFIED`); 149 tafsir books (900 MB, full per-ayah HTML); 4 iʿrāb + 2 asbāb + 1 nāsikh books; 15 per-ayah service indexes (morphology, syntax, meanings, notes, qiraat, …); 6100 topics (tree, `topic → ayah-range`); 253 reciters; 3575 fatwas; 16,296-book catalog; athar/sayings.
+- **What we use it for:** *(planned, not built)* fill the inert Learning-Engine providers (ṣarf via QAC morphology, naḥw/iʿrāb, word-meaning, notes), curated extra tafsirs, the Knowledge Index topic graph, reciter metadata. Bundled = a curated ~40–60 MB subset; the rest = Supabase mirror + on-demand cache. **Sequenced AFTER the Mushaf Rendering Engine.**
+- **What we must NOT assume:** `page_number` is Quranpedia's own scheme — **not** Tanzil's / MushafDatabase's; never route navigation through it. morphology word `number` follows **QAC segmentation** — **not** `mushaf_words.word_index` (on-page ṣarf waits on VT‑3 alignment). Tanzil `quran_ayat` stays primary text; Quranpedia is cross-check + dabt/marker companion. Modern books/translations = per-author licence, not "shared heritage".
+
+## 14. saikothasan/quran-api  ·  reference / fallback only
+
+- **URL:** https://github.com/saikothasan/quran-api · https://alquran-api.pages.dev/api/quran
+- **Licence:** **MIT**. Next.js on Vercel/Pages, CORS, no auth, no documented rate limit.
+- **What it contains:** 114 surahs + verses; 11 languages + transliteration; search. **No audio.** Original data source unstated ("The Noble Quran").
+- **What we use it for:** *nothing planned* — redundant with the Quranpedia mushafs for text. Kept as a possible **online-only fallback translation provider** (AD‑1 adapter) or a cross-check. Low priority.
+- **What we must NOT assume:** unstated provenance → do not treat as authoritative for the Uthmani text; verify against Tanzil / quran.ai MCP before using any string from it.
