@@ -1,17 +1,13 @@
 # Mushaf Rendering Engine — Rebuild Audit & Plan
 
-Status: **PLAN APPROVED 2026‑09‑03 (Ismail). M0 ✅ · M1 ✅ (`ad49877`) · M2 ✅
-(`7e59639`) · M3 ✅ (`434a773`). M4 NOT started — waiting on Ismail** (+ the
-region‑1 vs region‑2 choice below). Each M step is its own revertable
-commit, verified with `flutter analyze` + `flutter test` + the Android
-emulator. M1/M2 changed nothing visually; **M3 is the visual step** —
-recto/verso shift eliminated, content larger. Root cause proven first
-(`docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md`). Open tradeoff: centring
-`data-rect` (~245, region 1, shipped) slightly clips the far‑margin juz/surah
-name repeats; region 2 (`md-page-outer` frame ~283) avoids that but needs a
-new extract‑time per‑page frame‑bbox field. This is the project's single
-active front; Supabase stays untouched until the mushaf engine ships
-**604/604 QA + real‑device proof**. Ordered as Ismail asked: CURRENT
+Status: **M0–M3 ✅ SIGNED OFF by Ismail 2026‑09‑03** (`ad49877` · `7e59639` ·
+`434a773` · `d90eb1a`). The recto/verso shift is gone, the page renders
+large, and the juz/surah margin headers are back (M3b: `_kContentRectPad`
+0.03→0.09 — region‑1 `data-rect` kept, no new field needed). **Next: M4**
+(page cache) → M5 (604‑page QA tool) → M6 (delete legacy packer) → M7
+(close‑out). Each M step = its own revertable commit + `flutter analyze` +
+`flutter test` + Android emulator. Then Phase B of
+`MUSHAF_MASTER_ARCHITECTURE.md` (corpus). Ordered as Ismail asked: CURRENT
 ARCHITECTURE → PROBLEMS → ROOT CAUSES → PROPOSED ARCHITECTURE → MIGRATION
 PLAN → QA PLAN.
 
@@ -489,9 +485,18 @@ horizontal overflow, medallions round; word tap p5 → `فَيَعْلَمُون
 (outside the 15‑line block) clip slightly — region‑1 (`data-rect`) vs
 region‑2 (`md-page-outer` frame) is Ismail's call; region 2 needs a new
 extract‑time per‑page frame‑bbox field (runtime bbox is too slow).
+**M3b (`d90eb1a`)** — Ismail signed off M3 but flagged the far-margin
+juz-name / surah-name headers + foot page number were clipped. Measured all
+604: those overhang `data-rect` by ≤ 0.088 of its width (median 0.078); the
+deep ornaments (۞ ۩) overhang up to 0.25 and stay in the margin by design.
+`_kContentRectPad` 0.03 → **0.09** — every header back on-screen on all 604,
+per-page centring unchanged (shift still cancelled), still larger than
+`_contentBox`. Region-1 (`data-rect`) confirmed; region-2 not needed.
+`analyze` clean · `test` 458/458 · art unchanged · emulator pp. 8/3/77 OK.
+
 The `_contentBox` heuristic, the text fallback, and `_lines` are **not yet
 deleted** — kept behind `MushafFitSource.legacyContentBox` as the comparison
-baseline; remove them once M3 is signed off.
+baseline; remove them in M6.
 
 **M4 — cache.** `MushafPageCache` (preload ±1, LRU cap, off-frame decode).
 Verify: fast forward/back paging shows no blank frame; memory stays bounded
