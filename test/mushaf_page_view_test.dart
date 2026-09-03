@@ -75,11 +75,11 @@ Offset _toWidget(MushafPageLayout l, Size size, Offset vb) {
 }
 
 /// Mirror of the M3 `MushafFitSource.contentRect` transform: fit the page's
-/// own `rect` (md-page-inner data-rect) + a 3%-of-width breathing margin,
-/// centred in the viewport.
+/// own `rect` (md-page-inner data-rect) + a 9%-of-width margin (covers the
+/// juz/surah headers + page number), centred in the viewport.
 Offset _toWidgetContentRect(MushafPageLayout l, Size size, Offset vb) {
   final r = l.rect!;
-  final pad = 0.03 * r.w;
+  final pad = 0.09 * r.w;
   final cx = r.x - pad, cy = r.y - pad, cw = r.w + 2 * pad, ch = r.h + 2 * pad;
   final scale =
       (size.width / cw) < (size.height / ch) ? size.width / cw : size.height / ch;

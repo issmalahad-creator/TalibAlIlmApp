@@ -10,10 +10,20 @@ import 'mushaf/screen_transform.dart';
 
 export 'mushaf/screen_transform.dart' show MushafFitSource, ScreenTransform;
 
-/// M3 — breathing margin around the `contentRect` fit, as a fraction of the
-/// frame width (uniform ~245 across all 604 pages, so this is ~equal on
-/// every page). ~3% ⇒ text fills ~94% of the available width.
-const double _kContentRectPad = 0.03;
+/// M3 — margin added around the `contentRect` (`md-page-inner data-rect`,
+/// ~245 wide and uniform across all 604 pages) before fitting it to the
+/// viewport, as a fraction of that width.
+///
+/// The bare 15-line block excludes the outer-margin furniture — the repeated
+/// juz-name / surah-name headers and the foot page number. Measured across
+/// all 604 pages, those overhang `data-rect` by at most **0.088** of its
+/// width on either side (median 0.078). `0.09` brings every one of them back
+/// on-screen while keeping the per-page centring (so the recto/verso gutter
+/// shift stays cancelled) and still rendering larger than the pre-M3
+/// `_contentBox`. The deep margin ornaments (rubʿ ۞ / sajda ۩) overhang much
+/// further and are deliberately left in the margin (clipped) — that is where
+/// the printed mushaf puts them.
+const double _kContentRectPad = 0.09;
 
 /// Phase 79 `79-mushaf` / خطة القارئ الموحّد — the **Rendering + Interaction
 /// Layer**.
