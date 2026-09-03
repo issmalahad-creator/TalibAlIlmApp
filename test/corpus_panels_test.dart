@@ -67,11 +67,13 @@ void main() {
     expect(find.textContaining('corpus.quran.com'), findsWidgets);
   });
 
-  testWidgets('AyahCorpusPanel surfaces topics for 7:26', (t) async {
+  testWidgets('AyahCorpusPanel surfaces topics + riwāyāt for 7:26', (t) async {
     await pumpPanel(t, const AyahCorpusPanel(surah: 7, ayah: 26, lang: 'ar'));
     // 7:26 has topic links in the raw dump (see quran_corpus_test.dart)
     expect(find.text('الموضوعات'), findsOneWidget);
     expect(find.text('لا توجد بيانات موثقة لهذا العنصر حاليًا.'), findsNothing);
+    // every ayah carries the 12 riwāyāt — the (collapsed) section header shows
+    expect(find.textContaining('الروايات'), findsWidgets);
   });
 
   testWidgets('AyahTafsirPanel shows a short excerpt + «للمزيد» for 1:1',

@@ -614,6 +614,8 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
   List _sayings = [];
   List<Map<String, Object?>> _topics = [];
   List _ghareeb = [];
+  List _qiraat = [];
+  List<Map<String, Object?>> _riwayat = [];
 
   @override
   void initState() {
@@ -640,6 +642,8 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
     final sayings = await _repo.sayings(s, a);
     final topics = await _repo.topicsForAyah(s, a);
     final gm = await _repo.wordMeanings(s, a);
+    final qiraat = await _repo.qiraat(s, a);
+    final riwayat = await _repo.riwayat();
 
     if (!mounted) return;
     setState(() {
@@ -651,6 +655,8 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
       _sayings = sayings is List ? sayings : const [];
       _topics = topics;
       _ghareeb = gm is List ? gm : const [];
+      _qiraat = qiraat is List ? qiraat : const [];
+      _riwayat = riwayat;
       _loading = false;
     });
   }
@@ -663,7 +669,9 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
       _similar.isEmpty &&
       _sayings.isEmpty &&
       _topics.isEmpty &&
-      _ghareeb.isEmpty;
+      _ghareeb.isEmpty &&
+      _qiraat.isEmpty &&
+      _riwayat.isEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -681,11 +689,85 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
         if (_notes.isNotEmpty) _notesSection(lang),
         if (_similar.isNotEmpty) _similarSection(lang),
         if (_sayings.isNotEmpty) _sayingsSection(lang),
+        if (_qiraat.isNotEmpty) _qiraatSection(lang),
+        if (_riwayat.isNotEmpty) _riwayatSection(lang),
         if (_topics.isNotEmpty) _topicsSection(lang),
         moreButton(basicText('ql_open_ayah_page', lang), widget.onOpenFull),
       ],
     );
   }
+
+  Widget _qiraatSection(String lang) => _CorpusSection(
+        title: basicText('ql_qiraat', lang),
+        source: '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final grp in _qiraat.take(6))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if ('${(grp as Map)['ayah_word'] ?? ''}'.isNotEmpty)
+                      _rtl('﴿ ${grp['ayah_word']} ﴾',
+                          size: 12, height: 1.6),
+                    for (final qq in (grp['qiraat'] as List? ?? const []))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8, top: 2),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _rtl('• ${excerpt('${(qq as Map)['qiraa_text'] ?? ''}', maxChars: 200)}',
+                                size: 12, height: 1.7),
+                            if (_qReaders(qq).isNotEmpty)
+                              Text(
+                                '${basicText('ql_readers', lang)}: ${_qReaders(qq).join('، ')}',
+                                textDirection: TextDirection.rtl,
+                                style: const TextStyle(
+                                    fontSize: 10, color: AppColors.textMuted),
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+
+  List<String> _qReaders(Object? qq) {
+    final out = <String>{};
+    if (qq is Map) {
+      for (final rw in (qq['rewayat'] as List? ?? const [])) {
+        final qa = ((rw as Map)['rawi'] as Map?)?['qiraa'];
+        if (qa is Map && qa['short_name'] != null) out.add('${qa['short_name']}');
+      }
+    }
+    return out.toList();
+  }
+
+  Widget _riwayatSection(String lang) => _CorpusSection(
+        title: basicText('ql_riwayat_section', lang),
+        source: '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final r in _riwayat)
+              _RiwayaBox(
+                key: ValueKey('${r['id']}-${widget.surah}-${widget.ayah}'),
+                riwayaId: r['id'] as int,
+                name: '${r['name'] ?? ''}'
+                    '${'${r['rawi'] ?? ''}'.isNotEmpty ? ' — ${r['rawi']}' : ''}',
+                primary: r['is_primary'] == 1,
+                surah: widget.surah,
+                ayah: widget.ayah,
+                lang: lang,
+              ),
+          ],
+        ),
+      );
 
   Widget _fromBooks(List<Map<String, Object?>> rows) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1221,29 +1303,158 @@ class _TranslationBoxState extends State<_TranslationBox> {
               ),
             ),
           ),
-          AnimatedCrossFade(
+          AnimatedSize(
             duration: const Duration(milliseconds: 160),
-            sizeCurve: Curves.easeOutCubic,
-            crossFadeState:
-                _open ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            firstChild: Padding(
-              padding: const EdgeInsets.fromLTRB(11, 0, 11, 11),
-              child: _loading
-                  ? _dots()
-                  : (_text == null || _text!.trim().isEmpty)
-                      ? _calmNoData(widget.lang)
-                      : Directionality(
-                          textDirection: widget.rtl
-                              ? TextDirection.rtl
-                              : TextDirection.ltr,
-                          child: SelectableText(
-                            _text!,
-                            style:
-                                const TextStyle(fontSize: 13, height: 1.9),
-                          ),
-                        ),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: !_open
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(11, 0, 11, 11),
+                    child: _loading
+                        ? _dots()
+                        : (_text == null || _text!.trim().isEmpty)
+                            ? _calmNoData(widget.lang)
+                            : Directionality(
+                                textDirection: widget.rtl
+                                    ? TextDirection.rtl
+                                    : TextDirection.ltr,
+                                child: SelectableText(
+                                  _text!,
+                                  style: const TextStyle(
+                                      fontSize: 13, height: 1.9),
+                                ),
+                              ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One riwāya as a box under the ayah — the ayah's own rasm in that reading
+/// (Warsh, Qālūn, al-Dūrī …), in the mushaf script, loaded on first open.
+class _RiwayaBox extends StatefulWidget {
+  final int riwayaId;
+  final String name;
+  final bool primary;
+  final int surah;
+  final int ayah;
+  final String lang;
+  const _RiwayaBox({
+    super.key,
+    required this.riwayaId,
+    required this.name,
+    required this.primary,
+    required this.surah,
+    required this.ayah,
+    required this.lang,
+  });
+
+  @override
+  State<_RiwayaBox> createState() => _RiwayaBoxState();
+}
+
+class _RiwayaBoxState extends State<_RiwayaBox> {
+  bool _open = false;
+  String? _text;
+  String? _marker;
+  bool _loading = false;
+
+  Future<void> _load() async {
+    if (_text != null || _loading) return;
+    setState(() => _loading = true);
+    final r = await QuranBookCache.instance
+        .riwayaText(widget.riwayaId, widget.surah, widget.ayah);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _text = '${r?['text'] ?? ''}';
+      _marker = r?['marker'] as String?;
+    });
+  }
+
+  void _toggle() {
+    setState(() => _open = !_open);
+    if (_open) _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: _toggle,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.all(11),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${widget.name}'
+                      '${widget.primary ? ' · ${basicText('ql_sources_primary', widget.lang)}' : ''}',
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 12),
+                    ),
+                  ),
+                  Icon(
+                    _open
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 20,
+                    color: AppColors.textMuted,
+                  ),
+                ],
+              ),
             ),
-            secondChild: const SizedBox(width: double.infinity),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: !_open
+                ? const SizedBox(width: double.infinity)
+                : Padding(
+                    padding: const EdgeInsets.fromLTRB(11, 0, 11, 12),
+                    child: _loading
+                        ? _dots()
+                        : (_text == null || _text!.trim().isEmpty)
+                            ? _calmNoData(widget.lang)
+                            : Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                textDirection: TextDirection.rtl,
+                                children: [
+                                  Expanded(
+                                    child: SelectableText(
+                                      _text!,
+                                      textDirection: TextDirection.rtl,
+                                      style: const TextStyle(
+                                          fontFamily: 'AmiriQuran',
+                                          fontSize: 17,
+                                          height: 2.0),
+                                    ),
+                                  ),
+                                  if ((_marker ?? '').isNotEmpty) ...[
+                                    const SizedBox(width: 6),
+                                    Text('﴿${_marker!}﴾',
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.textMuted)),
+                                  ],
+                                ],
+                              ),
+                  ),
           ),
         ],
       ),

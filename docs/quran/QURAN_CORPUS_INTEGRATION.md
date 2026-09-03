@@ -34,6 +34,16 @@ Status: **QC1 + QC2 + VT‑3 + QC3 + QC4 + QC5a COMPLETE 2026‑09‑03.** (492 
   deferred to Phase E (Supabase), where cross-content edges actually
   arrive; no redundant local table now.
 
+- **QC3b** — `AyahTranslationPanel` reworked to Ismail's ask: language via a
+  single arrow, then **one collapsible `_TranslationBox` per edition** under
+  the ayah (all collapsed, lazy-loaded, full text). `AyahCorpusPanel` gains
+  a **القراءات** section (ayah-level variant readings + which qurrāʾ) and a
+  **الروايات** section — a collapsible `_RiwayaBox` per riwāya (Warsh /
+  Qālūn / al-Dūrī …) rendering the ayah's own rasm in the mushaf script,
+  via `QuranBookCache.riwayaText`. (Collapsibles switched from
+  `AnimatedCrossFade` to `AnimatedSize` + conditional child so a collapsed
+  box builds nothing.)
+
 - **QC5a** — the **«عن المصادر»** screen
   (`lib/screens/quran_learning/sources_screen.dart`, `SourcesScreen`): every
   bundled dataset / book / edition with its attribution + licence — Tanzil
