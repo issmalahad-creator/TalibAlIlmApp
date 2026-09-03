@@ -55,9 +55,16 @@ Status: **QC1 + QC2 + VT‑3 + QC3 + QC4 + QC5a COMPLETE 2026‑09‑03.** (492 
   V1.01 art (Sadaqa-Jāriya). `QuranCorpusRepository.corpusMeta()`; entry in
   the reader ☰; 18 `basicText` keys × 13 langs; `test/sources_screen_test.dart`.
 
+- **QC7** — on-page ṣarf/iʿrāb: `MushafPageView.wordCaption` → `_WordCaption`,
+  a small `IgnorePointer` card in the line-gap **above** the tapped word
+  (`morphologyForWord` → «pos · iʿrāb sign · جذر root»). No SVG/transform/
+  hit-test change. Full per-glyph overlays (tajwīd colour, per-word qiraat)
+  still ahead — needs a char-box path the ligature SVG doesn't give.
+
 **Next: QC5b** — `/v1/changes` delta sync (§6, licence) — best done with the
 Supabase phase. **QC6** — Supabase mirror for the 27 overflow tafsīrs +
-`quran-proxy` Edge Function (needs `SUPABASE_ARCHITECTURE` S1–S4).
+`quran-proxy` Edge Function (needs `SUPABASE_ARCHITECTURE` S1–S4 + Ismail's
+go-ahead + the leaked DB-password rotation).
 
 **QC0 decisions (Ismail, "استخدم كل شيء … لا تترك شيئًا … APK حتى 500MB عادي
 … Supabase وقت الحاجة فقط"):**

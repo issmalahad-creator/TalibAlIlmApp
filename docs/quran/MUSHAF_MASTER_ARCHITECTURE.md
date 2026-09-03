@@ -268,7 +268,7 @@ previous one is signed off.**
 | **D-bis — Provenance surface** ✅ **DONE 2026‑09‑03** | `SourcesScreen` («عن المصادر»): every bundled dataset/book/edition + attribution + licence; the GPL corpus.quran.com credit is a live link. Reader ☰ entry. | Phase C ✅ | QC5a |
 | **E — Sync & mirror** | `/v1/changes` delta (licence, QC5b); Supabase reference mirror + `quran-proxy` + on‑demand cache for the 146 tafsirs / 13 riwāyāt / fatwas / athar | Phase C + `SUPABASE_ARCHITECTURE` S1–S4 | QC5b–QC6 |
 | **F — Online expansion** | translations per‑edition (online + PD bundle); 253 reciters' audio + cache; saikothasan fallback; live cross‑check | Phase E | QC7 + `SOURCES.md` §13–14 |
-| **G — On‑page everything** | with `align_qac` done: ṣarf / iʿrāb / tajwīd / qiraat rendered **on the glyph** at the tapped word (charRange overlays) | Phase B alignment + Phase C | QC7 + `QURAN_INTERACTION.md` |
+| **G — On‑page everything** *(started)* | QC7 ✅ — a one‑line ṣarf/iʿrāb label (`_WordCaption`, `IgnorePointer`) in the gap **above** the tapped word, from `morphologyForWord`. Full per‑glyph charRange overlays (tajwīd colouring, per‑word qiraat) still ahead — the SVG has no char boxes, so that needs a different rendering path. | Phase B alignment + Phase C | QC7 + `QURAN_INTERACTION.md` |
 
 Endgame after G: tap any word on any of the 604 pages → its exact identity →
 ṣarf, iʿrāb (dependency + prose), غريب, tajwīd, the reading it carries, the
