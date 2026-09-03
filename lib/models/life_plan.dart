@@ -99,6 +99,8 @@ class LifeSlot {
     return '$h:$mm';
   }
 
+  /// `HH:MM–HH:MM`. Render it with `TextDirection.ltr` so the two times
+  /// don't swap around the dash inside RTL text.
   String get timeLabel => '${_hhmm(startMin)}–${_hhmm(endMin)}';
 
   /// Is `now` (minutes-since-midnight) inside this block?

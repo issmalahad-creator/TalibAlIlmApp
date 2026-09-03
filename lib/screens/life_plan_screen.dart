@@ -160,7 +160,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
       final done = _prog!.doneSlotNos.contains(cur.slotNo);
       return _bigCard(
         tint: const Color(0xFFD9A441),
-        eyebrow: '${basicText('life_now', lang)} · ${cur.timeLabel}',
+        eyebrow: basicText('life_now', lang),
+        eyebrowTime: cur.timeLabel,
         title: cur.activity,
         sub: cur.mihwar ?? '',
         done: done,
@@ -172,7 +173,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
       tint: AppColors.primary,
       eyebrow: next == null
           ? basicText('life_day_complete', lang)
-          : '${basicText('life_get_ready', lang)} · ${next.timeLabel}',
+          : basicText('life_get_ready', lang),
+      eyebrowTime: next?.timeLabel,
       title: next?.activity ?? basicText('life_rest', lang),
       sub: next?.mihwar ?? '',
       done: null,
@@ -183,6 +185,7 @@ class _LifePlanScreenState extends State<LifePlanScreen>
   Widget _bigCard({
     required Color tint,
     required String eyebrow,
+    String? eyebrowTime,
     required String title,
     required String sub,
     required bool? done,
@@ -208,12 +211,29 @@ class _LifePlanScreenState extends State<LifePlanScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(eyebrow,
-                    textDirection: TextDirection.rtl,
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: tint)),
+                Row(
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    Flexible(
+                      child: Text(eyebrow,
+                          textDirection: TextDirection.rtl,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: tint)),
+                    ),
+                    if (eyebrowTime != null) ...[
+                      const SizedBox(width: 6),
+                      Text('· $eyebrowTime',
+                          textDirection: TextDirection.ltr,
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: tint)),
+                    ],
+                  ],
+                ),
                 const SizedBox(height: 6),
                 Text(title,
                     textDirection: TextDirection.rtl,
@@ -336,6 +356,7 @@ class _LifePlanScreenState extends State<LifePlanScreen>
                               ? AppColors.textMuted
                               : AppColors.textDark)),
                   Text(s.timeLabel,
+                      textDirection: TextDirection.ltr,
                       style: const TextStyle(
                           fontSize: 10, color: AppColors.textMuted)),
                 ],
@@ -443,6 +464,7 @@ class _DayRing extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                           color: AppColors.textDark)),
                   Text(label,
+                      textDirection: TextDirection.ltr,
                       style: const TextStyle(
                           fontSize: 11, color: AppColors.textMuted)),
                 ],
