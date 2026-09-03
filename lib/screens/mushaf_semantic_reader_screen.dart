@@ -8,6 +8,7 @@ import '../l10n/basic_translations.dart';
 import '../models/mushaf_layout.dart';
 import '../models/quran_selection.dart';
 import '../repositories/mushaf_layout_repository.dart';
+import '../repositories/quran_corpus_repository.dart';
 import '../repositories/quran_reading_repository.dart';
 import '../repositories/quran_reading_session_repository.dart';
 import '../services/language_preference_service.dart';
@@ -65,6 +66,12 @@ class _MushafSemanticReaderScreenState
   /// surface is open. Cleared when a surface is dismissed.
   MushafWord? _selWord;
   MushafAyaMark? _selMark;
+
+  /// QC7 — the one-line ṣarf/iʿrāb answer for [_selWord], shown as a small
+  /// floating label in the line-gap above the word (never over the ink).
+  /// Null until fetched / when there's no aligned QAC data.
+  final _corpus = QuranCorpusRepository();
+  String? _selWordCaption;
 
   // ── listen bar (استماع لقارئ — NOT tasmeeʿ / recitation-follow) ──────
   final _audio = QuranAudioEngine();
@@ -286,11 +293,46 @@ class _MushafSemanticReaderScreenState
   }
 
   void _clearSelection() {
-    if (_selWord != null || _selMark != null) {
+    if (_selWord != null || _selMark != null || _selWordCaption != null) {
       setState(() {
         _selWord = null;
         _selMark = null;
+        _selWordCaption = null;
       });
+    }
+  }
+
+  /// Fetch the tapped word's one-line ṣarf/iʿrāb (QAC) for the on-page label.
+  Future<void> _loadWordCaption(MushafWord w) async {
+    String? cap;
+    try {
+      final m = await _corpus.morphologyForWord(w.surah, w.ayah, w.wordIndex);
+      if (m is Map) {
+        final segs = (m['segments'] as List? ?? const [])
+            .whereType<Map>()
+            .toList();
+        Map? stem;
+        for (final s in segs) {
+          if (s['role'] == 'stem') {
+            stem = s;
+            break;
+          }
+        }
+        stem ??= segs.isNotEmpty ? segs.last : null;
+        if (stem != null) {
+          final parts = <String>[
+            if ('${stem['pos'] ?? ''}'.isNotEmpty) '${stem['pos']}',
+            if ('${stem['inflection'] ?? ''}'.isNotEmpty) '${stem['inflection']}',
+            if ('${stem['root'] ?? ''}'.isNotEmpty) 'جذر ${stem['root']}',
+          ];
+          if (parts.isNotEmpty) cap = parts.join(' · ');
+        }
+      }
+    } catch (_) {
+      cap = null;
+    }
+    if (mounted && identical(_selWord, w)) {
+      setState(() => _selWordCaption = cap);
     }
   }
 
@@ -298,7 +340,9 @@ class _MushafSemanticReaderScreenState
     setState(() {
       _selWord = w;
       _selMark = null;
+      _selWordCaption = null;
     });
+    _loadWordCaption(w);
     showWordKnowledgeSurface(
       context,
       selection: QuranSelection.word(w),
@@ -813,6 +857,8 @@ class _MushafSemanticReaderScreenState
                           child: MushafPageView(
                             layout: layout,
                             selectedWord: onThisPage ? _selWord : null,
+                            wordCaption:
+                                onThisPage ? _selWordCaption : null,
                             selectedAyah: !onThisPage
                                 ? null
                                 : (_playingAyah ??

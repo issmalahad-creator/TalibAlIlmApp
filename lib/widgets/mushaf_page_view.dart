@@ -60,6 +60,11 @@ class MushafPageView extends StatelessWidget {
   /// own black.
   final Color? artInk;
 
+  /// QC7 — a short ṣarf/iʿrāb line for [selectedWord], drawn as a small
+  /// floating label in the line-gap **above** the word (never over the
+  /// glyph ink; `IgnorePointer`, so no interaction impact). Null = nothing.
+  final String? wordCaption;
+
   const MushafPageView({
     super.key,
     required this.layout,
@@ -69,6 +74,7 @@ class MushafPageView extends StatelessWidget {
     this.onAyaMarkTap,
     this.onWordLongPress,
     this.artInk,
+    this.wordCaption,
   });
 
   @override
@@ -167,6 +173,17 @@ class MushafPageView extends StatelessWidget {
                     offset: Offset(dx, dy),
                   ),
                 ),
+                // QC7 — the on-page ṣarf/iʿrāb label, in the gap above the
+                // word. IgnorePointer + placed clear of the glyph ink.
+                if (selectedWord != null &&
+                    (wordCaption?.trim().isNotEmpty ?? false))
+                  _WordCaption(
+                    box: selectedWord!.box,
+                    text: wordCaption!.trim(),
+                    scale: scale,
+                    offset: Offset(dx, dy),
+                    available: Size(maxW, maxH),
+                  ),
               ],
             ),
           ),
@@ -323,6 +340,92 @@ class _SelectionPainter extends CustomPainter {
       o.scale != scale ||
       o.offset != offset ||
       o.t != t;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// QC7 — on-page ṣarf/iʿrāb label
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A small label anchored to [box], placed in the line-gap **above** the
+/// word (flips below only if it would clip the page top). `IgnorePointer`,
+/// translucent card with a hairline gold edge — it sits clear of the glyph
+/// ink and never affects the hit-test.
+class _WordCaption extends StatelessWidget {
+  final MushafBox box;
+  final String text;
+  final double scale;
+  final Offset offset;
+  final Size available;
+  const _WordCaption({
+    required this.box,
+    required this.text,
+    required this.scale,
+    required this.offset,
+    required this.available,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final wx = offset.dx + box.x * scale;
+    final wy = offset.dy + box.y * scale;
+    final ww = box.w * scale;
+    final wh = box.h * scale;
+    const chipH = 20.0;
+    const gap = 4.0;
+    double top = wy - gap - chipH;
+    if (top < 4) top = wy + wh + gap; // word on the top line → place below
+    final cx = (wx + ww / 2).clamp(0.0, available.width);
+    final frac =
+        available.width <= 0 ? 0.0 : ((cx / available.width) * 2 - 1);
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: top,
+      child: IgnorePointer(
+        child: TweenAnimationBuilder<double>(
+          key: ValueKey(text),
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          tween: Tween(begin: 0, end: 1),
+          builder: (_, v, child) =>
+              Opacity(opacity: v.clamp(0.0, 1.0), child: child),
+          child: Align(
+            alignment: Alignment(frac.clamp(-1.0, 1.0), 0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: available.width * 0.82),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xF7FFFFFF),
+                  borderRadius: BorderRadius.circular(8),
+                  border:
+                      Border.all(color: _kGold.withValues(alpha: 0.45)),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Color(0x1F000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 2)),
+                  ],
+                ),
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(
+                      fontSize: 10.5,
+                      height: 1.2,
+                      color: Color(0xFF1F2937),
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────
