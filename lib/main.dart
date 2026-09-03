@@ -8,6 +8,7 @@ import 'repositories/adhkar_repository.dart';
 import 'repositories/custom_adhkar_reminder_repository.dart';
 import 'repositories/milestone_repository.dart';
 import 'repositories/mushaf_layout_sync.dart';
+import 'repositories/quran_corpus_sync.dart';
 import 'repositories/quran_learning_sync.dart';
 import 'repositories/turath_catalog_sync.dart';
 import 'screens/adhkar_screen.dart';
@@ -114,6 +115,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   final _quranImportService = QuranImportService();
   final _turathCatalogSync = TurathCatalogSync();
   final _mushafLayoutSync = MushafLayoutSync();
+  final _quranCorpusSync = QuranCorpusSync();
   final _quranLearningSync = QuranLearningSync();
   final _milestoneRepository = MilestoneRepository();
 
@@ -123,6 +125,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
     _quranImportService.importIfNeeded();
     _turathCatalogSync.syncCatalog();
     _mushafLayoutSync.sync();
+    _quranCorpusSync.sync();
     _quranLearningSync.sync();
     _milestoneRepository.seedIfNeeded();
     _notificationService.scheduleAdhkarReminders();

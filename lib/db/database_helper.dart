@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 53,
+      version: 54,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -93,6 +93,7 @@ class DatabaseHelper {
         await _createV51Tables(db);
         await _createV52Tables(db);
         await _createV53Tables(db);
+        await _createV54Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -158,6 +159,7 @@ class DatabaseHelper {
         if (oldVersion < 51) await _createV51Tables(db);
         if (oldVersion < 52) await _createV52Tables(db);
         if (oldVersion < 53) await _createV53Tables(db);
+        if (oldVersion < 54) await _createV54Tables(db);
       },
     );
   }
@@ -1938,6 +1940,154 @@ class DatabaseHelper {
       CREATE TABLE IF NOT EXISTS mosque_meta (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// Phase 80 / QC2 — the **Quran Corpus** seeded layer
+  /// (`docs/quran/MUSHAF_MASTER_ARCHITECTURE.md` Layer 3–4). Curated,
+  /// canonical, versioned datasets from `assets/quran/corpus/`, built by
+  /// `tool/build_quran_corpus.py` and validated against 114/6236. Seeded once
+  /// by `QuranCorpusSync` (validate `sha256` + version, then bulk-insert),
+  /// versioned in `quran_corpus_meta`.
+  ///
+  /// Only the **small, per-ayah-queried** datasets live here. The bulky
+  /// tafsīr / translation / riwāya text stays as per-book gz assets loaded on
+  /// demand (`QuranBookCache`); the ~27 overflow tafsīrs are Supabase-mirror.
+  ///
+  /// The per-ayah "service" tables store the source payload as a JSON string
+  /// in `data` — heterogeneous nested shapes (word/segment lists, note
+  /// arrays) with one uniform access pattern ("everything for ayah X").
+  Future<void> _createV54Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_corpus_meta (
+        dataset TEXT PRIMARY KEY,
+        source TEXT,
+        source_version TEXT,
+        sha256 TEXT,
+        licence TEXT,
+        rows INTEGER,
+        seeded_at_ms INTEGER
+      )
+    ''');
+
+    // ---- per-ayah "service" payloads: (surah, ayah) -> JSON ----
+    for (final t in const [
+      'quran_morphology', // ṣarf — Quranic Arabic Corpus (GNU GPL)
+      'quran_syntax', // iʿrāb dependency — The Quranic Treebank (MIT)
+      'quran_word_meaning', // غريب
+      'quran_note', // فوائد / وقفات
+      'quran_qiraat', // per-word variant readings
+      'quran_similar', // mutashābihāt
+      'quran_saying', // athar / أقوال السلف
+      'quran_nasekh', // nāsikh & mansūkh
+    ]) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS $t (
+          surah INTEGER NOT NULL,
+          ayah INTEGER NOT NULL,
+          data TEXT NOT NULL,
+          PRIMARY KEY (surah, ayah)
+        )
+      ''');
+    }
+
+    // ---- iʿrāb prose books (per book, per ayah) ----
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_irab_prose (
+        book_id INTEGER NOT NULL,
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        html TEXT NOT NULL,
+        PRIMARY KEY (book_id, surah, ayah)
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_quran_irab_prose_sa ON quran_irab_prose(surah, ayah)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_irab_book (
+        id INTEGER PRIMARY KEY, name TEXT, short TEXT, author TEXT, year TEXT
+      )
+    ''');
+
+    // ---- asbāb al-nuzūl ----
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_asbab (
+        book_id INTEGER NOT NULL,
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        html TEXT NOT NULL,
+        PRIMARY KEY (book_id, surah, ayah)
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_quran_asbab_sa ON quran_asbab(surah, ayah)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_asbab_book (
+        id INTEGER PRIMARY KEY, name TEXT, short TEXT, author TEXT, year TEXT
+      )
+    ''');
+
+    // ---- topics → the Knowledge Index seed ----
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_topic (
+        id INTEGER PRIMARY KEY, name TEXT NOT NULL, parent_id INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_topic_ayah (
+        topic_id INTEGER NOT NULL,
+        surah INTEGER NOT NULL,
+        ayah_from INTEGER NOT NULL,
+        ayah_to INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_quran_topic_ayah_sa ON quran_topic_ayah(surah, ayah_from, ayah_to)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_quran_topic_ayah_t ON quran_topic_ayah(topic_id)');
+
+    // ---- catalogs / indexes (small, drive pickers + "which books") ----
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_tafsir_book (
+        id INTEGER PRIMARY KEY, name TEXT, short TEXT, author TEXT, year TEXT,
+        nasher TEXT, bundled INTEGER NOT NULL DEFAULT 0, ayat INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_translation_edition (
+        id INTEGER PRIMARY KEY, name TEXT, short TEXT, lang TEXT, locale TEXT,
+        direction TEXT, licence TEXT, ayat INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_riwaya (
+        id INTEGER PRIMARY KEY, name TEXT, rawi TEXT,
+        is_primary INTEGER NOT NULL DEFAULT 0, ayat INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_reciter (
+        id INTEGER PRIMARY KEY, name_ar TEXT, name_en TEXT, riwaya_ar TEXT,
+        audio_base TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_book (
+        id INTEGER PRIMARY KEY, type TEXT, name TEXT, short TEXT, author TEXT,
+        year TEXT, lang TEXT
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_quran_book_type ON quran_book(type)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_surah_info (
+        surah INTEGER PRIMARY KEY, intro_html TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_fatwa (
+        id INTEGER PRIMARY KEY, title TEXT, question TEXT, answer TEXT, ref TEXT
       )
     ''');
   }
