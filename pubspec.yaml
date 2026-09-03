@@ -186,6 +186,9 @@ flutter:
     # corpus.quran.com — verbatim); syntax = The Quranic Treebank (MIT).
     # Seeded by QuranCorpusSync. See docs/quran/QURAN_CORPUS_INTEGRATION.md.
     - assets/quran/corpus/
+    - assets/quran/corpus/translations/
+    - assets/quran/corpus/tafsir/
+    - assets/quran/corpus/riwaya/
     # Quran Learning Layer (phase 79-ql) — seeded knowledge for the Prototype
     # slice (al-Fatiha + al-Ikhlas): ṣarf (Quranic Arabic Corpus), naḥw
     # (derived iʿrāb, cited), tajwīd (cpfair/quran-tajweed, CC BY 4.0,

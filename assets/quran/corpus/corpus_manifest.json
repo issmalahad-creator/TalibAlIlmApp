@@ -74,6 +74,34 @@
     "notes": []
    }
   },
+  "qiraat": {
+   "file": "qiraat.json.gz",
+   "source": "Quranpedia services/qiraat.json.gz",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 3455,
+   "sha256": "68f2a713c95dfef4ae35afe5b1a917f095ba851f2b6eb0c7e3e77ebc82fd649c",
+   "bytes": 1063947,
+   "checks": {
+    "ayat": 3455,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "similar": {
+   "file": "similar.json.gz",
+   "source": "Quranpedia services/similar.json.gz",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 2102,
+   "sha256": "2f4aec42775ccd0fefdc922a6d21d3b0790d5f0c61a281261cbb719ee726b995",
+   "bytes": 4894940,
+   "checks": {
+    "ayat": 2102,
+    "ok": true,
+    "notes": []
+   }
+  },
   "topics": {
    "file": "topics.json.gz",
    "source": "Quranpedia topics-index",
@@ -142,6 +170,101 @@
    "bytes": 132583,
    "checks": {
     "entries": 182
+   }
+  },
+  "translations_index": {
+   "file": "translations_index.json.gz",
+   "source": "Quranpedia translations-all",
+   "source_version": "",
+   "licence": "per-edition author IP — attribution shown",
+   "rows": 1,
+   "sha256": "c7b9769f9457229015647c9e7904ea0225e232526e0818415ec636b5c271ae62",
+   "bytes": 10704,
+   "checks": {
+    "editions": 138,
+    "total_MB": 58.2,
+    "bad_rows": 0,
+    "ok": true
+   }
+  },
+  "tafsir_index": {
+   "file": "tafsir_index.json.gz",
+   "source": "Quranpedia tafsir_books-all",
+   "source_version": "",
+   "licence": "classical = free · modern = per-author",
+   "rows": 1,
+   "sha256": "886cbebe81db60704c4b558ad2fd38384ea60de47a596c4e7f94e2a617ee6759",
+   "bytes": 13640,
+   "checks": {
+    "total_books": 149,
+    "bundled": 122,
+    "bundled_MB": 283.4,
+    "mirror": 27
+   }
+  },
+  "riwaya_index": {
+   "file": "riwaya_index.json.gz",
+   "source": "Quranpedia mushafs-all",
+   "source_version": "",
+   "licence": "quranpedia-free",
+   "rows": 1,
+   "sha256": "dc6662b2852a3cc48aa1ae2c6e941252c301d3491157fd3f73ba2429f33235d8",
+   "bytes": 978,
+   "checks": {
+    "riwayat": 12,
+    "hafs_ayat": 6236,
+    "ok": true
+   }
+  },
+  "sayings": {
+   "file": "sayings.json.gz",
+   "source": "Quranpedia other/sayings",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 6193,
+   "sha256": "e820086e5b14fc3b2edfdb45711fc42fd8ce5ad89a0adb8a077496aa35222f2e",
+   "bytes": 15292900,
+   "checks": {
+    "ayat": 6193,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "fatwas": {
+   "file": "fatwas.json.gz",
+   "source": "Quranpedia fatwas",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 3575,
+   "sha256": "750e00a01287cb2fc4214919844a3bfec771a9b4c8c25bce01bf885781dcb680",
+   "bytes": 3896223,
+   "checks": {
+    "fatwas": 3575
+   }
+  },
+  "book_catalog": {
+   "file": "book_catalog.json.gz",
+   "source": "Quranpedia books-all",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 16296,
+   "sha256": "f9af375174cc916bd2dc8809e5cb2a7b435574c565074e020ec66bb781bcfa1b",
+   "bytes": 468234,
+   "checks": {
+    "books": 16296,
+    "by_type": {
+     "tafsir": 3728,
+     "qiraat": 2177,
+     "book": 9084,
+     "mutshabeh": 137,
+     "fdael": 107,
+     "asbab": 284,
+     "monasbah": 37,
+     "nasekh": 208,
+     "e3rab": 264,
+     "amthal": 49,
+     "translations": 221
+    }
    }
   }
  }

@@ -1,8 +1,10 @@
 # Quranpedia Corpus — Integration Audit & Plan
 
-Status: **AUDIT + PLAN. QC0 DECIDED 2026‑09‑03 (Ismail). Building next.**
-The Mushaf Rendering Engine (Phase A) is complete (604/604 QA + emulator), so
-this — Phase B of `MUSHAF_MASTER_ARCHITECTURE.md` — is now the active front.
+Status: **QC1 (ingest) COMPLETE 2026‑09‑03.** `tool/build_quran_corpus.py`
+built `assets/quran/corpus/` — **19 datasets, 290 files, 376 MB, all PASS**
+against canonical ground truth. `corpus_manifest.json` +
+`docs/quran/reports/QURAN_CORPUS_QA.md`. Mushaf engine (Phase A) is done, so
+this — Phase B — is the active front. **Next: QC2** (schema + `QuranCorpusSync`).
 
 **QC0 decisions (Ismail, "استخدم كل شيء … لا تترك شيئًا … APK حتى 500MB عادي
 … Supabase وقت الحاجة فقط"):**

@@ -23,7 +23,6 @@ as identity (that is align_qac / align_tanzil, build_alignments.py).
 """
 import gzip
 import hashlib
-import io
 import json
 import os
 import sys
@@ -239,6 +238,220 @@ def build_book_content(man, zip_name, prefix, name, licence_tag):
          "notes": notes}
 
 
+_TAG = None
+
+
+def strip_html(s):
+    global _TAG
+    if _TAG is None:
+        import re
+        _TAG = re.compile(r"<[^>]+>")
+    if not s:
+        return s
+    return _TAG.sub("", s).replace("&nbsp;", " ").strip()
+
+
+_BR = None
+
+
+def clean_rich(s):
+    """Tafsīr / notes HTML → plain text with real line breaks. `<br>`, `</p>`,
+    `</div>` become '\\n'; every other tag is dropped; entities decoded; runs
+    of blank lines collapsed. Renders as styled text, not a WebView."""
+    global _BR
+    if _BR is None:
+        import re
+        _BR = (re.compile(r"<\s*/?\s*(br|p|div|li)\s*/?\s*>", re.I),
+               re.compile(r"<[^>]+>"),
+               re.compile(r"[ \t]*\n[ \t]*(\n[ \t]*)+"),
+               re.compile(r"\r"))
+    if not s:
+        return s
+    brk, tag, blanks, cr = _BR
+    s = cr.sub("", s)
+    s = brk.sub("\n", s)
+    s = tag.sub("", s)
+    s = (s.replace("&nbsp;", " ").replace("&amp;", "&")
+         .replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"'))
+    s = blanks.sub("\n\n", s)
+    return s.strip()
+
+
+def _write_sub(subdir, name, obj):
+    d = os.path.join(OUT, subdir)
+    os.makedirs(d, exist_ok=True)
+    payload = json.dumps(obj, ensure_ascii=False, separators=(",", ":")).encode()
+    path = os.path.join(d, f"{name}.json.gz")
+    with gzip.open(path, "wb", compresslevel=9) as fh:
+        fh.write(payload)
+    return os.path.getsize(path), hashlib.sha256(payload).hexdigest()
+
+
+def build_translations(man):
+    """All 138 editions → corpus/translations/<id>.json.gz  {s,a,t} + index."""
+    z = zipfile.ZipFile(os.path.join(REPO, "translations-all.zip"))
+    index, total_bytes, bad = [], 0, 0
+    for member in sorted(n for n in z.namelist() if n.endswith(".json")):
+        ed = json.loads(z.read(member))
+        eid = ed["id"]
+        rows = []
+        for v in ed.get("ayahs", []):
+            s = int(v["surah_number"])
+            a = int(v["ayah_number"])
+            if s not in CANON or not (1 <= a <= CANON[s]):
+                bad += 1
+                continue
+            rows.append({"s": s, "a": a,
+                         "t": strip_html(v.get("translated_text", ""))})
+        sz, sha = _write_sub("translations", str(eid),
+                             {"v": 1, "id": eid, "rows": rows})
+        total_bytes += sz
+        index.append({"id": eid, "name": ed.get("name"),
+                      "short": ed.get("short_name"),
+                      "lang": (ed.get("language") or {}).get("name")
+                      if isinstance(ed.get("language"), dict) else ed.get("language"),
+                      "locale": ed.get("locale_code"),
+                      "dir": ed.get("direction"), "ayat": len(rows),
+                      "bytes": sz, "sha256": sha})
+    sz, sha = _write_sub("", "translations_index", {"v": 1, "editions": index})
+    ok = len(index) >= 130 and bad == 0
+    return "translations_index", [{"editions": index}], \
+        "Quranpedia translations-all", "", \
+        "per-edition author IP — attribution shown", \
+        {"editions": len(index), "total_MB": round(total_bytes / 1e6, 1),
+         "bad_rows": bad, "ok": ok}
+
+
+def build_tafsir(man):
+    """Bundle ~budget MB smallest-first (+forced essentials); the rest are
+    listed in the index as mirror=true. corpus/tafsir/<id>.json.gz {s,a,h}."""
+    z = zipfile.ZipFile(os.path.join(REPO, "tafsir_books-all.zip"))
+    bundle, mirror, cum = plan_tafsir()
+    bundle_ids = {m["id"] for m in bundle}
+    index, wrote_bytes, wrote = [], 0, 0
+    all_members = [n for n in z.namelist() if n.startswith("tafsir-book-")]
+    for member in all_members:
+        obj = json.loads(gzip.decompress(z.read(member)))
+        b = obj.get("book", {})
+        bid = b.get("id")
+        author = b.get("author")
+        meta = {
+            "id": bid, "name": b.get("name"), "short": b.get("short_name"),
+            "author": (author or {}).get("full_name")
+            if isinstance(author, dict) else author,
+            "year": b.get("publish_year"), "nasher": b.get("nasher"),
+        }
+        if bid in bundle_ids:
+            rows = []
+            for rec in obj.get("ayahs", []):
+                s, a = norm_sa(rec)
+                if s is None or s not in CANON:
+                    continue
+                c = rec.get("content")
+                if isinstance(c, list):
+                    c = " ".join(x.get("text", "") for x in c if isinstance(x, dict))
+                rows.append({"s": s, "a": a, "h": clean_rich(c)})
+            sz, sha = _write_sub("tafsir", str(bid),
+                                 {"v": 1, "id": bid, "rows": rows})
+            wrote_bytes += sz
+            wrote += 1
+            meta.update({"bundled": True, "ayat": len(rows), "bytes": sz,
+                         "sha256": sha})
+        else:
+            meta.update({"bundled": False, "mirror": True})
+        index.append(meta)
+    _write_sub("", "tafsir_index", {"v": 1, "books": index})
+    return "tafsir_index", [{"books": index}], "Quranpedia tafsir_books-all", "", \
+        "classical = free · modern = per-author", \
+        {"total_books": len(index), "bundled": wrote,
+         "bundled_MB": round(wrote_bytes / 1e6, 1),
+         "mirror": len(index) - wrote}
+
+
+def build_riwayat(man):
+    """14 riwāyāt full text → corpus/riwaya/<id>.json.gz + index. Hafs = primary."""
+    import re as _re
+    z = zipfile.ZipFile(os.path.join(REPO, "mushafs-all.zip"))
+    members = sorted(
+        (n for n in z.namelist() if _re.fullmatch(r"mushafs-\d+\.json\.gz", n)),
+        key=lambda n: int(_re.search(r"\d+", n).group()))
+    index = []
+    for member in members:
+        obj = json.loads(gzip.decompress(z.read(member)))
+        d = obj.get("data", {})
+        if not isinstance(d, dict) or not d.get("surahs"):
+            continue
+        rid = d.get("id")
+        rows = []
+        for surah in d.get("surahs", []):
+            s = int(surah.get("id") or surah.get("number"))
+            for v in surah.get("ayahs", []):
+                a = int(v.get("number"))
+                rows.append({"s": s, "a": a,
+                             "t": (v.get("text") or "").lstrip("﻿").strip(),
+                             "m": v.get("marker")})
+        sz, sha = _write_sub("riwaya", str(rid), {"v": 1, "id": rid, "rows": rows})
+        rawi = d.get("rawi") or {}
+        index.append({"id": rid, "name": d.get("name"),
+                      "rawi": rawi.get("name") if isinstance(rawi, dict) else rawi,
+                      "ayat": len(rows), "bytes": sz, "sha256": sha,
+                      "primary": rid == 1})
+    _write_sub("", "riwaya_index", {"v": 1, "riwayat": index})
+    hafs = next((r for r in index if r["id"] == 1), None)
+    ok = hafs is not None and hafs["ayat"] == CANON_AYAT
+    return "riwaya_index", [{"riwayat": index}], "Quranpedia mushafs-all", "", \
+        "quranpedia-free", {"riwayat": len(index),
+                            "hafs_ayat": hafs["ayat"] if hafs else 0, "ok": ok}
+
+
+def build_sayings(man):
+    z = zipfile.ZipFile(os.path.join(REPO, "other-all.zip"))
+    obj = json.loads(gzip.decompress(z.read("sayings.json.gz")))
+    data, ver, lic = envelope(obj)
+    rows = []
+    for rec in data:
+        s, a = norm_sa(rec)
+        if s is None or s not in CANON:
+            continue
+        rows.append({"s": s, "a": a, "sayings": rec.get("sayings", [])})
+    ok, notes, cov = validate_per_ayah(rows, "sayings")
+    return "sayings", rows, "Quranpedia other/sayings", ver, "quranpedia-free", \
+        {"ayat": cov, "ok": ok, "notes": notes}
+
+
+def build_fatwas(man):
+    obj = read_gz_json(os.path.join(REPO, "fatwas.json.gz"))
+    data, ver, lic = envelope(obj)
+    rows = []
+    for f in data:
+        rows.append({"id": f["id"], "title": f.get("ar_title"),
+                     "q": f.get("ar_question"), "a": f.get("ar_answer"),
+                     "ref": f.get("ayahs") or f.get("surah")})
+    return "fatwas", rows, "Quranpedia fatwas", ver, "quranpedia-free", \
+        {"fatwas": len(rows)}
+
+
+def build_book_catalog(man):
+    z = zipfile.ZipFile(os.path.join(REPO, "books-all.zip"))
+    obj = json.loads(gzip.decompress(z.read("books.json.gz")))
+    data, ver, lic = envelope(obj)
+    rows = []
+    for b in data:
+        rows.append({
+            "id": b["id"], "type": b.get("type"), "name": b.get("name"),
+            "short": b.get("short_name"),
+            "author": (b.get("author") or {}).get("full_name")
+            if isinstance(b.get("author"), dict) else b.get("author"),
+            "year": b.get("publish_year"),
+            "lang": (b.get("language") or {}).get("code")
+            if isinstance(b.get("language"), dict) else None,
+        })
+    from collections import Counter
+    kinds = Counter(r["type"] for r in rows)
+    return "book_catalog", rows, "Quranpedia books-all", ver, "quranpedia-free", \
+        {"books": len(rows), "by_type": dict(kinds)}
+
+
 def build_nasekh(man):
     obj = read_gz_json(os.path.join(REPO, "nasekh-book-2391.json.gz"))
     data, ver, lic = envelope(obj)
@@ -279,7 +492,7 @@ def list_tafsir():
     return out
 
 
-def plan_tafsir(budget_mb=240):
+def plan_tafsir(budget_mb=135):
     z = zipfile.ZipFile(os.path.join(REPO, "tafsir_books-all.zip"))
     meta = []
     for n in z.namelist():
@@ -329,6 +542,12 @@ BUILDERS = {
     "asbab_books": lambda m: build_book_content(
         m, "asbab_books-all.zip", "asbab-book-", "asbab_books", "quranpedia-free"),
     "nasekh": build_nasekh,
+    "translations": build_translations,
+    "tafsir": build_tafsir,
+    "riwayat": build_riwayat,
+    "sayings": build_sayings,
+    "fatwas": build_fatwas,
+    "book_catalog": build_book_catalog,
 }
 
 
