@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Auto-runs before every commit once `git config core.hooksPath .githooks`
+# has been set. Blocks the commit if tool/check_secrets.sh finds a secret.
+exec sh "$(git rev-parse --show-toplevel)/tool/check_secrets.sh" staged

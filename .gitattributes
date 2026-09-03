@@ -1,0 +1,5 @@
+# Shell scripts + git hooks must stay LF so they run on macOS/Linux/CI and
+# under Git Bash on Windows (CRLF breaks the shebang / `read`).
+*.sh            text eol=lf
+.githooks/*     text eol=lf
+tool/*.sh       text eol=lf
