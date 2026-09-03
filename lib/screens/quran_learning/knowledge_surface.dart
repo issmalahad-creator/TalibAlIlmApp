@@ -10,6 +10,7 @@ import '../../theme/app_theme.dart';
 import '../../theme/depth.dart';
 import '../ayah_notebook_screen.dart';
 import '../ayah_study_screen.dart';
+import 'corpus_panels.dart';
 import 'irab_view_screen.dart';
 import 'learning_lesson_screen.dart';
 
@@ -279,6 +280,15 @@ class _WordSurfaceState extends State<_WordSurface> {
                 ],
                 const SizedBox(height: 12),
                 _sources(r, lang),
+                const SizedBox(height: 14),
+                // QC3 — the Quran Corpus for this exact word: ṣarf (QAC),
+                // syntactic iʿrāb (Treebank), غريب الكلمة, qirāʾāt.
+                WordCorpusPanel(
+                  surah: surah,
+                  ayah: ayah,
+                  wordIndex: wordIndex,
+                  lang: lang,
+                ),
               ],
             ],
           ),
@@ -587,7 +597,6 @@ class _AyahSurfaceState extends State<_AyahSurface> {
   KnowledgeResult? _result;
   String? _ayahText;
   _AyahSeg _seg = _AyahSeg.tafsir;
-  int _tafsirEdition = 0;
 
   int get surah => widget.selection.surah;
   int get ayah => widget.selection.ayah;
@@ -737,7 +746,33 @@ class _AyahSurfaceState extends State<_AyahSurface> {
   Widget _segBody(KnowledgeResult r, String lang) {
     switch (_seg) {
       case _AyahSeg.tafsir:
-        return _tafsirBody(r, lang);
+        // QC3 — the real 122-book bundled tafsīr picker (+ the ~27
+        // Supabase-mirror books flagged «عبر الإنترنت»).
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AyahTafsirPanel(surah: surah, ayah: ayah, lang: lang),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          AyahStudyScreen(surah: surah, ayah: ayah),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.menu_book_rounded, size: 16),
+                label: Text(basicText('ql_full_tafsir', lang),
+                    style: const TextStyle(fontSize: 12)),
+              ),
+            ),
+          ],
+        );
       case _AyahSeg.sources:
         if (r.sources.isEmpty) return _calmNoData(lang);
         return Column(
@@ -771,101 +806,39 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           ],
         );
       case _AyahSeg.uloom:
-        final ds = r.byDomain.keys.where((d) => d != 'tafsir').toList();
-        if (ds.isEmpty) return _calmNoData(lang);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final d in ds)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Text(
-                  '• ${basicText('ql_domain_$d', lang)} (${r.facts(d).length})',
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(fontSize: 12.5),
-                ),
-              ),
-          ],
-        );
+        // QC3 — «كل ما ورد في هذه الآية»: سبب النزول · إعراب من الكتب ·
+        // ناسخ/منسوخ · غريب · فوائد · متشابهات · آثار · موضوعات.
+        return AyahCorpusPanel(surah: surah, ayah: ayah, lang: lang);
       case _AyahSeg.translation:
-        // Translation lives in AyahStudyScreen's multi-language reader.
+        // QC3 — the real 138-edition translation picker (language + edition).
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _calmNoData(lang),
-            OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AyahStudyScreen(surah: surah, ayah: ayah),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.translate_rounded, size: 16),
-              label: Text(basicText('translate_action', lang)),
+            AyahTranslationPanel(surah: surah, ayah: ayah, lang: lang),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          AyahStudyScreen(surah: surah, ayah: ayah),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.translate_rounded, size: 16),
+                label: Text(basicText('translate_action', lang),
+                    style: const TextStyle(fontSize: 12)),
+              ),
             ),
           ],
         );
     }
   }
 
-  Widget _tafsirBody(KnowledgeResult r, String lang) {
-    final editions = r.facts('tafsir');
-    if (editions.isEmpty) return _calmNoData(lang);
-    final idx = _tafsirEdition.clamp(0, editions.length - 1);
-    final f = editions[idx];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // edition chips
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (var i = 0; i < editions.length; i++)
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: ChoiceChip(
-                    label: Text('${editions[i].payload['name_ar'] ?? ''}',
-                        style: const TextStyle(fontSize: 11)),
-                    selected: i == idx,
-                    onSelected: (_) => setState(() => _tafsirEdition = i),
-                    selectedColor: _kGold.withValues(alpha: 0.20),
-                    showCheckmark: false,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text('${f.payload['snippet'] ?? ''}',
-            textDirection: TextDirection.rtl,
-            style: const TextStyle(fontSize: 13, height: 1.9)),
-        const SizedBox(height: 6),
-        _sourceLine(r.sourceFor(f)),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => AyahStudyScreen(surah: surah, ayah: ayah),
-                ),
-              );
-            },
-            icon: const Icon(Icons.menu_book_rounded, size: 16),
-            label: Text(basicText('ql_full_tafsir', lang),
-                style: const TextStyle(fontSize: 12)),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _actionBar(String lang) {
     return Container(
@@ -912,15 +885,6 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _sourceLine(SourceReference? s) {
-    if (s == null) return const SizedBox.shrink();
-    return Text(
-      '${basicText('ql_source', widget.lang)}: ${s.name} · ${s.badgeAr}',
-      textDirection: TextDirection.rtl,
-      style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted),
     );
   }
 

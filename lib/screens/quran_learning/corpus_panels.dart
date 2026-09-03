@@ -1,0 +1,1164 @@
+import 'package:flutter/material.dart';
+
+import '../../l10n/basic_translations.dart';
+import '../../repositories/quran_book_cache.dart';
+import '../../repositories/quran_corpus_repository.dart';
+import '../../theme/app_theme.dart';
+
+/// Phase 80 / QC3 — the **Quran Corpus** surfaced on the mushaf.
+///
+/// Four self-contained panels that hang off the Word / Ayah Knowledge
+/// Surfaces ([knowledge_surface.dart]) and read only from
+/// [QuranCorpusRepository] + [QuranBookCache] over the canonical
+/// `(surah, ayah[, word_index])` spine:
+///
+///  * [WordCorpusPanel]   — ṣarf (QAC), syntactic iʿrāb (Treebank), غريب
+///                          الكلمة, and the qirāʾāt phrases that touch the
+///                          tapped word.
+///  * [AyahCorpusPanel]   — سبب النزول · إعراب من الكتب · الناسخ والمنسوخ ·
+///                          غريب الآية · الفوائد · المتشابهات · الآثار ·
+///                          الموضوعات.
+///  * [AyahTafsirPanel]   — a picker over the 122 bundled tafsīrs (the ~27
+///                          overflow books say "عبر الإنترنت — قريبًا").
+///  * [AyahTranslationPanel] — a language + edition picker over the 138
+///                          bundled translation editions.
+///
+/// Every block carries its source line. A block with nothing to show is
+/// omitted; a panel with nothing at all shows the calm
+/// «لا توجد بيانات موثقة» — never a guess, never a silent empty section.
+
+const Color _kGold = Color(0xFFD9A441);
+
+// Fixed source citations — kept as literals (not `basicText`) so the
+// licence-required credit is always present verbatim, never subject to a
+// missing-translation fallback (`quran-engineering` skill: visible
+// corpus.quran.com credit + link).
+const String _srcQac =
+    'Quranic Arabic Corpus — corpus.quran.com · GNU GPL';
+const String _srcTreebank = 'The Quranic Treebank (NoorBayan) · MIT';
+const String _srcQuranpedia = 'Quranpedia.net';
+const String _srcNasekh = 'الإيضاح لناسخ القرآن ومنسوخه';
+
+// ─────────────────────────── shared helpers ────────────────────────────
+
+final RegExp _brRe =
+    RegExp(r'<\s*/?\s*(br|p|div|li|tr|h[1-6])\s*/?\s*>', caseSensitive: false);
+final RegExp _footRe =
+    RegExp(r'<footer[^>]*>.*?</footer>', caseSensitive: false, dotAll: true);
+final RegExp _tagRe = RegExp(r'<[^>]+>');
+final RegExp _blankRe = RegExp(r'[ \t]*\n[ \t]*(\n[ \t]*)+');
+final RegExp _harakaRe =
+    RegExp(r'[ؐ-ًؚ-ٰٟۖ-ۭـ]');
+final RegExp _wsRe = RegExp(r'\s+');
+
+/// HTML (or a list / map of html fragments) → plain text with real line
+/// breaks. The iʿrāb / asbāb / nāsikh / āthār corpus fields keep their raw
+/// markup (only tafsīr + translations were cleaned at ingest).
+String stripCorpusHtml(Object? v) {
+  if (v == null) return '';
+  if (v is List) {
+    return v.map(stripCorpusHtml).where((s) => s.isNotEmpty).join('\n\n');
+  }
+  if (v is Map) {
+    return stripCorpusHtml(v['text'] ?? v['html'] ?? v['content'] ?? '');
+  }
+  var s = v.toString().replaceAll('\r', '').replaceAll('﻿', '');
+  s = s.replaceAll(_footRe, '');
+  s = s.replaceAll(_brRe, '\n').replaceAll(_tagRe, '');
+  s = s
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'");
+  s = s.replaceAll(_blankRe, '\n\n');
+  return s.trim();
+}
+
+/// Skeleton form for loose Arabic matching (harakāt dropped, alif / yāʾ /
+/// tāʾ-marbūṭa / hamza unified, whitespace removed). Same intent as the
+/// ingest-time `norm()` in `tool/build_alignments.py`.
+String _norm(String s) => s
+    .replaceAll(_harakaRe, '')
+    .replaceAll(RegExp(r'[أإآٱ]'), 'ا')
+    .replaceAll('ى', 'ي')
+    .replaceAll('ة', 'ه')
+    .replaceAll('ؤ', 'و')
+    .replaceAll('ئ', 'ي')
+    .replaceAll('ء', '')
+    .replaceAll(_wsRe, '')
+    .trim();
+
+Widget _calmNoData(String lang) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Text(
+          basicText('ql_no_data_element', lang),
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5),
+        ),
+      ),
+    );
+
+Widget _calmMessage(String msg) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Center(
+        child: Text(
+          msg,
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5),
+        ),
+      ),
+    );
+
+/// A quiet, non-animating "loading" placeholder — the surface already shows
+/// one spinner for the primary result; a second would just be noise (and it
+/// keeps widget tests free of a perpetual animation).
+Widget _dots() => const Padding(
+      padding: EdgeInsets.symmetric(vertical: 14),
+      child: Center(
+        child: Text('···',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
+      ),
+    );
+
+Widget _sourceLine(String? text) {
+  if (text == null || text.trim().isEmpty) return const SizedBox.shrink();
+  return Padding(
+    padding: const EdgeInsets.only(top: 6),
+    child: Text(
+      text,
+      textDirection: TextDirection.rtl,
+      style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted),
+    ),
+  );
+}
+
+/// Collapsible corpus block, styled to match `knowledge_surface.dart`'s
+/// `_block` but expandable — a study surface can carry a dozen of these
+/// without becoming a wall of text (خطة القارئ الموحّد §4، progressive
+/// disclosure).
+class _CorpusSection extends StatefulWidget {
+  final String title;
+  final String? source;
+  final Widget child;
+  final bool open;
+  const _CorpusSection({
+    required this.title,
+    required this.child,
+    this.source,
+    this.open = false,
+  });
+
+  @override
+  State<_CorpusSection> createState() => _CorpusSectionState();
+}
+
+class _CorpusSectionState extends State<_CorpusSection> {
+  late bool _open = widget.open;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _open = !_open),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.all(11),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700, fontSize: 12.5),
+                    ),
+                  ),
+                  Icon(
+                    _open
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 20,
+                    color: AppColors.textMuted,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 160),
+            firstCurve: Curves.easeOut,
+            secondCurve: Curves.easeIn,
+            sizeCurve: Curves.easeOutCubic,
+            crossFadeState:
+                _open ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            firstChild: Padding(
+              padding: const EdgeInsets.fromLTRB(11, 0, 11, 11),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  widget.child,
+                  _sourceLine(widget.source),
+                ],
+              ),
+            ),
+            secondChild: const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget _rtl(String text, {double size = 12.5, double height = 1.8}) => Text(
+      text,
+      textDirection: TextDirection.rtl,
+      style: TextStyle(fontSize: size, height: height),
+    );
+
+Widget _bookLabel(String name) => Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 2),
+      child: Text(
+        name,
+        textDirection: TextDirection.rtl,
+        style: const TextStyle(
+            fontWeight: FontWeight.w700, fontSize: 12, color: AppColors.textDark),
+      ),
+    );
+
+// ═══════════════════════════════ WORD ══════════════════════════════════
+
+class WordCorpusPanel extends StatefulWidget {
+  final int surah;
+  final int ayah;
+  final int wordIndex;
+  final String lang;
+  const WordCorpusPanel({
+    super.key,
+    required this.surah,
+    required this.ayah,
+    required this.wordIndex,
+    required this.lang,
+  });
+
+  @override
+  State<WordCorpusPanel> createState() => _WordCorpusPanelState();
+}
+
+class _WordCorpusPanelState extends State<WordCorpusPanel> {
+  final _repo = QuranCorpusRepository();
+
+  bool _loading = true;
+  Map<String, dynamic>? _sarf; // the tapped word's QAC morphology entry
+  List<Map<String, dynamic>> _tokens = []; // Treebank tokens for this word
+  List<MapEntry<String, String>> _gloss = []; // book → غريب meaning
+  List<Map<String, dynamic>> _qiraat = []; // {text, readers}
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant WordCorpusPanel old) {
+    super.didUpdateWidget(old);
+    if (old.surah != widget.surah ||
+        old.ayah != widget.ayah ||
+        old.wordIndex != widget.wordIndex) {
+      setState(() => _loading = true);
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final s = widget.surah, a = widget.ayah, wi = widget.wordIndex;
+
+    Map<String, dynamic>? sarf;
+    final rawSarf = await _repo.morphologyForWord(s, a, wi);
+    if (rawSarf is Map) sarf = rawSarf.cast<String, dynamic>();
+    final ref = sarf != null ? _norm('${sarf['text'] ?? ''}') : '';
+    final qac = await _repo.qacWordFor(s, a, wi);
+
+    final tokens = <Map<String, dynamic>>[];
+    if (qac != null) {
+      final syn = await _repo.syntax(s, a);
+      if (syn is Map) {
+        for (final sent in (syn['sentences'] as List? ?? const [])) {
+          for (final w in ((sent as Map)['words'] as List? ?? const [])) {
+            if ((w as Map)['number'] == qac) {
+              for (final t in (w['tokens'] as List? ?? const [])) {
+                tokens.add((t as Map).cast<String, dynamic>());
+              }
+            }
+          }
+        }
+      }
+    }
+
+    final gloss = <MapEntry<String, String>>[];
+    if (ref.isNotEmpty) {
+      final gm = await _repo.wordMeanings(s, a);
+      if (gm is List) {
+        for (final book in gm) {
+          final bi = (book as Map)['book_info'];
+          final name = bi is Map ? '${bi['name'] ?? ''}' : '';
+          for (final w in (book['words'] as List? ?? const [])) {
+            final wt = _norm('${(w as Map)['text'] ?? ''}');
+            if (wt.isEmpty) continue;
+            if (wt == ref || wt.contains(ref) || ref.contains(wt)) {
+              final m = '${w['meaning'] ?? ''}'.trim();
+              if (m.isNotEmpty) gloss.add(MapEntry(name, m));
+            }
+          }
+        }
+      }
+    }
+
+    final qir = <Map<String, dynamic>>[];
+    if (ref.isNotEmpty) {
+      final q = await _repo.qiraat(s, a);
+      if (q is List) {
+        for (final grp in q) {
+          final phrase = _norm('${(grp as Map)['ayah_word'] ?? ''}');
+          if (phrase.isEmpty || !phrase.contains(ref)) continue;
+          for (final qq in (grp['qiraat'] as List? ?? const [])) {
+            final txt = '${(qq as Map)['qiraa_text'] ?? ''}'.trim();
+            if (txt.isEmpty) continue;
+            final readers = <String>{};
+            for (final rw in (qq['rewayat'] as List? ?? const [])) {
+              final qa = ((rw as Map)['rawi'] as Map?)?['qiraa'];
+              if (qa is Map && qa['short_name'] != null) {
+                readers.add('${qa['short_name']}');
+              }
+            }
+            qir.add({'text': txt, 'readers': readers.toList()});
+          }
+        }
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _sarf = sarf;
+      _tokens = tokens;
+      _gloss = gloss;
+      _qiraat = qir;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = widget.lang;
+    if (_loading) return _dots();
+    if (_sarf == null &&
+        _tokens.isEmpty &&
+        _gloss.isEmpty &&
+        _qiraat.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6, top: 2),
+          child: Text(
+            basicText('ql_word_sciences', lang),
+            textDirection: TextDirection.rtl,
+            style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 12.5,
+                color: AppColors.textDark),
+          ),
+        ),
+        if (_sarf != null) _sarfSection(lang, _sarf!),
+        if (_tokens.isNotEmpty) _iraabSection(lang),
+        if (_gloss.isNotEmpty) _ghareebSection(lang),
+        if (_qiraat.isNotEmpty) _qiraatSection(lang),
+      ],
+    );
+  }
+
+  Widget _sarfSection(String lang, Map<String, dynamic> w) {
+    final segs = (w['segments'] as List? ?? const [])
+        .whereType<Map>()
+        .map((e) => e.cast<String, dynamic>())
+        .toList();
+    Map<String, dynamic>? stem;
+    for (final s in segs) {
+      if (s['role'] == 'stem') {
+        stem = s;
+        break;
+      }
+    }
+    stem ??= segs.isNotEmpty ? segs.last : null;
+
+    final rows = <Widget>[];
+    void kv(String k, Object? v) {
+      final s = '${v ?? ''}'.trim();
+      if (s.isEmpty) return;
+      rows.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: RichText(
+          textDirection: TextDirection.rtl,
+          text: TextSpan(
+            style: const TextStyle(
+                fontSize: 12.5, height: 1.7, color: AppColors.textDark),
+            children: [
+              TextSpan(
+                  text: '$k: ',
+                  style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontWeight: FontWeight.w600)),
+              TextSpan(text: s),
+            ],
+          ),
+        ),
+      ));
+    }
+
+    if (stem != null) {
+      kv(basicText('ql_word_type', lang), stem['pos']);
+      kv(basicText('ql_sign', lang), stem['inflection']);
+      final quals = (stem['qualifiers'] as List? ?? const []).join('، ');
+      kv(basicText('ql_features', lang), quals);
+      kv(basicText('ql_root', lang), stem['root']);
+      kv(basicText('ql_lemma', lang), stem['lemma']);
+      kv(basicText('ql_pattern', lang), stem['pattern']);
+    }
+    final translit = [
+      if ('${w['phonetic'] ?? ''}'.isNotEmpty) '${w['phonetic']}',
+      if ('${w['translation'] ?? ''}'.isNotEmpty) '${w['translation']}',
+    ].join('  ·  ');
+    if (translit.isNotEmpty) {
+      rows.add(Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Text(translit,
+            style:
+                const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+      ));
+    }
+
+    if (segs.length > 1) {
+      rows.add(const SizedBox(height: 6));
+      rows.add(Text(basicText('ql_word_structure', lang),
+          textDirection: TextDirection.rtl,
+          style: const TextStyle(
+              fontSize: 11.5, fontWeight: FontWeight.w700)));
+      for (final sg in segs) {
+        final desc = '${sg['description'] ?? sg['pos'] ?? ''}'.trim();
+        rows.add(_rtl('• ${sg['form'] ?? ''} — $desc', size: 12, height: 1.7));
+      }
+    }
+
+    return _CorpusSection(
+      title: basicText('ql_domain_sarf', lang),
+      open: true,
+      source:
+          '${basicText('ql_source', lang)}: $_srcQac',
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows),
+    );
+  }
+
+  Widget _iraabSection(String lang) {
+    final orderLbl = basicText('mushaf_word_order_label', lang);
+    return _CorpusSection(
+      title: basicText('ql_iraab_syntax', lang),
+      source:
+          '${basicText('ql_source', lang)}: $_srcTreebank',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final t in _tokens)
+            _rtl(
+              '• ${t['text'] ?? ''}'
+              '${(t['pos'] ?? '') != '' ? '  ·  ${t['pos']}' : ''}'
+              '${(t['rel_ar'] ?? t['rel'] ?? '') != '' ? '  ·  ${t['rel_ar'] ?? t['rel']}' : ''}'
+              '${t['head'] is Map && (t['head'] as Map)['word'] != null ? '  →  $orderLbl ${(t['head'] as Map)['word']}' : ''}',
+              size: 12,
+              height: 1.7,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ghareebSection(String lang) {
+    return _CorpusSection(
+      title: basicText('ql_ghareeb_word', lang),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final e in _gloss) ...[
+            if (e.key.isNotEmpty) _bookLabel(e.key),
+            _rtl(e.value, size: 12.5),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _qiraatSection(String lang) {
+    return _CorpusSection(
+      title: basicText('ql_qiraat', lang),
+      source:
+          '${basicText('ql_source', lang)}: $_srcQuranpedia',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final q in _qiraat) ...[
+            _rtl('• ${q['text']}', size: 12.5),
+            if ((q['readers'] as List).isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 10, bottom: 4),
+                child: Text(
+                  '${basicText('ql_readers', lang)}: ${(q['readers'] as List).join('، ')}',
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.textMuted),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════ AYAH ══════════════════════════════════
+
+class AyahCorpusPanel extends StatefulWidget {
+  final int surah;
+  final int ayah;
+  final String lang;
+
+  /// QC4 hook — tapping a topic chip will drive the Knowledge Index search.
+  final void Function(int topicId, String name)? onTopicTap;
+
+  const AyahCorpusPanel({
+    super.key,
+    required this.surah,
+    required this.ayah,
+    required this.lang,
+    this.onTopicTap,
+  });
+
+  @override
+  State<AyahCorpusPanel> createState() => _AyahCorpusPanelState();
+}
+
+class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
+  final _repo = QuranCorpusRepository();
+  bool _loading = true;
+
+  List<Map<String, Object?>> _asbab = [];
+  List<Map<String, Object?>> _iraab = [];
+  String _nasekh = '';
+  List _notes = [];
+  List _similar = [];
+  List _sayings = [];
+  List<Map<String, Object?>> _topics = [];
+  List _ghareeb = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant AyahCorpusPanel old) {
+    super.didUpdateWidget(old);
+    if (old.surah != widget.surah || old.ayah != widget.ayah) {
+      setState(() => _loading = true);
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final s = widget.surah, a = widget.ayah;
+    final asbab = await _repo.asbab(s, a);
+    final iraab = await _repo.irabProse(s, a);
+    final nasekhRaw = await _repo.nasekh(s, a);
+    final notes = await _repo.notes(s, a);
+    final similar = await _repo.similar(s, a);
+    final sayings = await _repo.sayings(s, a);
+    final topics = await _repo.topicsForAyah(s, a);
+    final gm = await _repo.wordMeanings(s, a);
+
+    if (!mounted) return;
+    setState(() {
+      _asbab = asbab;
+      _iraab = iraab;
+      _nasekh = nasekhRaw is Map ? stripCorpusHtml(nasekhRaw['html']) : '';
+      _notes = notes is List ? notes : const [];
+      _similar = similar is List ? similar : const [];
+      _sayings = sayings is List ? sayings : const [];
+      _topics = topics;
+      _ghareeb = gm is List ? gm : const [];
+      _loading = false;
+    });
+  }
+
+  bool get _empty =>
+      _asbab.isEmpty &&
+      _iraab.isEmpty &&
+      _nasekh.isEmpty &&
+      _notes.isEmpty &&
+      _similar.isEmpty &&
+      _sayings.isEmpty &&
+      _topics.isEmpty &&
+      _ghareeb.isEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = widget.lang;
+    if (_loading) return _dots();
+    if (_empty) return _calmNoData(lang);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_asbab.isNotEmpty) _asbabSection(lang),
+        if (_iraab.isNotEmpty) _iraabProseSection(lang),
+        if (_nasekh.isNotEmpty) _nasekhSection(lang),
+        if (_ghareeb.isNotEmpty) _ghareebSection(lang),
+        if (_notes.isNotEmpty) _notesSection(lang),
+        if (_similar.isNotEmpty) _similarSection(lang),
+        if (_sayings.isNotEmpty) _sayingsSection(lang),
+        if (_topics.isNotEmpty) _topicsSection(lang),
+      ],
+    );
+  }
+
+  Widget _fromBooks(List<Map<String, Object?>> rows) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final r in rows) ...[
+            _bookLabel('${r['name'] ?? r['short'] ?? ''}'
+                '${(r['author'] ?? '') != '' ? ' — ${r['author']}' : ''}'),
+            _rtl(stripCorpusHtml(r['html']), size: 12.5),
+          ],
+        ],
+      );
+
+  Widget _asbabSection(String lang) => _CorpusSection(
+        title: basicText('ql_asbab', lang),
+        open: true,
+        source:
+            '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: _fromBooks(_asbab),
+      );
+
+  Widget _iraabProseSection(String lang) => _CorpusSection(
+        title: basicText('ql_iraab_prose', lang),
+        source:
+            '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: _fromBooks(_iraab),
+      );
+
+  Widget _nasekhSection(String lang) => _CorpusSection(
+        title: basicText('ql_nasekh', lang),
+        source:
+            '${basicText('ql_source', lang)}: $_srcNasekh',
+        child: _rtl(_nasekh, size: 12.5),
+      );
+
+  Widget _ghareebSection(String lang) => _CorpusSection(
+        title: basicText('ql_ghareeb_ayah', lang),
+        source:
+            '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final book in _ghareeb) ...[
+              if (((book as Map)['book_info'] is Map) &&
+                  '${(book['book_info'] as Map)['name'] ?? ''}'.isNotEmpty)
+                _bookLabel('${(book['book_info'] as Map)['name']}'),
+              for (final w in (book['words'] as List? ?? const []))
+                _rtl(
+                    '• ${(w as Map)['text'] ?? ''}: ${w['meaning'] ?? ''}',
+                    size: 12,
+                    height: 1.7),
+            ],
+          ],
+        ),
+      );
+
+  Widget _notesSection(String lang) => _CorpusSection(
+        title: basicText('ql_faidah', lang),
+        source: '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final n in _notes)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _rtl(stripCorpusHtml((n as Map)['ar_note']), size: 12.5),
+                    if ('${n['author'] ?? ''}'.isNotEmpty)
+                      Text('— ${n['author']}',
+                          textDirection: TextDirection.rtl,
+                          style: const TextStyle(
+                              fontSize: 10, color: AppColors.textMuted)),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+
+  Widget _similarSection(String lang) {
+    final tiles = <Widget>[];
+    for (final grp in _similar) {
+      final note = stripCorpusHtml((grp as Map)['notes']);
+      if (note.isNotEmpty) tiles.add(_rtl('• $note', size: 12.5));
+      for (final ay in (grp['ayahs'] as List? ?? const [])) {
+        final info = (ay as Map)['info'];
+        if (info is! Map) continue;
+        final t = stripCorpusHtml(info['text']);
+        tiles.add(Padding(
+          padding: const EdgeInsets.only(right: 10, top: 2, bottom: 4),
+          child: Text(
+            '﴿ $t ﴾  [${info['surah_id'] ?? '?'}:${info['number'] ?? '?'}]',
+            textDirection: TextDirection.rtl,
+            style: const TextStyle(fontSize: 12, height: 1.9),
+          ),
+        ));
+      }
+    }
+    return _CorpusSection(
+      title: basicText('ql_mutashabihat', lang),
+      source:
+          '${basicText('ql_source', lang)}: $_srcQuranpedia',
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, children: tiles),
+    );
+  }
+
+  Widget _sayingsSection(String lang) => _CorpusSection(
+        title: basicText('ql_athar', lang),
+        source:
+            '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final sy in _sayings)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if ('${(sy as Map)['title'] ?? ''}'.isNotEmpty)
+                      _rtl('${sy['title']}',
+                          size: 11.5, height: 1.5),
+                    _rtl(stripCorpusHtml(sy['text']), size: 12.5),
+                    if ((sy['narrators'] as List? ?? const []).isNotEmpty)
+                      Text(
+                        '${basicText('ql_narrators', lang)}: '
+                        '${(sy['narrators'] as List).map((x) => (x as Map)['name']).where((x) => x != null).join('، ')}',
+                        textDirection: TextDirection.rtl,
+                        style: const TextStyle(
+                            fontSize: 10, color: AppColors.textMuted),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
+
+  Widget _topicsSection(String lang) => _CorpusSection(
+        title: basicText('ql_topics', lang),
+        open: true,
+        source:
+            '${basicText('ql_source', lang)}: $_srcQuranpedia',
+        child: Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final t in _topics)
+              ActionChip(
+                label: Text('${t['name'] ?? ''}',
+                    style: const TextStyle(fontSize: 11)),
+                onPressed: widget.onTopicTap == null
+                    ? null
+                    : () => widget.onTopicTap!(
+                        t['id'] as int, '${t['name'] ?? ''}'),
+                backgroundColor: _kGold.withValues(alpha: 0.08),
+                side: BorderSide(color: _kGold.withValues(alpha: 0.25)),
+              ),
+          ],
+        ),
+      );
+}
+
+// ═════════════════════════════ TAFSIR ═════════════════════════════════
+
+class AyahTafsirPanel extends StatefulWidget {
+  final int surah;
+  final int ayah;
+  final String lang;
+  const AyahTafsirPanel({
+    super.key,
+    required this.surah,
+    required this.ayah,
+    required this.lang,
+  });
+
+  @override
+  State<AyahTafsirPanel> createState() => _AyahTafsirPanelState();
+}
+
+class _AyahTafsirPanelState extends State<AyahTafsirPanel> {
+  final _repo = QuranCorpusRepository();
+
+  bool _loadingBooks = true;
+  bool _loadingText = false;
+  List<Map<String, Object?>> _books = [];
+  int _bookId = -1;
+  String? _text;
+  bool _mirror = false;
+
+  static const _prefer = <String>[
+    'الميسر', 'المختصر', 'السعدي', 'ابن كثير', 'البغوي', 'الطبري', 'الجلالين',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  @override
+  void didUpdateWidget(covariant AyahTafsirPanel old) {
+    super.didUpdateWidget(old);
+    if (old.surah != widget.surah || old.ayah != widget.ayah) _loadText();
+  }
+
+  Future<void> _init() async {
+    final books = await _repo.tafsirBooks();
+    if (!mounted) return;
+    setState(() {
+      _books = books;
+      _loadingBooks = false;
+      _bookId = _pickDefault() ?? -1;
+    });
+    if (_bookId != -1) _loadText();
+  }
+
+  int? _pickDefault() {
+    for (final key in _prefer) {
+      for (final b in _books) {
+        if (b['bundled'] == 1 &&
+            ('${b['name'] ?? ''} ${b['short'] ?? ''}').contains(key)) {
+          return b['id'] as int?;
+        }
+      }
+    }
+    for (final b in _books) {
+      if (b['bundled'] == 1) return b['id'] as int?;
+    }
+    return _books.isEmpty ? null : _books.first['id'] as int?;
+  }
+
+  Future<void> _loadText() async {
+    if (_bookId == -1) return;
+    setState(() {
+      _loadingText = true;
+      _text = null;
+      _mirror = false;
+    });
+    final e = await QuranBookCache.instance
+        .tafsirEntry(_bookId, widget.surah, widget.ayah);
+    if (!mounted) return;
+    setState(() {
+      _loadingText = false;
+      if (e == null) {
+        _text = null;
+      } else if (e['mirror'] == true) {
+        _mirror = true;
+      } else {
+        _text = '${e['text'] ?? ''}';
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = widget.lang;
+    if (_loadingBooks) return _dots();
+    if (_books.isEmpty) return _calmNoData(lang);
+
+    Map<String, Object?> current = _books.first;
+    for (final b in _books) {
+      if (b['id'] == _bookId) {
+        current = b;
+        break;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(basicText('ql_choose_tafsir', lang),
+            textDirection: TextDirection.rtl,
+            style:
+                const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+        DropdownButton<int>(
+          isExpanded: true,
+          value: _bookId == -1 ? null : _bookId,
+          items: [
+            for (final b in _books)
+              DropdownMenuItem<int>(
+                value: b['id'] as int,
+                child: Text(
+                  '${b['name'] ?? b['short'] ?? ''}'
+                  '${b['bundled'] == 1 ? '' : '  · ${basicText('ql_online', lang)}'}',
+                  overflow: TextOverflow.ellipsis,
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+          ],
+          onChanged: (v) {
+            if (v == null) return;
+            setState(() => _bookId = v);
+            _loadText();
+          },
+        ),
+        const SizedBox(height: 8),
+        if (_loadingText)
+          _dots()
+        else if (_mirror)
+          _calmMessage(basicText('ql_tafsir_mirror', lang))
+        else if (_text == null || _text!.trim().isEmpty)
+          _calmNoData(lang)
+        else
+          SelectableText(
+            _text!,
+            textDirection: TextDirection.rtl,
+            style: const TextStyle(fontSize: 13, height: 1.9),
+          ),
+        _sourceLine(
+          '${basicText('ql_source', lang)}: ${current['name'] ?? ''}'
+          '${(current['author'] ?? '') != '' ? ' — ${current['author']}' : ''}'
+          '${(current['year'] ?? '') != '' ? ' (${current['year']})' : ''}',
+        ),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════ TRANSLATION ═══════════════════════════════
+
+class AyahTranslationPanel extends StatefulWidget {
+  final int surah;
+  final int ayah;
+  final String lang;
+  const AyahTranslationPanel({
+    super.key,
+    required this.surah,
+    required this.ayah,
+    required this.lang,
+  });
+
+  @override
+  State<AyahTranslationPanel> createState() => _AyahTranslationPanelState();
+}
+
+class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
+  final _repo = QuranCorpusRepository();
+
+  bool _loadingEds = true;
+  bool _loadingText = false;
+  List<Map<String, Object?>> _eds = [];
+  final Map<String, String> _localeName = {}; // locale → display language
+  String _locale = '';
+  int _edId = -1;
+  String _text = '';
+  String _dir = 'ltr';
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  @override
+  void didUpdateWidget(covariant AyahTranslationPanel old) {
+    super.didUpdateWidget(old);
+    if (old.surah != widget.surah || old.ayah != widget.ayah) _loadText();
+  }
+
+  Future<void> _init() async {
+    final eds = await _repo.translationEditions();
+    if (!mounted) return;
+    for (final e in eds) {
+      final loc = '${e['locale'] ?? ''}';
+      if (loc.isEmpty) continue;
+      _localeName.putIfAbsent(loc, () => '${e['lang'] ?? loc}');
+    }
+    final locs = _localeName.keys.toSet();
+    String locale;
+    if (locs.contains(widget.lang)) {
+      locale = widget.lang;
+    } else if (locs.contains('en')) {
+      locale = 'en';
+    } else {
+      locale = eds.isEmpty ? '' : '${eds.first['locale'] ?? ''}';
+    }
+    setState(() {
+      _eds = eds;
+      _loadingEds = false;
+      _locale = locale;
+      _edId = _firstEditionOf(locale) ?? -1;
+    });
+    if (_edId != -1) _loadText();
+  }
+
+  int? _firstEditionOf(String locale) {
+    for (final e in _eds) {
+      if ('${e['locale'] ?? ''}' == locale) return e['id'] as int?;
+    }
+    return _eds.isEmpty ? null : _eds.first['id'] as int?;
+  }
+
+  Future<void> _loadText() async {
+    if (_edId == -1) return;
+    setState(() => _loadingText = true);
+    final t = await QuranBookCache.instance
+        .translation(_edId, widget.surah, widget.ayah);
+    String dir = 'ltr';
+    for (final e in _eds) {
+      if (e['id'] == _edId) {
+        dir = '${e['direction'] ?? 'ltr'}';
+        break;
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _loadingText = false;
+      _text = t ?? '';
+      _dir = dir;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = widget.lang;
+    if (_loadingEds) return _dots();
+    if (_eds.isEmpty) return _calmNoData(lang);
+
+    final locales = _localeName.keys.toList()
+      ..sort((a, b) {
+        if (a == 'en') return -1;
+        if (b == 'en') return 1;
+        return _localeName[a]!.compareTo(_localeName[b]!);
+      });
+    final editionsForLocale = [
+      for (final e in _eds)
+        if ('${e['locale'] ?? ''}' == _locale) e,
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(basicText('ql_choose_language', lang),
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textMuted)),
+                  DropdownButton<String>(
+                    isExpanded: true,
+                    value: _locale.isEmpty ? null : _locale,
+                    items: [
+                      for (final loc in locales)
+                        DropdownMenuItem<String>(
+                          value: loc,
+                          child: Text(_localeName[loc] ?? loc,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12)),
+                        ),
+                    ],
+                    onChanged: (v) {
+                      if (v == null) return;
+                      setState(() {
+                        _locale = v;
+                        _edId = _firstEditionOf(v) ?? -1;
+                      });
+                      _loadText();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(basicText('ql_choose_translation', lang),
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textMuted)),
+                  DropdownButton<int>(
+                    isExpanded: true,
+                    value: _edId == -1 ? null : _edId,
+                    items: [
+                      for (final e in editionsForLocale)
+                        DropdownMenuItem<int>(
+                          value: e['id'] as int,
+                          child: Text('${e['name'] ?? e['short'] ?? ''}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12)),
+                        ),
+                    ],
+                    onChanged: (v) {
+                      if (v == null) return;
+                      setState(() => _edId = v);
+                      _loadText();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (_loadingText)
+          _dots()
+        else if (_text.trim().isEmpty)
+          _calmNoData(lang)
+        else
+          Directionality(
+            textDirection:
+                _dir == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+            child: SelectableText(
+              _text,
+              style: const TextStyle(fontSize: 13, height: 1.9),
+            ),
+          ),
+      ],
+    );
+  }
+}

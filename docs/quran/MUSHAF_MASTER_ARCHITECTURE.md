@@ -11,8 +11,8 @@ once — it defines *what* is being built, *how the layers fit*, and *in what
 order*. One phase at a time (CLAUDE.md).
 
 This doc **umbrellas** (does not replace):
-- **[`MUSHAF_ENGINE_REBUILD.md`](MUSHAF_ENGINE_REBUILD.md)** → Layer 7 (Rendering) — *Phase A, in progress: M0–M3 done*.
-- **[`QURAN_CORPUS_INTEGRATION.md`](QURAN_CORPUS_INTEGRATION.md)** → Layers 1–4 (the Quranpedia corpus) — *Phases B–F*.
+- **[`MUSHAF_ENGINE_REBUILD.md`](MUSHAF_ENGINE_REBUILD.md)** → Layer 7 (Rendering) — *Phase A ✅ complete (M0–M7, 604/604 QA)*.
+- **[`QURAN_CORPUS_INTEGRATION.md`](QURAN_CORPUS_INTEGRATION.md)** → Layers 1–4 (the Quranpedia corpus) — *Phases B ✅ + C ✅ done; D–F next*.
 - **[`../QURAN_LEARNING_ARCHITECTURE.md`](../QURAN_LEARNING_ARCHITECTURE.md)** + `QURAN_LIVE_DATA_ARCHITECTURE.md` → Layers 6 & 10 (KnowledgeGateway + study loop).
 - **[`../SUPABASE_ARCHITECTURE.md`](../SUPABASE_ARCHITECTURE.md)** → Layer 4b (cloud mirror + delta sync + on‑demand).
 - **[`../QURAN_DATA_CONTRACTS.md`](../QURAN_DATA_CONTRACTS.md)** / `QURAN_DATA_VALIDATION.md` → Layer 2 (ingest contracts).
@@ -263,8 +263,8 @@ previous one is signed off.**
 |---|---|---|---|
 | **A — Rendering engine** ✅ **COMPLETE 2026‑09‑03** | M0–M3 signed off · M4 cache · **M5 604‑page QA: geometry/data/visual 604/604 PASS** · M6a legacy‑code deletion · M7 close‑out. 467 tests, emulator‑verified. (M6b page_recitation cleanup deferred, non‑blocking.) | — | `MUSHAF_ENGINE_REBUILD.md` |
 | **B — Identity spine & ingest** ✅ **DONE 2026‑09‑03** | `build_quran_corpus.py` → 19 datasets, 290 files, 376 MB, all validated (114/6236). `build_alignments.py` (VT‑3) → `align_qac` **6196/6236 clean**. `quran_corpus_*` schema (DB v54) + `QuranCorpusSync` + `QuranCorpusRepository` + `QuranBookCache` (on‑demand tafsīr/translation/riwāya). 481 tests. | Phase A done ✅ | `QURAN_CORPUS_INTEGRATION.md` QC1–QC2 + VT‑3 |
-| **C — Knowledge planes, offline** *(NEXT)* | providers #2,3,4,5,7(local),8,9,10 in LOCAL mode → wired into the Surfaces (§7 tiers). *This is when "فيه الإعراب وكل شيء" is real on‑device.* | Phase B ✅ | QC3 |
-| **D — Knowledge Index** | topics → `knowledge_links`; the topic → cross‑content view (Quran + tafsīr + notes + books) | Phase C | QC4 + `SUPABASE_ARCHITECTURE` §4.6 |
+| **C — Knowledge planes, offline** ✅ **DONE 2026‑09‑03** | `corpus_panels.dart` — `WordCorpusPanel` (ṣarf QAC · syntactic iʿrāb Treebank · غريب الكلمة · qirāʾāt) + `AyahCorpusPanel` (asbāb · iʿrāb‑from‑books · nāsikh · غريب الآية · fawāʾid · mutashābihāt · āthār · topics) + `AyahTafsirPanel` (149 books, 122 bundled) + `AyahTranslationPanel` (138 editions) → wired into the Word & Ayah Surfaces. Every block sourced; missing = «لا توجد بيانات موثقة». 486 tests, analyze clean, debug APK builds. | Phase B ✅ | QC3 |
+| **D — Knowledge Index** *(NEXT)* | topics → `knowledge_links`; the topic → cross‑content view (Quran + tafsīr + notes + books). `AyahCorpusPanel.onTopicTap` hook already wired. | Phase C ✅ | QC4 + `SUPABASE_ARCHITECTURE` §4.6 |
 | **E — Sync & mirror** | `/v1/changes` delta (licence); Supabase reference mirror + `quran-proxy` + on‑demand cache for the 146 tafsirs / 13 riwāyāt / fatwas / athar | Phase C + `SUPABASE_ARCHITECTURE` S1–S4 | QC5–QC6 |
 | **F — Online expansion** | translations per‑edition (online + PD bundle); 253 reciters' audio + cache; saikothasan fallback; live cross‑check | Phase E | QC7 + `SOURCES.md` §13–14 |
 | **G — On‑page everything** | with `align_qac` done: ṣarf / iʿrāb / tajwīd / qiraat rendered **on the glyph** at the tapped word (charRange overlays) | Phase B alignment + Phase C | QC7 + `QURAN_INTERACTION.md` |

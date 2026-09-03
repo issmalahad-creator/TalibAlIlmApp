@@ -1,10 +1,29 @@
 # Quranpedia Corpus — Integration Audit & Plan
 
-Status: **QC1 (ingest) COMPLETE 2026‑09‑03.** `tool/build_quran_corpus.py`
-built `assets/quran/corpus/` — **19 datasets, 290 files, 376 MB, all PASS**
-against canonical ground truth. `corpus_manifest.json` +
-`docs/quran/reports/QURAN_CORPUS_QA.md`. Mushaf engine (Phase A) is done, so
-this — Phase B — is the active front. **Next: QC2** (schema + `QuranCorpusSync`).
+Status: **QC1 + QC2 + VT‑3 + QC3 COMPLETE 2026‑09‑03.**
+- **QC1** — `tool/build_quran_corpus.py` built `assets/quran/corpus/` —
+  19 datasets, 290 files, 376 MB, all PASS against canonical ground truth
+  (`corpus_manifest.json` + `docs/quran/reports/QURAN_CORPUS_QA.md`).
+- **VT‑3** — `tool/build_alignments.py` → `align_qac` maps each QAC word to
+  our `mushaf_words.word_index`, **6196/6236 clean (99.4%)**.
+- **QC2** — DB v53→**v54** (`_createV54Tables`); `QuranCorpusSync`
+  (sha256‑versioned, wired in `main.dart`); `QuranCorpusRepository`
+  (`(surah,ayah)` accessors + `qacWordFor` / `morphologyForWord`);
+  `QuranBookCache` (per‑book gz on demand, `compute`‑decoded, LRU 4;
+  `tafsirEntry` → `{mirror:true}` for the 27 overflow books).
+- **QC3** — `lib/screens/quran_learning/corpus_panels.dart`: `WordCorpusPanel`
+  (ṣarf / syntactic iʿrāb / غريب الكلمة / qirāʾāt), `AyahCorpusPanel`
+  (asbāb · iʿrāb‑from‑books · nāsikh · غريب الآية · fawāʾid · mutashābihāt ·
+  āthār · topics), `AyahTafsirPanel` (149‑book picker; 27 flagged online),
+  `AyahTranslationPanel` (138‑edition language+edition picker). Wired into
+  `knowledge_surface.dart`'s Word & Ayah surfaces; 22 `basicText` keys ×
+  13 langs; `test/corpus_panels_test.dart`; **486/486 tests, analyze clean,
+  debug APK builds**. Every block carries its source; missing = «لا توجد
+  بيانات موثقة», never a guess.
+
+**Next: QC4** — `topics` → `knowledge_links` (the Knowledge Index; the
+`AyahCorpusPanel.onTopicTap` hook is already in place). Then **QC6** —
+Supabase mirror for the 27 overflow tafsīrs + `quran-proxy` Edge Function.
 
 **QC0 decisions (Ismail, "استخدم كل شيء … لا تترك شيئًا … APK حتى 500MB عادي
 … Supabase وقت الحاجة فقط"):**
