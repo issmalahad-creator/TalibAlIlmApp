@@ -1971,6 +1971,18 @@ class DatabaseHelper {
       )
     ''');
 
+    // ---- QAC word ↔ our mushaf_words.word_index (VT-3) ----
+    // (surah, ayah) -> JSON {word_index: qac_word_no}. Lets a tapped word on
+    // the page resolve to its ṣarf / iʿrāb (which follow QAC segmentation).
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_align (
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        data TEXT NOT NULL,
+        PRIMARY KEY (surah, ayah)
+      )
+    ''');
+
     // ---- per-ayah "service" payloads: (surah, ayah) -> JSON ----
     for (final t in const [
       'quran_morphology', // ṣarf — Quranic Arabic Corpus (GNU GPL)

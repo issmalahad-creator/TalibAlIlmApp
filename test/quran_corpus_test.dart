@@ -124,6 +124,24 @@ void main() {
     expect(prose.first['name'], isNotNull); // joined from quran_irab_book
   });
 
+  test('VT-3 align_qac maps word_index → QAC word → ṣarf', () async {
+    final db = await DatabaseHelper.instance.database;
+    // near-full coverage: ~6196/6236 clean, the rest still get a partial map
+    expect(
+      Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM quran_align')),
+      6236,
+    );
+    // al-Ikhlāṣ 112:1 — 4 words, 1:1 with QAC
+    expect(await repo.qacWordFor(112, 1, 1), 1);
+    expect(await repo.qacWordFor(112, 1, 3), 3);
+    final sarf = await repo.morphologyForWord(112, 1, 3); // ٱللَّهُ
+    expect(sarf, isNotNull);
+    expect((sarf as Map)['text'], isNotNull);
+    // an unaligned/absent word → null, never throws
+    expect(() => repo.morphologyForWord(2, 255, 99), returnsNormally);
+  });
+
   test('re-running sync is a no-op when sha is unchanged', () async {
     final db = await DatabaseHelper.instance.database;
     final before = (await db.query('quran_corpus_meta',

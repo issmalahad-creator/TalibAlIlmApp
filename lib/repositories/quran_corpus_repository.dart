@@ -30,8 +30,37 @@ class QuranCorpusRepository {
   }
 
   /// ṣarf — Quranic Arabic Corpus per-word segments for the ayah, or null.
+  /// `{source, words:[{number, text, root, lemma, segments:[…]}]}` where
+  /// `number` is the **QAC** word position — use [qacWordFor] to map a
+  /// mushaf `word_index` onto it.
   Future<Object?> morphology(int surah, int ayah) =>
       _json('quran_morphology', surah, ayah);
+
+  /// The QAC word number our `mushaf_words.word_index` maps to for this ayah
+  /// (VT-3 `align_qac`), or null if unaligned (≈40 flagged ayat).
+  Future<int?> qacWordFor(int surah, int ayah, int wordIndex) async {
+    final m = await _json('quran_align', surah, ayah);
+    if (m is Map) {
+      final v = m['$wordIndex'] ?? m[wordIndex];
+      if (v is int) return v;
+    }
+    return null;
+  }
+
+  /// The ṣarf entry for one tapped word: resolves `word_index → QAC word →
+  /// that word's morphology`. Null when unaligned or absent.
+  Future<Object?> morphologyForWord(int surah, int ayah, int wordIndex) async {
+    final qac = await qacWordFor(surah, ayah, wordIndex);
+    if (qac == null) return null;
+    final ayahM = await morphology(surah, ayah);
+    if (ayahM is Map) {
+      final words = ayahM['words'];
+      if (words is List && qac >= 1 && qac <= words.length) {
+        return words[qac - 1];
+      }
+    }
+    return null;
+  }
 
   /// iʿrāb dependency (The Quranic Treebank) for the ayah, or null.
   Future<Object?> syntax(int surah, int ayah) =>

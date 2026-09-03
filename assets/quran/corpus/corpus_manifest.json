@@ -266,6 +266,20 @@
      "translations": 221
     }
    }
+  },
+  "align_qac": {
+   "file": "align_qac.json.gz",
+   "source": "QAC ↔ mushaf_words (build_alignments.py)",
+   "source_version": "vt3-1",
+   "licence": "GNU GPL (QAC segmentation)",
+   "rows": 6236,
+   "sha256": "123673074bc5ef0bd494323c94c68d519b09d56f203b88917cc21072d93dd846",
+   "bytes": 56070,
+   "checks": {
+    "clean": 6196,
+    "flagged": 40,
+    "ayat": 6236
+   }
   }
  }
 }

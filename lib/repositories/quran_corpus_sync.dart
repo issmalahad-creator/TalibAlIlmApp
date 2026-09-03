@@ -26,6 +26,7 @@ class QuranCorpusSync {
 
   /// Datasets stored as `(surah, ayah) -> JSON` in a same-named table.
   static const _perAyahJson = <String, ({String table, String key})>{
+    'align_qac': (table: 'quran_align', key: 'm'),
     'morphology': (table: 'quran_morphology', key: 'morphology'),
     'syntax': (table: 'quran_syntax', key: 'syntax'),
     'meanings': (table: 'quran_word_meaning', key: 'meanings'),
