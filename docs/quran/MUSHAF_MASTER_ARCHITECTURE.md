@@ -262,8 +262,8 @@ previous one is signed off.**
 | phase | what | gates on | docs |
 |---|---|---|---|
 | **A — Rendering engine** ✅ **COMPLETE 2026‑09‑03** | M0–M3 signed off · M4 cache · **M5 604‑page QA: geometry/data/visual 604/604 PASS** · M6a legacy‑code deletion · M7 close‑out. 467 tests, emulator‑verified. (M6b page_recitation cleanup deferred, non‑blocking.) | — | `MUSHAF_ENGINE_REBUILD.md` |
-| **B — Identity spine & ingest** *(NEXT)* | `build_quran_corpus.py` + `build_alignments.py` (VT‑3); `quran_corpus_*` schema; curated bundle (~40–60 MB, size budget = Ismail); QA reports | Phase A done ✅ | `QURAN_CORPUS_INTEGRATION.md` QC1–QC2 |
-| **C — Knowledge planes, offline** | providers #2,3,4,5,7(local),8,9,10 in LOCAL mode → wired into the Surfaces (§7 tiers). *This is when "فيه الإعراب وكل شيء" is real on‑device.* | Phase B | QC3 |
+| **B — Identity spine & ingest** ✅ **DONE 2026‑09‑03** | `build_quran_corpus.py` → 19 datasets, 290 files, 376 MB, all validated (114/6236). `build_alignments.py` (VT‑3) → `align_qac` **6196/6236 clean**. `quran_corpus_*` schema (DB v54) + `QuranCorpusSync` + `QuranCorpusRepository` + `QuranBookCache` (on‑demand tafsīr/translation/riwāya). 481 tests. | Phase A done ✅ | `QURAN_CORPUS_INTEGRATION.md` QC1–QC2 + VT‑3 |
+| **C — Knowledge planes, offline** *(NEXT)* | providers #2,3,4,5,7(local),8,9,10 in LOCAL mode → wired into the Surfaces (§7 tiers). *This is when "فيه الإعراب وكل شيء" is real on‑device.* | Phase B ✅ | QC3 |
 | **D — Knowledge Index** | topics → `knowledge_links`; the topic → cross‑content view (Quran + tafsīr + notes + books) | Phase C | QC4 + `SUPABASE_ARCHITECTURE` §4.6 |
 | **E — Sync & mirror** | `/v1/changes` delta (licence); Supabase reference mirror + `quran-proxy` + on‑demand cache for the 146 tafsirs / 13 riwāyāt / fatwas / athar | Phase C + `SUPABASE_ARCHITECTURE` S1–S4 | QC5–QC6 |
 | **F — Online expansion** | translations per‑edition (online + PD bundle); 253 reciters' audio + cache; saikothasan fallback; live cross‑check | Phase E | QC7 + `SOURCES.md` §13–14 |
