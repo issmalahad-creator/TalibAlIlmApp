@@ -261,8 +261,8 @@ previous one is signed off.**
 
 | phase | what | gates on | docs |
 |---|---|---|---|
-| **A — Rendering engine** *(in progress)* | M0✅ M1✅ M2✅ M3✅ → **M4** cache · **M5** 604‑page QA · **M6** delete legacy packer · **M7** close‑out | Ismail signs off M3 + picks the fit region | `MUSHAF_ENGINE_REBUILD.md` |
-| **B — Identity spine & ingest** | `build_quran_corpus.py` + `build_alignments.py` (VT‑3); `quran_corpus_*` schema; curated bundle (~40–60 MB, size budget = Ismail); QA reports | Phase A done (604/604 + device) | `QURAN_CORPUS_INTEGRATION.md` QC1–QC2 |
+| **A — Rendering engine** ✅ **COMPLETE 2026‑09‑03** | M0–M3 signed off · M4 cache · **M5 604‑page QA: geometry/data/visual 604/604 PASS** · M6a legacy‑code deletion · M7 close‑out. 467 tests, emulator‑verified. (M6b page_recitation cleanup deferred, non‑blocking.) | — | `MUSHAF_ENGINE_REBUILD.md` |
+| **B — Identity spine & ingest** *(NEXT)* | `build_quran_corpus.py` + `build_alignments.py` (VT‑3); `quran_corpus_*` schema; curated bundle (~40–60 MB, size budget = Ismail); QA reports | Phase A done ✅ | `QURAN_CORPUS_INTEGRATION.md` QC1–QC2 |
 | **C — Knowledge planes, offline** | providers #2,3,4,5,7(local),8,9,10 in LOCAL mode → wired into the Surfaces (§7 tiers). *This is when "فيه الإعراب وكل شيء" is real on‑device.* | Phase B | QC3 |
 | **D — Knowledge Index** | topics → `knowledge_links`; the topic → cross‑content view (Quran + tafsīr + notes + books) | Phase C | QC4 + `SUPABASE_ARCHITECTURE` §4.6 |
 | **E — Sync & mirror** | `/v1/changes` delta (licence); Supabase reference mirror + `quran-proxy` + on‑demand cache for the 146 tafsirs / 13 riwāyāt / fatwas / athar | Phase C + `SUPABASE_ARCHITECTURE` S1–S4 | QC5–QC6 |

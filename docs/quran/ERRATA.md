@@ -159,3 +159,51 @@ later we don't restart from zero. Format per entry:
   canonical counts / Tanzil) from *rendering correctness* (a visual QA).
   A bad render never condemns validated data.
 - **Source:** this conversation, 2026‑08‑29; `SOURCES.md` §3/§4.
+
+## E‑10 · `md-page-inner data-rect` is `x0,y0,x1,y1`, not `x,y,w,h`
+
+- **Mistake:** `MushafBox.fromList` parsed the SVG's `md-page-inner`
+  `data-rect` (`"45.32,73.57,290.87,473.07"`) as `x, y, width, height`. It is
+  `x0, y0, x1, y1` (opposite corners). Result: `mushaf_pages.rect_w/rect_h`
+  held `x_max`/`y_max`, which overflows the viewBox on the ~301 recto pages.
+- **Correct understanding:** verified against all 604 bundled SVGs —
+  604/604 valid when read as corners, only 255/604 as `x,y,w,h`. Converted
+  in `MushafBox.fromCorners`; stored `rect_*` now holds true `x,y,w,h`
+  (`kMushafLayoutVersion` v2, M1, commit `ad49877`).
+- **Cause:** assumed an SVG attribute named "rect" follows `<rect>` element
+  semantics; never checked against the data.
+- **New engineering rule:** for any coordinate quad from an external asset,
+  confirm the order/convention against the actual values (does it stay inside
+  the known bounds?) before consuming it — never infer from the field name.
+- **Source:** M1 (`docs/quran/MUSHAF_ENGINE_REBUILD.md` §1.6), 2026‑09‑03.
+
+## E‑11 · The "some pages shift left/right" was faithful, not a bug
+
+- **Mistake pattern:** treating the recto/verso horizontal shift of the
+  mushaf content as a rendering defect to patch with a per-page offset.
+- **Correct understanding:** `tool/mushaf_svg_qa.py` over all 604 —
+  one viewBox, **zero transforms**, uniform text width (~245) and frame
+  width (~283); the whole content block's x-origin just alternates ±23 units
+  recto/verso = the bound muṣḥaf's **gutter margin**, digitised faithfully.
+  Fix belongs in the renderer, as ONE uniform rule (centre the per-page
+  `data-rect`, M3), not in the SVGs and not per page.
+- **Cause:** seeing a symptom on screen and assuming the data/art is wrong.
+- **New engineering rule:** before "fix the asset" or "add an offset",
+  measure the asset across the whole set — a *systematic* variation is
+  usually a real property to render correctly, not an error to erase.
+  Never add a per-page correction without proving a per-page asset defect.
+- **Source:** `docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md`, M3, 2026‑09‑03.
+
+## E‑12 · (Rule) `_contentBox` — a runtime heuristic where authored data existed
+
+- **Mistake pattern:** `MushafPageView` cropped the print margins with a
+  built-every-frame heuristic (word-bbox union + symmetric-X reflection +
+  `0.5·line-pitch` headroom + `×1.045`) instead of the mushaf's own authored
+  content frame (`data-rect`).
+- **Correct understanding:** the frame is in the data. Resolve it once at
+  extract time, store it, centre it. Heuristics with tuned constants are
+  fragile per-page and un-reviewable.
+- **New engineering rule:** if the source authored the thing you need
+  (a frame, an index, a boundary), consume it — don't re-derive it at
+  runtime with magic numbers.
+- **Source:** M2–M6a, `docs/quran/MUSHAF_ENGINE_REBUILD.md`, 2026‑09‑03.

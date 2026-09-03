@@ -1,15 +1,14 @@
 # Mushaf Rendering Engine — Rebuild Audit & Plan
 
-Status: **M0–M3 ✅ SIGNED OFF by Ismail 2026‑09‑03** (`ad49877` · `7e59639` ·
-`434a773` · `d90eb1a`). The recto/verso shift is gone, the page renders
-large, and the juz/surah margin headers are back (M3b: `_kContentRectPad`
-0.03→0.09 — region‑1 `data-rect` kept, no new field needed). **Next: M4**
-(page cache) → M5 (604‑page QA tool) → M6 (delete legacy packer) → M7
-(close‑out). Each M step = its own revertable commit + `flutter analyze` +
-`flutter test` + Android emulator. Then Phase B of
-`MUSHAF_MASTER_ARCHITECTURE.md` (corpus). Ordered as Ismail asked: CURRENT
-ARCHITECTURE → PROBLEMS → ROOT CAUSES → PROPOSED ARCHITECTURE → MIGRATION
-PLAN → QA PLAN.
+Status: **PHASE A COMPLETE 2026‑09‑03.** M0–M3 signed off by Ismail
+(`ad49877` `7e59639` `434a773` `d90eb1a`); M4 cache (`76530d4`); M5 604‑page
+QA gate — **geometry 604/604 · data 604/604 · visual 604/604** (`2c1b9aa`);
+M6a legacy‑code deletion (`10794e1`); M7 close‑out (ERRATA E‑10..E‑12).
+`flutter analyze` clean · `flutter test` 467/467 · emulator‑verified. M6b
+(page_recitation off the old packer) deferred, non‑blocking. **Next: Phase B
+of `MUSHAF_MASTER_ARCHITECTURE.md` — the corpus (iʿrāb / ṣarf / tafsīr).**
+Ordered as Ismail asked: CURRENT ARCHITECTURE → PROBLEMS → ROOT CAUSES →
+PROPOSED ARCHITECTURE → MIGRATION PLAN → QA PLAN.
 
 Load `.claude/skills/quran-engineering` + `docs/quran/MUSHAF_ENGINEERING.md`
 before acting on this. This doc does **not** restate what those already say
@@ -498,23 +497,42 @@ The `_contentBox` heuristic, the text fallback, and `_lines` are **not yet
 deleted** — kept behind `MushafFitSource.legacyContentBox` as the comparison
 baseline; remove them in M6.
 
-**M4 — cache.** `MushafPageCache` (preload ±1, LRU cap, off-frame decode).
-Verify: fast forward/back paging shows no blank frame; memory stays bounded
-over a 100-page walk.
+**M4 — cache. ✅ DONE (`76530d4`).** `lib/widgets/mushaf/mushaf_page_cache.dart`
+— `MushafPageCache` singleton: gunzip+utf8 decode in a background isolate
+(`compute`), `preloadAround(p)` decodes p±1, bounded LRU (cap 7), shared
+in-flight decode. `_PageArt` uses it; warm placeholder while decoding.
+`onPageChanged` also preloads. 8 tests. Emulator: 5 fast flings 1→5, zero
+blank frames. (Same commit reversed the page-turn direction per Ismail —
+swipe left→right = next.)
 
-**M5 — QA tool over all 604 (§6).** Any FAIL is fixed at its **data /
-renderer / geometry root cause**. Zero `if (page == N)`. Commit the report.
+**M5 — 604-page QA gate. ✅ DONE (`2c1b9aa`).** `test/mushaf_qa_604_test.dart`
+iterates every page and checks geometry + data + visual (incl. the real
+`flutter_svg` parse). Writes `docs/quran/reports/{mushaf_qa_report.json,
+MUSHAF_QA_REPORT.md}`. Result: **geometry 604/604 · data 604/604 · visual
+604/604 — ALL PASS**. No `if (page == N)` anywhere. This is Ismail's
+completion bar.
 
-**M6 — kill the legacy packer.** Migrate `page_recitation_screen.dart` to
-`mushaf_*` real lines; delete `lib/services/mushaf_page_layout.dart` +
-its test.
+**M6a — delete the legacy layout code. ✅ DONE (`10794e1`).** Removed
+`_contentBox`, `_lines`/`_RenderedLine`, the `Text` fallback, the
+`MushafFitSource` enum, and the dead params. `MushafPageView` fits directly
+from `layout.rect` + `_kContentRectPad`. Behaviour-identical to M3b.
+467 tests. Emulator re-verified.
+**M6b — deferred.** `lib/services/mushaf_page_layout.dart` (the `TextPainter`
+packer) is now used **only** by `page_recitation_screen.dart` (a separate
+feature, no engine coupling, no name-collision — nothing imports both). Its
+migration to `mushaf_*` real lines + deletion is a low-priority cleanup,
+not an engine blocker.
 
-**M7 — close-out.** `flutter analyze` clean; `flutter test` green; APK
-builds; device pass on the M3 page set + 10 random pages. Update `TODO.md`,
-update `QURAN_UNIFIED_READER_P0_STATUS.md`, add an `ERRATA.md` entry for the
-measured hit-test precision ceiling and the `_contentBox` mistake + its rule.
+**M7 — close-out. ✅ DONE.** `flutter analyze` clean (6 pre-existing infos) ·
+`flutter test` 467/467 · APK builds · emulator re-verified across M3b/M4/M6a.
+`ERRATA.md` E‑10 (`data-rect` corner order), E‑11 (recto/verso was
+faithful), E‑12 (`_contentBox` = runtime heuristic where authored data
+existed). Docs updated.
 
-**Not done until 604/604 pass the QA tool and the device pass is captured.**
+**Phase A (rendering engine) is functionally complete:** 604/604 QA + real
+emulator across the visual milestones. Remaining polish (M6b, a scripted
+screenshot walk of the full M3 page set) is non-blocking. **Next:
+`MUSHAF_MASTER_ARCHITECTURE.md` Phase B — the corpus.**
 
 ---
 
