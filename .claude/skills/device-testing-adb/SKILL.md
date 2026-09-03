@@ -63,6 +63,19 @@ with `emulator -avd Medium_Phone_API_35 -no-snapshot -no-boot-anim -no-audio
 `flutter test` + APK build and hand the APK to Ismail to test on his phone
 (the normal flow — "اجرب في هاتفي").
 
+## `testWidgets` + sqflite_ffi = wrap DB calls in `runAsync`
+
+`sqflite_common_ffi` uses real timers/isolate. Under the `testWidgets`
+fake-async binding a bare `await db.query(...)` (in the test body OR reached
+from a pumped widget's `initState`) **never completes → the whole test
+hangs to the 10-min timeout**. Fixes: (1) do repo/sync setup in `setUpAll`
+(real async); (2) in a `testWidgets` body wrap any direct DB call in
+`await tester.runAsync(() async { … })`; (3) for a screen that queries in
+`initState`, settle with an interleaved loop —
+`for (…) { await tester.runAsync(() => Future.delayed(80ms)); await tester.pump(); }`
+(~40 iters) — never `pumpAndSettle` (a spinner/AnimatedCrossFade makes it
+spin forever). Pattern: `test/corpus_panels_test.dart`, `test/topic_index_test.dart`.
+
 ## Verification bar (Ismail's standing rule for Quran work)
 
 `flutter test` passing is **not** proof the UX works. For a
