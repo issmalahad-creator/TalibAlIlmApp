@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 54,
+      version: 55,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -94,6 +94,7 @@ class DatabaseHelper {
         await _createV52Tables(db);
         await _createV53Tables(db);
         await _createV54Tables(db);
+        await _createV55Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -160,6 +161,7 @@ class DatabaseHelper {
         if (oldVersion < 52) await _createV52Tables(db);
         if (oldVersion < 53) await _createV53Tables(db);
         if (oldVersion < 54) await _createV54Tables(db);
+        if (oldVersion < 55) await _createV55Tables(db);
       },
     );
   }
@@ -2100,6 +2102,60 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE IF NOT EXISTS quran_fatwa (
         id INTEGER PRIMARY KEY, title TEXT, question TEXT, answer TEXT, ref TEXT
+      )
+    ''');
+  }
+
+  /// v55 — «مُحرّك الحياة» (`docs/LIFE_ENGINE.md`, L1). Ismail's life plan as
+  /// a continuous (never-ending) daily engine: 7 pillars + 23 time slots
+  /// (seeded from his real Google Sheet) and a per-DATE tick table so the
+  /// day number is unbounded. `life_meta` holds the tunables.
+  Future<void> _createV55Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_pillars (
+        key TEXT PRIMARY KEY,
+        label TEXT NOT NULL,
+        emoji TEXT,
+        target_text TEXT,
+        cadence TEXT NOT NULL DEFAULT 'daily',   -- daily | weekly
+        weekly_target INTEGER NOT NULL DEFAULT 0,
+        sort INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_slots (
+        slot_no INTEGER PRIMARY KEY,
+        start_min INTEGER NOT NULL,              -- minutes since 00:00
+        end_min INTEGER NOT NULL,
+        activity TEXT NOT NULL,
+        mihwar TEXT,                             -- the slot's category
+        pillar_key TEXT,                         -- NULL = not a tracked pillar
+        sort INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_day_slots (
+        date TEXT NOT NULL,                      -- YYYY-MM-DD (local)
+        slot_no INTEGER NOT NULL,
+        done INTEGER NOT NULL DEFAULT 0,
+        done_at INTEGER,                         -- epoch ms of the tick
+        PRIMARY KEY (date, slot_no)
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_life_day_slots_date ON life_day_slots(date)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_day_notes (
+        date TEXT PRIMARY KEY,
+        note TEXT,
+        tomorrow_goal TEXT,
+        mood INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_meta (
+        k TEXT PRIMARY KEY,
+        v TEXT
       )
     ''');
   }
