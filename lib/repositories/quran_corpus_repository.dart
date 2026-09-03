@@ -256,4 +256,20 @@ class QuranCorpusRepository {
         await db.rawQuery('SELECT COUNT(*) FROM quran_corpus_meta'));
     return (n ?? 0) > 0;
   }
+
+  /// Per-dataset provenance for the "About sources" screen:
+  /// `[{dataset, source, source_version, licence, rows, seeded_at_ms}]`.
+  Future<List<Map<String, Object?>>> corpusMeta() async {
+    final db = await _db;
+    return db.query('quran_corpus_meta',
+        columns: [
+          'dataset',
+          'source',
+          'source_version',
+          'licence',
+          'rows',
+          'seeded_at_ms'
+        ],
+        orderBy: 'dataset ASC');
+  }
 }

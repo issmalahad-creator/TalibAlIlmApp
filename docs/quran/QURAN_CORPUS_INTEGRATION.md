@@ -1,6 +1,6 @@
 # Quranpedia Corpus — Integration Audit & Plan
 
-Status: **QC1 + QC2 + VT‑3 + QC3 COMPLETE 2026‑09‑03.**
+Status: **QC1 + QC2 + VT‑3 + QC3 + QC4 + QC5a COMPLETE 2026‑09‑03.** (492 tests.)
 - **QC1** — `tool/build_quran_corpus.py` built `assets/quran/corpus/` —
   19 datasets, 290 files, 376 MB, all PASS against canonical ground truth
   (`corpus_manifest.json` + `docs/quran/reports/QURAN_CORPUS_QA.md`).
@@ -34,7 +34,19 @@ Status: **QC1 + QC2 + VT‑3 + QC3 COMPLETE 2026‑09‑03.**
   deferred to Phase E (Supabase), where cross-content edges actually
   arrive; no redundant local table now.
 
-**Next: QC6** — Supabase mirror for the 27 overflow tafsīrs +
+- **QC5a** — the **«عن المصادر»** screen
+  (`lib/screens/quran_learning/sources_screen.dart`, `SourcesScreen`): every
+  bundled dataset / book / edition with its attribution + licence — Tanzil
+  text · QAC (GNU GPL, **tappable corpus.quran.com link**, licence-mandatory)
+  · Quranic Treebank (MIT) · 149 tafsīr books (author · year · nāsher ·
+  bundled/online) · 138 translation editions (per-author IP note) · 12
+  riwāyāt · 158 reciters (mp3quran.net) · the Quranpedia knowledge layers
+  (dump version from `quran_corpus_meta.source_version`) · MushafDatabase
+  V1.01 art (Sadaqa-Jāriya). `QuranCorpusRepository.corpusMeta()`; entry in
+  the reader ☰; 18 `basicText` keys × 13 langs; `test/sources_screen_test.dart`.
+
+**Next: QC5b** — `/v1/changes` delta sync (§6, licence) — best done with the
+Supabase phase. **QC6** — Supabase mirror for the 27 overflow tafsīrs +
 `quran-proxy` Edge Function (needs `SUPABASE_ARCHITECTURE` S1–S4).
 
 **QC0 decisions (Ismail, "استخدم كل شيء … لا تترك شيئًا … APK حتى 500MB عادي
