@@ -207,14 +207,14 @@ class MosqueRepository {
     await db.insert('mosques', Mosque(
       id: id,
       name: 'مسجد التقوى (نموذج)',
-      imamName: 'الشيخ أحمد محمد',
+      imamName: 'الشيخ عبد الجليل',
       description:
           'مسجد نموذجي داخل «مساجدنا» — يظهر شكل صفحة المسجد وأقسامها قبل ربط أي مسجد حقيقي. '
           'تُدار محتويات كل مسجد لاحقًا من تيليجرام، وتُراجَع قبل النشر.',
       city: 'أديس أبابا',
-      area: 'بولي',
-      lat: 9.0108,
-      lng: 38.7613,
+      area: 'أديس أبابا',
+      lat: 9.0079232,
+      lng: 38.7678208,
       phone: '',
       verified: true,
       isDemo: true,

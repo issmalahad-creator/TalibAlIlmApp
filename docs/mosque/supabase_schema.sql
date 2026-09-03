@@ -169,11 +169,26 @@ alter table public.mosque_moderation_log         enable row level security;
 -- (no policies on purpose → anon has zero access; service_role bypasses RLS)
 
 -- ── one pilot mosque so the app shows real data immediately ─────────
+-- مسجد التقوى (Taqwa mesjid) — Addis Ababa · XPC8+6W9 · 9.0079232,38.7678208
+-- الإمام: الشيخ عبد الجليل  (from Ismail's Google Maps pin, 2026-09-04)
 insert into public.mosques (id, name, imam_name, description, city, area, lat, lng, verified, status)
-values ('MOSQ_PILOT_0001', 'مسجد التقوى', 'الشيخ أحمد محمد',
+values ('MOSQ_PILOT_0001', 'مسجد التقوى', 'الشيخ عبد الجليل',
         'أول مسجد في «مساجدنا» — تُدار محتوياته من تيليجرام وتُراجَع قبل النشر.',
-        'أديس أبابا', 'بولي', 9.0108, 38.7613, true, 'active')
+        'أديس أبابا', 'أديس أبابا', 9.0079232, 38.7678208, true, 'active')
 on conflict (id) do nothing;
+
+-- re-running the script keeps `on conflict do nothing` above harmless but
+-- still refreshes the pilot's editable fields:
+update public.mosques set
+  name       = 'مسجد التقوى',
+  imam_name  = 'الشيخ عبد الجليل',
+  city       = 'أديس أبابا',
+  area       = 'أديس أبابا',
+  lat        = 9.0079232,
+  lng        = 38.7678208,
+  verified   = true,
+  status     = 'active'
+where id = 'MOSQ_PILOT_0001';
 
 insert into public.mosque_sections (mosque_id, type, title, sort_order) values
   ('MOSQ_PILOT_0001','lesson','الدروس والمحاضرات',0),

@@ -81,7 +81,7 @@ void main() {
     await repo.allMosques(); // seed
 
     expect((await repo.allMosques(query: 'التقوى')).length, 1);
-    expect((await repo.allMosques(query: 'أحمد')).length, 1); // imam
+    expect((await repo.allMosques(query: 'عبد الجليل')).length, 1); // imam
     expect((await repo.allMosques(query: 'لا يوجد')).length, 0);
   });
 
