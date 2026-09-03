@@ -74,12 +74,28 @@ void main() {
     expect(find.text('لا توجد بيانات موثقة لهذا العنصر حاليًا.'), findsNothing);
   });
 
-  testWidgets('AyahTafsirPanel loads a bundled tafsīr for 1:1', (t) async {
-    await pumpPanel(t, const AyahTafsirPanel(surah: 1, ayah: 1, lang: 'ar'));
+  testWidgets('AyahTafsirPanel shows a short excerpt + «للمزيد» for 1:1',
+      (t) async {
+    var opened = false;
+    await pumpPanel(
+      t,
+      AyahTafsirPanel(
+        surah: 1,
+        ayah: 1,
+        lang: 'ar',
+        onOpenFull: () => opened = true,
+      ),
+    );
     expect(find.byType(DropdownButton<int>), findsOneWidget);
-    // a book was auto-picked and its passage + source line rendered
-    expect(find.byType(SelectableText), findsOneWidget);
+    // a book was auto-picked → source line rendered
     expect(find.textContaining('المصدر:'), findsOneWidget);
+    // the card shows an excerpt, not a full reader
+    expect(find.byType(SelectableText), findsNothing);
+    // «التفسير كاملًا» opens the dedicated page
+    final more = find.widgetWithText(OutlinedButton, 'التفسير كاملًا');
+    expect(more, findsOneWidget);
+    await t.tap(more);
+    expect(opened, isTrue);
   });
 
   testWidgets('AyahTranslationPanel reads an English edition for 1:1', (t) async {

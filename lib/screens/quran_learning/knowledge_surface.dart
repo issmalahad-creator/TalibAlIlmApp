@@ -612,6 +612,19 @@ class _AyahSurfaceState extends State<_AyahSurface> {
     });
   }
 
+  /// «للمزيد» — close the quick card and open the dedicated ayah page
+  /// (full tafsīr, translations, sources, prev/next). Deep reading never
+  /// happens inside the surface.
+  void _openAyahPage() {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AyahStudyScreen(surah: surah, ayah: ayah),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final lang = widget.lang;
@@ -746,32 +759,13 @@ class _AyahSurfaceState extends State<_AyahSurface> {
   Widget _segBody(KnowledgeResult r, String lang) {
     switch (_seg) {
       case _AyahSeg.tafsir:
-        // QC3 — the real 122-book bundled tafsīr picker (+ the ~27
-        // Supabase-mirror books flagged «عبر الإنترنت»).
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AyahTafsirPanel(surah: surah, ayah: ayah, lang: lang),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          AyahStudyScreen(surah: surah, ayah: ayah),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.menu_book_rounded, size: 16),
-                label: Text(basicText('ql_full_tafsir', lang),
-                    style: const TextStyle(fontSize: 12)),
-              ),
-            ),
-          ],
+        // QC3 — a quick excerpt from the picked book; «التفسير كاملًا»
+        // inside the panel opens the dedicated ayah page for deep reading.
+        return AyahTafsirPanel(
+          surah: surah,
+          ayah: ayah,
+          lang: lang,
+          onOpenFull: _openAyahPage,
         );
       case _AyahSeg.sources:
         if (r.sources.isEmpty) return _calmNoData(lang);
@@ -806,9 +800,15 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           ],
         );
       case _AyahSeg.uloom:
-        // QC3 — «كل ما ورد في هذه الآية»: سبب النزول · إعراب من الكتب ·
-        // ناسخ/منسوخ · غريب · فوائد · متشابهات · آثار · موضوعات.
-        return AyahCorpusPanel(surah: surah, ayah: ayah, lang: lang);
+        // QC3 — «كل ما ورد في هذه الآية» as short excerpts: سبب النزول ·
+        // إعراب من الكتب · ناسخ/منسوخ · غريب · فوائد · متشابهات · آثار ·
+        // موضوعات. «توسّع» opens the dedicated ayah page.
+        return AyahCorpusPanel(
+          surah: surah,
+          ayah: ayah,
+          lang: lang,
+          onOpenFull: _openAyahPage,
+        );
       case _AyahSeg.translation:
         // QC3 — the real 138-edition translation picker (language + edition).
         return Column(

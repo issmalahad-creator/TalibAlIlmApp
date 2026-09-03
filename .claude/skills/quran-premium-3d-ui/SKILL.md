@@ -7,9 +7,11 @@ description: >-
   word or ayah. It carries the project's premium visual + motion language:
   knowledge emerges from the mushaf (not beside it), luxury lives in
   motion/depth/hierarchy/type/space (not color or effects), the science stays
-  primary and calm, progressive disclosure over tab bars, and the mushaf is
-  visually sacred (nothing over the glyph ink). Full spec:
-  docs/quran/QURAN_PREMIUM_UI.md.
+  primary and calm, progressive disclosure over tab bars, the mushaf is
+  visually sacred (nothing over the glyph ink), and — the Quick-Card rule —
+  the surface is a fast-read card, never a reader: short excerpts + one «للمزيد»
+  button to the dedicated page, never long text or crammed content in the
+  user's face. Full spec: docs/quran/QURAN_PREMIUM_UI.md.
 ---
 
 # Quran Premium 3D UI Skill
@@ -89,10 +91,38 @@ panel only. Surface `AppColors.surface`, top radius `xl`,
 
 **Ayah Knowledge Surface:** header = the ayah + medallion; Tier 1 «ماذا
 أتعلم من هذه الآية؟»; then a **segmented control** (التفسير · الترجمة ·
-التجويد · العلوم · المصادر), default التفسير — not 6 crammed tabs. Tafsir =
-a reading experience: الآية ↓ edition+author chips (swipeable, not a raw
-dropdown) ↓ language chip ↓ body (in the content's own text direction) ↓
-source line; change edition/language in place.
+التجويد · العلوم · المصادر), default التفسير — not 6 crammed tabs.
+
+## Quick-Card rule — the surface is NOT a reader (Ismail, 2026-09-03)
+
+The mushaf + ayah are the draw; tafsīr/sources are an **optional depth layer
+behind a button**, never a crowded wall of text. Design every element on one
+of three tiers, don't mix them:
+
+| tier | time | shows | where |
+|---|---|---|---|
+| 1 glance | 3–8 s | one idea (إعراب / علامة / لماذا) | Tier-1 block |
+| 2 quick read | 20–40 s | ayah + brief note + **~40–60-word tafsīr excerpt** + short tadabbur | card body, **no long scroll** |
+| 3 deep | open | full tafsīr · sources · prev/next · search | **dedicated page** (`AyahStudyScreen`) |
+
+- **No long text in the surface.** Any corpus/tafsīr text → `excerpt(t,
+  maxChars: 200–320)` ending in «…»; the rest lives behind **one wide,
+  obvious «للمزيد» / «التفسير كاملًا» button** per tab → `AyahStudyScreen`.
+- **No cramming** — not 20 facts / 5 tafsīrs / 15 sources in the user's
+  face. Ask: *"the least that makes them pause and reflect?"*
+- Corpus layers (سبب النزول · إعراب من الكتب · ناسخ · فوائد · متشابهات ·
+  آثار …) = short excerpt inside a **collapsed** `_CorpusSection`, ≤ 3
+  items, + «توسّع في صفحة الآية».
+- Translation tab: the one-line verse translation, shown in full (already
+  short).
+- **Don't build a second reader** inside the surface or duplicate
+  `AyahStudyScreen`. Tafsīr is a *source*, not the product.
+- Success = grasped in seconds, read without long scroll — **not** how many
+  books are bundled. Priority: `UX → Readability → content hierarchy →
+  accuracy → sources → content expansion`.
+- Helpers: `excerpt()`, `moreButton()`, `_CorpusSection(open:false)` in
+  `lib/screens/quran_learning/corpus_panels.dart`. Full spec:
+  `docs/quran/QURAN_PREMIUM_UI.md` §4 + §4-bis.
 
 ## Never
 
@@ -111,4 +141,5 @@ decoration · anything over glyph ink > 0.15 alpha or casting a shadow on it.
 5. One `premium` transition only? reduced-motion falls back to fade?
 6. Every string via `basicText`? Direction correct for the language?
 7. Nothing touches the SVG or dulls the ink/tashkīl?
+8. Quick-Card: no long text in the surface (excerpt ≤ ~320 chars), one «للمزيد» button per tab → `AyahStudyScreen`, no cramming, instant return to the mushaf?
 8. Reused `DepthShadows` / `AppMotion` / `AppRadius`, no scattered numbers?

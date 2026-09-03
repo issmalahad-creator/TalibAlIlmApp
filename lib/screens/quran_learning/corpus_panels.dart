@@ -222,11 +222,47 @@ class _CorpusSectionState extends State<_CorpusSection> {
   }
 }
 
-Widget _rtl(String text, {double size = 12.5, double height = 1.8}) => Text(
+Widget _rtl(String text,
+        {double size = 12.5, double height = 1.8, int? maxLines}) =>
+    Text(
       text,
       textDirection: TextDirection.rtl,
+      maxLines: maxLines,
+      overflow: maxLines == null ? null : TextOverflow.ellipsis,
       style: TextStyle(fontSize: size, height: height),
     );
+
+/// A short, fast-to-read excerpt. The Knowledge Surface is a **quick card**,
+/// not a reader — anything long lives on the dedicated ayah page («للمزيد»).
+String excerpt(String s, {int maxChars = 300}) {
+  final t = s.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (t.length <= maxChars) return t;
+  var cut = t.lastIndexOf(' ', maxChars);
+  if (cut < maxChars * 0.6) cut = maxChars;
+  return '${t.substring(0, cut).trimRight()}…';
+}
+
+/// Full-width «للمزيد» affordance — the single, obvious way out of the card
+/// into the deep page. Rendered only when a destination is wired.
+Widget moreButton(String label, VoidCallback? onTap) {
+  if (onTap == null) return const SizedBox.shrink();
+  return Padding(
+    padding: const EdgeInsets.only(top: 10),
+    child: SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.menu_book_rounded, size: 18),
+        label: Text(label),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: _kGold,
+          side: BorderSide(color: _kGold.withValues(alpha: 0.5)),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+        ),
+      ),
+    ),
+  );
+}
 
 Widget _bookLabel(String name) => Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 2),
@@ -549,12 +585,17 @@ class AyahCorpusPanel extends StatefulWidget {
   /// QC4 hook — tapping a topic chip will drive the Knowledge Index search.
   final void Function(int topicId, String name)? onTopicTap;
 
+  /// «للمزيد» — opens the dedicated ayah page for the full text of any of
+  /// these layers. The card only ever shows short excerpts.
+  final VoidCallback? onOpenFull;
+
   const AyahCorpusPanel({
     super.key,
     required this.surah,
     required this.ayah,
     required this.lang,
     this.onTopicTap,
+    this.onOpenFull,
   });
 
   @override
@@ -641,6 +682,7 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
         if (_similar.isNotEmpty) _similarSection(lang),
         if (_sayings.isNotEmpty) _sayingsSection(lang),
         if (_topics.isNotEmpty) _topicsSection(lang),
+        moreButton(basicText('ql_open_ayah_page', lang), widget.onOpenFull),
       ],
     );
   }
@@ -651,14 +693,13 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
           for (final r in rows) ...[
             _bookLabel('${r['name'] ?? r['short'] ?? ''}'
                 '${(r['author'] ?? '') != '' ? ' — ${r['author']}' : ''}'),
-            _rtl(stripCorpusHtml(r['html']), size: 12.5),
+            _rtl(excerpt(stripCorpusHtml(r['html']), maxChars: 200), size: 12.5),
           ],
         ],
       );
 
   Widget _asbabSection(String lang) => _CorpusSection(
         title: basicText('ql_asbab', lang),
-        open: true,
         source:
             '${basicText('ql_source', lang)}: $_srcQuranpedia',
         child: _fromBooks(_asbab),
@@ -675,7 +716,7 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
         title: basicText('ql_nasekh', lang),
         source:
             '${basicText('ql_source', lang)}: $_srcNasekh',
-        child: _rtl(_nasekh, size: 12.5),
+        child: _rtl(excerpt(_nasekh, maxChars: 200), size: 12.5),
       );
 
   Widget _ghareebSection(String lang) => _CorpusSection(
@@ -705,13 +746,15 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final n in _notes)
+            for (final n in _notes.take(3))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _rtl(stripCorpusHtml((n as Map)['ar_note']), size: 12.5),
+                    _rtl(excerpt(stripCorpusHtml((n as Map)['ar_note']),
+                        maxChars: 200),
+                        size: 12.5),
                     if ('${n['author'] ?? ''}'.isNotEmpty)
                       Text('— ${n['author']}',
                           textDirection: TextDirection.rtl,
@@ -726,9 +769,11 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
 
   Widget _similarSection(String lang) {
     final tiles = <Widget>[];
-    for (final grp in _similar) {
+    for (final grp in _similar.take(3)) {
       final note = stripCorpusHtml((grp as Map)['notes']);
-      if (note.isNotEmpty) tiles.add(_rtl('• $note', size: 12.5));
+      if (note.isNotEmpty) {
+        tiles.add(_rtl('• ${excerpt(note, maxChars: 200)}', size: 12.5));
+      }
       for (final ay in (grp['ayahs'] as List? ?? const [])) {
         final info = (ay as Map)['info'];
         if (info is! Map) continue;
@@ -759,7 +804,7 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (final sy in _sayings)
+            for (final sy in _sayings.take(3))
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Column(
@@ -767,8 +812,9 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
                   children: [
                     if ('${(sy as Map)['title'] ?? ''}'.isNotEmpty)
                       _rtl('${sy['title']}',
-                          size: 11.5, height: 1.5),
-                    _rtl(stripCorpusHtml(sy['text']), size: 12.5),
+                          size: 11.5, height: 1.5, maxLines: 2),
+                    _rtl(excerpt(stripCorpusHtml(sy['text']), maxChars: 220),
+                        size: 12.5),
                     if ((sy['narrators'] as List? ?? const []).isNotEmpty)
                       Text(
                         '${basicText('ql_narrators', lang)}: '
@@ -815,11 +861,17 @@ class AyahTafsirPanel extends StatefulWidget {
   final int surah;
   final int ayah;
   final String lang;
+
+  /// «للمزيد» — opens the dedicated ayah tafsīr page. The card only ever
+  /// shows a short excerpt; deep reading happens there.
+  final VoidCallback? onOpenFull;
+
   const AyahTafsirPanel({
     super.key,
     required this.surah,
     required this.ayah,
     required this.lang,
+    this.onOpenFull,
   });
 
   @override
@@ -951,16 +1003,18 @@ class _AyahTafsirPanelState extends State<AyahTafsirPanel> {
         else if (_text == null || _text!.trim().isEmpty)
           _calmNoData(lang)
         else
-          SelectableText(
-            _text!,
+          // A short excerpt only — the card is a quick read, not a reader.
+          Text(
+            excerpt(_text!, maxChars: 240),
             textDirection: TextDirection.rtl,
-            style: const TextStyle(fontSize: 13, height: 1.9),
+            style: const TextStyle(fontSize: 13, height: 1.85),
           ),
         _sourceLine(
           '${basicText('ql_source', lang)}: ${current['name'] ?? ''}'
           '${(current['author'] ?? '') != '' ? ' — ${current['author']}' : ''}'
           '${(current['year'] ?? '') != '' ? ' (${current['year']})' : ''}',
         ),
+        moreButton(basicText('ql_full_tafsir', lang), widget.onOpenFull),
       ],
     );
   }
