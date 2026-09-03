@@ -98,12 +98,21 @@ void main() {
     expect(opened, isTrue);
   });
 
-  testWidgets('AyahTranslationPanel reads an English edition for 1:1', (t) async {
+  testWidgets('AyahTranslationPanel: language arrow + per-edition boxes for 1:1',
+      (t) async {
     await pumpPanel(t, const AyahTranslationPanel(surah: 1, ayah: 1, lang: 'en'));
     expect(find.byType(DropdownButton<String>), findsOneWidget); // language
-    expect(find.byType(DropdownButton<int>), findsOneWidget); // edition
-    // the basmala of al-Fātiḥa, rendered from a real bundled edition
-    expect(find.textContaining('Merciful'), findsOneWidget);
+    // one collapsed box per English edition; nothing loaded until tapped
+    expect(find.byIcon(Icons.expand_more_rounded), findsWidgets);
+    expect(find.byType(SelectableText), findsNothing);
+    // tap the first box → it loads + shows the basmala from a real edition
+    await t.tap(find.byIcon(Icons.expand_more_rounded).first);
+    for (var i = 0; i < 20; i++) {
+      await t.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 80)));
+      await t.pump();
+    }
     expect(find.byType(SelectableText), findsOneWidget);
+    expect(find.textContaining('Merciful'), findsOneWidget);
   });
 }

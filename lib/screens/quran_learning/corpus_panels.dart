@@ -1041,24 +1041,14 @@ class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
   final _repo = QuranCorpusRepository();
 
   bool _loadingEds = true;
-  bool _loadingText = false;
   List<Map<String, Object?>> _eds = [];
   final Map<String, String> _localeName = {}; // locale → display language
   String _locale = '';
-  int _edId = -1;
-  String _text = '';
-  String _dir = 'ltr';
 
   @override
   void initState() {
     super.initState();
     _init();
-  }
-
-  @override
-  void didUpdateWidget(covariant AyahTranslationPanel old) {
-    super.didUpdateWidget(old);
-    if (old.surah != widget.surah || old.ayah != widget.ayah) _loadText();
   }
 
   Future<void> _init() async {
@@ -1070,47 +1060,15 @@ class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
       _localeName.putIfAbsent(loc, () => '${e['lang'] ?? loc}');
     }
     final locs = _localeName.keys.toSet();
-    String locale;
-    if (locs.contains(widget.lang)) {
-      locale = widget.lang;
-    } else if (locs.contains('en')) {
-      locale = 'en';
-    } else {
-      locale = eds.isEmpty ? '' : '${eds.first['locale'] ?? ''}';
-    }
+    final String locale = locs.contains(widget.lang)
+        ? widget.lang
+        : locs.contains('en')
+            ? 'en'
+            : (eds.isEmpty ? '' : '${eds.first['locale'] ?? ''}');
     setState(() {
       _eds = eds;
       _loadingEds = false;
       _locale = locale;
-      _edId = _firstEditionOf(locale) ?? -1;
-    });
-    if (_edId != -1) _loadText();
-  }
-
-  int? _firstEditionOf(String locale) {
-    for (final e in _eds) {
-      if ('${e['locale'] ?? ''}' == locale) return e['id'] as int?;
-    }
-    return _eds.isEmpty ? null : _eds.first['id'] as int?;
-  }
-
-  Future<void> _loadText() async {
-    if (_edId == -1) return;
-    setState(() => _loadingText = true);
-    final t = await QuranBookCache.instance
-        .translation(_edId, widget.surah, widget.ayah);
-    String dir = 'ltr';
-    for (final e in _eds) {
-      if (e['id'] == _edId) {
-        dir = '${e['direction'] ?? 'ltr'}';
-        break;
-      }
-    }
-    if (!mounted) return;
-    setState(() {
-      _loadingText = false;
-      _text = t ?? '';
-      _dir = dir;
     });
   }
 
@@ -1134,85 +1092,161 @@ class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(basicText('ql_choose_language', lang),
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textMuted)),
-                  DropdownButton<String>(
-                    isExpanded: true,
-                    value: _locale.isEmpty ? null : _locale,
-                    items: [
-                      for (final loc in locales)
-                        DropdownMenuItem<String>(
-                          value: loc,
-                          child: Text(_localeName[loc] ?? loc,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12)),
-                        ),
-                    ],
-                    onChanged: (v) {
-                      if (v == null) return;
-                      setState(() {
-                        _locale = v;
-                        _edId = _firstEditionOf(v) ?? -1;
-                      });
-                      _loadText();
-                    },
-                  ),
-                ],
+        // language via a plain arrow/dropdown — translations are short, so
+        // each edition sits in its own box under the ayah, opened on tap.
+        Text(basicText('ql_choose_language', lang),
+            style:
+                const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+        DropdownButton<String>(
+          isExpanded: true,
+          value: _locale.isEmpty ? null : _locale,
+          items: [
+            for (final loc in locales)
+              DropdownMenuItem<String>(
+                value: loc,
+                child: Text(_localeName[loc] ?? loc,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12)),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(basicText('ql_choose_translation', lang),
-                      style: const TextStyle(
-                          fontSize: 11, color: AppColors.textMuted)),
-                  DropdownButton<int>(
-                    isExpanded: true,
-                    value: _edId == -1 ? null : _edId,
-                    items: [
-                      for (final e in editionsForLocale)
-                        DropdownMenuItem<int>(
-                          value: e['id'] as int,
-                          child: Text('${e['name'] ?? e['short'] ?? ''}',
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12)),
-                        ),
-                    ],
-                    onChanged: (v) {
-                      if (v == null) return;
-                      setState(() => _edId = v);
-                      _loadText();
-                    },
-                  ),
-                ],
-              ),
-            ),
           ],
+          onChanged: (v) => v == null ? null : setState(() => _locale = v),
         ),
-        const SizedBox(height: 10),
-        if (_loadingText)
-          _dots()
-        else if (_text.trim().isEmpty)
+        const SizedBox(height: 8),
+        if (editionsForLocale.isEmpty)
           _calmNoData(lang)
         else
-          Directionality(
-            textDirection:
-                _dir == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
-            child: SelectableText(
-              _text,
-              style: const TextStyle(fontSize: 13, height: 1.9),
+          for (var i = 0; i < editionsForLocale.length; i++)
+            _TranslationBox(
+              key: ValueKey('${editionsForLocale[i]['id']}'
+                  '-${widget.surah}-${widget.ayah}'),
+              editionId: editionsForLocale[i]['id'] as int,
+              name: '${editionsForLocale[i]['name'] ?? editionsForLocale[i]['short'] ?? ''}',
+              rtl: '${editionsForLocale[i]['direction'] ?? 'ltr'}' == 'rtl',
+              surah: widget.surah,
+              ayah: widget.ayah,
+              // «تنفتح عند الطلب» — all collapsed; tap the box to read.
+              initiallyOpen: false,
+              lang: lang,
+            ),
+      ],
+    );
+  }
+}
+
+/// One translation edition as a box under the ayah — collapsed by default,
+/// loads its (short) text on first open.
+class _TranslationBox extends StatefulWidget {
+  final int editionId;
+  final String name;
+  final bool rtl;
+  final int surah;
+  final int ayah;
+  final bool initiallyOpen;
+  final String lang;
+  const _TranslationBox({
+    super.key,
+    required this.editionId,
+    required this.name,
+    required this.rtl,
+    required this.surah,
+    required this.ayah,
+    required this.initiallyOpen,
+    required this.lang,
+  });
+
+  @override
+  State<_TranslationBox> createState() => _TranslationBoxState();
+}
+
+class _TranslationBoxState extends State<_TranslationBox> {
+  late bool _open = widget.initiallyOpen;
+  String? _text;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_open) _load();
+  }
+
+  Future<void> _load() async {
+    if (_text != null || _loading) return;
+    setState(() => _loading = true);
+    final t = await QuranBookCache.instance
+        .translation(widget.editionId, widget.surah, widget.ayah);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _text = t ?? '';
+    });
+  }
+
+  void _toggle() {
+    setState(() => _open = !_open);
+    if (_open) _load();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: _toggle,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.all(11),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(widget.name,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 12)),
+                  ),
+                  Icon(
+                    _open
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    size: 20,
+                    color: AppColors.textMuted,
+                  ),
+                ],
+              ),
             ),
           ),
-      ],
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 160),
+            sizeCurve: Curves.easeOutCubic,
+            crossFadeState:
+                _open ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            firstChild: Padding(
+              padding: const EdgeInsets.fromLTRB(11, 0, 11, 11),
+              child: _loading
+                  ? _dots()
+                  : (_text == null || _text!.trim().isEmpty)
+                      ? _calmNoData(widget.lang)
+                      : Directionality(
+                          textDirection: widget.rtl
+                              ? TextDirection.rtl
+                              : TextDirection.ltr,
+                          child: SelectableText(
+                            _text!,
+                            style:
+                                const TextStyle(fontSize: 13, height: 1.9),
+                          ),
+                        ),
+            ),
+            secondChild: const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
     );
   }
 }
