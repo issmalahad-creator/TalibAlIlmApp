@@ -179,6 +179,13 @@ flutter:
     # page-level hit-test resolves every word on every page. Offline-first:
     # the whole mushaf works with no network (خطة القارئ الموحّد).
     - assets/mushaf/pages_svg/
+    # Quran Corpus (Phase B / QC1) — curated, canonical, versioned datasets
+    # from the Quranpedia dumps + Quran-Data-2.0, built by
+    # tool/build_quran_corpus.py, validated against 114/6236. Keyed by the
+    # Hafs spine {s, a, ...}. morphology = Quranic Arabic Corpus (GNU GPL,
+    # corpus.quran.com — verbatim); syntax = The Quranic Treebank (MIT).
+    # Seeded by QuranCorpusSync. See docs/quran/QURAN_CORPUS_INTEGRATION.md.
+    - assets/quran/corpus/
     # Quran Learning Layer (phase 79-ql) — seeded knowledge for the Prototype
     # slice (al-Fatiha + al-Ikhlas): ṣarf (Quranic Arabic Corpus), naḥw
     # (derived iʿrāb, cited), tajwīd (cpfair/quran-tajweed, CC BY 4.0,

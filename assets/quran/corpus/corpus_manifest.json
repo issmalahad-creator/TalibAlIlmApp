@@ -1,0 +1,148 @@
+{
+ "v": 1,
+ "canon": {
+  "surahs": 114,
+  "ayat": 6236
+ },
+ "datasets": {
+  "surah_info": {
+   "file": "surah_info.json.gz",
+   "source": "Quranpedia surahs",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 114,
+   "sha256": "3e1601e90a62a65d549220ea8a6532b131b82651754359628d71845e1a4e3d82",
+   "bytes": 20803,
+   "checks": {
+    "surahs": 114,
+    "ok": true
+   }
+  },
+  "morphology": {
+   "file": "morphology.json.gz",
+   "source": "Quranpedia services/morphology.json.gz",
+   "source_version": "2026-08-29",
+   "licence": "GNU GPL — Quranic Arabic Corpus (corpus.quran.com)",
+   "rows": 6236,
+   "sha256": "609c86bea08888bbb45253cacf67403b16c68133a7aa63f2c7b8a73523c4f27b",
+   "bytes": 3578506,
+   "checks": {
+    "ayat": 6236,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "syntax": {
+   "file": "syntax.json.gz",
+   "source": "Quranpedia services/syntax.json.gz",
+   "source_version": "2026-08-29",
+   "licence": "MIT — The Quranic Treebank",
+   "rows": 6236,
+   "sha256": "c0fd04a5d7d01f7786407a7eff5120d7effe079b72823e9d8dd4686d9d108466",
+   "bytes": 1965996,
+   "checks": {
+    "ayat": 6236,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "meanings": {
+   "file": "meanings.json.gz",
+   "source": "Quranpedia services/meanings.json.gz",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 4799,
+   "sha256": "d1a87642f01f710dba3d0494b19b99e24bd1d7f0038763a64658eebc3f7a5dce",
+   "bytes": 745533,
+   "checks": {
+    "ayat": 4799,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "notes": {
+   "file": "notes.json.gz",
+   "source": "Quranpedia services/notes.json.gz",
+   "source_version": "2026-08-29",
+   "licence": "quranpedia-free",
+   "rows": 5653,
+   "sha256": "14872def35308e3118c8932f20d23ca562ef3431a67653cef557f64cfeec8256",
+   "bytes": 9788671,
+   "checks": {
+    "ayat": 5653,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "topics": {
+   "file": "topics.json.gz",
+   "source": "Quranpedia topics-index",
+   "source_version": "2026-09-02",
+   "licence": "quranpedia-free",
+   "rows": 1,
+   "sha256": "b7aac5840a0a6e04fed12c68914fa24d5248e349039c321e8835c629a30841a9",
+   "bytes": 197719,
+   "checks": {
+    "topics": 6100,
+    "links": 19117
+   }
+  },
+  "reciters": {
+   "file": "reciters.json.gz",
+   "source": "Quran-Data-2.0 (mp3quran.net)",
+   "source_version": "2.0",
+   "licence": "mit / mp3quran",
+   "rows": 158,
+   "sha256": "8bf7be43b7f84be58fbbd1706041c303b755a8633bff02b1cae57b9018d2297a",
+   "bytes": 4861,
+   "checks": {
+    "reciters": 158,
+    "ok": true
+   }
+  },
+  "irab_books": {
+   "file": "irab_books.json.gz",
+   "source": "Quranpedia e3rab_books-all.zip",
+   "source_version": "",
+   "licence": "classical / MIT-treebank-derived",
+   "rows": 1,
+   "sha256": "7128567a30a94c5723fb5f5c72233591c3b7acac2068fc5d012a06b5c2698e2f",
+   "bytes": 4923738,
+   "checks": {
+    "books": 4,
+    "entries": 23063,
+    "ayat": 6236,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "asbab_books": {
+   "file": "asbab_books.json.gz",
+   "source": "Quranpedia asbab_books-all.zip",
+   "source_version": "",
+   "licence": "quranpedia-free",
+   "rows": 1,
+   "sha256": "f0249d4f34d4512b3fcc8641a3658558ed0a1f97451814c9a6222ab2d197d553",
+   "bytes": 689813,
+   "checks": {
+    "books": 2,
+    "entries": 762,
+    "ayat": 618,
+    "ok": true,
+    "notes": []
+   }
+  },
+  "nasekh": {
+   "file": "nasekh.json.gz",
+   "source": "Quranpedia nasekh-book-2391",
+   "source_version": "2026-08-10",
+   "licence": "quranpedia-free",
+   "rows": 1,
+   "sha256": "e7b21c9a0a26e5ecf8997c3c5647b53eb7bcfd50598737991ec28337b993d14b",
+   "bytes": 132583,
+   "checks": {
+    "entries": 182
+   }
+  }
+ }
+}

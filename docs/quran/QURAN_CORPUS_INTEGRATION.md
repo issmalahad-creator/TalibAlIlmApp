@@ -1,10 +1,24 @@
 # Quranpedia Corpus — Integration Audit & Plan
 
-Status: **AUDIT + PLAN. Not started, not approved for build.** Ismail brought
-the Quranpedia.net data dumps (2026‑09‑03) and asked to fold them into the
-Quran experience. This doc inventories what arrived, states the licences, and
-sequences the work. **No integration code until the Mushaf Rendering Engine
-ships (604/604 QA + real‑device)** — one active front at a time (CLAUDE.md).
+Status: **AUDIT + PLAN. QC0 DECIDED 2026‑09‑03 (Ismail). Building next.**
+The Mushaf Rendering Engine (Phase A) is complete (604/604 QA + emulator), so
+this — Phase B of `MUSHAF_MASTER_ARCHITECTURE.md` — is now the active front.
+
+**QC0 decisions (Ismail, "استخدم كل شيء … لا تترك شيئًا … APK حتى 500MB عادي
+… Supabase وقت الحاجة فقط"):**
+- **Bundle-max.** APK budget **≤ ~500 MB**. Bundle **all 139 translations**,
+  **all** per‑ayah services, all 14 riwāyāt, all the small books (asbāb,
+  nāsikh, iʿrāb, topics, reciters, surah info, fatwās, athar, catalog), and
+  **as many tafsīrs as fit** (see §3.1).
+- **Supabase only for the overflow.** The handful of monster tafsīrs that
+  don't fit (روح المعاني 187 MB, البحر المحيط 189 MB, النيسابوري 70 MB, and
+  the next‑largest) → mirror + `quran-proxy` on‑demand per ayah + cache. All
+  149 tafsīrs stay *accessible*; ~120 are offline out‑of‑box.
+- **Translations ship despite being author IP** (§2.3) — every edition
+  carries its attribution + licence tag, shown on the "About sources" screen
+  (the posture Quran.com / most Quran apps take). Flagged, proceeding per
+  Ismail's explicit instruction.
+- New source folded in: **`Quran-Data-version-2.0`** (§1.5).
 
 This is **not a fifth parallel plan.** It folds into the two existing designs:
 - teaching-content providers → `docs/QURAN_LEARNING_ARCHITECTURE.md` +
@@ -46,6 +60,19 @@ not scraped.
 
 **Everything on Ismail's list arrived.** Nothing missing from the dump set.
 (See §7 for the smaller things that would still help.)
+
+### 1.5 `Quran-Data-version-2.0` (extra source, 2026‑09‑03)
+
+`Quran-Data-version-2.0.zip` (~92 MB, git‑ignored). A GitHub "Quran-Data"
+style dump (data from **mp3quran.net**), MIT‑style `LICENSE`. What's worth
+taking:
+
+| file | content | use |
+|---|---|---|
+| `data/json/audio/audio_surah_N.json` | **158 reciters** × 114 surahs, each `{reciter{ar,en}, rewaya{ar,en}, server, link}` = a **real mp3 URL per surah** (mp3quran.net) | **TAKE** — collapse to one `quran_reciter` table (id, name, riwāya, `audio_base_url`); the per‑surah URL is `{server}/{NNN}.mp3`. This is the recitation catalog Phase F needs (Quranpedia's `reciters-index` had names but no URLs). |
+| `data/json/metadata.json` | 114 surahs + `words_count` + `letters_count` | minor — a "Quran facts" stat. Optional. |
+| `data/mainDataQuran.json` / `database.csv` | full Uthmani text + one EN translation + juz/page/sajda | **skip** — redundant (Tanzil + QuranEnc). Its `words_count` is its own segmentation — never use for word identity. |
+| `data/quran_image/*.png` (604, 75 MB) | raster Madani page scans | **skip** — we have the interactive MushafDatabase SVG. |
 
 ### Ayah record shape (`mushafs-1`)
 
@@ -110,9 +137,35 @@ translation provider adapter** (AD‑1 style) or a cross-check, low priority.
 
 ## 3. Role per dataset
 
-Driven by size (APK is already ~250–330 MB) and licence.
+Post‑QC0: **bundle everything that fits in ~500 MB APK**; mirror only the
+tafsīr overflow.
 
-### BUNDLE (curated subset → `assets/quran/…`, offline-first)
+### 3.1 Tafsīr — the split (149 books, 943 MB raw)
+
+The size distribution is extreme: **3 books = 446 MB** (روح المعاني 187 ·
+البحر المحيط 190 · النيسابوري 70), the other 146 ≈ 497 MB, and **116 fit in
+the first 200 MB** (smallest‑first).
+
+- **BUNDLE (~120 books, ~200–260 MB):** smallest‑first up to the budget,
+  **plus** force‑include the essentials regardless of size — الطبري ·
+  ابن كثير (136, 331) · القرطبي\* · البغوي (261) · السعدي (3) · الميسّر (32) ·
+  الجلالين (272) · ابن عاشور «التحرير والتنوير» (184) · الرازي «مفاتيح الغيب»
+  (352) · الزحيلي «المنير» (306) · الشوكاني «فتح القدير» (343) · البقاعي «نظم
+  الدرر» (168) · «اللباب» (169) · الشعراوي (18) · ابن عثيمين (27804) ·
+  إعراب القرآن وبيانه للدرويش (64) · أضواء البيان (308) · زاد المسير (340) ·
+  الدر المنثور (273) · الكشاف (346) · البيضاوي (319) · المختصر (503).
+- **MIRROR + on‑demand (`quran-proxy`, ~29 books):** روح المعاني · البحر
+  المحيط · النيسابوري · النهر الماد · حدائق الروح والريحان · اللباب (if not
+  bundled) · التفسير الحديث · بيان المعاني · صفوة التفاسير · الموسوعة القرآنية
+  · … — every one still opens; the first ayah fetches (~KB) and caches.
+- Reconcile with our existing `assets/quran/tafsir-*.jsonl.gz` (Muyassar,
+  Saʿdī, Ibn Kathīr, Ibn ʿĀshūr, al‑Mukhtaṣar) — one `book_id` per edition,
+  no doubles.
+
+\* if القرطبي is absent from this dump, add it from an official versioned
+dump or QuranEnc.
+
+### BUNDLE (everything below → `assets/quran/corpus/…`, offline-first)
 
 | what | why bundle | size est. |
 |---|---|---|
@@ -124,26 +177,23 @@ Driven by size (APK is already ~250–330 MB) and licence.
 | **`services/notes.json.gz`** — sourced فوائد/وقفات | the "notes" tier + seeds for the Ayah Notebook | 9.8 MB gz — maybe trim to top authors |
 | **`topics-index.json.gz`** (6100) | **the Knowledge Index backbone** (topic → ayah-range), `SUPABASE_ARCHITECTURE §4.6` | 0.16 MB gz |
 | **`reciters-index.json.gz`** (253) | reciter picker metadata (audio URLs constructed / from `qiraat`) | 13 KB gz |
-| **1 asbāb book** (460 or 2919) + **`nasekh-book-2391`** | classical, small, per-ayah, high study value | ~0.4 + 0.13 MB gz |
-| **2–3 curated tafsirs** from the 149 — e.g. **Muyassar** (KFGQPC, official), **Saʿdī**, **Jalālayn** | the ayah-study mode already ships Muyassar/Saʿdī via jsonl; reconcile, don't double | ~5–10 MB gz each |
-| **1 curated iʿrāb book** (316 «إعراب القرآن») | per-ayah iʿrāb prose for the "الإعراب" surface | ~1.5 MB gz |
+| **all 4 iʿrāb books** + **both asbāb books** + **`nasekh-book-2391`** | classical, small, per-ayah | ~6 MB gz |
+| **all `services/*`** — asbab, e3rab, fatwa, meanings, morphology, mutshabeh, nasekh, notes, qiraat, similar, syntax, tafsir, topics, translations pointers | the per‑ayah "what exists" index every provider reads | ~28 MB gz |
+| **all 139 translations** (`translations-all.zip`) | every language, offline. Each keeps its `licence_tag` + attribution | ~62 MB gz |
+| **all 14 riwāyāt** (`mushafs-all.zip`) | Hafs is primary‑cross‑check; the 13 others available (still not a reader toggle unless Ismail scopes it) | ~5 MB gz |
+| **`fatwas.json.gz`** (3575) + **`other/sayings.json.gz`** (athar, 15 MB) + **`books.json.gz`** (16 296‑book catalog) | ayah‑tagged, feed `search_documents` + "كتب تناولت الآية" | ~22 MB gz |
+| **`Quran-Data-2.0` audio catalog** (158 reciters, mp3quran.net URLs) | the recitation source (§1.5) | ~0.1 MB (deduped) |
+| **~120 tafsīr books** (§3.1) | the ayah‑study corpus, offline | ~200–260 MB gz |
 
-Target added bundle: **~40–60 MB gz**, gated by an updated APK-size decision.
+Total added bundle ≈ **340–380 MB gz** → APK ≈ **450–480 MB** (within budget).
 
 ### MIRROR + ON-DEMAND CACHE (Supabase reference tables + `quran-proxy`)
 
-Too big or too many to bundle; licence-OK to mirror:
-
-- the other **~146 tafsir books** (900 MB) → `quran_tafsir_entries` keyed
-  `(book_id, surah, ayah)`, pulled per-ayah on demand, cached per
-  `SUPABASE_ARCHITECTURE` sync-class **append-only**.
-- the other **13 riwāyāt** → `quran_mushaf_text(riwaya_id, surah, ayah)`.
-- **`fatwas.json.gz`** (3575), **`other/sayings.json.gz`** (athar) → reference
-  tables, ayah-tagged, searchable via `search_documents`.
-- the **16,296-book catalog** (`books.json.gz`) → `quran_books` reference
-  table (drives "which books discuss this ayah").
-- `services/qiraat.json.gz` (+ its `files.quranpedia.net` audio URLs),
-  `similar.json.gz`, `mutshabeh.json.gz`.
+- the **~29 overflow tafsīr books** (§3.1) → `quran_tafsir_entry` keyed
+  `(book_id, surah, ayah)`, fetched per ayah on first open, cached
+  (`SUPABASE_ARCHITECTURE` sync class **append‑only**). Every book still opens.
+- genuinely large future media (full‑surah recitation audio files, book PDFs)
+  → Supabase Storage, streamed.
 
 ### ONLINE-ONLY / ADAPTER (AD‑1 provider, no storage)
 
@@ -151,10 +201,10 @@ Too big or too many to bundle; licence-OK to mirror:
   `/v1/changes` delta feed (§6).
 - saikothasan API as a fallback translation source.
 
-### SKIP for now
+### SKIP
 
-- `translations-all.zip` wholesale — **licence**. Revisit per-edition; keep
-  our existing QuranEnc set.
+- `Quran-Data-2.0` page PNGs (75 MB raster — we have SVG) and its EN text
+  (redundant).
 - `categories-all.zip` — trivial; fold into whatever consumes it.
 - `attachments.json.gz` — media pointers; only if a feature needs them.
 
