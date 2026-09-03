@@ -99,6 +99,75 @@ create policy "public read media" on public.mosque_media
 -- No INSERT / UPDATE / DELETE policies → the anon key cannot write.
 -- The intake writes with the service_role key, which bypasses RLS.
 
+-- ── write-path / admin tables (Phase 74.2c–e · 74.5–74.8) ───────────
+-- These are ADMIN-ONLY: RLS is enabled with NO policies, so the anon key
+-- can neither read nor write them. Only the Telegram-intake Edge Function
+-- (service_role, bypasses RLS) touches these.
+
+-- global operators — the "everything, incl. mosque approval" tier
+create table if not exists public.super_admins (
+  tg_user_id  text primary key,
+  name        text,
+  added_at    timestamptz not null default now()
+);
+
+-- who may do what, per mosque
+create table if not exists public.mosque_users (
+  id          bigint generated always as identity primary key,
+  mosque_id   text not null references public.mosques(id) on delete cascade,
+  tg_user_id  text not null,
+  tg_username text,
+  role        text not null,   -- mosque_owner | imam | moderator | viewer
+  added_by    text,
+  created_at  timestamptz not null default now(),
+  unique (mosque_id, tg_user_id)
+);
+
+-- the durable link: mosque_id is permanent, chat_id can change (74.5)
+create table if not exists public.mosque_telegram_connections (
+  mosque_id     text primary key references public.mosques(id) on delete cascade,
+  chat_id       text not null unique,
+  group_title   text,
+  linked_by     text,
+  connected_at  timestamptz not null default now()
+);
+
+-- every submitted change waits here for the daily digest (74.8)
+create table if not exists public.mosque_pending_changes (
+  id            text primary key,
+  mosque_id     text not null references public.mosques(id) on delete cascade,
+  content_id    text,
+  action        text not null,          -- create | update | delete | link | donation_toggle | ...
+  payload       jsonb,                  -- the proposed row
+  risk_tier     text not null default 'medium',   -- low | medium | high
+  status        text not null default 'pending',  -- pending | approved | rejected | auto_published
+  submitted_by  text,
+  submitted_at  timestamptz not null default now(),
+  reviewed_by   text,
+  reviewed_at   timestamptz,
+  note          text
+);
+create index if not exists idx_pending_mosque_status
+  on public.mosque_pending_changes (mosque_id, status, submitted_at);
+
+-- an append-only audit trail of every approve/reject (74.9)
+create table if not exists public.mosque_moderation_log (
+  id          bigint generated always as identity primary key,
+  mosque_id   text,
+  change_id   text,
+  actor       text,
+  decision    text,                     -- approved | rejected | auto_published | promoted | linked
+  detail      text,
+  at          timestamptz not null default now()
+);
+
+alter table public.super_admins                  enable row level security;
+alter table public.mosque_users                  enable row level security;
+alter table public.mosque_telegram_connections   enable row level security;
+alter table public.mosque_pending_changes        enable row level security;
+alter table public.mosque_moderation_log         enable row level security;
+-- (no policies on purpose → anon has zero access; service_role bypasses RLS)
+
 -- ── one pilot mosque so the app shows real data immediately ─────────
 insert into public.mosques (id, name, imam_name, description, city, area, lat, lng, verified, status)
 values ('MOSQ_PILOT_0001', 'مسجد التقوى', 'الشيخ أحمد محمد',

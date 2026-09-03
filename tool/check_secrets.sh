@@ -23,7 +23,8 @@ MODE="${1:-staged}"
 # The password segment excludes <> so doc placeholders like `<pw>` don't hit.
 RE='postgres(ql)?://[A-Za-z0-9._%+-]+:[^@<>[:space:]"'"'"']{4,}@'
 RE="$RE"'|(db\.[a-z0-9]{16,}\.supabase\.co|pooler\.supabase\.com)[^[:space:]]*:[0-9]{4,5}'
-RE="$RE"'|SERVICE_ROLE_KEY|SUPABASE_SERVICE_ROLE|"role"[[:space:]]*:[[:space:]]*"service_role"'
+RE="$RE"'|(SERVICE_ROLE_KEY|SUPABASE_SERVICE_ROLE|SUPABASE_SERVICE_KEY)[[:space:]]*[:=][[:space:]]*["'"'"'`]?[A-Za-z0-9._-]{12,}'
+RE="$RE"'|"role"[[:space:]]*:[[:space:]]*"service_role"'
 RE="$RE"'|(DB_PASSWORD|DATABASE_PASSWORD|PG_?PASSWORD|SUPABASE_DB_PASSWORD)[[:space:]]*[:=]'
 RE="$RE"'|(password|passwd|pwd)[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'[:space:]]{8,}["'"'"']'
 RE="$RE"'|-----BEGIN ([A-Z]+ )?PRIVATE KEY-----'
