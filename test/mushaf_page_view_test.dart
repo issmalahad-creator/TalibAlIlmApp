@@ -39,47 +39,14 @@ MushafPageLayout _layout() => MushafPageLayout(
       markers: const [],
     );
 
-/// Mirror of [MushafPageView]'s content-fit transform (see `_contentBox`):
-/// symmetric-X box around the words with headroom for a header line, then
-/// centred in the viewport. Maps a point in source viewBox units to the
-/// widget's local coordinates for a viewport of [size].
+/// Mirror of [MushafPageView]'s fit transform: fit the page's own `rect`
+/// (`md-page-inner data-rect`) + a 9%-of-width margin, centred in the
+/// viewport. Maps a point in source viewBox units to the widget's local
+/// coordinates for a viewport of [size].
 Offset _toWidget(MushafPageLayout l, Size size, Offset vb) {
-  var minX = double.infinity, minY = double.infinity;
-  var maxX = -double.infinity, maxY = -double.infinity;
-  final lineNos = <int>{};
-  for (final w in l.words) {
-    minX = w.box.x < minX ? w.box.x : minX;
-    minY = w.box.y < minY ? w.box.y : minY;
-    maxX = w.box.right > maxX ? w.box.right : maxX;
-    maxY = w.box.bottom > maxY ? w.box.bottom : maxY;
-    lineNos.add(w.line);
-  }
-  final cxc = l.viewBoxWidth / 2;
-  final halfW = (cxc - minX).abs() > (maxX - cxc).abs()
-      ? (cxc - minX).abs()
-      : (maxX - cxc).abs();
-  final lineH =
-      lineNos.length > 1 ? (maxY - minY) / (lineNos.length - 1) : (maxY - minY);
-  final top = minY - lineH * 0.5;
-  final bottom = maxY + lineH * 0.5;
-
-  final cx0 = cxc - halfW, cy0 = top, cw0 = halfW * 2, ch0 = bottom - top;
-  final pad = 0.045 * (cw0 > ch0 ? cw0 : ch0);
-  final cx = cx0 - pad, cy = cy0 - pad;
-  final cw = cw0 + 2 * pad, ch = ch0 + 2 * pad;
-  final scale =
-      (size.width / cw) < (size.height / ch) ? size.width / cw : size.height / ch;
-  final dx = (size.width - cw * scale) / 2 - cx * scale;
-  final dy = (size.height - ch * scale) / 2 - cy * scale;
-  return Offset(dx + vb.dx * scale, dy + vb.dy * scale);
-}
-
-/// Mirror of the M3 `MushafFitSource.contentRect` transform: fit the page's
-/// own `rect` (md-page-inner data-rect) + a 9%-of-width margin (covers the
-/// juz/surah headers + page number), centred in the viewport.
-Offset _toWidgetContentRect(MushafPageLayout l, Size size, Offset vb) {
   final r = l.rect!;
-  final pad = 0.09 * r.w;
+  const pad0 = 0.09;
+  final pad = pad0 * r.w;
   final cx = r.x - pad, cy = r.y - pad, cw = r.w + 2 * pad, ch = r.h + 2 * pad;
   final scale =
       (size.width / cw) < (size.height / ch) ? size.width / cw : size.height / ch;
@@ -199,43 +166,6 @@ void main() {
     await tester.tapAt(topLeft + _toWidget(_layout(), _size, const Offset(250, 15)));
     await tester.pump();
     expect(tapped, isFalse);
-  });
-
-  testWidgets('fitSource: contentRect — hit-test still resolves to the right word',
-      (tester) async {
-    MushafWord? tappedWord;
-    MushafAyaMark? tappedMark;
-    final l = _layout(); // rect = full viewBox
-    await tester.pumpWidget(MaterialApp(
-      home: Scaffold(
-        body: SizedBox(
-          width: kMushafViewBoxWidth,
-          height: kMushafViewBoxHeight,
-          child: MushafPageView(
-            layout: l,
-            fitSource: MushafFitSource.contentRect,
-            onWordTap: (w) => tappedWord = w,
-            onAyaMarkTap: (m) => tappedMark = m,
-          ),
-        ),
-      ),
-    ));
-    final topLeft = tester.getTopLeft(find.byType(MushafPageView));
-    // word 3 centre: box (300,80,40,20) -> viewBox (320, 90)
-    await tester
-        .tapAt(topLeft + _toWidgetContentRect(l, _size, const Offset(320, 90)));
-    await tester.pump();
-    expect(tappedWord, isNotNull);
-    expect(tappedWord!.wordOrder, 3);
-    expect(tappedWord!.surah, 2);
-    expect(tappedWord!.ayah, 7);
-    // and the medallion still wins where it should: mark box (220,42,14,16)
-    await tester
-        .tapAt(topLeft + _toWidgetContentRect(l, _size, const Offset(227, 50)));
-    await tester.pump();
-    expect(tappedMark, isNotNull);
-    expect(tappedMark!.surah, 2);
-    expect(tappedMark!.ayah, 6);
   });
 
   testWidgets('selectedAyah / selectedWord paint the Selection Layer',

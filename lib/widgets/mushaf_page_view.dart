@@ -5,7 +5,7 @@ import '../models/mushaf_layout.dart';
 import 'mushaf/mushaf_page_cache.dart';
 import 'mushaf/screen_transform.dart';
 
-export 'mushaf/screen_transform.dart' show MushafFitSource, ScreenTransform;
+export 'mushaf/screen_transform.dart' show ScreenTransform;
 export 'mushaf/mushaf_page_cache.dart' show MushafPageCache;
 
 /// M3 — margin added around the `contentRect` (`md-page-inner data-rect`,
@@ -55,25 +55,10 @@ class MushafPageView extends StatelessWidget {
   /// Long-press on a word (future shortcut, e.g. ayah panel / notebook).
   final void Function(MushafWord word)? onWordLongPress;
 
-  /// Font family for the text fallback (pages without bundled art — none in
-  /// the shipped build, kept for tests / safety).
-  final String fontFamily;
-
-  final Color textColor;
-
   /// When set, the (monochrome) MushafDatabase art is re-inked in this
   /// colour via `BlendMode.srcIn` — used for night reading. Null = the art's
   /// own black.
   final Color? artInk;
-
-  /// Draw each word box outline — debugging / verification aid.
-  final bool debugBoxes;
-
-  /// Phase 80 / M2 — which viewBox-unit rectangle the [ScreenTransform] fits
-  /// to the viewport. Default [MushafFitSource.legacyContentBox] reproduces
-  /// the pre-M2 `_contentBox` heuristic **exactly** (no visual change). M3
-  /// flips the default to [MushafFitSource.contentRect].
-  final MushafFitSource fitSource;
 
   const MushafPageView({
     super.key,
@@ -83,11 +68,7 @@ class MushafPageView extends StatelessWidget {
     this.onWordTap,
     this.onAyaMarkTap,
     this.onWordLongPress,
-    this.fontFamily = 'DigitalKhattMadina',
-    this.textColor = const Color(0xFF1F2937),
     this.artInk,
-    this.debugBoxes = false,
-    this.fitSource = MushafFitSource.legacyContentBox,
   });
 
   @override
@@ -99,51 +80,27 @@ class MushafPageView extends StatelessWidget {
         final maxW = constraints.maxWidth.isFinite ? constraints.maxWidth : vbW;
         final maxH = constraints.maxHeight.isFinite ? constraints.maxHeight : vbH;
 
-        // Fit a viewBox-unit rectangle to the viewport — the hit-test, the
-        // art and the Selection Layer all share this one transform, so a tap
-        // lands on the same word the user sees.
-        //
-        // M2: `legacyContentBox` builds exactly the rectangle the old inline
-        // `_contentBox` math used (union bbox, symmetric-X, line-pitch
-        // headroom, ×1.045 via cpad) and feeds it to ScreenTransform.fit
-        // term-for-term → `scale`/`dx`/`dy` are unchanged from before.
+        // Fit the mushaf's own 15-line content frame (`md-page-inner
+        // data-rect`, corrected in M1) — plus a uniform breathing margin
+        // (`_kContentRectPad`) that keeps the juz/surah margin headers and
+        // the foot page number on screen. Centring this per page cancels the
+        // recto/verso gutter shift (the frame's width is uniform ~245 across
+        // all 604 pages). One rule, no per-page logic. The hit-test, the art
+        // and the Selection Layer all share this one transform.
+        final r = layout.rect;
         final ({double left, double top, double width, double height}) fit;
-        switch (fitSource) {
-          case MushafFitSource.legacyContentBox:
-            final content = _contentBox(layout);
-            final cpad =
-                0.045 * (content.w > content.h ? content.w : content.h);
-            fit = (
-              left: content.x - cpad,
-              top: content.y - cpad,
-              width: content.w + 2 * cpad,
-              height: content.h + 2 * cpad,
-            );
-          case MushafFitSource.contentRect:
-            final r = layout.rect;
-            if (r != null && r.w > 0 && r.h > 0) {
-              // M3: fit the mushaf's own 15-line frame. A small uniform
-              // breathing margin (fraction of the frame width, so it scales)
-              // keeps justified lines off the very screen edge — the printed
-              // page has a hair of margin too. No per-page logic.
-              final pad = _kContentRectPad * r.w;
-              fit = (
-                left: r.x - pad,
-                top: r.y - pad,
-                width: r.w + 2 * pad,
-                height: r.h + 2 * pad,
-              );
-            } else {
-              final content = _contentBox(layout);
-              final cpad =
-                  0.045 * (content.w > content.h ? content.w : content.h);
-              fit = (
-                left: content.x - cpad,
-                top: content.y - cpad,
-                width: content.w + 2 * cpad,
-                height: content.h + 2 * cpad,
-              );
-            }
+        if (r != null && r.w > 0 && r.h > 0) {
+          final pad = _kContentRectPad * r.w;
+          fit = (
+            left: r.x - pad,
+            top: r.y - pad,
+            width: r.w + 2 * pad,
+            height: r.h + 2 * pad,
+          );
+        } else {
+          // no content rect (never happens for the seeded 604 — QA-gated):
+          // fall back to the whole viewBox rather than reconstructing text.
+          fit = (left: 0, top: 0, width: vbW, height: vbH);
         }
         final t = ScreenTransform.fit(
           fitLeft: fit.left,
@@ -198,14 +155,7 @@ class MushafPageView extends StatelessWidget {
                   top: dy,
                   width: vbW * scale,
                   height: vbH * scale,
-                  child: _PageArt(
-                    page: layout.page,
-                    fallbackLines: _lines(layout),
-                    scale: scale,
-                    textColor: textColor,
-                    artInk: artInk,
-                    debugBoxes: debugBoxes,
-                  ),
+                  child: _PageArt(page: layout.page, artInk: artInk),
                 ),
                 // Selection Layer — premium highlight over the art, never
                 // touches the SVG, never darkens the glyph ink.
@@ -385,25 +335,15 @@ class _SelectionPainter extends CustomPainter {
 /// is ever missing.
 bool mushafArtBundled(int page) => page >= 1 && page <= 604;
 
-/// The page's visual: the real MushafDatabase SVG (gzip-decoded at runtime),
-/// else a line-by-line text fallback. Rendered inside a box that is exactly
-/// the source viewBox scaled by [scale], so `BoxFit.fill` maps viewBox→box
-/// 1:1 and stays locked to the hit-test transform.
+/// The page's visual: the real MushafDatabase V1.01 SVG, decoded by
+/// [MushafPageCache] off the UI isolate. Placed inside a box that is exactly
+/// `viewBox × scale` (see [MushafPageView.build]), so `BoxFit.fill` maps
+/// viewBox→box 1:1 and stays locked to the hit-test transform. No text
+/// reconstruction — every one of the 604 pages is bundled and QA-gated.
 class _PageArt extends StatefulWidget {
   final int page;
-  final List<_RenderedLine> fallbackLines;
-  final double scale;
-  final Color textColor;
   final Color? artInk;
-  final bool debugBoxes;
-  const _PageArt({
-    required this.page,
-    required this.fallbackLines,
-    required this.scale,
-    required this.textColor,
-    required this.artInk,
-    required this.debugBoxes,
-  });
+  const _PageArt({required this.page, required this.artInk});
 
   @override
   State<_PageArt> createState() => _PageArtState();
@@ -413,7 +353,6 @@ class _PageArtState extends State<_PageArt> {
   /// M4: decode + LRU + preload live in [MushafPageCache] (background isolate).
   final _cache = MushafPageCache.instance;
   String? _svg;
-  bool _decoding = true;
 
   @override
   void initState() {
@@ -426,7 +365,6 @@ class _PageArtState extends State<_PageArt> {
     super.didUpdateWidget(old);
     if (old.page != widget.page) {
       _svg = null;
-      _decoding = true;
       _load();
     }
   }
@@ -435,15 +373,11 @@ class _PageArtState extends State<_PageArt> {
     final page = widget.page;
     if (_cache.has(page)) {
       _svg = _cache.peek(page);
-      _decoding = false;
       if (mounted) setState(() {});
     } else {
       final svg = await _cache.load(page);
       if (!mounted || widget.page != page) return;
-      setState(() {
-        _svg = svg;
-        _decoding = false;
-      });
+      setState(() => _svg = svg);
     }
     _cache.preloadAround(page);
   }
@@ -463,121 +397,9 @@ class _PageArtState extends State<_PageArt> {
             color: ink == null ? const Color(0xFFFFFDF7) : Colors.transparent),
       );
     }
-    if (_decoding) {
-      // still decoding — warm placeholder, never a hard blank
-      return ColoredBox(
-          color: ink == null ? const Color(0xFFFFFDF7) : Colors.transparent);
-    }
-    // Fallback (page with no bundled art): each line at its own box.
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        for (final line in widget.fallbackLines)
-          Positioned(
-            left: line.box.x * widget.scale,
-            top: line.box.y * widget.scale - line.box.h * widget.scale * 0.35,
-            width: line.box.w * widget.scale,
-            height: line.box.h * widget.scale * 1.7,
-            child: Container(
-              alignment: Alignment.center,
-              decoration: widget.debugBoxes
-                  ? BoxDecoration(
-                      border: Border.all(
-                          color: const Color(0x553B82F6), width: 0.5))
-                  : null,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  line.text,
-                  maxLines: 1,
-                  softWrap: false,
-                  textDirection: TextDirection.rtl,
-                  style: TextStyle(
-                    fontFamily: 'Amiri',
-                    color: widget.textColor,
-                    height: 1.0,
-                    fontSize:
-                        (line.box.h * widget.scale * 2.4).clamp(12.0, 60.0),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
+    // still decoding (or the vanishingly rare decode failure) — a warm
+    // placeholder, never a hard blank and never a text reconstruction.
+    return ColoredBox(
+        color: ink == null ? const Color(0xFFFFFDF7) : Colors.transparent);
   }
-}
-
-/// One printed line as a single RTL run + its box (viewBox units).
-class _RenderedLine {
-  final String text;
-  final MushafBox box;
-  const _RenderedLine(this.text, this.box);
-}
-
-List<_RenderedLine> _lines(MushafPageLayout layout) {
-  final byLine = <int, List<MushafWord>>{};
-  for (final w in layout.words) {
-    byLine.putIfAbsent(w.line, () => []).add(w);
-  }
-  final out = <_RenderedLine>[];
-  final lineNos = byLine.keys.toList()..sort();
-  for (final ln in lineNos) {
-    final ws = byLine[ln]!..sort((a, b) => a.wordOrder.compareTo(b.wordOrder));
-    var minX = double.infinity, minY = double.infinity, maxR = 0.0, maxB = 0.0;
-    for (final w in ws) {
-      if (w.box.x < minX) minX = w.box.x;
-      if (w.box.y < minY) minY = w.box.y;
-      if (w.box.right > maxR) maxR = w.box.right;
-      if (w.box.bottom > maxB) maxB = w.box.bottom;
-    }
-    out.add(_RenderedLine(
-      ws.map((w) => w.textUthmani).join(' '),
-      MushafBox(minX, minY, maxR - minX, maxB - minY),
-    ));
-  }
-  return out;
-}
-
-/// The box (source viewBox units) to fit to the viewport, so the page fills
-/// the screen instead of floating inside its wide print margins — kept
-/// horizontally centred about the viewBox centre.
-MushafBox _contentBox(MushafPageLayout layout) {
-  var minX = double.infinity, minY = double.infinity;
-  var maxX = -double.infinity, maxY = -double.infinity;
-  final textLineNos = <int>{};
-  void add(MushafBox? x, {int? line}) {
-    if (x == null || (x.w <= 0 && x.h <= 0)) return;
-    if (x.x < minX) minX = x.x;
-    if (x.y < minY) minY = x.y;
-    if (x.right > maxX) maxX = x.right;
-    if (x.bottom > maxY) maxY = x.bottom;
-    if (line != null) textLineNos.add(line);
-  }
-
-  for (final w in layout.words) {
-    add(w.box, line: w.line);
-  }
-  for (final m in layout.ayaMarks) {
-    add(m.box);
-  }
-  for (final m in layout.markers) {
-    add(m.box);
-  }
-  if (minX.isInfinite) {
-    return MushafBox(0, 0, layout.viewBoxWidth, layout.viewBoxHeight);
-  }
-
-  final cxc = layout.viewBoxWidth / 2;
-  final halfW = (cxc - minX).abs() > (maxX - cxc).abs()
-      ? (cxc - minX).abs()
-      : (maxX - cxc).abs();
-
-  final lineH = textLineNos.length > 1
-      ? (maxY - minY) / (textLineNos.length - 1)
-      : (maxY - minY);
-  final top = minY - lineH * 0.5;
-  final bottom = maxY + lineH * 0.5;
-
-  return MushafBox(cxc - halfW, top, halfW * 2, bottom - top);
 }

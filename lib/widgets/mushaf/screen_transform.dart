@@ -3,32 +3,16 @@ import 'dart:ui' show Offset, Rect, Size;
 
 import 'package:flutter/foundation.dart' show immutable;
 
-/// Phase 80 / M2 — the **one** bridge between a mushaf page's viewBox-unit
+/// Phase 80 — the **one** bridge between a mushaf page's viewBox-unit
 /// geometry and on-screen pixels.
 ///
 /// A [ScreenTransform] is a single uniform [scale] plus a translation
 /// [offset]: `screen = viewBox * scale + offset`. Because it is one scalar
 /// scale, the aspect ratio is preserved by construction — there is no code
 /// path here that can stretch a page. The renderer, the hit-test and the
-/// selection overlay are all meant to take the *same* instance so they can
-/// never drift apart.
-///
-/// M2 is behaviour-preserving: [MushafFitSource.legacyContentBox] feeds
-/// [ScreenTransform.fit] exactly the rectangle the old inline `_contentBox`
-/// math used, term for term, so `scale` / `offset` come out identical to
-/// before. M3 will switch the default to [MushafFitSource.contentRect] (the
-/// corrected `md-page-inner data-rect`) — that is the only step that changes
-/// what the viewer sees.
-enum MushafFitSource {
-  /// The pre-M2 heuristic: `_contentBox` (word/mark/marker bbox union, forced
-  /// symmetric about the viewBox centre, + line-pitch headroom, × 1.045).
-  legacyContentBox,
-
-  /// The mushaf's own authored 15-line frame (`MushafPageLayout.rect`,
-  /// corrected in M1). Not wired to any caller until M3.
-  contentRect,
-}
-
+/// selection overlay all take the *same* instance so they can never drift
+/// apart. [MushafPageView] fits it to the mushaf's own 15-line content frame
+/// (`md-page-inner data-rect`) + a uniform margin.
 @immutable
 class ScreenTransform {
   /// viewBox units → pixels. One scalar ⇒ aspect ratio always preserved.

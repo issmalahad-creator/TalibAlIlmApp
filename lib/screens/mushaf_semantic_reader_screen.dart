@@ -800,12 +800,6 @@ class _MushafSemanticReaderScreenState
                           clipBehavior: Clip.antiAlias,
                           child: MushafPageView(
                             layout: layout,
-                            // M3: fit-and-centre the mushaf's own 15-line
-                            // content frame (md-page-inner data-rect,
-                            // corrected in M1) instead of the raw viewBox —
-                            // removes the recto/verso gutter shift and fills
-                            // the width. One uniform rule, no per-page logic.
-                            fitSource: MushafFitSource.contentRect,
                             selectedWord: onThisPage ? _selWord : null,
                             selectedAyah: !onThisPage
                                 ? null
