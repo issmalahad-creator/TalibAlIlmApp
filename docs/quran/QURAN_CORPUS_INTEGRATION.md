@@ -21,9 +21,21 @@ Status: **QC1 + QC2 + VT‑3 + QC3 COMPLETE 2026‑09‑03.**
   debug APK builds**. Every block carries its source; missing = «لا توجد
   بيانات موثقة», never a guess.
 
-**Next: QC4** — `topics` → `knowledge_links` (the Knowledge Index; the
-`AyahCorpusPanel.onTopicTap` hook is already in place). Then **QC6** —
-Supabase mirror for the 27 overflow tafsīrs + `quran-proxy` Edge Function.
+- **QC4** — the **Quran Knowledge Index (offline)**:
+  `lib/screens/quran_learning/topic_index_screen.dart` (`TopicIndexScreen`,
+  two modes — search/browse + one-topic) + `QuranCorpusRepository`
+  `searchTopics` / `topicChildren` / `topicAyat` (ranges expanded, deduped,
+  capped) / `topicById`. Wired: `AyahCorpusPanel` topic chips →
+  `TopicIndexScreen(topicId:)`; a topic's ayah row → `AyahStudyScreen`; new
+  «فهرس الموضوعات القرآنية» entry in the reader's ☰ menu. 6 `basicText`
+  keys × 13 langs; `test/topic_index_test.dart`. **Decision:** offline the
+  index *is* `quran_topic` + `quran_topic_ayah` — the generic
+  `knowledge_links` graph (hadith / book / lesson / fatwā edges) is
+  deferred to Phase E (Supabase), where cross-content edges actually
+  arrive; no redundant local table now.
+
+**Next: QC6** — Supabase mirror for the 27 overflow tafsīrs +
+`quran-proxy` Edge Function (needs `SUPABASE_ARCHITECTURE` S1–S4).
 
 **QC0 decisions (Ismail, "استخدم كل شيء … لا تترك شيئًا … APK حتى 500MB عادي
 … Supabase وقت الحاجة فقط"):**

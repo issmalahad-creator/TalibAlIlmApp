@@ -134,6 +134,76 @@ class QuranCorpusRepository {
         whereArgs: [topicId]);
   }
 
+  // ---- QC4 · the Knowledge Index (topic ⇄ ayah, offline) ----------------
+  // The generic `knowledge_links` graph (hadith / book / lesson edges) is a
+  // Phase-E concern; offline the index is `quran_topic` + `quran_topic_ayah`.
+
+  /// One topic row `{id, name, parent_id}` or null.
+  Future<Map<String, Object?>?> topicById(int id) async {
+    final db = await _db;
+    final rows = await db.query('quran_topic',
+        where: 'id = ?', whereArgs: [id], limit: 1);
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  /// Topics whose name contains [query], most-covered first.
+  /// `[{id, name, parent_id, ayat}]`. Empty query → the broadest topics.
+  Future<List<Map<String, Object?>>> searchTopics(String query,
+      {int limit = 60}) async {
+    final db = await _db;
+    final q = query.trim();
+    final esc = q.replaceAllMapped(RegExp(r'[\\%_]'), (m) => '\\${m[0]}');
+    final where = q.isEmpty ? '' : "WHERE t.name LIKE ? ESCAPE '\\'";
+    final args = <Object?>[
+      if (q.isNotEmpty) '%$esc%',
+      limit,
+    ];
+    return db.rawQuery('''
+      SELECT t.id, t.name, t.parent_id,
+             COUNT(ta.rowid) AS ayat
+      FROM quran_topic t
+      LEFT JOIN quran_topic_ayah ta ON ta.topic_id = t.id
+      $where
+      GROUP BY t.id
+      ORDER BY ayat DESC, t.name ASC
+      LIMIT ?
+    ''', args);
+  }
+
+  /// Direct children of [parentId] (topic tree), most-covered first.
+  Future<List<Map<String, Object?>>> topicChildren(int parentId) async {
+    final db = await _db;
+    return db.rawQuery('''
+      SELECT t.id, t.name, t.parent_id, COUNT(ta.rowid) AS ayat
+      FROM quran_topic t
+      LEFT JOIN quran_topic_ayah ta ON ta.topic_id = t.id
+      WHERE t.parent_id = ?
+      GROUP BY t.id
+      ORDER BY ayat DESC, t.name ASC
+    ''', [parentId]);
+  }
+
+  /// Every `(surah, ayah)` a topic covers — ranges expanded, de-duped,
+  /// ordered, capped at [limit].
+  Future<List<({int surah, int ayah})>> topicAyat(int topicId,
+      {int limit = 400}) async {
+    final ranges = await ayatForTopic(topicId);
+    final seen = <int>{};
+    final out = <({int surah, int ayah})>[];
+    for (final r in ranges) {
+      final s = (r['surah'] as num?)?.toInt();
+      final a1 = (r['ayah_from'] as num?)?.toInt();
+      if (s == null || a1 == null) continue;
+      final a2 = (r['ayah_to'] as num?)?.toInt() ?? a1;
+      for (var a = a1; a <= a2 && a - a1 < 300; a++) {
+        if (seen.add(s * 1000 + a)) out.add((surah: s, ayah: a));
+      }
+    }
+    out.sort((x, y) =>
+        x.surah != y.surah ? x.surah - y.surah : x.ayah - y.ayah);
+    return out.length > limit ? out.sublist(0, limit) : out;
+  }
+
   // ---- catalogs ----
 
   Future<List<Map<String, Object?>>> tafsirBooks({bool? bundled}) async {

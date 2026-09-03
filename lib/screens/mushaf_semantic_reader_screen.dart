@@ -25,6 +25,7 @@ import 'quran_search_screen.dart';
 import 'recitation_mistakes_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
 import 'quran_learning/knowledge_surface.dart';
+import 'quran_learning/topic_index_screen.dart';
 
 /// خطة القارئ الموحّد — the one Quran reader, built on the Mushaf **Semantic
 /// Layer** (`mushaf_*` → [MushafLayoutRepository] → [MushafPageView]) with
@@ -421,6 +422,11 @@ class _MushafSemanticReaderScreenState
                 leading: const Icon(Icons.route_outlined),
                 title: Text(basicText('my_journey', lang)),
                 onTap: () => go(const JourneyScreen()),
+              ),
+              ListTile(
+                leading: const Icon(Icons.travel_explore_rounded),
+                title: Text(basicText('ql_topic_index_title', lang)),
+                onTap: () => go(const TopicIndexScreen()),
               ),
               const Divider(height: 1),
               // التسميع (recitation-follow) — the deeper engine is deferred,

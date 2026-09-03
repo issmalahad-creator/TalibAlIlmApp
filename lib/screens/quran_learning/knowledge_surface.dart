@@ -13,6 +13,7 @@ import '../ayah_study_screen.dart';
 import 'corpus_panels.dart';
 import 'irab_view_screen.dart';
 import 'learning_lesson_screen.dart';
+import 'topic_index_screen.dart';
 
 /// خطة القارئ الموحّد — P0 · لوحات المعرفة (`docs/quran/QURAN_PREMIUM_UI.md`).
 ///
@@ -802,12 +803,22 @@ class _AyahSurfaceState extends State<_AyahSurface> {
       case _AyahSeg.uloom:
         // QC3 — «كل ما ورد في هذه الآية» as short excerpts: سبب النزول ·
         // إعراب من الكتب · ناسخ/منسوخ · غريب · فوائد · متشابهات · آثار ·
-        // موضوعات. «توسّع» opens the dedicated ayah page.
+        // موضوعات. «توسّع» opens the dedicated ayah page; a topic chip
+        // opens the QC4 Knowledge Index.
         return AyahCorpusPanel(
           surah: surah,
           ayah: ayah,
           lang: lang,
           onOpenFull: _openAyahPage,
+          onTopicTap: (id, name) {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TopicIndexScreen(topicId: id, title: name),
+              ),
+            );
+          },
         );
       case _AyahSeg.translation:
         // QC3 — the real 138-edition translation picker (language + edition).
