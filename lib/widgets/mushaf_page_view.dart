@@ -1,14 +1,12 @@
-import 'dart:convert' show utf8;
-import 'dart:io' show gzip;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/mushaf_layout.dart';
+import 'mushaf/mushaf_page_cache.dart';
 import 'mushaf/screen_transform.dart';
 
 export 'mushaf/screen_transform.dart' show MushafFitSource, ScreenTransform;
+export 'mushaf/mushaf_page_cache.dart' show MushafPageCache;
 
 /// M3 — margin added around the `contentRect` (`md-page-inner data-rect`,
 /// ~245 wide and uniform across all 604 pages) before fitting it to the
@@ -412,10 +410,10 @@ class _PageArt extends StatefulWidget {
 }
 
 class _PageArtState extends State<_PageArt> {
-  /// Decoded SVG string per page — small (a page is ~150–800 KB of text),
-  /// and the reader only holds a few pages live at once.
-  static final Map<int, String?> _cache = {};
+  /// M4: decode + LRU + preload live in [MushafPageCache] (background isolate).
+  final _cache = MushafPageCache.instance;
   String? _svg;
+  bool _decoding = true;
 
   @override
   void initState() {
@@ -428,32 +426,26 @@ class _PageArtState extends State<_PageArt> {
     super.didUpdateWidget(old);
     if (old.page != widget.page) {
       _svg = null;
+      _decoding = true;
       _load();
     }
   }
 
   Future<void> _load() async {
     final page = widget.page;
-    if (_cache.containsKey(page)) {
-      if (mounted) setState(() => _svg = _cache[page]);
-      return;
+    if (_cache.has(page)) {
+      _svg = _cache.peek(page);
+      _decoding = false;
+      if (mounted) setState(() {});
+    } else {
+      final svg = await _cache.load(page);
+      if (!mounted || widget.page != page) return;
+      setState(() {
+        _svg = svg;
+        _decoding = false;
+      });
     }
-    String? svg;
-    if (mushafArtBundled(page)) {
-      try {
-        final key =
-            'assets/mushaf/pages_svg/${page.toString().padLeft(3, '0')}.svg.gz';
-        final data = await rootBundle.load(key);
-        svg = utf8.decode(gzip.decode(data.buffer.asUint8List()),
-            allowMalformed: true);
-        if (!svg.contains('<svg')) svg = null;
-      } catch (e) {
-        debugPrint('MushafPageView: no art for page $page ($e) — text fallback.');
-        svg = null;
-      }
-    }
-    _cache[page] = svg;
-    if (mounted) setState(() => _svg = svg);
+    _cache.preloadAround(page);
   }
 
   @override
@@ -471,8 +463,8 @@ class _PageArtState extends State<_PageArt> {
             color: ink == null ? const Color(0xFFFFFDF7) : Colors.transparent),
       );
     }
-    if (mushafArtBundled(widget.page) && !_cache.containsKey(widget.page)) {
-      // still decoding
+    if (_decoding) {
+      // still decoding — warm placeholder, never a hard blank
       return ColoredBox(
           color: ink == null ? const Color(0xFFFFFDF7) : Colors.transparent);
     }

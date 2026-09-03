@@ -754,13 +754,19 @@ class _MushafSemanticReaderScreenState
               )
             : PageView.builder(
                 controller: _controller,
-                reverse: true, // RTL: swipe left → next page
+                // Page-turn direction (Ismail 2026-09-03): swipe left→right
+                // advances to the next page, like turning the leaf of a
+                // physical muṣḥaf held spine-right.
+                reverse: false,
                 itemCount: _pageCount,
-                onPageChanged: (i) => setState(() {
-                  _current = i + 1;
-                  _selWord = null;
-                  _selMark = null;
-                }),
+                onPageChanged: (i) {
+                  setState(() {
+                    _current = i + 1;
+                    _selWord = null;
+                    _selMark = null;
+                  });
+                  MushafPageCache.instance.preloadAround(_current);
+                },
                 itemBuilder: (context, i) {
                   final page = i + 1;
                   return FutureBuilder<MushafPageLayout?>(
