@@ -27,6 +27,7 @@ import '../widgets/knowledge_review_entry_card.dart';
 import '../widgets/nav_tile.dart';
 import '../widgets/time_accountability_dashboard.dart';
 import '../widgets/worship_coach_card.dart';
+import 'life_plan_screen.dart';
 import 'worship_coach_screen.dart';
 import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
@@ -183,6 +184,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   WorshipCoachCard(
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WorshipCoachScreen())),
                   ),
+                  const SizedBox(height: 12),
+                  _LifeEngineCard(lang: lang),
                   const SizedBox(height: 12),
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -803,6 +806,62 @@ class _EmptyHint extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
       ),
       child: Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
+    );
+  }
+}
+
+/// Home entry to «مُحرّك الحياة» (docs/LIFE_ENGINE.md, L2).
+class _LifeEngineCard extends StatelessWidget {
+  final String lang;
+  const _LifeEngineCard({required this.lang});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const LifePlanScreen())),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0x33D9A441)),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x1FD9A441),
+                blurRadius: 16,
+                offset: Offset(0, 5)),
+          ],
+        ),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            const Text('🌱', style: TextStyle(fontSize: 26)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(basicText('life_engine_title', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: AppColors.textDark)),
+                  const SizedBox(height: 2),
+                  Text(basicText('life_engine_tagline', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontSize: 11.5, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
+          ],
+        ),
+      ),
     );
   }
 }
