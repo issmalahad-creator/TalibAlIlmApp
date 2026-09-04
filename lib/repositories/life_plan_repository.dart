@@ -305,4 +305,148 @@ class LifePlanRepository {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+
+  // ── weekly review ────────────────────────────────────────────────────
+
+  /// «ملخص الأسبوع» (L5) — the last 7 days (ending today) composed into one
+  /// struct so the review screen does no arithmetic. Pillar standings are
+  /// always "last 7 days vs the 7 before", relative to today.
+  Future<LifeWeekSummary> weeklyReview() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final threshold =
+        double.tryParse(await meta('streak_threshold') ?? '') ?? 0.6;
+
+    // one query covers both the shown week and the prior week (for the delta)
+    final pcts = await dayPercents(
+        ymd(today.subtract(const Duration(days: 13))), ymd(today));
+
+    final days = <({DateTime date, double pct})>[];
+    var hit = 0;
+    for (var i = 6; i >= 0; i--) {
+      final d = today.subtract(Duration(days: i));
+      final p = pcts[ymd(d)] ?? 0.0;
+      days.add((date: d, pct: p));
+      if (p >= threshold) hit++;
+    }
+    final thisAvg = days.fold<double>(0, (s, e) => s + e.pct) / 7;
+    var prevSum = 0.0;
+    for (var i = 13; i >= 7; i--) {
+      prevSum += pcts[ymd(today.subtract(Duration(days: i)))] ?? 0.0;
+    }
+
+    final ps = await pillars();
+    final trend = await pillarMomentumTrend();
+    final pillarWeeks = [
+      for (final p in ps)
+        LifePillarWeek(
+          key: p.key,
+          label: p.label,
+          emoji: p.emoji,
+          now: trend[p.key]?.now ?? 0.0,
+          prev: trend[p.key]?.prev ?? 0.0,
+          slipping: trend[p.key]?.slipping ?? false,
+        ),
+    ]..sort((a, b) => b.now.compareTo(a.now));
+
+    final db = await _db;
+    final noteRows = await db.query('life_day_notes',
+        where: 'date BETWEEN ? AND ?',
+        whereArgs: [ymd(today.subtract(const Duration(days: 6))), ymd(today)],
+        orderBy: 'date DESC');
+    final notes = noteRows
+        .map(LifeDayNote.fromRow)
+        .where((n) => n.note.isNotEmpty || n.tomorrowGoal.isNotEmpty)
+        .toList();
+
+    return LifeWeekSummary(
+      fromDate: ymd(today.subtract(const Duration(days: 6))),
+      toDate: ymd(today),
+      days: days,
+      avgPercent: thisAvg,
+      prevAvgPercent: prevSum / 7,
+      daysHitThreshold: hit,
+      streak: await streak(),
+      pillars: pillarWeeks,
+      notes: notes,
+    );
+  }
+
+  // ── cycle rollover ritual ────────────────────────────────────────────
+
+  Future<int> cycleLen() async =>
+      int.tryParse(await meta('cycle_len') ?? '') ?? 90;
+
+  /// The oldest *completed* cycle that still hasn't had its rollover
+  /// ritual, or null. Cycle N completes the moment `dayIndex` hits N·len;
+  /// cycles are acknowledged in order via [markCycleReviewed]. A cycle is
+  /// a milestone, never an end — the ritual is reflect + evolve + carry on.
+  Future<int?> pendingCycleReview() async {
+    final len = await cycleLen();
+    if (len <= 0) return null;
+    final completed = (await dayIndex()) ~/ len;
+    if (completed < 1) return null;
+    final lastReviewed =
+        int.tryParse(await meta('last_cycle_reviewed') ?? '') ?? 0;
+    return completed > lastReviewed ? lastReviewed + 1 : null;
+  }
+
+  Future<void> markCycleReviewed(int cycle) async {
+    final lastReviewed =
+        int.tryParse(await meta('last_cycle_reviewed') ?? '') ?? 0;
+    if (cycle > lastReviewed) {
+      await setMeta('last_cycle_reviewed', '$cycle');
+    }
+  }
+
+  Future<String?> cycleNote(int cycle) => meta('cycle_note_$cycle');
+
+  Future<void> saveCycleNote(int cycle, String note) =>
+      setMeta('cycle_note_$cycle', note);
+
+  /// Roll-up of one completed cycle [n] (1-based) — its date range, average
+  /// day %, total blocks ticked, and per-pillar done counts.
+  Future<LifeCycleSummary> cycleSummary(int n) async {
+    final len = await cycleLen();
+    final start = await startDate();
+    final cStart = DateTime(start.year, start.month, start.day)
+        .add(Duration(days: (n - 1) * len));
+    final cEnd = cStart.add(Duration(days: len - 1));
+    final fromYmd = ymd(cStart);
+    final toYmd = ymd(cEnd);
+
+    final pcts = await dayPercents(fromYmd, toYmd);
+    var sum = 0.0;
+    for (var i = 0; i < len; i++) {
+      sum += pcts[ymd(cStart.add(Duration(days: i)))] ?? 0.0;
+    }
+
+    final db = await _db;
+    final blocksDone = Sqflite.firstIntValue(await db.rawQuery(
+          'SELECT COUNT(*) FROM life_day_slots '
+          'WHERE done = 1 AND date BETWEEN ? AND ?',
+          [fromYmd, toYmd],
+        )) ??
+        0;
+    final byPillarRows = await db.rawQuery(
+      'SELECT s.pillar_key AS k, COUNT(*) AS c '
+      'FROM life_day_slots d JOIN life_slots s ON s.slot_no = d.slot_no '
+      'WHERE d.done = 1 AND d.date BETWEEN ? AND ? AND s.pillar_key IS NOT NULL '
+      'GROUP BY s.pillar_key ORDER BY c DESC',
+      [fromYmd, toYmd],
+    );
+
+    return LifeCycleSummary(
+      cycle: n,
+      fromDate: fromYmd,
+      toDate: toYmd,
+      lengthDays: len,
+      avgPercent: len == 0 ? 0 : sum / len,
+      blocksDone: blocksDone,
+      byPillarDone: {
+        for (final r in byPillarRows)
+          r['k'] as String: (r['c'] as num).toInt(),
+      },
+    );
+  }
 }

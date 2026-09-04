@@ -155,3 +155,77 @@ class LifeDayProgress {
   int cycle({int cycleLen = 90}) => (dayIndex ~/ cycleLen) + 1;
   int dayInCycle({int cycleLen = 90}) => (dayIndex % cycleLen) + 1;
 }
+
+/// One pillar's standing over the last 7 days vs the 7 before — the row
+/// shape the weekly review renders. `now`/`prev` are 0..1.
+class LifePillarWeek {
+  final String key;
+  final String label;
+  final String emoji;
+  final double now;
+  final double prev;
+  final bool slipping;
+
+  const LifePillarWeek({
+    required this.key,
+    required this.label,
+    required this.emoji,
+    required this.now,
+    required this.prev,
+    required this.slipping,
+  });
+
+  double get delta => now - prev;
+}
+
+/// «ملخص الأسبوع» (L5) — the last 7 days composed so the UI does no math.
+/// Never stored; rebuilt from ticks each time it's opened.
+class LifeWeekSummary {
+  final String fromDate; // YYYY-MM-DD, 6 days before [toDate]
+  final String toDate; // YYYY-MM-DD (usually today)
+  final List<({DateTime date, double pct})> days; // oldest → newest, 7
+  final double avgPercent; // mean of the 7 day percents
+  final double prevAvgPercent; // the 7 days before that
+  final int daysHitThreshold; // days at/above streak_threshold
+  final int streak; // current streak (with its weekly grace)
+  final List<LifePillarWeek> pillars; // sorted: strongest `now` first
+  final List<LifeDayNote> notes; // this week's non-empty notes, newest first
+
+  const LifeWeekSummary({
+    required this.fromDate,
+    required this.toDate,
+    required this.days,
+    required this.avgPercent,
+    required this.prevAvgPercent,
+    required this.daysHitThreshold,
+    required this.streak,
+    required this.pillars,
+    required this.notes,
+  });
+
+  double get delta => avgPercent - prevAvgPercent;
+  LifePillarWeek? get strongest => pillars.isEmpty ? null : pillars.first;
+  LifePillarWeek? get weakest => pillars.isEmpty ? null : pillars.last;
+}
+
+/// Roll-up of one completed 90-day cycle — shown once, at the rollover
+/// ritual. `byPillarDone` is done-block counts per tracked pillar key.
+class LifeCycleSummary {
+  final int cycle; // 1-based
+  final String fromDate;
+  final String toDate;
+  final int lengthDays;
+  final double avgPercent;
+  final int blocksDone;
+  final Map<String, int> byPillarDone;
+
+  const LifeCycleSummary({
+    required this.cycle,
+    required this.fromDate,
+    required this.toDate,
+    required this.lengthDays,
+    required this.avgPercent,
+    required this.blocksDone,
+    required this.byPillarDone,
+  });
+}

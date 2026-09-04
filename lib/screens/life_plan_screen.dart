@@ -11,7 +11,10 @@ import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
+import 'life_cycle_review_screen.dart';
+import 'life_day_note_sheet.dart';
 import 'life_progress_screen.dart';
+import 'life_weekly_review_screen.dart';
 
 /// «مُحرّك الحياة» — L2 · the «اليوم» surface (`docs/LIFE_ENGINE.md`).
 ///
@@ -20,7 +23,10 @@ import 'life_progress_screen.dart';
 /// pillars, and the full 23-slot list. No 90-day countdown — the header
 /// shows an unbounded «اليوم N».
 class LifePlanScreen extends StatefulWidget {
-  const LifePlanScreen({super.key});
+  /// True when opened from the nightly «حاسب نفسك» notification — the
+  /// reflection sheet is shown as soon as the screen settles.
+  final bool openNote;
+  const LifePlanScreen({super.key, this.openNote = false});
 
   @override
   State<LifePlanScreen> createState() => _LifePlanScreenState();
@@ -31,6 +37,7 @@ class _LifePlanScreenState extends State<LifePlanScreen>
   final _repo = LifePlanRepository();
   final _notifications = NotificationService();
   Timer? _midnightTimer;
+  bool _cyclePrompting = false;
 
   bool _loading = true;
   List<LifePillar> _pillars = const [];
@@ -48,6 +55,13 @@ class _LifePlanScreenState extends State<LifePlanScreen>
     WidgetsBinding.instance.addObserver(this);
     _load();
     _armMidnight();
+    if (widget.openNote) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final saved = await showLifeDayNoteSheet(context);
+        if (saved && mounted) _load(silent: true);
+      });
+    }
   }
 
   @override
@@ -99,6 +113,23 @@ class _LifePlanScreenState extends State<LifePlanScreen>
     // Keep today's block nudges / nightly review in sync with what's now
     // ticked — a completed block loses its reminder, a resume refreshes copy.
     unawaited(_notifications.scheduleLifePlanReminders());
+    unawaited(_maybePromptCycleReview());
+  }
+
+  /// A cycle (90 days) has completed and its rollover ritual hasn't been
+  /// done — push it once. Re-prompts on a later load if backed out of; it's
+  /// a once-per-90-days moment, not a nag.
+  Future<void> _maybePromptCycleReview() async {
+    if (_cyclePrompting || !mounted) return;
+    final cycle = await _repo.pendingCycleReview();
+    if (cycle == null || !mounted) return;
+    _cyclePrompting = true;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => LifeCycleReviewScreen(cycle: cycle)),
+    );
+    _cyclePrompting = false;
+    if (mounted) _load(silent: true);
   }
 
   Future<void> _toggle(int slotNo) async {
@@ -126,6 +157,15 @@ class _LifePlanScreenState extends State<LifePlanScreen>
         title: Text(basicText('life_engine_title', lang),
             textDirection: TextDirection.rtl),
         actions: [
+          IconButton(
+            tooltip: basicText('life_week_title', lang),
+            icon: const Icon(Icons.calendar_view_week_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const LifeWeeklyReviewScreen()),
+            ),
+          ),
           IconButton(
             tooltip: basicText('life_progress_title', lang),
             icon: const Icon(Icons.insights_rounded),
@@ -161,9 +201,55 @@ class _LifePlanScreenState extends State<LifePlanScreen>
                           fontWeight: FontWeight.w800, fontSize: 13)),
                   const SizedBox(height: 8),
                   for (final s in _slots) _slotRow(s, lang),
+                  const SizedBox(height: 14),
+                  _noteRow(lang),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _noteRow(String lang) {
+    return InkWell(
+      onTap: () async {
+        final saved = await showLifeDayNoteSheet(context);
+        if (saved && mounted) _load(silent: true);
+      },
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: const Color(0x332F5C46)),
+        ),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            const Text('✍️', style: TextStyle(fontSize: 18)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(basicText('life_note_title', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: AppColors.textDark)),
+                  Text(basicText('life_note_sub', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontSize: 10.5, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_left_rounded,
+                color: AppColors.textMuted),
+          ],
+        ),
+      ),
     );
   }
 

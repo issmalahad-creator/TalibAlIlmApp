@@ -777,7 +777,7 @@ class NotificationService {
         scheduledDate: tz.TZDateTime.from(r.fireAt, tz.local),
         notificationDetails: details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        payload: 'life',
+        payload: r.payload,
       );
     }
 

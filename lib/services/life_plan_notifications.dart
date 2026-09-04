@@ -32,17 +32,21 @@ String lifeHhmm(int minutesSinceMidnight) {
   return '$h:$m';
 }
 
-/// One scheduled Life-Engine reminder — plain data.
+/// One scheduled Life-Engine reminder — plain data. [payload] is the deep-
+/// link tapped-notification target (`'life'` → the engine, `'life_note'` →
+/// straight into today's reflection sheet).
 class LifeReminder {
   final int id;
   final DateTime fireAt;
   final String title;
   final String body;
+  final String payload;
   const LifeReminder({
     required this.id,
     required this.fireAt,
     required this.title,
     required this.body,
+    this.payload = 'life',
   });
 }
 
@@ -79,6 +83,7 @@ List<LifeReminder> planLifeReminders({
       fireAt: midnight.add(const Duration(minutes: nightlyMin)),
       title: nightlyTitle,
       body: nightlyBody,
+      payload: 'life_note', // tap → straight into the reflection sheet
     ));
   }
   return out;

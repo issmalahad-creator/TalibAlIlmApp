@@ -53,6 +53,7 @@ void _routeForPayload(String payload) {
     'hifz' => const QuranBrowseScreen(),
     'reading' => const PersonalLibraryScreen(),
     'life' => const LifePlanScreen(),
+    'life_note' => const LifePlanScreen(openNote: true),
     _ => null,
   };
   if (screen != null) navigator.push(MaterialPageRoute(builder: (_) => screen));
