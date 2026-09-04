@@ -106,6 +106,14 @@ class _MosqueProfileScreenState extends State<MosqueProfileScreen> {
   }
 }
 
+/// The section's label follows the app language: `basicText(kind.labelKey)`
+/// when a translation exists, else the mosque's own seeded `title`.
+String _sectionLabel(MosqueSection section, String lang) {
+  final k = section.type.labelKey;
+  final v = basicText(k, lang);
+  return v == k ? section.title : v;
+}
+
 class _Header extends StatelessWidget {
   final Mosque mosque;
   final String lang;
@@ -233,7 +241,8 @@ class _SectionPreview extends StatelessWidget {
               Icon(mosqueKindIcon(section.type),
                   size: 16, color: AppColors.primary),
               const SizedBox(width: 6),
-              Text(section.title,
+              Text(_sectionLabel(section, lang),
+                  textDirection: TextDirection.rtl,
                   style: const TextStyle(
                       fontSize: 13.5, fontWeight: FontWeight.w800)),
               const Spacer(),
@@ -312,8 +321,9 @@ class _ServicesGrid extends StatelessWidget {
                         Padding(
                           padding:
                               const EdgeInsets.symmetric(horizontal: 4),
-                          child: Text(s.title,
+                          child: Text(_sectionLabel(s, lang),
                               textAlign: TextAlign.center,
+                              textDirection: TextDirection.rtl,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
