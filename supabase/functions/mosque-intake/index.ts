@@ -29,6 +29,16 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
 );
 
+// Booleans only — never log the secret values themselves. Check this in
+// the function's logs (Dashboard → Edge Functions → mosque-intake → Logs)
+// first if the bot ever looks "dead": a false here means the matching
+// secret wasn't actually saved (or was saved under the wrong name/into
+// the wrong field) and every reply will fail silently.
+console.log('mosque-intake boot: has BOT_TOKEN =', !!BOT_TOKEN,
+  '| has WEBHOOK_SECRET =', !!WEBHOOK_SECRET,
+  '| has SUPABASE_URL =', !!Deno.env.get('SUPABASE_URL'),
+  '| has SERVICE_ROLE_KEY =', !!Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+
 const CONTENT_KINDS = [
   'lesson',
   'khutbah',
@@ -70,11 +80,16 @@ const HELP = `<b>أوامر «مساجدنا»</b>
 /help — هذه الرسالة`;
 
 async function sendMessage(chatId: string, text: string) {
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+  const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
   });
+  if (!res.ok) {
+    // fetch() does NOT throw on 4xx/5xx — log it or a bad/missing
+    // TELEGRAM_BOT_TOKEN fails completely silently (bot looks "dead").
+    console.error('sendMessage failed', res.status, await res.text());
+  }
 }
 
 /** Parses `المفتاح: القيمة` lines (order-independent) out of a free-text body. */
@@ -95,6 +110,18 @@ function newContentId(): string {
 }
 
 Deno.serve(async (req) => {
+  try {
+    return await handle(req);
+  } catch (e) {
+    // Never let an unexpected error mean total silence — this is exactly
+    // the "bot doesn't reply and nobody knows why" failure mode. Check
+    // Dashboard → Edge Functions → mosque-intake → Logs for this line.
+    console.error('mosque-intake unhandled error:', e);
+    return new Response('ok'); // still 200 so Telegram doesn't retry forever
+  }
+});
+
+async function handle(req: Request): Promise<Response> {
   if (WEBHOOK_SECRET) {
     const got = req.headers.get('X-Telegram-Bot-Api-Secret-Token');
     if (got !== WEBHOOK_SECRET) return new Response('forbidden', { status: 403 });
@@ -297,4 +324,4 @@ Deno.serve(async (req) => {
 
   await sendMessage(chatId, 'أمر غير معروف. أرسل /help');
   return new Response('ok');
-});
+}
