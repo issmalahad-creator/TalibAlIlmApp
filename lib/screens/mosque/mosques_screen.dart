@@ -1,9 +1,11 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/basic_translations.dart';
 import '../../models/mosque.dart';
 import '../../repositories/mosque_repository.dart';
 import '../../services/language_preference_service.dart';
+import '../../services/location_service.dart';
 import '../../theme/app_theme.dart';
 import 'mosque_profile_screen.dart';
 
@@ -24,10 +26,15 @@ class _MosquesScreenState extends State<MosquesScreen> {
   Mosque? _mine;
   String _query = '';
 
+  /// mosque id → metres from the user, when location is available. Empty
+  /// means "no location" — the list keeps its name order untouched.
+  Map<String, double> _distanceM = const {};
+
   @override
   void initState() {
     super.initState();
     _load();
+    _locate();
   }
 
   @override
@@ -36,12 +43,53 @@ class _MosquesScreenState extends State<MosquesScreen> {
     super.dispose();
   }
 
+  /// One-shot: reuses the same location consent flow as Prayer Times/Qibla
+  /// ([LocationService.currentLocation] — GPS if granted, else cached/manual,
+  /// else null). If a location comes back, measure every geo-tagged mosque
+  /// and re-sort by proximity. Runs after the name-sorted list is already
+  /// showing, so a slow or denied permission never blocks the directory.
+  Future<void> _locate() async {
+    try {
+      final here = await LocationService().currentLocation();
+      if (here == null || !mounted) return;
+      final list = _mosques;
+      final d = <String, double>{};
+      for (final m in list ?? const <Mosque>[]) {
+        if (m.lat != null && m.lng != null) {
+          d[m.id] = Geolocator.distanceBetween(
+              here.latitude, here.longitude, m.lat!, m.lng!);
+        }
+      }
+      if (mounted && d.isNotEmpty) {
+        setState(() {
+          _distanceM = d;
+          if (_mosques != null) _mosques = _sorted(_mosques!);
+        });
+      }
+    } catch (_) {/* location unavailable → name order */}
+  }
+
+  List<Mosque> _sorted(List<Mosque> list) {
+    if (_distanceM.isEmpty) return list;
+    final out = [...list];
+    out.sort((a, b) {
+      if (a.isMine != b.isMine) return a.isMine ? -1 : 1;
+      final da = _distanceM[a.id];
+      final db = _distanceM[b.id];
+      if (da != null && db != null) return da.compareTo(db);
+      if (da != null) return -1;
+      if (db != null) return 1;
+      return a.name.compareTo(b.name);
+    });
+    return out;
+  }
+
   Future<void> _load() async {
     final list = await _repo.allMosques(query: _query.isEmpty ? null : _query);
     final mine = await _repo.myMosque();
     if (!mounted) return;
     setState(() {
-      _mosques = list;
+      _mosques = _sorted(list);
       _mine = mine;
     });
   }
@@ -96,6 +144,7 @@ class _MosquesScreenState extends State<MosquesScreen> {
                           _MosqueCard(
                               mosque: _mine!,
                               lang: lang,
+                              distanceM: _distanceM[_mine!.id],
                               onTap: () => _open(_mine!.id)),
                           const SizedBox(height: 16),
                           Text(basicText('mosques_all', lang),
@@ -120,6 +169,7 @@ class _MosquesScreenState extends State<MosquesScreen> {
                             child: _MosqueCard(
                                 mosque: m,
                                 lang: lang,
+                                distanceM: _distanceM[m.id],
                                 onTap: () => _open(m.id)),
                           ),
                       ],
@@ -135,9 +185,20 @@ class _MosquesScreenState extends State<MosquesScreen> {
 class _MosqueCard extends StatelessWidget {
   final Mosque mosque;
   final String lang;
+  final double? distanceM;
   final VoidCallback onTap;
   const _MosqueCard(
-      {required this.mosque, required this.lang, required this.onTap});
+      {required this.mosque,
+      required this.lang,
+      this.distanceM,
+      required this.onTap});
+
+  String get _distanceLabel {
+    final d = distanceM;
+    if (d == null) return '';
+    if (d < 950) return '${basicText('mosque_distance_prefix', lang)} ${d.round()} ${basicText('unit_metre', lang)}';
+    return '${basicText('mosque_distance_prefix', lang)} ${(d / 1000).toStringAsFixed(1)} ${basicText('unit_km', lang)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -192,11 +253,33 @@ class _MosqueCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                               fontSize: 12, color: AppColors.textDark)),
-                    if (mosque.locationLabel.isNotEmpty)
-                      Text(mosque.locationLabel,
-                          textDirection: TextDirection.rtl,
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.textMuted)),
+                    Row(
+                      children: [
+                        if (mosque.locationLabel.isNotEmpty)
+                          Flexible(
+                            child: Text(mosque.locationLabel,
+                                textDirection: TextDirection.rtl,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textMuted)),
+                          ),
+                        if (_distanceLabel.isNotEmpty) ...[
+                          if (mosque.locationLabel.isNotEmpty)
+                            const Text(' · ',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textMuted)),
+                          Text(_distanceLabel,
+                              textDirection: TextDirection.rtl,
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary)),
+                        ],
+                      ],
+                    ),
                   ],
                 ),
               ),

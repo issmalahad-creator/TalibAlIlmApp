@@ -62,6 +62,8 @@ void main() {
     expect(prof, isNotNull);
     expect(prof!.sections, isNotEmpty);
     expect(prof.previews[MosqueContentKind.lesson], isNotEmpty);
+    expect(prof.gallery, isNotEmpty); // 📸 the profile's gallery strip
+    expect(prof.gallery.first.url, startsWith('https://'));
   });
 
   test('"مسجدي" is a single exclusive choice', () async {
@@ -74,6 +76,21 @@ void main() {
 
     await repo.clearMyMosque();
     expect(await repo.myMosque(), isNull);
+  });
+
+  test('myMosqueBrief carries the mosque + its newest published item',
+      () async {
+    final repo = MosqueRepository(api: const LocalOnlyMosqueApi());
+    final id = (await repo.allMosques()).single.id;
+
+    expect(await repo.myMosqueBrief(), isNull); // nothing chosen yet
+    await repo.setMyMosque(id);
+
+    final brief = await repo.myMosqueBrief();
+    expect(brief, isNotNull);
+    expect(brief!.mosque.id, id);
+    expect(brief.latest, isNotNull);
+    expect(brief.latest!.title, isNotEmpty);
   });
 
   test('search matches name / imam / city', () async {
@@ -105,5 +122,14 @@ void main() {
     final repo = MosqueRepository(api: api);
     expect(repo.backendConfigured, isTrue);
     expect(await repo.allMosques(), isEmpty);
+  });
+
+  test('lastSyncOk turns false when a configured backend can\'t be reached',
+      () async {
+    final repo = MosqueRepository(api: SupabaseMosqueApi());
+    expect(repo.lastSyncOk, isTrue); // optimistic until proven otherwise
+    // no network in the test VM → listMosques() degrades to [] → sync "fails"
+    await repo.syncFromApi();
+    expect(repo.lastSyncOk, isFalse);
   });
 }

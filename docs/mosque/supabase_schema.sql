@@ -169,26 +169,44 @@ alter table public.mosque_moderation_log         enable row level security;
 -- (no policies on purpose → anon has zero access; service_role bypasses RLS)
 
 -- ── one pilot mosque so the app shows real data immediately ─────────
--- مسجد التقوى (Taqwa mesjid) — Addis Ababa · XPC8+6W9 · 9.0079232,38.7678208
--- الإمام: الشيخ عبد الجليل  (from Ismail's Google Maps pin, 2026-09-04)
+-- مسجد التوفيق (Tofik mesjid) — Addis Ababa · XP59+Q49 · 9.0177536,38.7579904
+-- corrected 2026-09-04: Ismail's first pin/name ("مسجد التقوى") was wrong;
+-- this is the real place from his Google Maps link, resolved via the
+-- place's own preview-API payload (not the redirect's viewport `center`,
+-- which drifted between fetches) — Amharic name on the pin: «ቶፊቅ መስጂድ».
+-- imam_name is a clearly-placeholder value; Ismail will replace every
+-- placeholder below with the mosque's real programme once he has it.
 insert into public.mosques (id, name, imam_name, description, city, area, lat, lng, verified, status)
-values ('MOSQ_PILOT_0001', 'مسجد التقوى', 'الشيخ عبد الجليل',
-        'أول مسجد في «مساجدنا» — تُدار محتوياته من تيليجرام وتُراجَع قبل النشر.',
-        'أديس أبابا', 'أديس أبابا', 9.0079232, 38.7678208, true, 'active')
+values ('MOSQ_PILOT_0001', 'مسجد التوفيق', 'إمام المسجد (بيانات مبدئية)',
+        'مسجد التوفيق — يُعرف بالأمهرية باسم «ቶፊቅ መስጂድ». هذا مثال كامل بمحتوى '
+        'افتراضي يوضّح كل ما تقدّمه «مساجدنا»: دروس وخطب وتسجيلات ومكتبة '
+        'واحتياجات وأنشطة وصور — سيُستبدل بالبيانات الحقيقية للمسجد لاحقًا.',
+        'أديس أبابا', 'أديس أبابا', 9.0177536, 38.7579904, true, 'active')
 on conflict (id) do nothing;
 
 -- re-running the script keeps `on conflict do nothing` above harmless but
 -- still refreshes the pilot's editable fields:
 update public.mosques set
-  name       = 'مسجد التقوى',
-  imam_name  = 'الشيخ عبد الجليل',
-  city       = 'أديس أبابا',
-  area       = 'أديس أبابا',
-  lat        = 9.0079232,
-  lng        = 38.7678208,
-  verified   = true,
-  status     = 'active'
+  name        = 'مسجد التوفيق',
+  imam_name   = 'إمام المسجد (بيانات مبدئية)',
+  description = 'مسجد التوفيق — يُعرف بالأمهرية باسم «ቶፊቅ መስጂድ». هذا مثال كامل بمحتوى '
+                 'افتراضي يوضّح كل ما تقدّمه «مساجدنا»: دروس وخطب وتسجيلات ومكتبة '
+                 'واحتياجات وأنشطة وصور — سيُستبدل بالبيانات الحقيقية للمسجد لاحقًا.',
+  city        = 'أديس أبابا',
+  area        = 'أديس أبابا',
+  lat         = 9.0177536,
+  lng         = 38.7579904,
+  verified    = true,
+  status      = 'active'
 where id = 'MOSQ_PILOT_0001';
+
+-- a full worked example (2026-09-04, Ismail: "استغل كل ميزات مساجدنا في
+-- مثال كامل بمعلومات افتراضية") — clear the pilot's old placeholder
+-- content/media first so re-running this script always leaves exactly
+-- this example, never a mix of two content sets. Safe: MOSQ_PILOT_0001 is
+-- the pilot/demo mosque, not a mosque with real moderated submissions yet.
+delete from public.mosque_content where mosque_id = 'MOSQ_PILOT_0001';
+delete from public.mosque_media   where mosque_id = 'MOSQ_PILOT_0001';
 
 insert into public.mosque_sections (mosque_id, type, title, sort_order) values
   ('MOSQ_PILOT_0001','lesson','الدروس والمحاضرات',0),
@@ -200,12 +218,30 @@ insert into public.mosque_sections (mosque_id, type, title, sort_order) values
   ('MOSQ_PILOT_0001','need','احتياجات المسجد',6)
 on conflict (mosque_id, type) do nothing;
 
-insert into public.mosque_content (id, mosque_id, kind, title, description, location, media_kind) values
-  ('MC_PILOT_L1','MOSQ_PILOT_0001','lesson','تفسير سورة البقرة','درس أسبوعي بعد المغرب — الشيخ أحمد.','قاعة المسجد',null),
-  ('MC_PILOT_L2','MOSQ_PILOT_0001','lesson','شرح الأربعين النووية','كل خميس بعد العشاء.','المصلى الرئيسي',null),
-  ('MC_PILOT_K1','MOSQ_PILOT_0001','khutbah','خطبة: الإخلاص في العمل','ملخص خطبة الجمعة مع رابط التسجيل.',null,'audio'),
-  ('MC_PILOT_A1','MOSQ_PILOT_0001','announcement','حملة تنظيف المسجد','السبت بعد الفجر — نرحّب بالجميع.',null,null),
-  ('MC_PILOT_AC1','MOSQ_PILOT_0001','activity','مسابقة حفظ القرآن للأطفال','الجمعة بعد العصر — جوائز قيّمة.','ساحة المسجد',null),
-  ('MC_PILOT_R1','MOSQ_PILOT_0001','recording','محاضرة: بر الوالدين','تسجيل صوتي كامل.',null,'audio'),
-  ('MC_PILOT_N1','MOSQ_PILOT_0001','need','سجّاد جديد للمصلى','الحاجة قيد التوثيق من الإدارة.',null,null)
+insert into public.mosque_content (id, mosque_id, kind, title, description, location, media_kind, media_url, pinned) values
+  ('MC_TOFIK_L1','MOSQ_PILOT_0001','lesson','تفسير جزء عمّ','درس أسبوعي بعد صلاة المغرب، كل ثلاثاء — للرجال والنساء.','قاعة المسجد',null,null,true),
+  ('MC_TOFIK_L2','MOSQ_PILOT_0001','lesson','حلقة تحفيظ القرآن للمبتدئين','من السبت إلى الخميس، بعد صلاة العصر.','الطابق العلوي',null,null,false),
+  ('MC_TOFIK_K1','MOSQ_PILOT_0001','khutbah','خطبة: حسن الخلق مع الجيران','ملخص خطبة الجمعة الماضية مع رابط الاستماع الكامل.',null,'audio',null,true),
+  ('MC_TOFIK_K2','MOSQ_PILOT_0001','khutbah','خطبة: بر الوالدين','خطبة الجمعة، مسجّلة كاملة.',null,'audio',null,false),
+  ('MC_TOFIK_A1','MOSQ_PILOT_0001','announcement','صلاة التراويح تبدأ هذا الأسبوع','تُقام بعد صلاة العشاء مباشرة — نرحّب بالجميع.',null,null,null,true),
+  ('MC_TOFIK_A2','MOSQ_PILOT_0001','announcement','تنبيه: تحديث مؤقت لموعد صلاة الفجر','بسبب توقيت الشروق هذا الشهر — راجع اللوحة عند المدخل.',null,null,null,false),
+  ('MC_TOFIK_R1','MOSQ_PILOT_0001','recording','محاضرة: فقه الصيام','تسجيل صوتي كامل لمحاضرة رمضانية.',null,'audio',null,false),
+  ('MC_TOFIK_R2','MOSQ_PILOT_0001','recording','محاضرة: قصص الأنبياء للأطفال','حلقة مبسّطة للأطفال، بصوت واضح وهادئ.',null,'audio',null,false),
+  ('MC_TOFIK_LIB1','MOSQ_PILOT_0001','library','رياض الصالحين (نسخة إلكترونية)','نسخة PDF متاحة للتحميل من مكتبة المسجد.',null,'pdf',null,false),
+  ('MC_TOFIK_LIB2','MOSQ_PILOT_0001','library','حصن المسلم — أذكار وأدعية','نسخة مصوَّرة، مناسبة للطباعة.',null,'pdf',null,false),
+  ('MC_TOFIK_N1','MOSQ_PILOT_0001','need','تبريد المصلى الرئيسي','الحاجة إلى مكيّفات هواء قبل فصل الصيف — قيد التوثيق من الإدارة.',null,null,null,true),
+  ('MC_TOFIK_N2','MOSQ_PILOT_0001','need','صيانة الواجهة الخارجية','طلاء وإصلاحات بسيطة للواجهة والسور.',null,null,null,false),
+  ('MC_TOFIK_AC1','MOSQ_PILOT_0001','activity','يوم مفتوح لتعريف الجيران بالمسجد','جولة قصيرة وشرح لدور المسجد في الحي.','ساحة المسجد',null,null,false),
+  ('MC_TOFIK_AC2','MOSQ_PILOT_0001','activity','دورة الوضوء والصلاة للأطفال','دورة عملية قصيرة كل جمعة بعد العصر.','المصلى الرئيسي',null,null,true)
+on conflict (id) do nothing;
+
+-- 📸 gallery — free placeholder photos (picsum.photos, stable/no-auth) so
+-- the profile's gallery strip + full-screen viewer have something real to
+-- render; swap for the mosque's actual photos whenever they're available.
+insert into public.mosque_media (id, mosque_id, category, url, caption, date) values
+  ('MM_TOFIK_1','MOSQ_PILOT_0001','mosque','https://picsum.photos/seed/tofik-facade/900/700','الواجهة الخارجية للمسجد',null),
+  ('MM_TOFIK_2','MOSQ_PILOT_0001','mosque','https://picsum.photos/seed/tofik-hall/900/700','المصلى الرئيسي',null),
+  ('MM_TOFIK_3','MOSQ_PILOT_0001','circle','https://picsum.photos/seed/tofik-lesson/900/700','الدرس الأسبوعي',null),
+  ('MM_TOFIK_4','MOSQ_PILOT_0001','activity','https://picsum.photos/seed/tofik-kids/900/700','دورة الأطفال',null),
+  ('MM_TOFIK_5','MOSQ_PILOT_0001','project','https://picsum.photos/seed/tofik-renovation/900/700','أعمال الصيانة الأخيرة',null)
 on conflict (id) do nothing;

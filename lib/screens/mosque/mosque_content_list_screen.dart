@@ -10,11 +10,22 @@ import 'mosque_content_detail_screen.dart';
 
 /// "عرض الكل" for one section of one mosque. Reusable — the section `kind`
 /// is the only parameter that changes what it shows.
-class MosqueContentListScreen extends StatelessWidget {
+class MosqueContentListScreen extends StatefulWidget {
   final String mosqueId;
   final MosqueContentKind kind;
   const MosqueContentListScreen(
       {super.key, required this.mosqueId, required this.kind});
+
+  @override
+  State<MosqueContentListScreen> createState() =>
+      _MosqueContentListScreenState();
+}
+
+class _MosqueContentListScreenState extends State<MosqueContentListScreen> {
+  // hoisted so a language change (which rebuilds via ValueListenableBuilder)
+  // doesn't re-run the query and flash a spinner.
+  late final Future<List<MosqueContent>> _future =
+      MosqueRepository().content(widget.mosqueId, widget.kind);
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +33,9 @@ class MosqueContentListScreen extends StatelessWidget {
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(title: Text(basicText(kind.labelKey, lang))),
+        appBar: AppBar(title: Text(basicText(widget.kind.labelKey, lang))),
         body: FutureBuilder<List<MosqueContent>>(
-          future: MosqueRepository().content(mosqueId, kind),
+          future: _future,
           builder: (context, snap) {
             if (!snap.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -39,7 +50,7 @@ class MosqueContentListScreen extends StatelessWidget {
             return ListView.separated(
               padding: const EdgeInsets.all(14),
               itemCount: items.length,
-              separatorBuilder: (_, i) => const SizedBox(height: 8),
+              separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, i) =>
                   MosqueContentTile(item: items[i], lang: lang),
             );

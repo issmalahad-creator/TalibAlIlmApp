@@ -25,6 +25,11 @@ class MosqueRepository {
 
   bool get backendConfigured => _api.isConfigured;
 
+  /// Whether the last backend pull actually reached the server this run.
+  /// `true` until a sync fails; lets a screen show a "showing a saved copy"
+  /// notice without guessing. Meaningless when [backendConfigured] is false.
+  bool lastSyncOk = true;
+
   /// One background pull per app run, kicked off from the first read.
   static Future<void>? _bootSync;
   void _kickSync() {
@@ -61,6 +66,26 @@ class MosqueRepository {
     final rows = await db.query('mosques',
         where: 'is_mine = 1 AND status != \'suspended\'', limit: 1);
     return rows.isEmpty ? null : Mosque.fromRow(rows.first);
+  }
+
+  /// The user's chosen mosque + its single most recent published item, for
+  /// a compact "مسجدي" card on the home screen. Null when no mosque is set.
+  Future<({Mosque mosque, MosqueContent? latest})?> myMosqueBrief() async {
+    final m = await myMosque();
+    if (m == null) return null;
+    final db = await _db;
+    final rows = await db.query(
+      'mosque_content',
+      where: "mosque_id = ? AND status = 'published'",
+      whereArgs: [m.id],
+      orderBy:
+          'pinned DESC, COALESCE(event_date, updated_at) DESC, updated_at DESC',
+      limit: 1,
+    );
+    return (
+      mosque: m,
+      latest: rows.isEmpty ? null : MosqueContent.fromRow(rows.first),
+    );
   }
 
   Future<void> setMyMosque(String id) async {
@@ -126,7 +151,9 @@ class MosqueRepository {
     if (_api.isConfigured) {
       try {
         await syncFromApi(mosqueId: mosqueId);
-      } catch (_) {/* offline → serve cache */}
+      } catch (_) {
+        lastSyncOk = false; // offline → serve cache, and say so
+      }
     }
     final m = await mosque(mosqueId);
     if (m == null) return null;
@@ -150,6 +177,9 @@ class MosqueRepository {
     if (!_api.isConfigured) return;
     final db = await _db;
     final list = await _api.listMosques();
+    // `listMosques()` returns [] on any network failure (never throws), so
+    // an empty list on a configured backend means "couldn't reach it".
+    lastSyncOk = list.isNotEmpty;
     for (final m in list) {
       final existing = await db.query('mosques',
           columns: ['is_mine'], where: 'id = ?', whereArgs: [m.id], limit: 1);
@@ -266,5 +296,24 @@ class MosqueRepository {
         'تسجيل صوتي كامل.', mediaKind: 'audio');
     await c(MosqueContentKind.need, 'سجّاد جديد للمصلى',
         'الحاجة قيد التوثيق من الإدارة قبل فتح باب المساهمة.');
+
+    // 📸 gallery — free placeholder photos (picsum.photos) so the profile's
+    // gallery strip + full-screen viewer have real images to demo, until a
+    // backend mosque supplies its own.
+    const gallery = [
+      ('tofik-facade', 'الواجهة الخارجية للمسجد'),
+      ('tofik-hall', 'المصلى الرئيسي'),
+      ('tofik-lesson', 'الدرس الأسبوعي'),
+      ('tofik-kids', 'دورة الأطفال'),
+    ];
+    for (final (seed, caption) in gallery) {
+      await db.insert('mosque_media', MosqueMediaItem(
+        id: 'MM_${DateTime.now().microsecondsSinceEpoch}_$seed',
+        mosqueId: id,
+        category: 'mosque',
+        url: 'https://picsum.photos/seed/$seed/900/700',
+        caption: caption,
+      ).toRow());
+    }
   }
 }

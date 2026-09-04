@@ -1,13 +1,17 @@
+import 'package:adhan_dart/adhan_dart.dart' show Prayer, PrayerTimes;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/basic_translations.dart';
 import '../../models/mosque.dart';
 import '../../repositories/mosque_repository.dart';
+import '../../repositories/prayer_times_repository.dart';
 import '../../services/language_preference_service.dart';
+import '../../services/location_service.dart';
 import '../../theme/app_theme.dart';
 import 'mosque_common.dart';
 import 'mosque_content_list_screen.dart';
+import 'mosque_gallery_screen.dart';
 
 /// **The** mosque page. One reusable template, an instance per [mosqueId].
 /// It never hardcodes a mosque's name, sections, content or icons — all of
@@ -82,23 +86,33 @@ class _MosqueProfileScreenState extends State<MosqueProfileScreen> {
                   ? Center(
                       child: Text(basicText('mosque_content_missing', lang),
                           style: const TextStyle(color: AppColors.textMuted)))
-                  : ListView(
-                      children: [
-                        _Header(mosque: p.mosque, lang: lang),
-                        for (final s in p.sections)
-                          if (p.previews[s.type] != null)
-                            _SectionPreview(
+                  : RefreshIndicator(
+                      onRefresh: _reload,
+                      child: ListView(
+                        children: [
+                          if (_repo.backendConfigured && !_repo.lastSyncOk)
+                            _OfflineNotice(lang: lang),
+                          _Header(mosque: p.mosque, lang: lang),
+                          if (p.gallery.isNotEmpty)
+                            _GalleryStrip(
+                                mosqueId: p.mosque.id,
+                                items: p.gallery,
+                                lang: lang),
+                          for (final s in p.sections)
+                            if (p.previews[s.type] != null)
+                              _SectionPreview(
+                                mosqueId: p.mosque.id,
+                                section: s,
+                                items: p.previews[s.type]!,
+                                lang: lang,
+                              ),
+                          _ServicesGrid(
                               mosqueId: p.mosque.id,
-                              section: s,
-                              items: p.previews[s.type]!,
-                              lang: lang,
-                            ),
-                        _ServicesGrid(
-                            mosqueId: p.mosque.id,
-                            sections: p.sections,
-                            lang: lang),
-                        const SizedBox(height: 24),
-                      ],
+                              sections: p.sections,
+                              lang: lang),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
         );
       },
@@ -186,6 +200,11 @@ class _Header extends StatelessWidget {
                 textDirection: TextDirection.rtl,
                 style: const TextStyle(fontSize: 13, height: 1.8)),
           ],
+          if (mosque.hasGeo) ...[
+            const SizedBox(height: 12),
+            _MosquePrayerCard(
+                lat: mosque.lat!, lng: mosque.lng!, lang: lang),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -211,6 +230,267 @@ class _Header extends StatelessWidget {
                   ),
                 ),
             ],
+          ),
+          if ((mosque.syncedAt ?? '').isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${basicText('mosque_last_updated', lang)} · '
+              '${_shortWhen(mosque.syncedAt!)}',
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static String _shortWhen(String iso) {
+    final d = DateTime.tryParse(iso)?.toLocal();
+    if (d == null) return '';
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${d.year}-${two(d.month)}-${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
+  }
+}
+
+/// Next jamāʿah near this mosque — computed from the mosque's own
+/// coordinates (not the phone's), via the shared `PrayerTimesRepository`.
+/// Tap to expand all five. Data-driven, reusable.
+class _MosquePrayerCard extends StatefulWidget {
+  final double lat;
+  final double lng;
+  final String lang;
+  const _MosquePrayerCard(
+      {required this.lat, required this.lng, required this.lang});
+
+  @override
+  State<_MosquePrayerCard> createState() => _MosquePrayerCardState();
+}
+
+class _MosquePrayerCardState extends State<_MosquePrayerCard> {
+  PrayerTimes? _t;
+  bool _failed = false;
+  bool _open = false;
+
+  @override
+  void initState() {
+    super.initState();
+    PrayerTimesRepository()
+        .prayerTimesFor(
+            AppCoordinates(latitude: widget.lat, longitude: widget.lng))
+        .then((t) {
+      if (mounted) setState(() => _t = t);
+    }).catchError((_) {
+      // Never blocks the rest of the mosque page on a calculation hiccup —
+      // the card just quietly doesn't appear instead of spinning forever.
+      if (mounted) setState(() => _failed = true);
+    });
+  }
+
+  String _fmt(DateTime? utc) {
+    if (utc == null) return '—';
+    final l = utc.toLocal();
+    final h = l.hour % 12 == 0 ? 12 : l.hour % 12;
+    final m = l.minute.toString().padLeft(2, '0');
+    final p = basicText(l.hour < 12 ? 'am_period_short' : 'pm_period_short',
+        widget.lang);
+    return '$h:$m $p';
+  }
+
+  String _nameKey(Prayer p) => switch (p) {
+        Prayer.fajr => 'prayer_fajr',
+        Prayer.sunrise => 'prayer_sunrise',
+        Prayer.dhuhr => 'prayer_dhuhr',
+        Prayer.asr => 'prayer_asr',
+        Prayer.maghrib => 'prayer_maghrib',
+        Prayer.isha => 'prayer_isha',
+        _ => 'prayer_fajr',
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final t = _t;
+    final lang = widget.lang;
+    if (_failed) return const SizedBox.shrink();
+    if (t == null) {
+      return const SizedBox(
+        height: 44,
+        child: Center(
+            child: SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2))),
+      );
+    }
+    final next = t.nextPrayer();
+    final nextTime = t.timeForPrayer(next);
+    final rows = <(String, DateTime?)>[
+      ('prayer_fajr', t.fajr),
+      ('prayer_dhuhr', t.dhuhr),
+      ('prayer_asr', t.asr),
+      ('prayer_maghrib', t.maghrib),
+      ('prayer_isha', t.isha),
+    ];
+    return InkWell(
+      onTap: () => setState(() => _open = !_open),
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.access_time_rounded,
+                    size: 16, color: AppColors.primaryDark),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '${basicText('mosque_next_prayer', lang)}: '
+                    '${basicText(_nameKey(next), lang)} · ${_fmt(nextTime)}',
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark),
+                  ),
+                ),
+                Icon(_open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    size: 18, color: AppColors.primaryDark),
+              ],
+            ),
+            if (_open) ...[
+              const SizedBox(height: 8),
+              for (final (k, time) in rows)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    children: [
+                      Text(basicText(k, lang),
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.primaryDark)),
+                      const Spacer(),
+                      Text(_fmt(time),
+                          textDirection: TextDirection.ltr,
+                          style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryDark)),
+                    ],
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(basicText('mosque_prayer_note', lang),
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(
+                        fontSize: 9.5, color: AppColors.primaryDark)),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "بلا اتصال — تُعرض نسخة محفوظة" — shown only when the backend is
+/// configured but the last pull didn't land.
+class _OfflineNotice extends StatelessWidget {
+  final String lang;
+  const _OfflineNotice({required this.lang});
+  @override
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        color: const Color(0xFFFBEFD6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off_rounded,
+                size: 14, color: Color(0xFF9A6B12)),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(basicText('mosque_offline_cache', lang),
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(
+                      fontSize: 11, color: Color(0xFF9A6B12))),
+            ),
+          ],
+        ),
+      );
+}
+
+/// 📸 module preview — a horizontal photo strip. "عرض الكل" → the reusable
+/// [MosqueGalleryScreen]. Tap a photo → the full-screen viewer.
+class _GalleryStrip extends StatelessWidget {
+  final String mosqueId;
+  final List<MosqueMediaItem> items;
+  final String lang;
+  const _GalleryStrip(
+      {required this.mosqueId, required this.items, required this.lang});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.photo_library_outlined,
+                  size: 16, color: AppColors.primary),
+              const SizedBox(width: 6),
+              Text(basicText('mosque_kind_gallery', lang),
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(
+                      fontSize: 13.5, fontWeight: FontWeight.w800)),
+              const Spacer(),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          MosqueGalleryScreen(mosqueId: mosqueId)),
+                ),
+                child: Text(basicText('mosque_view_all', lang),
+                    style: const TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 96,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: items.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, i) => GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => MosquePhotoViewer(
+                          items: items, initial: i)),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: 128,
+                    color: AppColors.primaryLight,
+                    child: Image.network(
+                      items[i].url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (c, e, s) => const Center(
+                          child: Icon(Icons.broken_image_outlined,
+                              color: AppColors.primaryDark)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),

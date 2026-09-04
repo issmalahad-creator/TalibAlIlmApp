@@ -5,11 +5,13 @@ import '../models/activity_entry.dart';
 import '../models/book_content.dart';
 import '../models/daily_task.dart';
 import '../models/goal.dart';
+import '../models/mosque.dart';
 import '../repositories/activity_repository.dart';
 import '../repositories/daily_task_repository.dart';
 import '../repositories/goal_repository.dart';
 import '../repositories/hifz_repository.dart';
 import '../repositories/memorization_repository.dart';
+import '../repositories/mosque_repository.dart';
 import '../l10n/basic_translations.dart';
 import '../repositories/profile_repository.dart';
 import '../services/book_content_service.dart';
@@ -36,6 +38,7 @@ import 'onboarding_screen.dart';
 import 'adhkar_screen.dart';
 import 'daily_session_screen.dart';
 import 'prayer_times_screen.dart';
+import 'mosque/mosque_profile_screen.dart';
 import 'mosque/mosques_screen.dart';
 import 'tasbih_screen.dart';
 import 'turath_library_screen.dart';
@@ -57,6 +60,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // bumped after returning from «مساجدنا» so `_MyMosqueCard` (which loads
+  // its own "مسجدي" state once in initState) remounts fresh instead of
+  // silently staying stale after the user sets/changes their mosque there.
+  int _mosqueRefreshTick = 0;
+
   final _activityRepo = ActivityRepository();
   final _goalRepo = GoalRepository();
   final _profileRepo = ProfileRepository();
@@ -187,6 +195,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
                   _LifeEngineCard(lang: lang),
                   const SizedBox(height: 12),
+                  _MyMosqueCard(
+                      key: ValueKey('my_mosque_$_mosqueRefreshTick'),
+                      lang: lang), // self-hides until a mosque is chosen
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -256,7 +267,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.mosque_outlined,
                       label: basicText('mosques_title', lang),
                       color: NavColors.green,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MosquesScreen())),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MosquesScreen()))
+                          .then((_) => setState(() => _mosqueRefreshTick++)),
                     ),
                         ]),
                       ],
@@ -811,6 +823,120 @@ class _EmptyHint extends StatelessWidget {
 }
 
 /// Home entry to «مُحرّك الحياة» (docs/LIFE_ENGINE.md, L2).
+/// «مسجدي» on the home screen — the mosque the user picked in «مساجدنا»,
+/// with its single most recent item. Self-hides (an empty box) until a
+/// mosque is chosen. Reloads each time the home screen rebuilds.
+class _MyMosqueCard extends StatefulWidget {
+  final String lang;
+  const _MyMosqueCard({super.key, required this.lang});
+
+  @override
+  State<_MyMosqueCard> createState() => _MyMosqueCardState();
+}
+
+class _MyMosqueCardState extends State<_MyMosqueCard> {
+  final _repo = MosqueRepository();
+  ({Mosque mosque, MosqueContent? latest})? _brief;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final b = await _repo.myMosqueBrief();
+    if (mounted) setState(() => _brief = b);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final b = _brief;
+    if (b == null) return const SizedBox.shrink();
+    final lang = widget.lang;
+    final latest = b.latest;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => MosqueProfileScreen(mosqueId: b.mosque.id)),
+        ).then((_) => _load()),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.mosque_outlined,
+                    color: AppColors.primaryDark),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        Text(basicText('mosque_my_mosque', lang),
+                            textDirection: TextDirection.rtl,
+                            style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary)),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(b.mosque.name,
+                              textDirection: TextDirection.rtl,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontFamily: 'Amiri',
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  color: AppColors.textDark)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      latest?.title?.trim().isNotEmpty == true
+                          ? latest!.title!
+                          : basicText('mosque_open_page', lang),
+                      textDirection: TextDirection.rtl,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 11.5, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_left_rounded,
+                  color: AppColors.textMuted),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _LifeEngineCard extends StatelessWidget {
   final String lang;
   const _LifeEngineCard({required this.lang});
