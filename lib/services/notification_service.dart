@@ -3,10 +3,14 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../l10n/basic_translations.dart';
 import '../repositories/adhkar_repository.dart';
+import '../repositories/life_plan_repository.dart';
 import '../repositories/prayer_times_repository.dart';
 import 'adhkar_notification_prefs.dart';
 import 'companion_engine.dart';
+import 'language_preference_service.dart';
+import 'life_plan_notifications.dart';
 import 'location_service.dart';
 import 'prayer_notification_prefs.dart';
 import 'quiet_hours_prefs.dart';
@@ -133,6 +137,16 @@ class NotificationService {
   static const _companionChannelName = 'رفيق طالب العلم';
   static const _companionCheckInHour = 20;
 
+  // «مُحرّك الحياة» (Life Engine, docs/LIFE_ENGINE.md L4) — a per-block
+  // nudge for each of TODAY's not-yet-done, still-upcoming slots, a 21:30
+  // nightly «حاسب نفسك» (with the live done/total), and a recurring 05:00
+  // morning brief. Id band 12000+ (see life_plan_notifications.dart), clear
+  // of every range above (…, 11000 + categoryId). Everything is one-shot
+  // except the morning brief; `LifePlanScreen` reschedules on every
+  // load / resume / midnight so completed and past blocks drop out.
+  static const _lifeChannelId = 'life_slots';
+  static const _lifeChannelName = 'مُحرّك الحياة';
+
   final _plugin = FlutterLocalNotificationsPlugin();
 
   static Future<void>? _initFuture;
@@ -150,7 +164,14 @@ class NotificationService {
   /// False until the local-notifications platform plugin has initialised
   /// successfully. Stays false on a plain test VM / unsupported platform —
   /// every public method below then no-ops instead of throwing.
-  bool _ready = false;
+  ///
+  /// `static`, like [_initFuture]: `_doInit` runs exactly once per process
+  /// (whichever instance wins the race), and the native plugin channel is
+  /// shared across every Dart-side `NotificationService`. If this were
+  /// per-instance, a screen that holds its own `NotificationService()`
+  /// would keep `_ready == false` forever once `main.dart`'s instance had
+  /// already run init — and all its scheduling calls would silently no-op.
+  static bool _ready = false;
 
   /// Returns the payload of the notification that launched the app from a
   /// fully-closed state, if any — call once from `main.dart` after
@@ -685,6 +706,93 @@ class NotificationService {
         ),
       ),
       payload: 'home',
+    );
+  }
+
+  /// Schedules TODAY's «مُحرّك الحياة» reminders: one per not-yet-done,
+  /// still-upcoming block («⏰ 08:30 — 💻 Python / برمجة» + «اليوم N»),
+  /// tonight's «حاسب نفسك» at 21:30 carrying the live done/total, and the
+  /// recurring 05:00 morning brief. A no-op (that also clears any stale
+  /// reminders) until the engine has been opened once — `life_meta`'s
+  /// `start_date` row is the marker, and `meta()` never seeds it. Called
+  /// from `main.dart` on start and from `LifePlanScreen` on every
+  /// load / resume / midnight, so completed and past blocks drop out on the
+  /// next pass. Reschedule-on-open is also what refreshes the copy after a
+  /// language change.
+  Future<void> scheduleLifePlanReminders() async {
+    await _ensureInitialized();
+    if (!_ready) return;
+
+    final repo = LifePlanRepository();
+    final started = await repo.meta('start_date'); // does NOT seed
+
+    // Clear the whole slot-id band + the fixed one-shot id first, so
+    // yesterday's set never lingers.
+    for (var id = kLifeSlotReminderIdBase; id <= kLifeSlotReminderIdMax; id++) {
+      await _plugin.cancel(id: id);
+    }
+    await _plugin.cancel(id: kLifeNightlyReviewId);
+    if (started == null) {
+      await _plugin.cancel(id: kLifeMorningBriefId);
+      return;
+    }
+
+    final lang = LanguagePreferenceService.currentLanguage;
+    final slots = await repo.slots();
+    final today = LifePlanRepository.today();
+    final done = await repo.doneSlots(today);
+    final prog = await repo.progress(today);
+    final dayN = (await repo.dayIndex()) + 1;
+
+    final nightlyBody = prog.doneCount == 0
+        ? basicText('life_notif_nightly_empty', lang)
+        : basicText('life_notif_nightly_done', lang)
+            .replaceAll('{done}', '${prog.doneCount}')
+            .replaceAll('{total}', '${prog.totalCount}');
+
+    final reminders = planLifeReminders(
+      slots: slots,
+      doneSlotNos: done,
+      now: DateTime.now(),
+      slotBody: '${basicText('life_day_word', lang)} $dayN',
+      nightlyTitle: basicText('life_notif_nightly_title', lang),
+      nightlyBody: nightlyBody,
+    );
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _lifeChannelId,
+        _lifeChannelName,
+        channelDescription: basicText('life_notif_channel_desc', lang),
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+      ),
+    );
+
+    for (final r in reminders) {
+      await _plugin.zonedSchedule(
+        id: r.id,
+        title: r.title,
+        body: r.body,
+        scheduledDate: tz.TZDateTime.from(r.fireAt, tz.local),
+        notificationDetails: details,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: 'life',
+      );
+    }
+
+    // Morning brief — recurring & evergreen (no day number, so a day the
+    // app isn't opened can't leave it showing a stale count).
+    // `_scheduleDailyAt` also folds in the student's quiet-hours window.
+    await _scheduleDailyAt(
+      id: kLifeMorningBriefId,
+      hour: kLifeMorningBriefHour,
+      title: basicText('life_notif_morning_title', lang),
+      body: basicText('life_notif_morning_body', lang),
+      channelId: _lifeChannelId,
+      channelName: _lifeChannelName,
+      channelDescription: basicText('life_notif_channel_desc', lang),
+      payload: 'life',
     );
   }
 

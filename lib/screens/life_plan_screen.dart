@@ -8,6 +8,7 @@ import '../l10n/basic_translations.dart';
 import '../models/life_plan.dart';
 import '../repositories/life_plan_repository.dart';
 import '../services/language_preference_service.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import 'life_progress_screen.dart';
@@ -28,6 +29,8 @@ class LifePlanScreen extends StatefulWidget {
 class _LifePlanScreenState extends State<LifePlanScreen>
     with WidgetsBindingObserver {
   final _repo = LifePlanRepository();
+  final _notifications = NotificationService();
+  Timer? _midnightTimer;
 
   bool _loading = true;
   List<LifePillar> _pillars = const [];
@@ -44,17 +47,37 @@ class _LifePlanScreenState extends State<LifePlanScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _load();
+    _armMidnight();
   }
 
   @override
   void dispose() {
+    _midnightTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _load(silent: true);
+    if (state == AppLifecycleState.resumed) {
+      _load(silent: true);
+      _armMidnight();
+    }
+  }
+
+  /// At the next local midnight (+3s slack): reload so «اليوم N» rolls over
+  /// and today's one-shot reminders are rebuilt for the new day. Re-arms
+  /// itself; also re-armed on every resume in case the device slept through.
+  void _armMidnight() {
+    _midnightTimer?.cancel();
+    final now = DateTime.now();
+    final next = DateTime(now.year, now.month, now.day)
+        .add(const Duration(days: 1, seconds: 3));
+    _midnightTimer = Timer(next.difference(now), () {
+      if (!mounted) return;
+      _load(silent: true);
+      _armMidnight();
+    });
   }
 
   Future<void> _load({bool silent = false}) async {
@@ -73,6 +96,9 @@ class _LifePlanScreenState extends State<LifePlanScreen>
       _dayIndex = di;
       _loading = false;
     });
+    // Keep today's block nudges / nightly review in sync with what's now
+    // ticked — a completed block loses its reminder, a resume refreshes copy.
+    unawaited(_notifications.scheduleLifePlanReminders());
   }
 
   Future<void> _toggle(int slotNo) async {
