@@ -54,12 +54,12 @@ All PASS → `MosqueRepository` reads the backend live (offline‑first: it
 mirrors rows into the local sqflite cache, one background sync per run).
 Then open the app → **المساجد** tile → مسجد التقوى should load from Supabase.
 
-## 4. Next (the write path — separate build)
+## 4. The write path — Telegram bot (v1, built)
 
-The Telegram intake as a **Supabase Edge Function** (`mosque-intake`):
-webhook → `chat_id → mosque_id` (`mosque_telegram_connections`) → role
-check (`super_admins` / `mosque_users`, tiers per TODO 74.7) → proposed
-changes land in `mosque_pending_changes` by `risk_tier` → a daily digest
-message to the Super Admin (74.8). The function reads `SERVICE_ROLE_KEY`
-and `TELEGRAM_BOT_TOKEN` from its **Supabase function env** — never the app,
-never git. Deployed with the `supabase` CLI.
+`supabase/functions/mosque-intake/index.ts` — see
+**[`docs/mosque/TELEGRAM_BOT.md`](TELEGRAM_BOT.md)** for deploy + webhook
+setup + the command list. v1 is deliberately scoped to today's reality
+(one admin, direct writes, no review queue); the full
+`mosque_pending_changes` / risk-tier / daily-digest workflow from
+`MOSQUE_PLATFORM_VISION.md` is still real and designed, for whenever there
+are multiple mosques/admins who actually need review.
