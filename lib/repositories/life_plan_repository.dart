@@ -166,6 +166,56 @@ class LifePlanRepository {
     );
   }
 
+  /// Whole‑day percent for every date in `[from, to]` (inclusive), in ONE
+  /// query — for the heatmap. Dates with no ticks are 0. Keys are `ymd`.
+  Future<Map<String, double>> dayPercents(String from, String to) async {
+    final total = (await slots()).length;
+    if (total == 0) return {};
+    final db = await _db;
+    final rows = await db.rawQuery(
+      'SELECT date, COUNT(*) AS c FROM life_day_slots '
+      'WHERE done = 1 AND date BETWEEN ? AND ? GROUP BY date',
+      [from, to],
+    );
+    final out = <String, double>{};
+    for (final r in rows) {
+      out[r['date'] as String] = ((r['c'] as num).toInt()) / total;
+    }
+    return out;
+  }
+
+  /// Per‑pillar momentum now (last 7 days) vs the previous 7 — L3 forecast.
+  /// `{key: (now, prev, slipping)}` where `slipping` marks a real drop.
+  Future<Map<String, ({double now, double prev, bool slipping})>>
+      pillarMomentumTrend() async {
+    final ps = await pillars();
+    final today = DateTime.now();
+    Future<Map<String, double>> windowAvg(int offset) async {
+      final acc = {for (final p in ps) p.key: 0.0};
+      for (var i = 0; i < 7; i++) {
+        final byP = (await progress(
+                ymd(today.subtract(Duration(days: offset + i)))))
+            .byPillar;
+        for (final p in ps) {
+          acc[p.key] = acc[p.key]! + (byP[p.key] ?? 0.0);
+        }
+      }
+      return {for (final p in ps) p.key: acc[p.key]! / 7};
+    }
+
+    final now = await windowAvg(0);
+    final prev = await windowAvg(7);
+    return {
+      for (final p in ps)
+        p.key: (
+          now: now[p.key]!,
+          prev: prev[p.key]!,
+          slipping: now[p.key]! < prev[p.key]! * 0.6 ||
+              (prev[p.key]! >= 0.3 && now[p.key]! < 0.3),
+        ),
+    };
+  }
+
   /// Average whole‑day percent over the last [days] days ending today.
   Future<double> rollingAverage(int days) async {
     final now = DateTime.now();

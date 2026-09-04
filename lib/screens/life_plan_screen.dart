@@ -10,6 +10,7 @@ import '../repositories/life_plan_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
+import 'life_progress_screen.dart';
 
 /// «مُحرّك الحياة» — L2 · the «اليوم» surface (`docs/LIFE_ENGINE.md`).
 ///
@@ -98,6 +99,16 @@ class _LifePlanScreenState extends State<LifePlanScreen>
       appBar: AppBar(
         title: Text(basicText('life_engine_title', lang),
             textDirection: TextDirection.rtl),
+        actions: [
+          IconButton(
+            tooltip: basicText('life_progress_title', lang),
+            icon: const Icon(Icons.insights_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LifeProgressScreen()),
+            ),
+          ),
+        ],
       ),
       body: _loading || prog == null
           ? const Center(child: CircularProgressIndicator())

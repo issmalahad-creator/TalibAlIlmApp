@@ -108,6 +108,39 @@ void main() {
     expect(mom['jobs'], 0.0); // slot 13 untouched
   });
 
+  test('dayPercents batches a date range in one pass', () async {
+    final now = DateTime.now();
+    final d1 = LifePlanRepository.ymd(now.subtract(const Duration(days: 1)));
+    final d2 = LifePlanRepository.ymd(now.subtract(const Duration(days: 2)));
+    for (var i = 1; i <= 23; i++) {
+      await repo.setSlotDone(d1, i, true); // a full day
+    }
+    for (var i = 1; i <= 12; i++) {
+      await repo.setSlotDone(d2, i, true); // ~half
+    }
+    final m = await repo.dayPercents(d2, d1);
+    expect(m[d1], closeTo(1.0, 1e-9));
+    expect(m[d2], closeTo(12 / 23, 1e-9));
+    expect(m[today], isNull); // no ticks today → not in the map
+  });
+
+  test('pillarMomentumTrend flags a real slip', () async {
+    final now = DateTime.now();
+    // previous 7-day window (offset 7..13): strong quran
+    for (var i = 7; i < 14; i++) {
+      final d = LifePlanRepository.ymd(now.subtract(Duration(days: i)));
+      for (final n in [2, 12, 20]) {
+        await repo.setSlotDone(d, n, true);
+      }
+    }
+    // last 7 days: nothing → quran momentum collapses
+    final tr = await repo.pillarMomentumTrend();
+    expect(tr['quran']!.prev, greaterThan(0.5));
+    expect(tr['quran']!.now, 0.0);
+    expect(tr['quran']!.slipping, isTrue);
+    expect(tr['jobs']!.slipping, isFalse); // never had momentum
+  });
+
   test('day note round‑trips', () async {
     await repo.saveNote(today, note: 'يوم قوي', tomorrowGoal: 'ابدأ ERP مبكرًا');
     final n = await repo.note(today);
