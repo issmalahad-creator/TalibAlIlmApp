@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 55,
+      version: 56,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -95,6 +95,7 @@ class DatabaseHelper {
         await _createV53Tables(db);
         await _createV54Tables(db);
         await _createV55Tables(db);
+        await _createV56Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -162,6 +163,7 @@ class DatabaseHelper {
         if (oldVersion < 53) await _createV53Tables(db);
         if (oldVersion < 54) await _createV54Tables(db);
         if (oldVersion < 55) await _createV55Tables(db);
+        if (oldVersion < 56) await _createV56Tables(db);
       },
     );
   }
@@ -2156,6 +2158,23 @@ class DatabaseHelper {
       CREATE TABLE IF NOT EXISTS life_meta (
         k TEXT PRIMARY KEY,
         v TEXT
+      )
+    ''');
+  }
+
+  /// v56 — Phase G-t1 · tajwīd rule spans for all 6236 ayāt
+  /// (`docs/quran/reports/TAJWEED_ALIGNMENT_REPORT.md`). One row per ayah:
+  /// `data` is the JSON array `[{"w":word_index,"cs":..,"ce":..,"r":rule_id}]`
+  /// from `assets/quran/corpus/tajweed.json.gz`, seeded by `QuranCorpusSync`
+  /// exactly like the other per-ayah corpus layers (`quran_morphology`, …).
+  /// Source: cpfair/quran-tajweed, rule data CC BY 4.0.
+  Future<void> _createV56Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS quran_tajweed (
+        surah INTEGER NOT NULL,
+        ayah INTEGER NOT NULL,
+        data TEXT NOT NULL,
+        PRIMARY KEY (surah, ayah)
       )
     ''');
   }

@@ -34,6 +34,7 @@ class QuranCorpusSync {
     'qiraat': (table: 'quran_qiraat', key: 'qiraat'),
     'similar': (table: 'quran_similar', key: 'similar'),
     'sayings': (table: 'quran_saying', key: 'sayings'),
+    'tajweed': (table: 'quran_tajweed', key: 'spans'), // G-t1 — cpfair rule spans
   };
 
   Future<void> sync() async {

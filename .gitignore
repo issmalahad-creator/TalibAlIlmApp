@@ -62,6 +62,13 @@ lib/config/app_config.dart
 /*.xlsx
 /22780766_6685158.svg
 
+# Phase G-t (tajwīd): pinned upstream inputs for tool/build_tajweed_rules.py —
+# cpfair/quran-tajweed rule spans (CC BY 4.0) + the exact 2017 Tanzil Uthmani
+# base text they are offset against. Build-time only; fetch with
+# tool/fetch_tajweed_source.sh. The committed artefact is
+# assets/quran/corpus/tajweed.json.gz. Never commit the raw upstream files.
+/tool/vendor/
+
 # Quranpedia.net data dumps (raw, ~1.15 GB) — build-time input only, per
 # docs/quran/QURAN_CORPUS_INTEGRATION.md. The committed artefacts are the
 # curated bundled subset under assets/quran/ + the Supabase mirror. NEVER

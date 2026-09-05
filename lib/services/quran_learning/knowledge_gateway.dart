@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show debugPrint;
 
+import '../../data/tajweed_rules_ref.dart';
 import '../../db/database_helper.dart';
 import '../../models/quran_learning.dart';
 
@@ -35,6 +38,7 @@ class KnowledgeGateway {
     // as QuranFoundationProvider in the audio stack.
     QacGrammarProvider(),
     LocalKnowledgeProvider(),
+    CorpusTajweedProvider(),
     LocalTafsirProvider(),
     // more ONLINE/HYBRID providers (meaning, audio, …) register here with
     // no change to callers.
@@ -178,10 +182,14 @@ class QacGrammarProvider extends KnowledgeProvider {
 }
 
 /// LOCAL provider — the bundled `knowledge_facts` seeded by
-/// `QuranLearningSync` (ṣarf / naḥw / tajwīd for the Prototype slice).
+/// `QuranLearningSync` (ṣarf / naḥw for the Prototype slice).
+///
+/// `tajweed` moved to [CorpusTajweedProvider] in Phase G-t1 (all 6236 ayāt,
+/// from `quran_tajweed`, instead of the 11 Prototype ayāt here) — dropped
+/// from `domains` so the two never double-render the same word.
 class LocalKnowledgeProvider extends KnowledgeProvider {
   @override
-  Set<String> get domains => const {'sarf', 'nahw', 'tajweed', 'meaning'};
+  Set<String> get domains => const {'sarf', 'nahw', 'meaning'};
 
   @override
   Future<List<KnowledgeFact>> factsFor(int surah, int ayah, int wordIndex) async {
@@ -205,6 +213,83 @@ class LocalKnowledgeProvider extends KnowledgeProvider {
       orderBy: 'domain ASC, word_start ASC, id ASC',
     );
     return [for (final r in rows) KnowledgeFact.fromRow(r)];
+  }
+}
+
+/// LOCAL provider — tajwīd rules for **all 6236 ayāt** from `quran_tajweed`
+/// (Phase G-t1, migration v56), seeded by `QuranCorpusSync` from
+/// `assets/quran/corpus/tajweed.json.gz` (cpfair/quran-tajweed, rule data
+/// CC BY 4.0). One fact per word that carries ≥1 rule; `payload['rules']` is
+/// the list the knowledge surface already renders — label / family / concept
+/// are resolved from [kTajweedRules], not stored.
+class CorpusTajweedProvider extends KnowledgeProvider {
+  @override
+  Set<String> get domains => const {'tajweed'};
+
+  @override
+  Future<List<KnowledgeFact>> factsFor(int surah, int ayah, int wordIndex) async {
+    final byWord = await _byWord(surah, ayah);
+    final f = byWord[wordIndex];
+    return f == null ? const [] : [f];
+  }
+
+  @override
+  Future<List<KnowledgeFact>> factsForAyah(int surah, int ayah) async {
+    final byWord = await _byWord(surah, ayah);
+    final ws = byWord.keys.toList()..sort();
+    return [for (final w in ws) byWord[w]!];
+  }
+
+  /// `word_index -> one tajweed KnowledgeFact` for the ayah (empty if none).
+  Future<Map<int, KnowledgeFact>> _byWord(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('quran_tajweed',
+        columns: ['data'],
+        where: 'surah = ? AND ayah = ?',
+        whereArgs: [surah, ayah],
+        limit: 1);
+    if (rows.isEmpty) return const {};
+    List<dynamic> spans;
+    try {
+      spans = jsonDecode(rows.first['data'] as String) as List<dynamic>;
+    } catch (_) {
+      return const {};
+    }
+
+    // group spans → per word, distinct rule ids in canonical family order
+    final rawByWord = <int, Set<String>>{};
+    for (final s in spans) {
+      if (s is! Map) continue;
+      final w = (s['w'] as num?)?.toInt();
+      final r = s['r'] as String?;
+      if (w == null || r == null) continue;
+      (rawByWord[w] ??= <String>{}).add(r);
+    }
+
+    final out = <int, KnowledgeFact>{};
+    rawByWord.forEach((w, ids) {
+      final ordered = [for (final id in kTajweedRules.keys) if (ids.contains(id)) id];
+      if (ordered.isEmpty) return;
+      final rules = [
+        for (final id in ordered)
+          {
+            'rule_id': id,
+            'rule_ar': kTajweedRules[id]!.ruleAr,
+            'rule_family': kTajweedRules[id]!.familyKey,
+            'concept_id': kTajweedRules[id]!.conceptId,
+          }
+      ];
+      out[w] = KnowledgeFact(
+        id: 'tajweed:$surah:$ayah:$w',
+        domain: 'tajweed',
+        anchor: KnowledgeAnchor(
+            surah: surah, ayah: ayah, wordStart: w, wordEnd: w, scope: 'word'),
+        payload: {'rules': rules},
+        sourceRefId: 'src:cpfair-tajweed',
+        dataState: KnowledgeDataState.local,
+      );
+    });
+    return out;
   }
 }
 

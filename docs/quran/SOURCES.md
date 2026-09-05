@@ -108,13 +108,14 @@ Knowledge tags used across `docs/quran/`:
 - **What we use it for:** *reference* for the recitation-follow / word-highlight-with-audio feature (not yet built).
 - **What we must NOT assume:** its word indices = Tanzil segmentation, **not** MushafDatabase segmentation. Mapping table required. Timing is per-reciter — never global.
 
-## 9. cpfair/quran-tajweed  ·  reference (tajweed rule spans)
+## 9. cpfair/quran-tajweed  ·  **USED** (Phase G-t1 — tajwīd rule spans, all 6236)
 
-- **URL:** https://github.com/cpfair/quran-tajweed
-- **What it is:** 18 tajweed rules (ghunnah; idghaam ×5; ikhfa ×2; iqlab; madd ×5; qalqalah; hamzat_wasl; lam_shamsiyyah; silent) as `{surah, ayah, annotations:[{rule, start, end}]}` where `start/end` are **Unicode codepoint offsets into a specific Tanzil Uthmani text file (dated 2017‑04‑06)**.
-- **Licence:** rule data **CC-BY 4.0**; Quran text under Tanzil terms.
-- **What we use it for:** *reference* for a future tajweed-colour layer.
-- **What we must NOT assume:** the offsets are **bound to that exact text file**. Any other edition (incl. our `quran_ayat.text_uthmani` if it differs by even one mark) requires **rebuilding the dataset**. Colours vary by publisher — store the **rule id**, derive colour in the app.
+- **URL:** https://github.com/cpfair/quran-tajweed  ·  pinned commit `496f71cd191da00fa2a37ded79dbbddb033bb0ad` (2021‑10‑12).
+- **What it is:** 18 tajweed rules (ghunnah; idghaam ×5; ikhfa ×2; iqlab; madd ×5; qalqalah; hamzat_wasl; lam_shamsiyyah; silent) as `{surah, ayah, annotations:[{rule, start, end}]}` where `start/end` are **Unicode codepoint offsets into a specific Tanzil Uthmani text file (`quran-uthmani.txt`, the copy attached to the repo ca. 2017‑04‑06)** — the first ayah of every surah except 1 & 9 has the Basmala prepended in that file.
+- **Licence:** rule DATA **CC BY 4.0** (Chris Pearce / cpfair) — attribution + link required, shown in `SourcesScreen` via `src:cpfair-tajweed`. The base Tanzil text is build-input only, never shipped.
+- **What we use it for:** `assets/quran/corpus/tajweed.json.gz` — per `(surah, ayah, word_index)` + a `[cs, ce)` char range in that word's own Uthmani text; seeded into `quran_tajweed` (DB v56) by `QuranCorpusSync`, served by `CorpusTajweedProvider` for the knowledge surface. Colours are **not** stored — derived from the 6-family map in `lib/theme/tajweed_palette.dart` + `lib/data/tajweed_rules_ref.dart`.
+- **How the remap is built:** `tool/fetch_tajweed_source.sh` (pinned inputs → gitignored `tool/vendor/`) → `tool/build_tajweed_rules.py` (two-stage **normalised** alignment: our clitic-split words → cpfair whole words, then cpfair char offsets → our per-word `[cs,ce)` at letter-group granularity; a group that will not align cleanly is **skipped and listed**, never guessed). Result 2026-09-05: **6236/6236 ayāt clean, 0 flagged, 70 085 spans** — `docs/quran/reports/TAJWEED_ALIGNMENT_REPORT.md`.
+- **What we must NOT assume:** the offsets are **bound to that exact 2017 text file** — the fetch script asserts a byte-exact 1 376 504-byte download. Any change to our layout `hafs` text ⇒ re-run `build_tajweed_rules.py` and re-check the report. Colours vary by publisher — we store only the **rule id**. The two same/close-makhraj idghām rules and hamzat al-waṣl / lām shamsiyyah / silent have **no direct curriculum lesson** — they carry a label + colour only.
 
 ## 10. Fonts in the repo  ·  **USED**
 

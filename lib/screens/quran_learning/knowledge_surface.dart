@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/quran_surahs.dart';
+import '../../data/tajweed_rules_ref.dart';
 import '../../l10n/basic_translations.dart';
 import '../../models/quran_learning.dart';
 import '../../models/quran_selection.dart';
@@ -9,8 +10,10 @@ import '../../repositories/quran_learning_repository.dart';
 import '../../repositories/quran_reading_repository.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/depth.dart';
+import '../../theme/tajweed_palette.dart';
 import '../ayah_notebook_screen.dart';
 import '../ayah_study_screen.dart';
+import '../tajweed_tier_screen.dart';
 import 'corpus_panels.dart';
 import 'irab_view_screen.dart';
 import 'learning_lesson_screen.dart';
@@ -430,10 +433,24 @@ class _WordSurfaceState extends State<_WordSurface> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (final rule in tr)
-              Text('• ${rule['rule_ar']}  (${rule['rule_family']})',
-                  textDirection: TextDirection.rtl,
-                  style: const TextStyle(
-                      fontSize: 12.5, fontWeight: FontWeight.w600)),
+              Row(children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsets.only(left: 6),
+                  decoration: BoxDecoration(
+                    color: TajweedPalette.accentOf(
+                        '${rule['rule_family'] ?? 'silent'}'),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Expanded(
+                  child: Text('${rule['rule_ar']}',
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w600)),
+                ),
+              ]),
             const SizedBox(height: 4),
             _sourceLine(r.sourceFor(t)),
           ],
@@ -840,19 +857,7 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           ],
         );
       case _AyahSeg.tajweed:
-        final f = r.facts('tajweed');
-        if (f.isEmpty) return _calmNoData(lang);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final t in f)
-              for (final rule
-                  in (t.payload['rules'] as List? ?? const []).cast<Map>())
-                Text('• ${rule['rule_ar']}  (${rule['rule_family']})',
-                    textDirection: TextDirection.rtl,
-                    style: const TextStyle(fontSize: 12.5, height: 1.7)),
-          ],
-        );
+        return _tajweedFamilies(r, lang);
       case _AyahSeg.uloom:
         // QC3 — «كل ما ورد في هذه الآية» as short excerpts: سبب النزول ·
         // إعراب من الكتب · ناسخ/منسوخ · غريب · فوائد · متشابهات · آثار ·
@@ -901,6 +906,93 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           ],
         );
     }
+  }
+
+  /// أحكام التجويد للآية — grouped by the six colour families (not the 18
+  /// ids). Each family header carries its `tajweed_palette` dot; each rule
+  /// row that has a curriculum lesson opens it. Data: cpfair/quran-tajweed
+  /// via `CorpusTajweedProvider`, all 6236 ayāt.
+  Widget _tajweedFamilies(KnowledgeResult r, String lang) {
+    final facts = r.facts('tajweed');
+    final present = <String>{};
+    for (final t in facts) {
+      for (final rule in (t.payload['rules'] as List? ?? const []).cast<Map>()) {
+        final id = rule['rule_id'] as String?;
+        if (id != null) present.add(id);
+      }
+    }
+    if (present.isEmpty) return _calmNoData(lang);
+
+    final rows = <Widget>[];
+    for (final (fam, l10nKey) in kTajweedFamilies) {
+      final ids = [
+        for (final id in kTajweedRules.keys)
+          if (present.contains(id) && kTajweedRules[id]!.familyKey == fam) id
+      ];
+      if (ids.isEmpty) continue;
+      rows.add(Padding(
+        padding: const EdgeInsets.only(top: 10, bottom: 2),
+        child: Row(children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+                color: TajweedPalette.accentOf(fam), shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(basicText(l10nKey, lang),
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(
+                  fontSize: 12.5, fontWeight: FontWeight.w700)),
+        ]),
+      ));
+      for (final id in ids) {
+        final ref = kTajweedRules[id]!;
+        final tier = ref.tier;
+        rows.add(InkWell(
+          onTap: tier == null
+              ? null
+              : () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => TajweedTierScreen(tier: tier)),
+                  );
+                },
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+            child: Row(children: [
+              Expanded(
+                child: Text('•  ${ref.ruleAr}',
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(fontSize: 12.5, height: 1.6)),
+              ),
+              if (tier != null) ...[
+                Text(basicText('ql_open_lesson', lang),
+                    style: const TextStyle(
+                        fontSize: 10.5, color: AppColors.textMuted)),
+                const Icon(Icons.chevron_left_rounded,
+                    size: 16, color: AppColors.textMuted),
+              ],
+            ]),
+          ),
+        ));
+      }
+    }
+
+    final src = facts.isEmpty ? null : r.sourceFor(facts.first);
+    if (src != null) {
+      rows.add(const SizedBox(height: 10));
+      rows.add(Text(
+        '${basicText('ql_source', lang)}: ${src.name} · ${src.badgeAr}',
+        textDirection: TextDirection.rtl,
+        style: const TextStyle(fontSize: 9.5, color: AppColors.textMuted),
+      ));
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
   }
 
 

@@ -146,13 +146,23 @@ change only from `VERIFIED` / authoritative-source data.
 
 ## R‑14 · Tajwīd colour coding
 
-- **Model:** rule spans (character ranges) + a rule→colour map chosen in-app.
-- **Source (reference):** cpfair/quran-tajweed (18 rules, CC-BY 4.0) —
-  offsets into **a specific Tanzil file**; QUL "Tajweed V4"; KFGQPC palette.
-- **Do NOT:** assume spans transfer to our `quran_ayat.text_uthmani` or to
-  MushafDatabase geometry without rebuilding against that exact text;
-  hard-code one publisher's colours.
-- **Status:** not built.
+- **Model:** rule spans + a rule→colour map chosen in-app. **Identity:**
+  `(surah, ayah, word_index)` + a `[cs, ce)` char range in that word's own
+  Uthmani text. Colour is by **family** (six), never the 18 rule ids.
+- **Source:** cpfair/quran-tajweed (18 rules, **CC BY 4.0**), pinned commit
+  `496f71c`; offsets into the 2017 Tanzil `quran-uthmani.txt` (Basmala
+  prepended to ayah 1 of every surah bar 1 & 9). See SOURCES §9.
+- **Do NOT:** assume spans transfer to another text without re-running
+  `tool/build_tajweed_rules.py` + re-checking the report; hard-code one
+  publisher's colours; treat the two same/close-makhraj idghām rules or
+  hamzat al-waṣl / lām shamsiyyah / silent as having a curriculum lesson.
+- **Status (G-t1, 2026-09-05):** DATA layer **built** — `quran_tajweed`
+  (DB v56) seeded from `assets/quran/corpus/tajweed.json.gz` for **6236/6236
+  ayāt, 0 flagged, 70 085 spans**; served by `CorpusTajweedProvider` to the
+  ayah/word knowledge surface (grouped by family, tap → the tier lesson).
+  `lib/data/tajweed_rules_ref.dart` + `lib/theme/tajweed_palette.dart` hold
+  the family/colour/lesson map. **On-page colouring (G-t2/G-t3) not built** —
+  needs per-glyph geometry (see R‑13) + the opt-in «وضع التجويد» carve-out.
 
 ## R‑15 · Qirāʾāt / riwāyāt
 

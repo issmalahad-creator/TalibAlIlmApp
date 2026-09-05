@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
+import '../models/tajweed_span.dart';
 
 final RegExp _footRe =
     RegExp(r'<footer[^>]*>.*?</footer>', caseSensitive: false, dotAll: true);
@@ -146,6 +147,32 @@ class QuranCorpusRepository {
   /// nāsikh & mansūkh note for the ayah, or null.
   Future<Object?> nasekh(int surah, int ayah) =>
       _json('quran_nasekh', surah, ayah);
+
+  /// Phase G-t1 — tajwīd rule spans for the ayah (`quran_tajweed`, v56),
+  /// covering all 6236 ayāt. Each [TajweedSpan] is a `[cs, ce)` char range in
+  /// word `wordIndex`'s own Uthmani text, tagged with a cpfair rule id.
+  /// Source: cpfair/quran-tajweed (rule data CC BY 4.0).
+  Future<AyahTajweed> tajweedForAyah(int surah, int ayah) async {
+    final raw = await _json('quran_tajweed', surah, ayah);
+    final spans = <TajweedSpan>[];
+    if (raw is List) {
+      for (final e in raw) {
+        if (e is Map) {
+          try {
+            spans.add(TajweedSpan.fromJson(e.cast<String, dynamic>()));
+          } catch (_) {/* skip a malformed span, never throw */}
+        }
+      }
+    }
+    return AyahTajweed(surah: surah, ayah: ayah, spans: spans);
+  }
+
+  /// The tajwīd spans that fall on one tapped word.
+  Future<List<TajweedSpan>> tajweedForWord(
+      int surah, int ayah, int wordIndex) async {
+    final a = await tajweedForAyah(surah, ayah);
+    return a.forWord(wordIndex);
+  }
 
   /// iʿrāb prose for the ayah, across every bundled iʿrāb book:
   /// `[{book_id, name, html}]`.

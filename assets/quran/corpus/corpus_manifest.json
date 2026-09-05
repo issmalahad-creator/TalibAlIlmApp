@@ -280,6 +280,22 @@
     "flagged": 40,
     "ayat": 6236
    }
+  },
+  "tajweed": {
+   "file": "tajweed.json.gz",
+   "source": "cpfair/quran-tajweed @ 496f71cd191da00fa2a37ded79dbbddb033bb0ad (build_tajweed_rules.py)",
+   "source_version": "gt1-1",
+   "licence": "CC BY 4.0 — quran-tajweed (Chris Pearce / cpfair)",
+   "rows": 6236,
+   "sha256": "ecf17acfa291945e037577469a4de2d09e6ecf0d1911bec814a562fc6dfd84e7",
+   "bytes": 203542,
+   "checks": {
+    "clean": 6236,
+    "partial": 0,
+    "flagged": 0,
+    "ayat": 6236,
+    "spans": 70085
+   }
   }
  }
 }
