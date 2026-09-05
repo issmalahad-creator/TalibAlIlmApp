@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/mushaf_layout.dart';
 import 'mushaf/mushaf_page_cache.dart';
 import 'mushaf/screen_transform.dart';
+import 'mushaf/tajweed_overlay.dart';
 
 export 'mushaf/screen_transform.dart' show ScreenTransform;
 export 'mushaf/mushaf_page_cache.dart' show MushafPageCache;
@@ -65,6 +66,13 @@ class MushafPageView extends StatelessWidget {
   /// glyph ink; `IgnorePointer`, so no interaction impact). Null = nothing.
   final String? wordCaption;
 
+  /// Phase G-t3 — precomputed tajwīd colour spans for this page. Non-empty
+  /// only while the reader's opt-in «وضع التجويد» is on; then a translucent
+  /// family-colour wash is drawn above the art and below the Selection
+  /// Layer (`docs/quran/QURAN_PREMIUM_UI.md` §8-bis). Null/empty = nothing,
+  /// ordinary reading unchanged.
+  final List<TajweedPaintSpan>? tajweedSpans;
+
   const MushafPageView({
     super.key,
     required this.layout,
@@ -75,6 +83,7 @@ class MushafPageView extends StatelessWidget {
     this.onWordLongPress,
     this.artInk,
     this.wordCaption,
+    this.tajweedSpans,
   });
 
   @override
@@ -163,6 +172,17 @@ class MushafPageView extends StatelessWidget {
                   height: vbH * scale,
                   child: _PageArt(page: layout.page, artInk: artInk),
                 ),
+                // Tajwīd layer (opt-in «وضع التجويد») — above the art, below
+                // the Selection Layer. IgnorePointer; §8-bis carve-out.
+                if (tajweedSpans != null && tajweedSpans!.isNotEmpty)
+                  Positioned.fill(
+                    child: TajweedPageOverlay(
+                      spans: tajweedSpans!,
+                      scale: scale,
+                      offset: Offset(dx, dy),
+                      night: artInk != null,
+                    ),
+                  ),
                 // Selection Layer — premium highlight over the art, never
                 // touches the SVG, never darkens the glyph ink.
                 Positioned.fill(

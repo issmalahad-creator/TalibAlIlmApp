@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/quran_surahs.dart';
+import '../data/tajweed_rules_ref.dart';
 import '../l10n/basic_translations.dart';
 import '../models/mushaf_layout.dart';
 import '../models/quran_selection.dart';
+import '../models/tajweed_span.dart';
 import '../repositories/mushaf_layout_repository.dart';
 import '../repositories/quran_corpus_repository.dart';
 import '../repositories/quran_reading_repository.dart';
@@ -15,8 +17,11 @@ import '../services/language_preference_service.dart';
 import '../services/quran_audio/quran_audio_provider_registry.dart';
 import '../services/quran_audio_engine.dart';
 import '../widgets/companion_floating_bubble.dart';
+import '../widgets/mushaf/tajweed_overlay.dart';
 import '../widgets/mushaf_page_view.dart';
 import '../theme/app_theme.dart';
+import '../theme/tajweed_palette.dart';
+import 'tajweed_tier_screen.dart';
 import 'ayah_notebook_screen.dart';
 import 'journey_screen.dart';
 import 'page_recitation_screen.dart';
@@ -60,7 +65,13 @@ class _MushafSemanticReaderScreenState
 
   static const _nightPrefKey = 'quran_reading_night_mode';
   static const _reciterPrefKey = 'quran_reading_reciter';
+  static const _tajweedPrefKey = 'mushaf_tajweed_mode';
   bool _night = false;
+
+  /// Phase G-t3 — the opt-in tajwīd colour layer, off by default.
+  /// `_tajweedCache[page]` holds the precomputed paint spans for a page.
+  bool _tajweedMode = false;
+  final _tajweedCache = <int, List<TajweedPaintSpan>>{};
 
   /// The one selection on the page — drives the Selection Layer and which
   /// surface is open. Cleared when a surface is dismissed.
@@ -103,12 +114,47 @@ class _MushafSemanticReaderScreenState
     SharedPreferences.getInstance().then((p) {
       final v = p.getBool(_nightPrefKey);
       if (v != null && mounted) setState(() => _night = v);
+      final tj = p.getBool(_tajweedPrefKey);
+      if (tj == true && mounted) {
+        setState(() => _tajweedMode = true);
+        _ensureTajweed(_current);
+      }
     });
   }
 
   Future<void> _setNight(bool v) async {
     setState(() => _night = v);
     (await SharedPreferences.getInstance()).setBool(_nightPrefKey, v);
+  }
+
+  Future<void> _setTajweed(bool v) async {
+    setState(() => _tajweedMode = v);
+    (await SharedPreferences.getInstance()).setBool(_tajweedPrefKey, v);
+    if (v) _ensureTajweed(_current);
+  }
+
+  /// Precompute (once) the tajwīd paint spans for a page: its ayāt's rule
+  /// spans (`quran_tajweed`) × the page's glyph geometry (`mushaf_glyphs`).
+  Future<void> _ensureTajweed(int page) async {
+    if (_tajweedCache.containsKey(page)) return;
+    final layout = await _layout(page);
+    if (layout == null) return;
+    final byAyah = <String, AyahTajweed>{};
+    final seen = <String>{};
+    for (final w in layout.words) {
+      if (w.type != MushafWordType.text) continue;
+      final k = '${w.surah}:${w.ayah}';
+      if (!seen.add(k)) continue;
+      byAyah[k] = await _corpus.tajweedForAyah(w.surah, w.ayah);
+    }
+    final glyphs = await _repo.glyphsForPage(page);
+    final spans = buildTajweedPaintSpans(
+      words: layout.words,
+      tajweedByAyah: byAyah,
+      glyphsByWordOrder: glyphs,
+    );
+    if (!mounted) return;
+    setState(() => _tajweedCache[page] = spans);
   }
 
   @override
@@ -336,13 +382,36 @@ class _MushafSemanticReaderScreenState
     }
   }
 
+  /// «وضع التجويد» — the tapped word's rule names for the on-page label
+  /// («التجويد: إخفاء · مدّ متصل»); falls back to the ṣarf line if the word
+  /// carries no rule.
+  Future<void> _loadTajweedCaption(MushafWord w) async {
+    final spans = await _corpus.tajweedForWord(w.surah, w.ayah, w.wordIndex);
+    if (!mounted || !identical(_selWord, w)) return;
+    if (spans.isEmpty) {
+      _loadWordCaption(w);
+      return;
+    }
+    final names = <String>[];
+    for (final s in spans) {
+      if (!names.contains(s.ruleAr)) names.add(s.ruleAr);
+    }
+    final label = basicText(
+        'ql_domain_tajweed', LanguagePreferenceService.currentLanguage);
+    setState(() => _selWordCaption = '$label: ${names.join(' · ')}');
+  }
+
   void _onWord(MushafWord w) {
     setState(() {
       _selWord = w;
       _selMark = null;
       _selWordCaption = null;
     });
-    _loadWordCaption(w);
+    if (_tajweedMode) {
+      _loadTajweedCaption(w);
+    } else {
+      _loadWordCaption(w);
+    }
     showWordKnowledgeSurface(
       context,
       selection: QuranSelection.word(w),
@@ -507,8 +576,76 @@ class _MushafSemanticReaderScreenState
                   _setNight(v);
                 },
               ),
+              SwitchListTile(
+                secondary: const Icon(Icons.brush_outlined),
+                title: Text(basicText('mushaf_tajweed_mode', lang)),
+                subtitle: Text(basicText('mushaf_tajweed_mode_hint', lang),
+                    style: const TextStyle(fontSize: 11)),
+                value: _tajweedMode,
+                onChanged: (v) {
+                  Navigator.pop(context);
+                  _setTajweed(v);
+                },
+              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// The 6-family legend under the page while «وضع التجويد» is on. Each chip
+  /// opens that family's lesson.
+  Widget _tajweedLegend(String lang) {
+    return Material(
+      color: _night ? const Color(0xFF1B1712) : const Color(0xFFF3ECE0),
+      child: SizedBox(
+        height: 40,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          itemCount: kTajweedFamilies.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 6),
+          itemBuilder: (_, i) {
+            final (fam, l10nKey) = kTajweedFamilies[i];
+            return Center(
+              child: InkWell(
+                borderRadius: BorderRadius.circular(999),
+                onTap: () {
+                  final tier = kTajweedRules.values
+                      .firstWhere((r) => r.familyKey == fam,
+                          orElse: () => kTajweedRules.values.first)
+                      .tier;
+                  if (tier == null) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => TajweedTierScreen(tier: tier)),
+                  );
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                      width: 9,
+                      height: 9,
+                      decoration: BoxDecoration(
+                          color: TajweedPalette.accentOf(fam),
+                          shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(basicText(l10nKey, lang),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: _night
+                                ? const Color(0xFFCFC6B6)
+                                : AppColors.textDark)),
+                  ]),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -798,7 +935,16 @@ class _MushafSemanticReaderScreenState
             ),
           ],
         ),
-        bottomNavigationBar: _audioBar ? _buildAudioBar(lang) : null,
+        bottomNavigationBar: (_tajweedMode || _audioBar)
+            ? Column(mainAxisSize: MainAxisSize.min, children: [
+                if (_tajweedMode)
+                  SafeArea(
+                      top: false,
+                      bottom: !_audioBar,
+                      child: _tajweedLegend(lang)),
+                if (_audioBar) _buildAudioBar(lang),
+              ])
+            : null,
         body: _ready == false
             ? Center(
                 child: Padding(
@@ -822,6 +968,7 @@ class _MushafSemanticReaderScreenState
                     _selMark = null;
                   });
                   MushafPageCache.instance.preloadAround(_current);
+                  if (_tajweedMode) _ensureTajweed(_current);
                 },
                 itemBuilder: (context, i) {
                   final page = i + 1;
@@ -859,6 +1006,9 @@ class _MushafSemanticReaderScreenState
                             selectedWord: onThisPage ? _selWord : null,
                             wordCaption:
                                 onThisPage ? _selWordCaption : null,
+                            tajweedSpans: (_tajweedMode && onThisPage)
+                                ? _tajweedCache[page]
+                                : null,
                             selectedAyah: !onThisPage
                                 ? null
                                 : (_playingAyah ??

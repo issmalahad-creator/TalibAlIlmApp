@@ -1096,6 +1096,21 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'نائٹ موڈ', 'tr': 'Gece modu', 'id': 'Mode malam', 'bn': 'রাত্রি মোড', 'ha': 'Yanayin dare',
     'so': 'Habka habeenka', 'fa': 'حالت شب', 'ms': 'Mod malam',
   },
+  'mushaf_tajweed_mode': {
+    'ar': 'وضع التجويد', 'en': 'Tajwīd colouring', 'am': 'የተጅዊድ ቀለም', 'fr': 'Couleurs du tajwīd',
+    'sw': 'Rangi za tajwidi', 'ur': 'تجوید رنگ', 'tr': 'Tecvid renklendirme', 'id': 'Pewarnaan tajwid',
+    'bn': 'তাজবিদ রঙ', 'ha': 'Launukan Tajweed', 'so': 'Midabaynta Tajwiid', 'fa': 'رنگ‌آمیزی تجوید',
+    'ms': 'Pewarnaan tajwid',
+  },
+  'mushaf_tajweed_mode_hint': {
+    'ar': 'طبقة دراسية اختيارية — لا تغيّر القراءة العادية', 'en': 'An optional study layer — ordinary reading is unchanged',
+    'am': 'አማራጭ የጥናት ሽፋን — መደበኛ ንባብ አይለወጥም', 'fr': 'Une couche d’étude optionnelle — la lecture ordinaire ne change pas',
+    'sw': 'Safu ya kujifunza ya hiari — usomaji wa kawaida haubadiliki', 'ur': 'ایک اختیاری مطالعاتی تہہ — عام قراءت میں کوئی تبدیلی نہیں',
+    'tr': 'İsteğe bağlı bir çalışma katmanı — normal okuma değişmez', 'id': 'Lapisan belajar opsional — bacaan biasa tidak berubah',
+    'bn': 'একটি ঐচ্ছিক অধ্যয়ন স্তর — সাধারণ পাঠ অপরিবর্তিত', 'ha': 'Sashen karatu na zaɓi — karatun yau da kullum bai canza ba',
+    'so': 'Lakab barasho ah oo ikhtiyaari ah — akhrinta caadiga ah ma beddesho', 'fa': 'یک لایهٔ مطالعاتی اختیاری — خواندن عادی تغییری نمی‌کند',
+    'ms': 'Lapisan pembelajaran pilihan — bacaan biasa tidak berubah',
+  },
   'mushaf_index_surahs': {
     'ar': 'الفهرس', 'en': 'Index', 'am': 'ማውጫ', 'fr': 'Index', 'sw': 'Faharasi',
     'ur': 'فہرست', 'tr': 'Fihrist', 'id': 'Indeks', 'bn': 'সূচি', 'ha': 'Fihirisi',

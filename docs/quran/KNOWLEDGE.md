@@ -156,13 +156,19 @@ change only from `VERIFIED` / authoritative-source data.
   `tool/build_tajweed_rules.py` + re-checking the report; hard-code one
   publisher's colours; treat the two same/close-makhraj idghām rules or
   hamzat al-waṣl / lām shamsiyyah / silent as having a curriculum lesson.
-- **Status (G-t1, 2026-09-05):** DATA layer **built** — `quran_tajweed`
-  (DB v56) seeded from `assets/quran/corpus/tajweed.json.gz` for **6236/6236
-  ayāt, 0 flagged, 70 085 spans**; served by `CorpusTajweedProvider` to the
-  ayah/word knowledge surface (grouped by family, tap → the tier lesson).
-  `lib/data/tajweed_rules_ref.dart` + `lib/theme/tajweed_palette.dart` hold
-  the family/colour/lesson map. **On-page colouring (G-t2/G-t3) not built** —
-  needs per-glyph geometry (see R‑13) + the opt-in «وضع التجويد» carve-out.
+- **Status (Phase G-t, 2026-09-05): fully built.**
+  - **G-t1** — `quran_tajweed` (DB v56) from `tajweed.json.gz`,
+    **6236/6236 ayāt, 0 flagged, 70 085 spans**; `CorpusTajweedProvider`
+    feeds the ayah/word knowledge surface (grouped by family, tap → tier
+    lesson). `tajweed_rules_ref.dart` + `tajweed_palette.dart` = the
+    family/colour/lesson map.
+  - **G-t2** — `mushaf_glyphs` (DB v57, `kMushafLayoutVersion` 3) from
+    `mushaf_glyphs.json.gz` (per ligature + diacritic box, 486k, 604/604 QA).
+  - **G-t3** — `lib/widgets/mushaf/tajweed_overlay.dart` on the page,
+    **opt-in** «وضع التجويد» (`mushaf_tajweed_mode`, off by default) — the
+    `QURAN_PREMIUM_UI.md` §8-bis carve-out. Colour by family, wash
+    0.24/0.30, point rules as a baseline rule; six-family legend strip.
+  - **Not device-verified yet** (built + unit-tested only).
 
 ## R‑15 · Qirāʾāt / riwāyāt
 

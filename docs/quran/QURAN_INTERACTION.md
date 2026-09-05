@@ -127,16 +127,28 @@ them straight.
 
 ---
 
-## 8. Tajweed colour overlay  (`SOURCE-BACKED` — not built)
+## 8. Tajweed colour overlay  (`PROJECT-SPECIFIC` — **built** 2026-09-05, Phase G-t)
 
-- Rule spans (e.g. cpfair/quran-tajweed) are **character offsets into a
-  specific Tanzil text file**. They do **not** transfer to another edition
-  or to MushafDatabase glyph geometry without rebuilding.
-- Store the **rule id**; pick the colour in-app (publishers disagree on
-  colours). KFGQPC "Tajweed V4" palette is the de-facto default.
-- On a glyph-SVG page, a per-character colour overlay needs the
-  `md-diacritic-*` / `md-ligature-*` sub-groups (MushafDatabase exposes
-  them) — a separate, later extraction pass; not in `mushaf_layout.json.gz`.
+- Rule spans (cpfair/quran-tajweed, CC BY 4.0) are **char offsets into a
+  specific 2017 Tanzil file**. `tool/build_tajweed_rules.py` remaps them to
+  our `(surah, ayah, word_index)` + a `[cs, ce)` char range in the word's
+  own `text_uthmani` (6236/6236 clean — SOURCES §9). Stored as the **rule
+  id** only; colour picked in-app.
+- The page wash uses `mushaf_glyphs` (Phase G-t2): per **ligature** +
+  **diacritic** box from the `md-ligature-*` / `md-diacritic-*` sub-groups
+  (`tool/extract_mushaf_glyphs.py`). Ligature-level, not per-letter —
+  `MushafWordGlyphs.runForCharRange(cs, ce)` returns the box run for a
+  rule's range; a rule inside a multi-letter ligature colours the whole
+  ligature.
+- Rendering: `lib/widgets/mushaf/tajweed_overlay.dart` —
+  `buildTajweedPaintSpans(...)` precomputes per page, `TajweedPageOverlay`
+  (`IgnorePointer` `CustomPaint`) draws above the art / below the Selection
+  Layer. **Opt-in only** («وضع التجويد», pref `mushaf_tajweed_mode`, off by
+  default) — the documented `QURAN_PREMIUM_UI.md` §8-bis carve-out to the
+  one-gold-colour law. Colour by **family** (six), wash 0.24/0.30, point
+  rules (`hamzat_wasl`/`silent`/`qalqalah`) as a 1.5px baseline rule.
+- Colour → lesson: six-family legend strip under the page + tappable rule
+  rows in the ayah knowledge surface → `TajweedTierScreen`.
 
 ---
 
