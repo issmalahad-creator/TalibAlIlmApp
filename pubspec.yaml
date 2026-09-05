@@ -173,6 +173,13 @@ flutter:
     # viewBox. Glyph paths dropped. ~2.4 MB gz. Seeded once by MushafLayoutSync.
     - assets/mushaf/mushaf_layout.json.gz
     - assets/mushaf/mushaf_manifest.json
+    # Phase G-t2 — sub-word glyph geometry (per ligature + diacritic box +
+    # the [cs,ce) span of the word's Uthmani text it renders), by
+    # tool/extract_mushaf_glyphs.py from the same pages_svg set. ~6 MB gz.
+    # Seeded per-page into mushaf_glyphs (DB v57) by MushafLayoutSync;
+    # consumed only by the opt-in tajwīd overlay. Optional — a missing
+    # asset just leaves the overlay with nothing to draw.
+    - assets/mushaf/mushaf_glyphs.json.gz
     # Real MushafDatabase V1.01 page art — ALL 604 pages, gzipped SVG
     # (NNN.svg.gz, ~75 MB total, decoded at runtime by _PageArt). License
     # "Sadaqa-e-Jaria" (open incl. commercial). viewBox 382.68×547.09 ==

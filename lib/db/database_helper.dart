@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 56,
+      version: 57,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -96,6 +96,7 @@ class DatabaseHelper {
         await _createV54Tables(db);
         await _createV55Tables(db);
         await _createV56Tables(db);
+        await _createV57Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -164,6 +165,7 @@ class DatabaseHelper {
         if (oldVersion < 54) await _createV54Tables(db);
         if (oldVersion < 55) await _createV55Tables(db);
         if (oldVersion < 56) await _createV56Tables(db);
+        if (oldVersion < 57) await _createV57Tables(db);
       },
     );
   }
@@ -2175,6 +2177,26 @@ class DatabaseHelper {
         ayah INTEGER NOT NULL,
         data TEXT NOT NULL,
         PRIMARY KEY (surah, ayah)
+      )
+    ''');
+  }
+
+  /// v57 — Phase G-t2 · sub-word glyph geometry for the opt-in tajwīd
+  /// overlay (`docs/quran/reports/MUSHAF_GLYPHS_QA.md`). **One row per page**
+  /// (the overlay precomputes a whole page at once — same shape as the
+  /// per-ayah corpus layers, not ~486k tiny rows): `data` is the JSON array
+  /// `[{"o":word_order,"n":hafs_len,"g":[{"k":kind,"t":ch,"cs":..,"ce":..,
+  /// "b":[x,y,w,h]}]}]`. `o` matches `mushaf_words.word_order` on that page;
+  /// `cs..ce` is the span of the word's `text_uthmani` the glyph renders.
+  /// Seeded by `MushafLayoutSync` from `assets/mushaf/mushaf_glyphs.json.gz`
+  /// (`kMushafLayoutVersion` bumped to 3). A missing/oversized asset leaves
+  /// this table empty — the reader and the tajwīd knowledge surface are
+  /// unaffected; only the page wash is.
+  Future<void> _createV57Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS mushaf_glyphs (
+        page INTEGER PRIMARY KEY,
+        data TEXT NOT NULL
       )
     ''');
   }

@@ -34,7 +34,14 @@ const double kMushafViewBoxHeight = 547.09;
 /// for the ~349 pages where that overflows the viewBox. Now converted
 /// correctly in [MushafBox.fromCorners]; the stored `rect_*` columns hold
 /// true `x,y,w,h`. Pure data fix — nothing renders from `rect` yet.
-const int kMushafLayoutVersion = 2;
+///
+/// v3 (Phase G-t2, 2026-09-05): sub-word glyph geometry. `MushafLayoutSync`
+/// now also seeds `mushaf_glyphs` (per ligature + diacritic box + the
+/// `[cs, ce)` span of the word's Uthmani text it covers) from the separate
+/// `assets/mushaf/mushaf_glyphs.json.gz`, in the same seed transaction. Used
+/// only by the opt-in tajwīd overlay ([MushafGlyphBox]). A missing or
+/// oversized glyph asset is logged and skipped — the reader is unaffected.
+const int kMushafLayoutVersion = 3;
 
 /// An axis-aligned box in source `viewBox` units. No `dart:ui` dependency.
 class MushafBox {
@@ -456,4 +463,63 @@ class MushafPageLayout {
       ],
     );
   }
+}
+
+/// Phase G-t2 · one sub-word glyph: a **ligature** (`kind == 0`, the base
+/// `<path data-text>` — may cover several letters) or a **diacritic**
+/// (`kind == 1`). `charStart..charEnd` is the half-open span of the owning
+/// word's own Uthmani (`text_uthmani`) string this glyph renders, so a
+/// tajwīd rule's `[cs, ce)` range maps to a run of boxes. Geometry is in
+/// source viewBox units (`0 0 382.68 547.09`), same space as
+/// [MushafWord.box]. Parsed from `mushaf_glyphs.data` (DB v57) — read only
+/// by the opt-in tajwīd overlay.
+class MushafGlyphBox {
+  final int kind; // 0 = base ligature · 1 = diacritic
+  final String text; // data-text ("بسم") or data-diacritic ("kasra")
+  final int charStart;
+  final int charEnd;
+  final MushafBox box;
+
+  const MushafGlyphBox({
+    required this.kind,
+    required this.text,
+    required this.charStart,
+    required this.charEnd,
+    required this.box,
+  });
+
+  bool get isBase => kind == 0;
+
+  /// Overlaps the half-open word-char range `[cs, ce)`.
+  bool coversRange(int cs, int ce) => charStart < ce && charEnd > cs;
+
+  static MushafGlyphBox fromJson(Map<String, dynamic> j) => MushafGlyphBox(
+        kind: (j['k'] as num).toInt(),
+        text: j['t'] as String? ?? '',
+        charStart: (j['cs'] as num).toInt(),
+        charEnd: (j['ce'] as num).toInt(),
+        box: MushafBox.fromList(j['b']) ?? const MushafBox(0, 0, 0, 0),
+      );
+}
+
+/// The glyphs of one word on a page (`wordOrder` == [MushafWord.order]).
+class MushafWordGlyphs {
+  final int wordOrder;
+  final int hafsLen;
+  final List<MushafGlyphBox> glyphs;
+  const MushafWordGlyphs(this.wordOrder, this.hafsLen, this.glyphs);
+
+  static MushafWordGlyphs fromJson(Map<String, dynamic> j) => MushafWordGlyphs(
+        (j['o'] as num).toInt(),
+        (j['n'] as num?)?.toInt() ?? 0,
+        [
+          for (final g in (j['g'] as List? ?? const []))
+            MushafGlyphBox.fromJson(g as Map<String, dynamic>),
+        ],
+      );
+
+  /// Boxes whose char span overlaps `[cs, ce)` — the run to wash for a
+  /// tajwīd rule on this word. Bases first, then their diacritics.
+  List<MushafGlyphBox> runForCharRange(int cs, int ce) =>
+      [for (final g in glyphs) if (g.coversRange(cs, ce)) g];
 }

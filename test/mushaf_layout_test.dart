@@ -245,7 +245,7 @@ void main() {
       final rows = await db.query('mushaf_meta');
       final meta = {for (final r in rows) r['key'] as String: r['value'] as String};
       expect(meta['layout_version'], '$kMushafLayoutVersion');
-      expect(meta['layout_version'], '2'); // Phase 80 / M1 bump
+      expect(meta['layout_version'], '3'); // Phase G-t2 — glyph geometry added
       expect(int.parse(meta['aya_marks']!), canonTotalAyat);
       expect(int.parse(meta['words']!), greaterThan(77000));
       expect(meta['content_rects_ok'], '604');

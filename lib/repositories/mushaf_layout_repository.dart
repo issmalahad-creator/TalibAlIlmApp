@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
@@ -140,5 +142,27 @@ class MushafLayoutRepository {
         'SELECT MIN(page) AS a, MAX(page) AS b FROM mushaf_words WHERE surah = ?', [surah]);
     if (rows.isEmpty || rows.first['a'] == null) return null;
     return (first: (rows.first['a'] as num).toInt(), last: (rows.first['b'] as num).toInt());
+  }
+
+  /// Phase G-t2 — sub-word glyph geometry for a page, keyed by
+  /// `wordOrder` (== [MushafWord.order]). Empty when the optional
+  /// `mushaf_glyphs` asset wasn't bundled/seeded (DB v57). Used only by the
+  /// opt-in tajwīd overlay.
+  Future<Map<int, MushafWordGlyphs>> glyphsForPage(int page) async {
+    final db = await _db;
+    final rows = await db.query('mushaf_glyphs',
+        columns: ['data'], where: 'page = ?', whereArgs: [page], limit: 1);
+    if (rows.isEmpty) return const {};
+    try {
+      final list = jsonDecode(rows.first['data'] as String) as List;
+      final out = <int, MushafWordGlyphs>{};
+      for (final w in list) {
+        final g = MushafWordGlyphs.fromJson((w as Map).cast<String, dynamic>());
+        out[g.wordOrder] = g;
+      }
+      return out;
+    } catch (_) {
+      return const {};
+    }
   }
 }
