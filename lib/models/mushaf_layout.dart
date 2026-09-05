@@ -35,13 +35,16 @@ const double kMushafViewBoxHeight = 547.09;
 /// correctly in [MushafBox.fromCorners]; the stored `rect_*` columns hold
 /// true `x,y,w,h`. Pure data fix — nothing renders from `rect` yet.
 ///
-/// v3 (Phase G-t2, 2026-09-05): sub-word glyph geometry. `MushafLayoutSync`
-/// now also seeds `mushaf_glyphs` (per ligature + diacritic box + the
-/// `[cs, ce)` span of the word's Uthmani text it covers) from the separate
-/// `assets/mushaf/mushaf_glyphs.json.gz`, in the same seed transaction. Used
-/// only by the opt-in tajwīd overlay ([MushafGlyphBox]). A missing or
-/// oversized glyph asset is logged and skipped — the reader is unaffected.
-const int kMushafLayoutVersion = 3;
+/// Phase G-t2 (2026-09-05): sub-word glyph geometry lives in a **separate**
+/// table `mushaf_glyphs` (per ligature + diacritic box + the `[cs, ce)` span
+/// of the word's Uthmani text it covers), from
+/// `assets/mushaf/mushaf_glyphs.json.gz`, used only by the opt-in tajwīd
+/// overlay ([MushafGlyphBox]). It is seeded **independently** by
+/// `MushafLayoutSync` when that table is empty — the layout tables
+/// themselves did not change, so this version is deliberately NOT bumped
+/// (a bump would re-seed ~91k word rows for every existing user for
+/// nothing). A missing / oversized glyph asset is logged and skipped.
+const int kMushafLayoutVersion = 2;
 
 /// An axis-aligned box in source `viewBox` units. No `dart:ui` dependency.
 class MushafBox {

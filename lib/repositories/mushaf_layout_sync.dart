@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
+import 'package:flutter/foundation.dart' show compute, debugPrint, visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
@@ -107,6 +108,9 @@ class MushafLayoutSync {
           0;
       final storedVersion = int.tryParse(await _meta(db, 'layout_version') ?? '');
       if (have > 0 && storedVersion == kMushafLayoutVersion) {
+        // Layout is current. Phase G-t2's glyph geometry is a separate table
+        // seeded on its own (no layout re-seed) — top it up if empty.
+        await _ensureGlyphs(db);
         return const MushafSyncResult('up-to-date');
       }
       return _seedFromAsset(db);
@@ -136,21 +140,41 @@ class MushafLayoutSync {
     }
   }
 
+  /// Phase G-t2 — seed the `mushaf_glyphs` table (one row per page) on its
+  /// own, only when empty. Runs for existing users after a version-neutral
+  /// update (the layout tables are untouched) and as a no-op afterwards.
+  Future<void> _ensureGlyphs(Database db) async {
+    try {
+      final n = Sqflite.firstIntValue(
+              await db.rawQuery('SELECT COUNT(*) FROM mushaf_glyphs')) ??
+          0;
+      if (n > 0) return;
+      final glyphs = await _loadGlyphs();
+      if (glyphs == null || glyphs.isEmpty) return;
+      await db.transaction((txn) async {
+        final batch = txn.batch();
+        for (final e in glyphs.entries) {
+          batch.insert('mushaf_glyphs', {'page': e.key, 'data': e.value},
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        await batch.commit(noResult: true);
+      });
+      debugPrint('MushafLayoutSync: glyph geometry seeded (${glyphs.length}).');
+    } catch (e) {
+      debugPrint('MushafLayoutSync: glyph seed skipped ($e).');
+    }
+  }
+
   /// Phase G-t2 — the per-page sub-word glyph geometry, `{page: rawJsonForPage}`.
-  /// Best-effort: a missing / malformed / oversized asset returns `null` and
-  /// the tajwīd overlay simply has nothing to draw. Never throws.
+  /// The 6 MB gunzip + parse + per-page re-encode runs in a background
+  /// isolate (`compute`) so it never blocks a frame. Best-effort: a missing
+  /// / malformed / oversized asset returns `null` and the tajwīd overlay
+  /// simply has nothing to draw. Never throws.
   Future<Map<int, String>?> _loadGlyphs() async {
     try {
       final bytes = await rootBundle.load(_glyphsAssetPath);
-      final text = utf8.decode(gzip.decode(bytes.buffer.asUint8List()));
-      final obj = jsonDecode(text) as Map<String, dynamic>;
-      final pages = (obj['pages'] as List?) ?? const [];
-      final out = <int, String>{};
-      for (final p in pages) {
-        final m = p as Map<String, dynamic>;
-        final pn = (m['p'] as num).toInt();
-        out[pn] = jsonEncode(m['words'] ?? const []);
-      }
+      final out = await compute(_parseGlyphAsset,
+          Uint8List.fromList(bytes.buffer.asUint8List()));
       if (out.isEmpty) return null;
       debugPrint('MushafLayoutSync: glyph geometry for ${out.length} pages.');
       return out;
@@ -466,5 +490,24 @@ class MushafLayoutSync {
       if (a[i] != b[i]) return false;
     }
     return true;
+  }
+}
+
+/// Runs in a background isolate (`compute`): gunzip + parse
+/// `mushaf_glyphs.json.gz`, and re-emit one compact JSON string per page
+/// (the `words` array). Returns `{}` on any problem.
+Map<int, String> _parseGlyphAsset(Uint8List gz) {
+  try {
+    final text = utf8.decode(gzip.decode(gz));
+    final obj = jsonDecode(text) as Map<String, dynamic>;
+    final pages = (obj['pages'] as List?) ?? const [];
+    final out = <int, String>{};
+    for (final p in pages) {
+      final m = p as Map<String, dynamic>;
+      out[(m['p'] as num).toInt()] = jsonEncode(m['words'] ?? const []);
+    }
+    return out;
+  } catch (_) {
+    return const {};
   }
 }
