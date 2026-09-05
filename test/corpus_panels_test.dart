@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/repositories/quran_book_cache.dart';
+import 'package:talib_alilm_app/repositories/quran_corpus_repository.dart';
 import 'package:talib_alilm_app/repositories/quran_corpus_sync.dart';
 import 'package:talib_alilm_app/screens/quran_learning/corpus_panels.dart';
 
@@ -74,6 +75,16 @@ void main() {
     expect(find.text('لا توجد بيانات موثقة لهذا العنصر حاليًا.'), findsNothing);
     // every ayah carries the 12 riwāyāt — the (collapsed) section header shows
     expect(find.textContaining('الروايات'), findsWidgets);
+  });
+
+  testWidgets('AyahCorpusPanel — سبب النزول is open by default (Ismail wants it to "shine")',
+      (t) async {
+    // 112:1 has two real bundled asbāb books (see quran_corpus_test.dart).
+    await pumpPanel(t, const AyahCorpusPanel(surah: 112, ayah: 1, lang: 'ar'));
+    expect(find.text('سبب النزول'), findsOneWidget);
+    // Every other _CorpusSection starts collapsed and needs a tap; asbāb's
+    // book name is visible with no interaction at all.
+    expect(find.textContaining('الواحدي'), findsWidgets);
   });
 
   testWidgets('AyahTafsirPanel shows a short excerpt + «للمزيد» for 1:1',

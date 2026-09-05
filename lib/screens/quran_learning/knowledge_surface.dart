@@ -4,6 +4,7 @@ import '../../data/quran_surahs.dart';
 import '../../l10n/basic_translations.dart';
 import '../../models/quran_learning.dart';
 import '../../models/quran_selection.dart';
+import '../../repositories/quran_corpus_repository.dart';
 import '../../repositories/quran_learning_repository.dart';
 import '../../repositories/quran_reading_repository.dart';
 import '../../theme/app_theme.dart';
@@ -595,9 +596,11 @@ enum _AyahSeg { tafsir, translation, tajweed, uloom, sources }
 class _AyahSurfaceState extends State<_AyahSurface> {
   final _repo = QuranLearningRepository();
   final _quran = QuranReadingRepository();
+  final _corpusRepo = QuranCorpusRepository();
   KnowledgeResult? _result;
   String? _ayahText;
   _AyahSeg _seg = _AyahSeg.tafsir;
+  bool _hasAsbab = false;
 
   int get surah => widget.selection.surah;
   int get ayah => widget.selection.ayah;
@@ -611,20 +614,35 @@ class _AyahSurfaceState extends State<_AyahSurface> {
     _quran.ayahAt(surah, ayah).then((a) {
       if (mounted && a != null) setState(() => _ayahText = a.text);
     });
+    // The one science this surface calls out by name before the user even
+    // taps in — Ismail's ask that سبب النزول "يُشع" when it's really
+    // there. Asbab-only on purpose: any generic "data exists" badge would
+    // light up on nearly every ayah (riwāyāt are always present) and lose
+    // its meaning.
+    _corpusRepo.asbab(surah, ayah).then((rows) {
+      if (mounted && rows.isNotEmpty) setState(() => _hasAsbab = true);
+    });
   }
 
   /// «للمزيد» — close the quick card and open the dedicated ayah page
-  /// (full tafsīr, translations, sources, prev/next). Deep reading never
-  /// happens inside the surface.
+  /// (full tafsīr, translations, sources, prev/next — or العلوم المرتبطة
+  /// when that's the tab the user was on). Deep reading never happens
+  /// inside the surface.
   void _openAyahPage() {
     Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => AyahStudyScreen(surah: surah, ayah: ayah),
+        builder: (_) => AyahStudyScreen(
+          surah: surah,
+          ayah: ayah,
+          initialFamily: _seg == _AyahSeg.uloom ? AyahStudyFamily.uloom : null,
+        ),
       ),
     );
   }
+
+  void _openUloom() => setState(() => _seg = _AyahSeg.uloom);
 
   @override
   Widget build(BuildContext context) {
@@ -683,6 +701,10 @@ class _AyahSurfaceState extends State<_AyahSurface> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else ...[
+                if (_hasAsbab) ...[
+                  _asbabBadge(lang),
+                  const SizedBox(height: 10),
+                ],
                 _learnQ(r, lang),
                 const SizedBox(height: 12),
                 _segbar(lang),
@@ -696,6 +718,37 @@ class _AyahSurfaceState extends State<_AyahSurface> {
       ],
     );
   }
+
+  /// The one calm, gold signal on this surface for one specific science —
+  /// deliberately not a generic "data available" badge (see [initState]).
+  /// A tap just switches to «العلوم المرتبطة» (`AppMotion.normal`, already
+  /// the cross-fade this segbar uses) — no extra "premium" transition.
+  Widget _asbabBadge(String lang) => InkWell(
+        onTap: _openUloom,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: _kGold.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            border: Border.all(color: _kGold.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            textDirection: TextDirection.rtl,
+            children: [
+              const Icon(Icons.auto_awesome_rounded, size: 14, color: _kGold),
+              const SizedBox(width: 6),
+              Text(
+                basicText('ql_asbab_documented_badge', lang),
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w700, color: _kGold),
+              ),
+            ],
+          ),
+        ),
+      );
 
   Widget _learnQ(KnowledgeResult r, String lang) {
     final domains = r.byDomain.keys

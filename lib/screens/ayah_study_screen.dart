@@ -2,12 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
+import '../repositories/quran_corpus_repository.dart';
 import '../repositories/quran_reading_repository.dart';
 import 'ayah_notebook_screen.dart';
 import '../repositories/quran_search_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
 import '../theme/app_theme.dart';
+
+/// Domain → its title key, shared by the "العلوم المرتبطة" cards and reader
+/// (`AyahCorpusPanel` in corpus_panels.dart uses the same keys for its
+/// quick-card section titles, so the two views always agree on labels).
+const Map<String, String> _uloomDomainLabelKeys = {
+  'asbab': 'ql_asbab',
+  'iraab': 'ql_iraab_prose',
+  'nasekh': 'ql_nasekh',
+  'ghareeb': 'ql_ghareeb_ayah',
+  'notes': 'ql_faidah',
+  'similar': 'ql_mutashabihat',
+  'sayings': 'ql_athar',
+};
 
 /// "دراسة الآية" — QURAN_COMPANION_ROADMAP.md Phase 72. Turns one ayah into
 /// a study hub: every real tafsir/translation source available for it as
@@ -26,7 +40,19 @@ class AyahStudyScreen extends StatefulWidget {
   /// (2026-08-25: Ismail wanted picking a language to jump directly to
   /// that translation, not through the full source list every time).
   final String? initialSource;
-  const AyahStudyScreen({super.key, required this.surah, required this.ayah, this.initialSource});
+  /// Opens straight into "العلوم المرتبطة" instead of التفسير والترجمة —
+  /// used by the Ayah Knowledge Surface's «توسّع في صفحة الآية» when it's
+  /// reached from the uloom tab, so the button actually lands on the
+  /// content the user was reading (asbab/iraab/nasekh/ghareeb/notes/
+  /// similar/sayings), not the unrelated tafsir list.
+  final AyahStudyFamily? initialFamily;
+  const AyahStudyScreen({
+    super.key,
+    required this.surah,
+    required this.ayah,
+    this.initialSource,
+    this.initialFamily,
+  });
 
   @override
   State<AyahStudyScreen> createState() => _AyahStudyScreenState();
@@ -34,8 +60,15 @@ class AyahStudyScreen extends StatefulWidget {
 
 enum _StudyMode { cards, reader, compare }
 
+/// تفسير/ترجمة (existing) vs العلوم المرتبطة (سبب النزول وما حولها) — two
+/// independent card→reader flows sharing the same banner/nav/sepia/font
+/// controls. No compare mode for uloom: comparing classical asbāb accounts
+/// isn't the same operation as comparing tafsir editions.
+enum AyahStudyFamily { tafsirTranslation, uloom }
+
 class _AyahStudyScreenState extends State<AyahStudyScreen> {
   final _repo = QuranReadingRepository();
+  final _corpusRepo = QuranCorpusRepository();
   static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
   static final _sourceLabels = {for (final s in QuranSearchRepository.tafsirSources) s.$1: s.$2};
 
@@ -43,10 +76,14 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
   late int _ayah = widget.ayah;
   QuranAyahText? _currentAyah;
   List<AyahTafsirEntry> _entries = [];
+  List<AyahCorpusEntry> _uloomEntries = [];
+  Map<int, int> _asbabSurahCoverage = {};
   bool _loading = true;
 
+  late AyahStudyFamily _family = widget.initialFamily ?? AyahStudyFamily.tafsirTranslation;
   late _StudyMode _mode = widget.initialSource != null ? _StudyMode.reader : _StudyMode.cards;
   late String? _readerSource = widget.initialSource;
+  String? _readerUloomId;
   final Set<String> _compareSelection = {};
 
   bool _sepia = false;
@@ -61,6 +98,8 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
     setState(() => _loading = true);
     final ayahText = await _repo.ayahAt(_surah, _ayah);
     final entries = await _repo.tafsirEntriesForAyah(_surah, _ayah);
+    final uloomEntries = await _corpusRepo.corpusEntriesForAyah(_surah, _ayah);
+    final asbabCoverage = await _corpusRepo.asbabCoverageForSurah(_surah);
     if (!mounted) return;
     // The DB query has no ORDER BY (SQLite's row order is otherwise
     // unspecified), so card order would be unpredictable run to run
@@ -73,6 +112,8 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
     setState(() {
       _currentAyah = ayahText;
       _entries = entries;
+      _uloomEntries = uloomEntries;
+      _asbabSurahCoverage = asbabCoverage;
       _loading = false;
       // A source that no longer has an entry on the new ayah (the
       // Ibn Ashur/Al-Kahf gap, or any other real gap) drops the reader
@@ -80,6 +121,10 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
       if (_readerSource != null && !entries.any((e) => e.source == _readerSource)) {
         _mode = _StudyMode.cards;
         _readerSource = null;
+      }
+      if (_readerUloomId != null && !uloomEntries.any((e) => e.id == _readerUloomId)) {
+        _mode = _StudyMode.cards;
+        _readerUloomId = null;
       }
     });
   }
@@ -98,6 +143,24 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
     setState(() {
       _mode = _StudyMode.reader;
       _readerSource = source;
+    });
+  }
+
+  void _openUloomReader(String entryId) {
+    setState(() {
+      _mode = _StudyMode.reader;
+      _readerUloomId = entryId;
+    });
+  }
+
+  void _switchFamily(AyahStudyFamily family) {
+    if (_family == family) return;
+    setState(() {
+      _family = family;
+      _mode = _StudyMode.cards;
+      _readerSource = null;
+      _readerUloomId = null;
+      _compareSelection.clear();
     });
   }
 
@@ -150,38 +213,58 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
             : Column(
                 children: [
                   _AyahBanner(ayah: _currentAyah, sepia: _sepia),
+                  _FamilySwitcher(family: _family, lang: lang, onSelect: _switchFamily),
                   Expanded(
-                    child: switch (_mode) {
-                      _StudyMode.cards => _CardsView(
-                          entries: _entries,
-                          sourceLabels: _sourceLabels,
-                          lang: lang,
-                          onOpenReader: _openReader,
-                          onStartCompare: () => setState(() => _mode = _StudyMode.compare),
-                        ),
-                      _StudyMode.reader => _ReaderView(
-                          source: _readerSource!,
-                          entries: _entries,
-                          sourceLabels: _sourceLabels,
-                          sepia: _sepia,
-                          lang: lang,
-                          onBackToCards: () => setState(() {
-                            _mode = _StudyMode.cards;
-                            _readerSource = null;
-                          }),
-                        ),
-                      _StudyMode.compare => _CompareView(
-                          entries: _entries,
-                          sourceLabels: _sourceLabels,
-                          selection: _compareSelection,
-                          lang: lang,
-                          onToggle: _toggleCompareSelection,
-                          onBackToCards: () => setState(() {
-                            _mode = _StudyMode.cards;
-                            _compareSelection.clear();
-                          }),
-                        ),
-                    },
+                    child: _family == AyahStudyFamily.uloom
+                        ? switch (_mode) {
+                            _StudyMode.reader => _UloomReaderView(
+                                entryId: _readerUloomId,
+                                entries: _uloomEntries,
+                                sepia: _sepia,
+                                lang: lang,
+                                onBackToCards: () => setState(() {
+                                  _mode = _StudyMode.cards;
+                                  _readerUloomId = null;
+                                }),
+                              ),
+                            _StudyMode.cards || _StudyMode.compare => _UloomCardsView(
+                                entries: _uloomEntries,
+                                asbabSurahCoverage: _asbabSurahCoverage,
+                                lang: lang,
+                                onOpenReader: _openUloomReader,
+                              ),
+                          }
+                        : switch (_mode) {
+                            _StudyMode.cards => _CardsView(
+                                entries: _entries,
+                                sourceLabels: _sourceLabels,
+                                lang: lang,
+                                onOpenReader: _openReader,
+                                onStartCompare: () => setState(() => _mode = _StudyMode.compare),
+                              ),
+                            _StudyMode.reader => _ReaderView(
+                                source: _readerSource!,
+                                entries: _entries,
+                                sourceLabels: _sourceLabels,
+                                sepia: _sepia,
+                                lang: lang,
+                                onBackToCards: () => setState(() {
+                                  _mode = _StudyMode.cards;
+                                  _readerSource = null;
+                                }),
+                              ),
+                            _StudyMode.compare => _CompareView(
+                                entries: _entries,
+                                sourceLabels: _sourceLabels,
+                                selection: _compareSelection,
+                                lang: lang,
+                                onToggle: _toggleCompareSelection,
+                                onBackToCards: () => setState(() {
+                                  _mode = _StudyMode.cards;
+                                  _compareSelection.clear();
+                                }),
+                              ),
+                          },
                   ),
                   if (_mode != _StudyMode.compare)
                     _AyahNavBar(
@@ -271,6 +354,38 @@ class _AyahNavBar extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Switches between the two independent card→reader flows this screen
+/// hosts. Kept to two chips only (no icon-only tabs) so the label itself
+/// — not an icon the user has to learn — says what's behind each.
+class _FamilySwitcher extends StatelessWidget {
+  final AyahStudyFamily family;
+  final String lang;
+  final void Function(AyahStudyFamily) onSelect;
+  const _FamilySwitcher({required this.family, required this.lang, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      child: Row(
+        children: [
+          ChoiceChip(
+            label: Text(basicText('ql_family_tafsir_translation', lang)),
+            selected: family == AyahStudyFamily.tafsirTranslation,
+            onSelected: (_) => onSelect(AyahStudyFamily.tafsirTranslation),
+          ),
+          const SizedBox(width: 8),
+          ChoiceChip(
+            label: Text(basicText('ql_related_sciences', lang)),
+            selected: family == AyahStudyFamily.uloom,
+            onSelected: (_) => onSelect(AyahStudyFamily.uloom),
+          ),
+        ],
       ),
     );
   }
@@ -394,6 +509,153 @@ class _ReaderView extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Text(
                 entry?.text ?? basicText('no_tafsir_for_this_ayah', lang),
+                textAlign: TextAlign.right,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(fontSize: 15.5 * scale, height: 1.9, color: AppColors.textDark),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "العلوم المرتبطة" card list — one card per [AyahCorpusEntry] (سبب النزول ·
+/// إعراب من الكتب · ناسخ · غريب الآية · فوائد · متشابهات · آثار), full text
+/// behind each tap via [_UloomReaderView]. When two books both discuss the
+/// same ayah's أسباب النزول, each is its own card — never merged, never
+/// silently picked (mirrors how multiple tafsir editions are already
+/// separate cards, not one combined text).
+class _UloomCardsView extends StatelessWidget {
+  final List<AyahCorpusEntry> entries;
+  final Map<int, int> asbabSurahCoverage;
+  final String lang;
+  final void Function(String entryId) onOpenReader;
+  const _UloomCardsView({
+    required this.entries,
+    required this.asbabSurahCoverage,
+    required this.lang,
+    required this.onOpenReader,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAsbab = entries.any((e) => e.domain == 'asbab');
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      children: [
+        if (!hasAsbab)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Text(
+              basicText(
+                asbabSurahCoverage.isNotEmpty ? 'ql_asbab_not_for_ayah' : 'ql_asbab_not_for_surah',
+                lang,
+              ),
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5, height: 1.7),
+            ),
+          ),
+        if (entries.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(basicText('ql_no_data_element', lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
+            ),
+          )
+        else
+          ...entries.map((e) {
+            final domainLabel = basicText(_uloomDomainLabelKeys[e.domain] ?? e.domain, lang);
+            return Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              child: ListTile(
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        e.label.isNotEmpty ? e.label : domainLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    if (e.label.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(right: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
+                        child: Text(domainLabel, style: const TextStyle(fontSize: 10.5, color: AppColors.primaryDark)),
+                      ),
+                  ],
+                ),
+                subtitle: Text(
+                  e.text,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
+                ),
+                trailing: const Icon(Icons.chevron_left_rounded),
+                onTap: () => onOpenReader(e.id),
+              ),
+            );
+          }),
+      ],
+    );
+  }
+}
+
+class _UloomReaderView extends StatelessWidget {
+  final String? entryId;
+  final List<AyahCorpusEntry> entries;
+  final bool sepia;
+  final String lang;
+  final VoidCallback onBackToCards;
+  const _UloomReaderView({
+    required this.entryId,
+    required this.entries,
+    required this.sepia,
+    required this.lang,
+    required this.onBackToCards,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final entry = entries.where((e) => e.id == entryId).firstOrNull;
+    return ValueListenableBuilder<double>(
+      valueListenable: TextScalePreferenceService.scaleNotifier,
+      builder: (context, scale, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: Row(
+              children: [
+                TextButton.icon(
+                  onPressed: onBackToCards,
+                  icon: const Icon(Icons.list_alt_outlined, size: 18),
+                  label: Text(basicText('all_sources_action', lang)),
+                ),
+                const Spacer(),
+                if (entry != null)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        entry.label.isNotEmpty ? entry.label : basicText(_uloomDomainLabelKeys[entry.domain] ?? entry.domain, lang),
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      if (entry.author != null)
+                        Text(entry.author!, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                entry?.text ?? basicText('ql_no_data_element', lang),
                 textAlign: TextAlign.right,
                 textDirection: TextDirection.rtl,
                 style: TextStyle(fontSize: 15.5 * scale, height: 1.9, color: AppColors.textDark),

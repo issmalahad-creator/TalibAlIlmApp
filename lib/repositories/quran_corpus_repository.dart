@@ -4,6 +4,64 @@ import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
 
+final RegExp _footRe =
+    RegExp(r'<footer[^>]*>.*?</footer>', caseSensitive: false, dotAll: true);
+final RegExp _brRe =
+    RegExp(r'<\s*/?\s*(br|p|div|li|tr|h[1-6])\s*/?\s*>', caseSensitive: false);
+final RegExp _tagRe = RegExp(r'<[^>]+>');
+final RegExp _blankRe = RegExp(r'[ \t]*\n[ \t]*(\n[ \t]*)+');
+
+/// HTML (or a list / map of html fragments) → plain text with real line
+/// breaks. The iʿrāb / asbāb / nāsikh / āthār corpus fields keep their raw
+/// markup (only tafsīr + translations were cleaned at ingest). Shared by
+/// the quick-card layer (`corpus_panels.dart`) and [corpusEntriesForAyah]
+/// so both always render the exact same underlying text.
+String stripCorpusHtml(Object? v) {
+  if (v == null) return '';
+  if (v is List) {
+    return v.map(stripCorpusHtml).where((s) => s.isNotEmpty).join('\n\n');
+  }
+  if (v is Map) {
+    return stripCorpusHtml(v['text'] ?? v['html'] ?? v['content'] ?? '');
+  }
+  var s = v.toString().replaceAll('\r', '').replaceAll('﻿', '');
+  s = s.replaceAll(_footRe, '');
+  s = s.replaceAll(_brRe, '\n').replaceAll(_tagRe, '');
+  s = s
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#39;', "'");
+  s = s.replaceAll(_blankRe, '\n\n');
+  return s.trim();
+}
+
+/// One full-text, never-excerpted item from the "العلوم المرتبطة" corpus
+/// layers, for the دراسة الآية deep page (`AyahStudyScreen`'s uloom
+/// family). `domain` is one of: asbab, iraab, nasekh, ghareeb, notes,
+/// similar, sayings — the same seven layers `AyahCorpusPanel` renders as
+/// short cards; this is their full-text counterpart, sourced from the
+/// exact same tables so the two views never drift.
+class AyahCorpusEntry {
+  final String domain;
+  final String label;
+  final String? author;
+  final String text;
+  const AyahCorpusEntry({
+    required this.domain,
+    required this.label,
+    this.author,
+    required this.text,
+  });
+
+  /// Stable identity across reloads (e.g. after prev/next-ayah), so the
+  /// reader can tell whether "the same item" still exists on a new ayah —
+  /// mirrors `AyahTafsirEntry.source` for tafsir.
+  String get id => '$domain::$label';
+}
+
 /// Phase 80 / QC2 — read access to the seeded **Quran Corpus**
 /// (`quran_corpus_*`, migration v54). Every method addresses the canonical
 /// Hafs spine `(surah, ayah)`; nothing here knows a foreign word index.
@@ -110,6 +168,149 @@ class QuranCorpusRepository {
       LEFT JOIN quran_asbab_book b ON b.id = a.book_id
       WHERE a.surah = ? AND a.ayah = ?
     ''', [surah, ayah]);
+  }
+
+  /// Every sourced item across the seven "العلوم المرتبطة" corpus domains
+  /// for this ayah, as full untruncated text — the دراسة الآية deep page's
+  /// "العلوم" family reads this so «توسّع في صفحة الآية» actually opens
+  /// somewhere real. Calls the same per-domain methods the quick-card
+  /// layer uses, so both always show the same underlying text.
+  Future<List<AyahCorpusEntry>> corpusEntriesForAyah(int surah, int ayah) async {
+    final out = <AyahCorpusEntry>[];
+
+    for (final r in await asbab(surah, ayah)) {
+      final text = stripCorpusHtml(r['html']);
+      if (text.isEmpty) continue;
+      out.add(AyahCorpusEntry(
+        domain: 'asbab',
+        label: '${r['name'] ?? r['short'] ?? ''}',
+        author: _nonEmpty(r['author']),
+        text: text,
+      ));
+    }
+
+    for (final r in await irabProse(surah, ayah)) {
+      final text = stripCorpusHtml(r['html']);
+      if (text.isEmpty) continue;
+      out.add(AyahCorpusEntry(
+        domain: 'iraab',
+        label: '${r['name'] ?? r['short'] ?? ''}',
+        author: _nonEmpty(r['author']),
+        text: text,
+      ));
+    }
+
+    final nasekhRaw = await nasekh(surah, ayah);
+    if (nasekhRaw is Map) {
+      final text = stripCorpusHtml(nasekhRaw['html']);
+      if (text.isNotEmpty) {
+        out.add(AyahCorpusEntry(domain: 'nasekh', label: '', text: text));
+      }
+    }
+
+    final gm = await wordMeanings(surah, ayah);
+    if (gm is List) {
+      for (final book in gm) {
+        if (book is! Map) continue;
+        final words = book['words'] as List? ?? const [];
+        if (words.isEmpty) continue;
+        final text = words
+            .whereType<Map>()
+            .map((w) => '${w['text'] ?? ''}: ${w['meaning'] ?? ''}')
+            .join('\n');
+        if (text.trim().isEmpty) continue;
+        final bookInfo = book['book_info'];
+        out.add(AyahCorpusEntry(
+          domain: 'ghareeb',
+          label: bookInfo is Map ? '${bookInfo['name'] ?? ''}' : '',
+          text: text,
+        ));
+      }
+    }
+
+    final notesRaw = await notes(surah, ayah);
+    if (notesRaw is List) {
+      for (final n in notesRaw) {
+        if (n is! Map) continue;
+        final text = stripCorpusHtml(n['ar_note']);
+        if (text.isEmpty) continue;
+        out.add(AyahCorpusEntry(
+          domain: 'notes',
+          label: '',
+          author: _nonEmpty(n['author']),
+          text: text,
+        ));
+      }
+    }
+
+    final similarRaw = await similar(surah, ayah);
+    if (similarRaw is List) {
+      for (final grp in similarRaw) {
+        if (grp is! Map) continue;
+        final buf = StringBuffer();
+        final note = stripCorpusHtml(grp['notes']);
+        if (note.isNotEmpty) buf.writeln(note);
+        for (final ay in (grp['ayahs'] as List? ?? const [])) {
+          if (ay is! Map) continue;
+          final info = ay['info'];
+          if (info is! Map) continue;
+          final t = stripCorpusHtml(info['text']);
+          if (t.isEmpty) continue;
+          buf.writeln('﴿ $t ﴾  [${info['surah_id'] ?? '?'}:${info['number'] ?? '?'}]');
+        }
+        final text = buf.toString().trim();
+        if (text.isNotEmpty) {
+          out.add(AyahCorpusEntry(domain: 'similar', label: '', text: text));
+        }
+      }
+    }
+
+    final sayingsRaw = await sayings(surah, ayah);
+    if (sayingsRaw is List) {
+      for (final sy in sayingsRaw) {
+        if (sy is! Map) continue;
+        final text = stripCorpusHtml(sy['text']);
+        if (text.isEmpty) continue;
+        final narrators = (sy['narrators'] as List? ?? const [])
+            .whereType<Map>()
+            .map((x) => x['name'])
+            .whereType<String>()
+            .where((n) => n.isNotEmpty)
+            .join('، ');
+        out.add(AyahCorpusEntry(
+          domain: 'sayings',
+          label: '${sy['title'] ?? ''}',
+          author: narrators.isEmpty ? null : narrators,
+          text: text,
+        ));
+      }
+    }
+
+    return out;
+  }
+
+  String? _nonEmpty(Object? v) {
+    final s = v?.toString();
+    return (s == null || s.isEmpty) ? null : s;
+  }
+
+  /// How many أسباب النزول books discuss each ayah of [surah] —
+  /// `{ayah: bookCount}`, ayat with zero rows simply absent. Used to tell
+  /// "no report for this ayah, but the surah has others documented" apart
+  /// from "nothing documented anywhere in this surah" — never a guess,
+  /// only what `quran_asbab` actually contains.
+  Future<Map<int, int>> asbabCoverageForSurah(int surah) async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT ayah, COUNT(DISTINCT book_id) AS c
+      FROM quran_asbab
+      WHERE surah = ?
+      GROUP BY ayah
+    ''', [surah]);
+    return {
+      for (final r in rows)
+        (r['ayah'] as num).toInt(): (r['c'] as num).toInt(),
+    };
   }
 
   /// Topics whose ayah range covers `(surah, ayah)` — the Knowledge Index

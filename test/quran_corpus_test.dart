@@ -142,6 +142,55 @@ void main() {
     expect(() => repo.morphologyForWord(2, 255, 99), returnsNormally);
   });
 
+  group('corpusEntriesForAyah — the دراسة الآية "العلوم" deep page', () {
+    test('1:1 — a single asbāb book, full untruncated text', () async {
+      final entries = await repo.corpusEntriesForAyah(1, 1);
+      final asbab = entries.where((e) => e.domain == 'asbab').toList();
+      expect(asbab.length, 1);
+      expect(asbab.single.text.length, greaterThan(200),
+          reason: 'never excerpted — the whole point of this method');
+      expect(asbab.single.text, isNot(contains('…')));
+    });
+
+    test('112:1 — two asbāb books each become their own entry, never merged',
+        () async {
+      final entries = await repo.corpusEntriesForAyah(112, 1);
+      final asbab = entries.where((e) => e.domain == 'asbab').toList();
+      expect(asbab.length, 2);
+      expect(asbab.map((e) => e.label).toSet().length, 2,
+          reason: 'two distinct, attributed books — not a silent pick');
+    });
+
+    test('an ayah with nothing in any domain returns an empty list, never throws',
+        () async {
+      // A late Meccan āyah unlikely to have corpus prose in every domain;
+      // whatever domains ARE empty for it must simply be absent, not a
+      // placeholder/guessed entry.
+      expect(() => repo.corpusEntriesForAyah(114, 1), returnsNormally);
+    });
+  });
+
+  group('asbabCoverageForSurah — verse-vs-surah, no invented claims', () {
+    test('2:255 has no asbāb row of its own, but the surah has 86 others',
+        () async {
+      final entries = await repo.corpusEntriesForAyah(2, 255);
+      expect(entries.any((e) => e.domain == 'asbab'), isFalse);
+      final coverage = await repo.asbabCoverageForSurah(2);
+      expect(coverage, isNotEmpty);
+      expect(coverage.containsKey(255), isFalse);
+    });
+
+    test('surah 26 has zero asbāb coverage anywhere in it', () async {
+      final coverage = await repo.asbabCoverageForSurah(26);
+      expect(coverage, isEmpty);
+    });
+
+    test('112:1 coverage count matches the two books found above', () async {
+      final coverage = await repo.asbabCoverageForSurah(112);
+      expect(coverage[1], 2);
+    });
+  });
+
   test('re-running sync is a no-op when sha is unchanged', () async {
     final db = await DatabaseHelper.instance.database;
     final before = (await db.query('quran_corpus_meta',

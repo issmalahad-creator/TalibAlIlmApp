@@ -41,40 +41,13 @@ const String _srcNasekh = 'الإيضاح لناسخ القرآن ومنسوخه
 
 // ─────────────────────────── shared helpers ────────────────────────────
 
-final RegExp _brRe =
-    RegExp(r'<\s*/?\s*(br|p|div|li|tr|h[1-6])\s*/?\s*>', caseSensitive: false);
-final RegExp _footRe =
-    RegExp(r'<footer[^>]*>.*?</footer>', caseSensitive: false, dotAll: true);
-final RegExp _tagRe = RegExp(r'<[^>]+>');
-final RegExp _blankRe = RegExp(r'[ \t]*\n[ \t]*(\n[ \t]*)+');
 final RegExp _harakaRe =
     RegExp(r'[ؐ-ًؚ-ٰٟۖ-ۭـ]');
 final RegExp _wsRe = RegExp(r'\s+');
 
-/// HTML (or a list / map of html fragments) → plain text with real line
-/// breaks. The iʿrāb / asbāb / nāsikh / āthār corpus fields keep their raw
-/// markup (only tafsīr + translations were cleaned at ingest).
-String stripCorpusHtml(Object? v) {
-  if (v == null) return '';
-  if (v is List) {
-    return v.map(stripCorpusHtml).where((s) => s.isNotEmpty).join('\n\n');
-  }
-  if (v is Map) {
-    return stripCorpusHtml(v['text'] ?? v['html'] ?? v['content'] ?? '');
-  }
-  var s = v.toString().replaceAll('\r', '').replaceAll('﻿', '');
-  s = s.replaceAll(_footRe, '');
-  s = s.replaceAll(_brRe, '\n').replaceAll(_tagRe, '');
-  s = s
-      .replaceAll('&nbsp;', ' ')
-      .replaceAll('&amp;', '&')
-      .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>')
-      .replaceAll('&quot;', '"')
-      .replaceAll('&#39;', "'");
-  s = s.replaceAll(_blankRe, '\n\n');
-  return s.trim();
-}
+// `stripCorpusHtml` now lives in `quran_corpus_repository.dart` (imported
+// above) — shared with `corpusEntriesForAyah` so the quick-card and the
+// دراسة الآية deep page always render the exact same underlying text.
 
 /// Skeleton form for loose Arabic matching (harakāt dropped, alif / yāʾ /
 /// tāʾ-marbūṭa / hamza unified, whitespace removed). Same intent as the
@@ -782,6 +755,7 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
 
   Widget _asbabSection(String lang) => _CorpusSection(
         title: basicText('ql_asbab', lang),
+        open: true,
         source:
             '${basicText('ql_source', lang)}: $_srcQuranpedia',
         child: _fromBooks(_asbab),
