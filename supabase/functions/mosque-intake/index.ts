@@ -123,8 +123,16 @@ Deno.serve(async (req) => {
 
 async function handle(req: Request): Promise<Response> {
   if (WEBHOOK_SECRET) {
-    const got = req.headers.get('X-Telegram-Bot-Api-Secret-Token');
-    if (got !== WEBHOOK_SECRET) return new Response('forbidden', { status: 403 });
+    const got = (req.headers.get('X-Telegram-Bot-Api-Secret-Token') ?? '').trim();
+    // .trim() both sides: a secret pasted into the Supabase Secrets textarea
+    // (or into the setWebhook call) can silently pick up a trailing newline
+    // or space, which would otherwise make an exact `!==` compare fail
+    // forever — this is exactly what caused every real delivery to 403.
+    if (got !== WEBHOOK_SECRET.trim()) {
+      console.error('webhook secret mismatch: got length', got.length,
+        'expected length', WEBHOOK_SECRET.trim().length);
+      return new Response('forbidden', { status: 403 });
+    }
   }
 
   let update: Record<string, unknown>;
