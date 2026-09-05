@@ -11,13 +11,13 @@ import '../models/quran_selection.dart';
 import '../models/tajweed_span.dart';
 import '../repositories/mushaf_layout_repository.dart';
 import '../repositories/quran_corpus_repository.dart';
+import '../services/mushaf/tajweed_svg.dart';
 import '../repositories/quran_reading_repository.dart';
 import '../repositories/quran_reading_session_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/quran_audio/quran_audio_provider_registry.dart';
 import '../services/quran_audio_engine.dart';
 import '../widgets/companion_floating_bubble.dart';
-import '../widgets/mushaf/tajweed_overlay.dart';
 import '../widgets/mushaf_page_view.dart';
 import '../theme/app_theme.dart';
 import '../theme/tajweed_palette.dart';
@@ -68,10 +68,11 @@ class _MushafSemanticReaderScreenState
   static const _tajweedPrefKey = 'mushaf_tajweed_mode';
   bool _night = false;
 
-  /// Phase G-t3 — the opt-in tajwīd colour layer, off by default.
-  /// `_tajweedCache[page]` holds the precomputed paint spans for a page.
+  /// Phase G-t v2 — the opt-in glyph-level tajwīd colour layer, off by
+  /// default. `_paintCache["$page|$night"]` memoises the page's path→hue
+  /// map so `MushafPageCache`'s resolver is O(1) after the first turn.
   bool _tajweedMode = false;
-  final _tajweedCache = <int, List<TajweedPaintSpan>>{};
+  final _paintCache = <String, TajweedGlyphPaint>{};
 
   /// The one selection on the page — drives the Selection Layer and which
   /// surface is open. Cleared when a surface is dismissed.
@@ -111,14 +112,14 @@ class _MushafSemanticReaderScreenState
     _repo.isReady().then((r) {
       if (mounted) setState(() => _ready = r);
     });
+    // The tajwīd renderer asks this for a page's path→hue map; we memoise.
+    MushafPageCache.instance.tajweedPaintResolver = _tajweedPaintFor;
+
     SharedPreferences.getInstance().then((p) {
       final v = p.getBool(_nightPrefKey);
       if (v != null && mounted) setState(() => _night = v);
       final tj = p.getBool(_tajweedPrefKey);
-      if (tj == true && mounted) {
-        setState(() => _tajweedMode = true);
-        _ensureTajweed(_current);
-      }
+      if (tj == true && mounted) setState(() => _tajweedMode = true);
     });
   }
 
@@ -130,15 +131,17 @@ class _MushafSemanticReaderScreenState
   Future<void> _setTajweed(bool v) async {
     setState(() => _tajweedMode = v);
     (await SharedPreferences.getInstance()).setBool(_tajweedPrefKey, v);
-    if (v) _ensureTajweed(_current);
   }
 
-  /// Precompute (once) the tajwīd paint spans for a page: its ayāt's rule
-  /// spans (`quran_tajweed`) × the page's glyph geometry (`mushaf_glyphs`).
-  Future<void> _ensureTajweed(int page) async {
-    if (_tajweedCache.containsKey(page)) return;
+  /// Phase G-t v2 — resolve which glyph `<path>`s to colour on a page:
+  /// its ayāt's rule spans (`quran_tajweed`) × the page's glyph geometry
+  /// (`mushaf_glyphs` v2). Memoised per `(page, night)`.
+  Future<TajweedGlyphPaint> _tajweedPaintFor(int page) async {
+    final key = '$page|$_night';
+    final hit = _paintCache[key];
+    if (hit != null) return hit;
     final layout = await _layout(page);
-    if (layout == null) return;
+    if (layout == null) return TajweedGlyphPaint.empty;
     final byAyah = <String, AyahTajweed>{};
     final seen = <String>{};
     for (final w in layout.words) {
@@ -148,13 +151,14 @@ class _MushafSemanticReaderScreenState
       byAyah[k] = await _corpus.tajweedForAyah(w.surah, w.ayah);
     }
     final glyphs = await _repo.glyphsForPage(page);
-    final spans = buildTajweedPaintSpans(
-      words: layout.words,
+    final paint = resolveTajweedPaint(
+      pageWords: layout.words,
       tajweedByAyah: byAyah,
       glyphsByWordOrder: glyphs,
+      night: _night,
     );
-    if (!mounted) return;
-    setState(() => _tajweedCache[page] = spans);
+    _paintCache[key] = paint;
+    return paint;
   }
 
   @override
@@ -163,6 +167,10 @@ class _MushafSemanticReaderScreenState
     _sessionTimer?.cancel();
     _audio.stop();
     _controller.dispose();
+    if (MushafPageCache.instance.tajweedPaintResolver == _tajweedPaintFor) {
+      MushafPageCache.instance.tajweedPaintResolver = null;
+      MushafPageCache.instance.invalidateTajweed();
+    }
     super.dispose();
   }
 
@@ -594,59 +602,134 @@ class _MushafSemanticReaderScreenState
     );
   }
 
-  /// The 6-family legend under the page while «وضع التجويد» is on. Each chip
-  /// opens that family's lesson.
-  Widget _tajweedLegend(String lang) {
+  /// A single small pill under the page while «وضع التجويد» is on — `تجويد ▾`
+  /// — opens the collapsible legend sheet. Zero permanent screen cost.
+  Widget _tajweedLegendPill(String lang) {
+    final fg = _night ? const Color(0xFFCFC6B6) : AppColors.textDark;
     return Material(
-      color: _night ? const Color(0xFF1B1712) : const Color(0xFFF3ECE0),
-      child: SizedBox(
-        height: 40,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          itemCount: kTajweedFamilies.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 6),
-          itemBuilder: (_, i) {
-            final (fam, l10nKey) = kTajweedFamilies[i];
-            return Center(
-              child: InkWell(
+      color: _night ? const Color(0xFF14110E) : const Color(0xFFFBF6EE),
+      child: SafeArea(
+        top: false,
+        bottom: !_audioBar,
+        minimum: const EdgeInsets.only(bottom: 6),
+        child: Center(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(999),
+            onTap: () => _openTajweedLegend(lang),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(999),
-                onTap: () {
-                  final tier = kTajweedRules.values
-                      .firstWhere((r) => r.familyKey == fam,
-                          orElse: () => kTajweedRules.values.first)
-                      .tier;
-                  if (tier == null) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => TajweedTierScreen(tier: tier)),
-                  );
-                },
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                  child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Container(
-                      width: 9,
-                      height: 9,
-                      decoration: BoxDecoration(
-                          color: TajweedPalette.accentOf(fam),
-                          shape: BoxShape.circle),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(basicText(l10nKey, lang),
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: _night
-                                ? const Color(0xFFCFC6B6)
-                                : AppColors.textDark)),
-                  ]),
-                ),
+                border: Border.all(
+                    color: fg.withValues(alpha: 0.25), width: 0.8),
               ),
-            );
-          },
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                for (final c in kTajweedCategories) ...[
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(
+                        color: c.color(night: _night),
+                        shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 3),
+                ],
+                const SizedBox(width: 3),
+                Text(basicText('mushaf_tajweed_legend', lang),
+                    style: TextStyle(fontSize: 12, color: fg)),
+                Icon(Icons.expand_less_rounded, size: 16, color: fg),
+              ]),
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  /// The collapsible legend — one row per colour category: swatch · name ·
+  /// one-line definition · an example ayah with the rule glyph in its hue ·
+  /// «افتح الدرس» where a lesson exists.
+  Future<void> _openTajweedLegend(String lang) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor:
+          _night ? const Color(0xFF1E1B17) : AppColors.surface,
+      builder: (_) {
+        final fg = _night ? const Color(0xFFEDE6D9) : AppColors.textDark;
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(18, 4, 18, 20),
+            children: [
+              Text(basicText('mushaf_tajweed_legend_title', lang),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w800, color: fg)),
+              const SizedBox(height: 4),
+              Text(basicText('mushaf_tajweed_mode_hint', lang),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.textMuted)),
+              const SizedBox(height: 14),
+              for (final c in kTajweedCategories)
+                _tajweedLegendRow(c, lang, fg),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _tajweedLegendRow(TajweedCategory c, String lang, Color fg) {
+    // the first rule in this category that has a curriculum lesson
+    final ruleWithLesson = kTajweedRules.values.firstWhere(
+      (r) => r.categoryKey == c.key && r.tier != null,
+      orElse: () => kTajweedRules.values.firstWhere((r) => r.categoryKey == c.key),
+    );
+    final tier = ruleWithLesson.tier;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                  color: c.color(night: _night), shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Text(c.labelAr,
+                textDirection: TextDirection.rtl,
+                style: TextStyle(
+                    fontSize: 13.5, fontWeight: FontWeight.w700, color: fg)),
+            const Spacer(),
+            if (tier != null)
+              TextButton(
+                style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: const Size(0, 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => TajweedTierScreen(tier: tier)));
+                },
+                child: Text(basicText('ql_open_lesson', lang),
+                    style: const TextStyle(fontSize: 11)),
+              ),
+          ]),
+          const SizedBox(height: 3),
+          Text(c.defAr,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(
+                  fontSize: 11.5, height: 1.6, color: AppColors.textMuted)),
+        ],
       ),
     );
   }
@@ -937,11 +1020,7 @@ class _MushafSemanticReaderScreenState
         ),
         bottomNavigationBar: (_tajweedMode || _audioBar)
             ? Column(mainAxisSize: MainAxisSize.min, children: [
-                if (_tajweedMode)
-                  SafeArea(
-                      top: false,
-                      bottom: !_audioBar,
-                      child: _tajweedLegend(lang)),
+                if (_tajweedMode) _tajweedLegendPill(lang),
                 if (_audioBar) _buildAudioBar(lang),
               ])
             : null,
@@ -968,7 +1047,6 @@ class _MushafSemanticReaderScreenState
                     _selMark = null;
                   });
                   MushafPageCache.instance.preloadAround(_current);
-                  if (_tajweedMode) _ensureTajweed(_current);
                 },
                 itemBuilder: (context, i) {
                   final page = i + 1;
@@ -1006,9 +1084,7 @@ class _MushafSemanticReaderScreenState
                             selectedWord: onThisPage ? _selWord : null,
                             wordCaption:
                                 onThisPage ? _selWordCaption : null,
-                            tajweedSpans: (_tajweedMode && onThisPage)
-                                ? _tajweedCache[page]
-                                : null,
+                            tajweed: _tajweedMode,
                             selectedAyah: !onThisPage
                                 ? null
                                 : (_playingAyah ??

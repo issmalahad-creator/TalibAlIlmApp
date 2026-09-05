@@ -129,7 +129,9 @@ def extract_page(raw, want_all):
                 last_cs, last_ce = cs, ce
                 bb = bbox_of(base_path)
                 if bb:
-                    glyphs.append({"k": 0, "t": dtext, "cs": cs, "ce": ce, "b": bb})
+                    glyphs.append({"k": 0, "t": dtext, "cs": cs, "ce": ce,
+                                   "b": bb, "p": base_path.get("id") or "",
+                                   "nb": nb})
             else:
                 # a ligature group with no readable base (or the word's letters
                 # are all already mapped) — its marks attach to the last span
@@ -167,7 +169,8 @@ def extract_page(raw, want_all):
                     gi = hit if hit is not None else min(cs, len(hafs) - 1)
                     gi = max(0, gi)
                     ge = gi + 1
-                    glyphs.append({"k": 1, "t": dv, "cs": gi, "ce": ge, "b": bb})
+                    glyphs.append({"k": 1, "t": dv, "cs": gi, "ce": ge,
+                                   "b": bb, "p": p.get("id") or "", "nb": 1})
 
         if not any(gg["k"] == 0 for gg in glyphs):
             # a text word with no readable base path — keep an empty marker so
@@ -194,8 +197,11 @@ def main():
             print(f"  {i}/{len(files)}", file=sys.stderr)
     pages.sort(key=lambda p: p["p"])
 
+    # v2 (Phase G-t v2): each glyph keeps its <path> id (`p`) + base-letter
+    # count (`nb`) for glyph-level SVG fill colouring. Bump ⇒ MushafLayoutSync
+    # re-seeds mushaf_glyphs once (mushaf_meta `glyphs_v`).
     payload = json.dumps(
-        {"v": 1, "viewBox": VIEWBOX, "all": want_all, "pages": pages},
+        {"v": 2, "viewBox": VIEWBOX, "all": want_all, "pages": pages},
         ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     with gzip.open(OUT, "wb", compresslevel=9) as fh:
         fh.write(payload)

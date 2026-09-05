@@ -1,4 +1,5 @@
 import '../data/tajweed_rules_ref.dart';
+import '../theme/tajweed_palette.dart';
 
 /// Phase G-t · one tajwīd rule occurrence: a half-open `[cs, ce)` char range
 /// inside word `wordIndex` of some ayah, tagged with a cpfair rule id.
@@ -28,15 +29,15 @@ class TajweedSpan {
 
   TajweedRuleRef? get ref => kTajweedRules[ruleId];
 
-  /// Colour family key (`tajweed_palette.dart`); `silent` if the id is
-  /// unknown (never expected — the build tool validates against the 18).
-  String get familyKey => ref?.familyKey ?? 'silent';
+  /// Colour category key (`tajweed_palette.dart`, 6 categories); `silent`
+  /// for an unknown id (never expected — the build tool validates the 18).
+  String get categoryKey => kTajweedRuleCategory[ruleId] ?? 'silent';
 
   String get ruleAr => ref?.ruleAr ?? ruleId;
 }
 
 /// All tajwīd spans for one ayah, plus grouping helpers for the knowledge
-/// surface (rules grouped by family) and, later, the on-page overlay.
+/// surface (rules grouped by colour category).
 class AyahTajweed {
   final int surah;
   final int ayah;
@@ -54,24 +55,24 @@ class AyahTajweed {
   List<TajweedSpan> forWord(int wordIndex) =>
       spans.where((s) => s.wordIndex == wordIndex).toList();
 
-  /// Distinct rule ids present, in the canonical family order of
-  /// [kTajweedRules] (stable legend / list order).
+  /// Distinct rule ids present, in the canonical order of [kTajweedRules]
+  /// (stable list order).
   List<String> get distinctRuleIds {
     final present = spans.map((s) => s.ruleId).toSet();
     return [for (final id in kTajweedRules.keys) if (present.contains(id)) id];
   }
 
-  /// `familyKey -> [rule id, ...]` for the rules actually present, families
-  /// in [kTajweedFamilies] order.
-  Map<String, List<String>> get ruleIdsByFamily {
+  /// `categoryKey -> [rule id, ...]` for the rules actually present,
+  /// categories in [kTajweedCategories] order.
+  Map<String, List<String>> get ruleIdsByCategory {
     final out = <String, List<String>>{};
     for (final id in distinctRuleIds) {
-      final fam = kTajweedRules[id]?.familyKey ?? 'silent';
-      (out[fam] ??= <String>[]).add(id);
+      final cat = kTajweedRuleCategory[id] ?? 'silent';
+      (out[cat] ??= <String>[]).add(id);
     }
     return {
-      for (final (fam, _) in kTajweedFamilies)
-        if (out.containsKey(fam)) fam: out[fam]!,
+      for (final c in kTajweedCategories)
+        if (out.containsKey(c.key)) c.key: out[c.key]!,
     };
   }
 }

@@ -275,7 +275,7 @@ class CorpusTajweedProvider extends KnowledgeProvider {
           {
             'rule_id': id,
             'rule_ar': kTajweedRules[id]!.ruleAr,
-            'rule_family': kTajweedRules[id]!.familyKey,
+            'rule_category': kTajweedRules[id]!.categoryKey,
             'concept_id': kTajweedRules[id]!.conceptId,
           }
       ];

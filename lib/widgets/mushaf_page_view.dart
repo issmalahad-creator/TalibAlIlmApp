@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../models/mushaf_layout.dart';
 import 'mushaf/mushaf_page_cache.dart';
 import 'mushaf/screen_transform.dart';
-import 'mushaf/tajweed_overlay.dart';
 
 export 'mushaf/screen_transform.dart' show ScreenTransform;
 export 'mushaf/mushaf_page_cache.dart' show MushafPageCache;
@@ -66,12 +65,12 @@ class MushafPageView extends StatelessWidget {
   /// glyph ink; `IgnorePointer`, so no interaction impact). Null = nothing.
   final String? wordCaption;
 
-  /// Phase G-t3 — precomputed tajwīd colour spans for this page. Non-empty
-  /// only while the reader's opt-in «وضع التجويد» is on; then a translucent
-  /// family-colour wash is drawn above the art and below the Selection
-  /// Layer (`docs/quran/QURAN_PREMIUM_UI.md` §8-bis). Null/empty = nothing,
-  /// ordinary reading unchanged.
-  final List<TajweedPaintSpan>? tajweedSpans;
+  /// Phase G-t v2 — «وضع التجويد». When true, the page renders the
+  /// **glyph-coloured** variant: `fill` injected on the exact `<path>` of
+  /// each rule glyph (`MushafPageCache` + `paintTajweedIntoSvg`), and the
+  /// wholesale night `ColorFilter` is dropped (the base ink is baked in).
+  /// False = ordinary reading, byte-identical to before.
+  final bool tajweed;
 
   const MushafPageView({
     super.key,
@@ -83,7 +82,7 @@ class MushafPageView extends StatelessWidget {
     this.onWordLongPress,
     this.artInk,
     this.wordCaption,
-    this.tajweedSpans,
+    this.tajweed = false,
   });
 
   @override
@@ -170,19 +169,9 @@ class MushafPageView extends StatelessWidget {
                   top: dy,
                   width: vbW * scale,
                   height: vbH * scale,
-                  child: _PageArt(page: layout.page, artInk: artInk),
+                  child: _PageArt(
+                      page: layout.page, artInk: artInk, tajweed: tajweed),
                 ),
-                // Tajwīd layer (opt-in «وضع التجويد») — above the art, below
-                // the Selection Layer. IgnorePointer; §8-bis carve-out.
-                if (tajweedSpans != null && tajweedSpans!.isNotEmpty)
-                  Positioned.fill(
-                    child: TajweedPageOverlay(
-                      spans: tajweedSpans!,
-                      scale: scale,
-                      offset: Offset(dx, dy),
-                      night: artInk != null,
-                    ),
-                  ),
                 // Selection Layer — premium highlight over the art, never
                 // touches the SVG, never darkens the glyph ink.
                 Positioned.fill(
@@ -466,7 +455,9 @@ bool mushafArtBundled(int page) => page >= 1 && page <= 604;
 class _PageArt extends StatefulWidget {
   final int page;
   final Color? artInk;
-  const _PageArt({required this.page, required this.artInk});
+  final bool tajweed;
+  const _PageArt(
+      {required this.page, required this.artInk, this.tajweed = false});
 
   @override
   State<_PageArt> createState() => _PageArtState();
@@ -477,6 +468,8 @@ class _PageArtState extends State<_PageArt> {
   final _cache = MushafPageCache.instance;
   String? _svg;
 
+  bool get _night => widget.artInk != null;
+
   @override
   void initState() {
     super.initState();
@@ -486,7 +479,9 @@ class _PageArtState extends State<_PageArt> {
   @override
   void didUpdateWidget(_PageArt old) {
     super.didUpdateWidget(old);
-    if (old.page != widget.page) {
+    if (old.page != widget.page ||
+        old.tajweed != widget.tajweed ||
+        (old.artInk != null) != _night) {
       _svg = null;
       _load();
     }
@@ -494,12 +489,13 @@ class _PageArtState extends State<_PageArt> {
 
   Future<void> _load() async {
     final page = widget.page;
-    if (_cache.has(page)) {
+    final tj = widget.tajweed;
+    if (!tj && _cache.has(page)) {
       _svg = _cache.peek(page);
       if (mounted) setState(() {});
     } else {
-      final svg = await _cache.load(page);
-      if (!mounted || widget.page != page) return;
+      final svg = await _cache.load(page, tajweed: tj, night: _night);
+      if (!mounted || widget.page != page || widget.tajweed != tj) return;
       setState(() => _svg = svg);
     }
     _cache.preloadAround(page);
@@ -513,9 +509,12 @@ class _PageArtState extends State<_PageArt> {
       return SvgPicture.string(
         svg,
         fit: BoxFit.fill,
-        // Monochrome art → re-ink wholesale for night reading.
-        colorFilter:
-            ink == null ? null : ColorFilter.mode(ink, BlendMode.srcIn),
+        // Monochrome art → re-ink wholesale for night reading. In tajwīd
+        // mode the ink (+ colours) are baked into the string by
+        // `paintTajweedIntoSvg`, so no filter — it would flatten the hues.
+        colorFilter: (ink == null || widget.tajweed)
+            ? null
+            : ColorFilter.mode(ink, BlendMode.srcIn),
         placeholderBuilder: (_) => ColoredBox(
             color: ink == null ? const Color(0xFFFFFDF7) : Colors.transparent),
       );

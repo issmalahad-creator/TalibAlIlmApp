@@ -130,8 +130,8 @@ class MushafLayoutSync {
         debugPrint('MushafLayoutSync: bundled asset failed validation, not seeding. $v');
         return MushafSyncResult('rejected', validation: v);
       }
-      await _ingest(db, layout, v,
-          artSetSha256: await _manifestArtHash(), glyphPages: await _loadGlyphs());
+      await _ingest(db, layout, v, artSetSha256: await _manifestArtHash());
+      await _ensureGlyphs(db); // separate table, its own version marker
       debugPrint('MushafLayoutSync: seeded from asset. $v');
       return MushafSyncResult('seeded', changed: true, validation: v);
     } catch (e) {
@@ -140,43 +140,49 @@ class MushafLayoutSync {
     }
   }
 
-  /// Phase G-t2 — seed the `mushaf_glyphs` table (one row per page) on its
-  /// own, only when empty. Runs for existing users after a version-neutral
-  /// update (the layout tables are untouched) and as a no-op afterwards.
+  /// Phase G-t2 / v2 — seed the `mushaf_glyphs` table (one row per page) on
+  /// its own: when the table is empty, OR when the bundled asset's `v` moved
+  /// on (`mushaf_meta` marker `glyphs_v`). No layout re-seed — the layout
+  /// tables are untouched, so `kMushafLayoutVersion` is deliberately not
+  /// bumped (that would re-seed ~91k word rows for every existing user).
   Future<void> _ensureGlyphs(Database db) async {
     try {
       final n = Sqflite.firstIntValue(
               await db.rawQuery('SELECT COUNT(*) FROM mushaf_glyphs')) ??
           0;
-      if (n > 0) return;
-      final glyphs = await _loadGlyphs();
-      if (glyphs == null || glyphs.isEmpty) return;
+      final storedV = int.tryParse(await _meta(db, 'glyphs_v') ?? '') ?? 0;
+      final loaded = await _loadGlyphs();
+      if (loaded == null) return;
+      final (assetV, pages) = loaded;
+      if (n > 0 && storedV == assetV) return;
+
       await db.transaction((txn) async {
+        await txn.delete('mushaf_glyphs');
         final batch = txn.batch();
-        for (final e in glyphs.entries) {
-          batch.insert('mushaf_glyphs', {'page': e.key, 'data': e.value},
-              conflictAlgorithm: ConflictAlgorithm.replace);
+        for (final e in pages.entries) {
+          batch.insert('mushaf_glyphs', {'page': e.key, 'data': e.value});
         }
         await batch.commit(noResult: true);
+        await txn.insert('mushaf_meta', {'key': 'glyphs_v', 'value': '$assetV'},
+            conflictAlgorithm: ConflictAlgorithm.replace);
       });
-      debugPrint('MushafLayoutSync: glyph geometry seeded (${glyphs.length}).');
+      debugPrint('MushafLayoutSync: glyph geometry v$assetV seeded (${pages.length}).');
     } catch (e) {
       debugPrint('MushafLayoutSync: glyph seed skipped ($e).');
     }
   }
 
-  /// Phase G-t2 — the per-page sub-word glyph geometry, `{page: rawJsonForPage}`.
-  /// The 6 MB gunzip + parse + per-page re-encode runs in a background
-  /// isolate (`compute`) so it never blocks a frame. Best-effort: a missing
-  /// / malformed / oversized asset returns `null` and the tajwīd overlay
-  /// simply has nothing to draw. Never throws.
-  Future<Map<int, String>?> _loadGlyphs() async {
+  /// Phase G-t2 — the per-page sub-word glyph geometry: `(assetVersion,
+  /// {page: rawJsonForPage})`. The ~8 MB gunzip + parse + per-page re-encode
+  /// runs in a background isolate (`compute`). Best-effort: a missing /
+  /// malformed asset returns `null` and the tajwīd layer has nothing to draw.
+  Future<(int, Map<int, String>)?> _loadGlyphs() async {
     try {
       final bytes = await rootBundle.load(_glyphsAssetPath);
       final out = await compute(_parseGlyphAsset,
           Uint8List.fromList(bytes.buffer.asUint8List()));
-      if (out.isEmpty) return null;
-      debugPrint('MushafLayoutSync: glyph geometry for ${out.length} pages.');
+      if (out.$2.isEmpty) return null;
+      debugPrint('MushafLayoutSync: glyph geometry v${out.$1} for ${out.$2.length} pages.');
       return out;
     } catch (e) {
       debugPrint('MushafLayoutSync: glyph asset skipped ($e).');
@@ -384,7 +390,6 @@ class MushafLayoutSync {
     Map<String, dynamic> layout,
     MushafValidation validation, {
     String? artSetSha256,
-    Map<int, String>? glyphPages,
   }) async {
     final pages = (layout['pages'] as List).cast<Map<String, dynamic>>();
     final vb = (layout['viewBox'] as List?) ?? const [0, 0, kMushafViewBoxWidth, kMushafViewBoxHeight];
@@ -439,14 +444,6 @@ class MushafLayoutSync {
         }
       }
 
-      // Phase G-t2 — one row per page of sub-word glyph geometry, if the
-      // (optional) asset loaded. Same transaction as the layout.
-      if (glyphPages != null) {
-        for (final e in glyphPages.entries) {
-          batch.insert('mushaf_glyphs', {'page': e.key, 'data': e.value});
-        }
-      }
-
       await batch.commit(noResult: true);
 
       // Post-insert cross-check against the DB itself — if what landed
@@ -494,20 +491,21 @@ class MushafLayoutSync {
 }
 
 /// Runs in a background isolate (`compute`): gunzip + parse
-/// `mushaf_glyphs.json.gz`, and re-emit one compact JSON string per page
-/// (the `words` array). Returns `{}` on any problem.
-Map<int, String> _parseGlyphAsset(Uint8List gz) {
+/// `mushaf_glyphs.json.gz`, and re-emit `(assetVersion, {page: wordsJson})`.
+/// Returns `(0, {})` on any problem.
+(int, Map<int, String>) _parseGlyphAsset(Uint8List gz) {
   try {
     final text = utf8.decode(gzip.decode(gz));
     final obj = jsonDecode(text) as Map<String, dynamic>;
+    final v = (obj['v'] as num?)?.toInt() ?? 1;
     final pages = (obj['pages'] as List?) ?? const [];
     final out = <int, String>{};
     for (final p in pages) {
       final m = p as Map<String, dynamic>;
       out[(m['p'] as num).toInt()] = jsonEncode(m['words'] ?? const []);
     }
-    return out;
+    return (v, out);
   } catch (_) {
-    return const {};
+    return (0, const {});
   }
 }

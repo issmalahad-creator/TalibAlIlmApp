@@ -1,46 +1,125 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 
-/// Phase G-t · the muṣḥaf tajwīd colour set, keyed by **rule family** (six,
-/// never the 18 individual rule ids — a page with 18 hues is noise, not a
-/// teaching aid). Same shape as [AppColors.studyAnnotationColors]:
-/// `(light tint, night tint, solid accent)`.
+/// Phase G-t v2 · the muṣḥaf tajwīd colour system.
 ///
-/// - `light` / `night` — translucent tints for chips, the legend strip and
-///   the rule rows in the knowledge surface.
-/// - `accent` — the solid hue: legend dots, and (Phase G-t3) the on-page
-///   wash, drawn as `accent.withValues(alpha: 0.24)` by day / `0.30` by
-///   night over the glyph-box run. That opacity is the documented
-///   `QURAN_PREMIUM_UI.md` §8-bis carve-out — allowed only inside the
-///   opt-in «وضع التجويد», off by default.
+/// **A Quran-reading palette, not Material.** Six categories, one hue per
+/// *sound behaviour* (not the 18 rule ids and not one‑hue‑per‑rule noise),
+/// drawn from the Dār al‑Maʿrifah / King Fahd Complex coloured‑muṣḥaf
+/// tradition and muted so a coloured glyph reads as "ink that happens to be
+/// coloured", never as a highlight. The six are separated by **value** as
+/// well as hue so a colour‑blind reader still sees six bands.
 ///
-/// The six families and their member rule ids (see `tajweed_rules_ref.dart`):
-///   noon_tanwin      — إخفاء · إقلاب · إدغام بغنّة/بغير غنّة · متجانسين · متقاربين
-///   meem_sakina      — إخفاء شفوي · إدغام شفوي
-///   madd             — طبيعي · عارض/لين · لازم · متّصل · منفصل
-///   ghunnah_qalqalah — غنّة · قلقلة
-///   lam_hamza        — لام شمسية · همزة وصل
-///   silent           — حرف لا يُنطق
+/// These hues are painted **onto the glyph outlines themselves**
+/// (`lib/services/mushaf/tajweed_svg.dart` injects `fill` on the exact
+/// `<path>` of each rule glyph) — there is no rectangle, no wash, no overlay.
+///
+/// Rules the source (`cpfair/quran-tajweed`) does **not** mark — إظهار
+/// (ḥalqī/shafawī), تفخيم/ترقيق — get no colour. Claiming them would be
+/// inventing data.
+class TajweedCategory {
+  final String key;
+  final String labelAr;
+  final String defAr; // one line for the legend sheet
+  final int lightRgb; // 0xFFRRGGBB
+  final int darkRgb;
+  const TajweedCategory(
+      this.key, this.labelAr, this.defAr, this.lightRgb, this.darkRgb);
+
+  Color color({required bool night}) => Color(night ? darkRgb : lightRgb);
+
+  /// `#RRGGBB` for SVG `fill`.
+  String hex({required bool night}) =>
+      '#${((night ? darkRgb : lightRgb) & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+}
+
+const List<TajweedCategory> kTajweedCategories = [
+  TajweedCategory(
+    'madd',
+    'المدّ',
+    'إطالة الصوت بحرف مدّ — حركتان أو أربع أو ستّ بحسب سببه.',
+    0xFFA63D2E, // muted brick‑red — the universal madd colour, softened
+    0xFFE08A73,
+  ),
+  TajweedCategory(
+    'ghunnah',
+    'الغُنّة والإدغام بغُنّة',
+    'صوت يخرج من الخيشوم يصاحب النون والميم المشدّدتين وأحكامهما (ومنه الإقلاب).',
+    0xFF1F7A6B, // deep teal‑green — the classic ghunnah/ikhfāʾ family
+    0xFF5FC2AE,
+  ),
+  TajweedCategory(
+    'ikhfa',
+    'الإخفاء',
+    'نطق النون الساكنة أو الميم الساكنة بصفة بين الإظهار والإدغام مع غنّة.',
+    0xFF2E6F4E, // forest‑green — same family, a darker value than ghunnah
+    0xFF66B98A,
+  ),
+  TajweedCategory(
+    'qalqalah',
+    'القلقلة',
+    'اضطراب المخرج عند النطق بحرف من «قُطْبُ جَدٍّ» ساكنًا حتى تُسمع نبرة.',
+    0xFF25506E, // deep muted blue — a percussive beat, not a stretch
+    0xFF6FA8CE,
+  ),
+  TajweedCategory(
+    'idghaam',
+    'الإدغام',
+    'إدخال حرف ساكن في متحرّك بعده فيصيران حرفًا واحدًا مشدّدًا.',
+    0xFF5B6570, // slate‑grey — the letter steps back into the next
+    0xFF9AA4B0,
+  ),
+  TajweedCategory(
+    'silent',
+    'حرف لا يُنطق',
+    'حرف يُرسم ولا يُلفظ — كهمزة الوصل، ولام «الـ» الشمسية، وحروف الصلة.',
+    0xFF8A8072, // warm stone‑grey, the faintest — the eye skips it too
+    0xFFB9AFA0,
+  ),
+];
+
+/// cpfair rule id → category key. All 18 ids map to one of the six.
+const Map<String, String> kTajweedRuleCategory = {
+  // المدّ
+  'madd_2': 'madd',
+  'madd_246': 'madd',
+  'madd_6': 'madd',
+  'madd_muttasil': 'madd',
+  'madd_munfasil': 'madd',
+  // الغُنّة (نأو مشدّدة / إدغام بغنّة / إقلاب)
+  'ghunnah': 'ghunnah',
+  'idghaam_ghunnah': 'ghunnah',
+  'iqlab': 'ghunnah',
+  // الإخفاء
+  'ikhfa': 'ikhfa',
+  'ikhfa_shafawi': 'ikhfa',
+  // القلقلة
+  'qalqalah': 'qalqalah',
+  // الإدغام (بغير غنّة / متجانس / متقارب / شفوي)
+  'idghaam_no_ghunnah': 'idghaam',
+  'idghaam_mutajanisayn': 'idghaam',
+  'idghaam_mutaqaribayn': 'idghaam',
+  'idghaam_shafawi': 'idghaam',
+  // حرف لا يُنطق
+  'silent': 'silent',
+  'hamzat_wasl': 'silent',
+  'lam_shamsiyyah': 'silent',
+};
+
+final Map<String, TajweedCategory> _byKey = {
+  for (final c in kTajweedCategories) c.key: c,
+};
+
 class TajweedPalette {
   const TajweedPalette._();
 
-  static const families = <String, (Color light, Color night, Color accent)>{
-    // teal-green — the noon-sākinah / tanwīn group (the largest family)
-    'noon_tanwin': (Color(0x3311998E), Color(0x5514B8A6), Color(0xFF0E9384)),
-    // cyan — the mīm-sākinah group
-    'meem_sakina': (Color(0x330EA5E9), Color(0x550284C7), Color(0xFF0284C7)),
-    // warm red — the mudūd (traditional tajwīd masaahif colour madd red)
-    'madd': (Color(0x33E11D48), Color(0x55BE123C), Color(0xFFE11D48)),
-    // indigo — ghunnah + qalqalah
-    'ghunnah_qalqalah': (Color(0x334F46E5), Color(0x554338CA), Color(0xFF4F46E5)),
-    // violet — the lām / hamza group
-    'lam_hamza': (Color(0x339333EA), Color(0x557E22CE), Color(0xFF9333EA)),
-    // muted slate — silent letters
-    'silent': (Color(0x2F64748B), Color(0x55475569), Color(0xFF64748B)),
-  };
+  /// The category a cpfair rule id belongs to (defaults to `silent` for an
+  /// unknown id — never expected; the build tool validates against the 18).
+  static TajweedCategory categoryForRule(String ruleId) =>
+      _byKey[kTajweedRuleCategory[ruleId] ?? 'silent'] ?? _byKey['silent']!;
 
-  static (Color light, Color night, Color accent) family(String key) =>
-      families[key] ?? families['silent']!;
+  static TajweedCategory? byKey(String key) => _byKey[key];
 
-  /// Just the solid hue for [key] (legend dots, wash base colour).
-  static Color accentOf(String key) => family(key).$3;
+  /// Hex `#RRGGBB` for the rule's category, for SVG `fill` injection.
+  static String hexForRule(String ruleId, {required bool night}) =>
+      categoryForRule(ruleId).hex(night: night);
 }

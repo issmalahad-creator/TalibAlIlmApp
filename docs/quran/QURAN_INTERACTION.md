@@ -140,15 +140,23 @@ them straight.
   `MushafWordGlyphs.runForCharRange(cs, ce)` returns the box run for a
   rule's range; a rule inside a multi-letter ligature colours the whole
   ligature.
-- Rendering: `lib/widgets/mushaf/tajweed_overlay.dart` —
-  `buildTajweedPaintSpans(...)` precomputes per page, `TajweedPageOverlay`
-  (`IgnorePointer` `CustomPaint`) draws above the art / below the Selection
-  Layer. **Opt-in only** («وضع التجويد», pref `mushaf_tajweed_mode`, off by
-  default) — the documented `QURAN_PREMIUM_UI.md` §8-bis carve-out to the
-  one-gold-colour law. Colour by **family** (six), wash 0.24/0.30, point
-  rules (`hamzat_wasl`/`silent`/`qalqalah`) as a 1.5px baseline rule.
-- Colour → lesson: six-family legend strip under the page + tappable rule
-  rows in the ayah knowledge surface → `TajweedTierScreen`.
+- Rendering (**v2, glyph-level — no overlay, no rectangle**):
+  `lib/services/mushaf/tajweed_svg.dart`. `resolveTajweedPaint(...)` maps a
+  rule's `[cs, ce)` → SVG `<path>` ids; `paintTajweedIntoSvg(...)` injects
+  `fill` on the **exact glyph path** (every diacritic + single-letter
+  ligature — ≈ 82 % of spans, precise) or a **`clipPath` band** x-slice
+  inside a multi-letter ligature (≈ 18 %, a region of the word, never the
+  whole word). The base ink moves to `<g id="md-page" fill>` (replaces the
+  night `ColorFilter`). Runs in `MushafPageCache`'s `compute` isolate,
+  cached per `(page, night)`. **Opt-in** («وضع التجويد»,
+  `mushaf_tajweed_mode`, off by default). Colour by **category** (six).
+  `TajweedPageOverlay` and the box-wash approach are **deleted**.
+- MushafDatabase draws whole-word ligatures → true per-letter geometry is
+  impossible on this art; the ≈ 3 % unplaceable spans stay black on the
+  page, shown in the knowledge surface + on tap. Coverage:
+  `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`.
+- Colour → lesson: `تجويد ▾` pill → a collapsible legend sheet (six
+  categories, definition, «افتح الدرس» → `TajweedTierScreen`).
 
 ---
 

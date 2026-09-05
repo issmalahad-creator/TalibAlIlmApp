@@ -164,11 +164,17 @@ change only from `VERIFIED` / authoritative-source data.
     family/colour/lesson map.
   - **G-t2** — `mushaf_glyphs` (DB v57, `kMushafLayoutVersion` 3) from
     `mushaf_glyphs.json.gz` (per ligature + diacritic box, 486k, 604/604 QA).
-  - **G-t3** — `lib/widgets/mushaf/tajweed_overlay.dart` on the page,
-    **opt-in** «وضع التجويد» (`mushaf_tajweed_mode`, off by default) — the
-    `QURAN_PREMIUM_UI.md` §8-bis carve-out. Colour by family, wash
-    0.24/0.30, point rules as a baseline rule; six-family legend strip.
-  - **Not device-verified yet** (built + unit-tested only).
+  - **G-t3 → v2 (glyph-level)** — `lib/services/mushaf/tajweed_svg.dart`.
+    Colour on the **exact glyph `<path>`** (diacritic + single-letter
+    ligature, ≈ 82 %) or a `clipPath` **band** inside a multi-letter
+    ligature (≈ 18 %, a region not the whole word); ≈ 3 % unplaceable stay
+    black + on tap. Six-**category** Quran palette (`tajweed_palette.dart`).
+    No overlay, no rectangle — `TajweedPageOverlay` deleted. Opt-in «وضع
+    التجويد» (`mushaf_tajweed_mode`); `تجويد ▾` pill → legend sheet.
+    Coverage report: `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. Full
+    audit: `docs/quran/TAJWEED_RENDERING_ANALYSIS.md`.
+  - **Data limit:** MushafDatabase ligates whole words → true per-letter
+    geometry needs a different art source / an in-app shaping renderer (v3).
 
 ## R‑15 · Qirāʾāt / riwāyāt
 

@@ -10,6 +10,7 @@ import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/repositories/quran_corpus_repository.dart';
 import 'package:talib_alilm_app/repositories/quran_corpus_sync.dart';
 import 'package:talib_alilm_app/services/quran_learning/knowledge_gateway.dart';
+import 'package:talib_alilm_app/theme/tajweed_palette.dart';
 
 /// Phase G-t1 — tajwīd rule spans (cpfair/quran-tajweed, CC BY 4.0) seed
 /// from the real bundled `assets/quran/corpus/tajweed.json.gz` for all 6236
@@ -85,18 +86,22 @@ void main() {
     expect(seenRules.length, greaterThanOrEqualTo(16));
   });
 
-  test('every family in kTajweedFamilies resolves a palette + label key', () {
-    for (final (famKey, l10nKey) in kTajweedFamilies) {
-      expect(l10nKey.startsWith('ql_tajfam_'), isTrue);
+  test('every colour category has members + a palette entry; all 18 map', () {
+    final catKeys = {for (final c in kTajweedCategories) c.key};
+    for (final c in kTajweedCategories) {
+      expect(c.labelAr, isNotEmpty);
+      expect(c.color(night: false), isNotNull);
+      expect(c.color(night: true), isNotNull);
       final members =
-          kTajweedRules.values.where((r) => r.familyKey == famKey).toList();
-      expect(members, isNotEmpty, reason: 'family $famKey has no rules');
+          kTajweedRules.values.where((r) => r.categoryKey == c.key).toList();
+      expect(members, isNotEmpty, reason: 'category ${c.key} has no rules');
     }
-    // all 18 rule refs point at one of the six families
-    final famKeys = kTajweedFamilies.map((e) => e.$1).toSet();
+    // all 18 rule refs point at one of the six categories
     for (final r in kTajweedRules.values) {
-      expect(famKeys.contains(r.familyKey), isTrue);
+      expect(catKeys.contains(r.categoryKey), isTrue);
     }
+    // and the raw id → category map covers exactly the 18 ids
+    expect(kTajweedRuleCategory.keys.toSet(), kTajweedRules.keys.toSet());
   });
 
   test('CorpusTajweedProvider returns per-word facts for al-Fātiḥa 1:1',
@@ -122,18 +127,17 @@ void main() {
     expect(CorpusTajweedProvider().domains, {'tajweed'});
   });
 
-  test('repository AyahTajweed groups rules by family in canonical order',
+  test('repository AyahTajweed groups rules by category in canonical order',
       () async {
     final t = await repo.tajweedForAyah(1, 1);
     expect(t.isNotEmpty, isTrue);
-    final byFam = t.ruleIdsByFamily;
-    // al-Fātiḥa 1:1 has hamzat al-waṣl + lām shamsiyyah (lam_hamza) and a madd
-    expect(byFam.keys, contains('lam_hamza'));
-    expect(byFam.keys, contains('madd'));
-    // family keys come back in kTajweedFamilies order
-    final order = kTajweedFamilies.map((e) => e.$1).toList();
-    final got = byFam.keys.toList();
-    final idx = got.map(order.indexOf).toList();
+    final byCat = t.ruleIdsByCategory;
+    // al-Fātiḥa 1:1 has hamzat al-waṣl + lām shamsiyyah (silent) and a madd
+    expect(byCat.keys, contains('silent'));
+    expect(byCat.keys, contains('madd'));
+    // category keys come back in kTajweedCategories order
+    final order = [for (final c in kTajweedCategories) c.key];
+    final idx = byCat.keys.map(order.indexOf).toList();
     final sorted = [...idx]..sort();
     expect(idx, sorted);
   });

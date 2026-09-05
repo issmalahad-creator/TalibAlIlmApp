@@ -439,8 +439,10 @@ class _WordSurfaceState extends State<_WordSurface> {
                   height: 8,
                   margin: const EdgeInsets.only(left: 6),
                   decoration: BoxDecoration(
-                    color: TajweedPalette.accentOf(
-                        '${rule['rule_family'] ?? 'silent'}'),
+                    color: (TajweedPalette.byKey(
+                                '${rule['rule_category'] ?? 'silent'}') ??
+                            kTajweedCategories.last)
+                        .color(night: false),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -908,8 +910,8 @@ class _AyahSurfaceState extends State<_AyahSurface> {
     }
   }
 
-  /// أحكام التجويد للآية — grouped by the six colour families (not the 18
-  /// ids). Each family header carries its `tajweed_palette` dot; each rule
+  /// أحكام التجويد للآية — grouped by the six colour categories (not the 18
+  /// ids). Each category header carries its `tajweed_palette` dot; each rule
   /// row that has a curriculum lesson opens it. Data: cpfair/quran-tajweed
   /// via `CorpusTajweedProvider`, all 6236 ayāt.
   Widget _tajweedFamilies(KnowledgeResult r, String lang) {
@@ -924,10 +926,11 @@ class _AyahSurfaceState extends State<_AyahSurface> {
     if (present.isEmpty) return _calmNoData(lang);
 
     final rows = <Widget>[];
-    for (final (fam, l10nKey) in kTajweedFamilies) {
+    for (final cat in kTajweedCategories) {
       final ids = [
         for (final id in kTajweedRules.keys)
-          if (present.contains(id) && kTajweedRules[id]!.familyKey == fam) id
+          if (present.contains(id) && kTajweedRules[id]!.categoryKey == cat.key)
+            id
       ];
       if (ids.isEmpty) continue;
       rows.add(Padding(
@@ -937,10 +940,10 @@ class _AyahSurfaceState extends State<_AyahSurface> {
             width: 10,
             height: 10,
             decoration: BoxDecoration(
-                color: TajweedPalette.accentOf(fam), shape: BoxShape.circle),
+                color: cat.color(night: false), shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
-          Text(basicText(l10nKey, lang),
+          Text(cat.labelAr,
               textDirection: TextDirection.rtl,
               style: const TextStyle(
                   fontSize: 12.5, fontWeight: FontWeight.w700)),

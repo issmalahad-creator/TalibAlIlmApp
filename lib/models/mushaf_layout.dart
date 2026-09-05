@@ -481,6 +481,19 @@ class MushafGlyphBox {
   final String text; // data-text ("بسم") or data-diacritic ("kasra")
   final int charStart;
   final int charEnd;
+
+  /// The exact `<path id>` in the page SVG this glyph is drawn by
+  /// (`md-path-{word}-{lig}[-{dia}]`) — the tajwīd renderer injects `fill`
+  /// on this id. (Phase G-t v2.)
+  final String pathId;
+
+  /// How many **base letters** this glyph's path represents (1 for a
+  /// diacritic or a single-letter ligature; 2–3 for a multi-letter
+  /// ligature). When a rule span is a strict subset of a `baseLen > 1`
+  /// path, the renderer colours the whole ligature — the documented v1
+  /// fallback, counted in `TAJWEED_GLYPH_COVERAGE.md`.
+  final int baseLen;
+
   final MushafBox box;
 
   const MushafGlyphBox({
@@ -488,6 +501,8 @@ class MushafGlyphBox {
     required this.text,
     required this.charStart,
     required this.charEnd,
+    required this.pathId,
+    required this.baseLen,
     required this.box,
   });
 
@@ -496,11 +511,18 @@ class MushafGlyphBox {
   /// Overlaps the half-open word-char range `[cs, ce)`.
   bool coversRange(int cs, int ce) => charStart < ce && charEnd > cs;
 
+  /// The span `[cs, ce)` covers **only part** of this multi-letter ligature
+  /// (the v1 ligature fallback fires — colour the whole path).
+  bool isPartialCover(int cs, int ce) =>
+      isBase && baseLen > 1 && (cs > charStart || ce < charEnd);
+
   static MushafGlyphBox fromJson(Map<String, dynamic> j) => MushafGlyphBox(
         kind: (j['k'] as num).toInt(),
         text: j['t'] as String? ?? '',
         charStart: (j['cs'] as num).toInt(),
         charEnd: (j['ce'] as num).toInt(),
+        pathId: j['p'] as String? ?? '',
+        baseLen: (j['nb'] as num?)?.toInt() ?? 1,
         box: MushafBox.fromList(j['b']) ?? const MushafBox(0, 0, 0, 0),
       );
 }
