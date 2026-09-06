@@ -230,24 +230,23 @@ of tajwīd-hit base glyphs are a single-letter path. So "inject `fill` on the
 base path" would colour whole words. There is **no per-letter path** on this
 art.
 
-Two spikes passed (pixel-tested): flutter_svg honours `fill` inherited from
-`<g id="md-page">` with per-`<path>` override, **and** `<clipPath><rect/>` +
-`clip-path="url(#…)"` on a duplicated path. So the shipped renderer
+A spike passed (pixel-tested): flutter_svg honours `fill` inherited from
+`<g id="md-page">` with per-`<path>` override. So the shipped renderer
 (`lib/services/mushaf/tajweed_svg.dart`) does:
 
-1. **Direct `fill`** on the exact `<path>` — every **diacritic** glyph
-   (wasla, maddah, shadda, superscript-alef, tanwīn, sukūn…) and every
-   **single-letter** base ligature. **≈ 82 % of spans. Fully precise.**
-2. **Clip-path band** — for a rule inside a multi-letter ligature: a
-   duplicate of that `<path>` clipped to the `<rect>` x-slice of the
-   base letters the span covers (proportional split of the ligature box by
-   base-letter index; final-position letters sit at the box edge). **≈ 18 %.
-   A region of the word, ±1 letter, never the whole word, never a
-   rectangle.**
-3. `lam_shamsiyyah` also colours the following shadda (the assimilation) —
+1. **Direct `fill`** on the exact `<path>` — every covered **diacritic**
+   glyph (wasla, maddah, shadda, superscript-alef, tanwīn, sukūn…) and
+   every **single-letter** base ligature. **≈ 80 % of spans. Fully
+   precise.**
+2. `lam_shamsiyyah` also colours the following shadda (the assimilation) —
    render-time, span data untouched.
-4. Unplaceable (bare word-internal madd letter, no mark) → **≈ 3 % stay
-   black on the page**, shown in the knowledge surface + on tap.
+3. A rule that lands **only inside a whole-word ligature with no diacritic
+   anchor** (≈ 20 %, much of `madd_246` at verse ends, some `madd_2`) is
+   **not coloured on the page** — it stays black, and is shown in the
+   knowledge surface + on tap. Every skip is counted in the coverage
+   report — never a silent gap. (A clip-path x-slice "band" was tried and
+   dropped: on a calligraphic word-ligature it renders as a faint
+   baseline stroke, an artefact, not a coloured letter — Ismail's call.)
 
 Base ink moves to `<g id="md-page" fill>` (replaces the night `ColorFilter`).
 Runs in `MushafPageCache`'s `compute` isolate, cached per `(page, night)`.

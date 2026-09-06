@@ -165,16 +165,18 @@ change only from `VERIFIED` / authoritative-source data.
   - **G-t2** — `mushaf_glyphs` (DB v57, `kMushafLayoutVersion` 3) from
     `mushaf_glyphs.json.gz` (per ligature + diacritic box, 486k, 604/604 QA).
   - **G-t3 → v2 (glyph-level)** — `lib/services/mushaf/tajweed_svg.dart`.
-    Colour on the **exact glyph `<path>`** (diacritic + single-letter
-    ligature, ≈ 82 %) or a `clipPath` **band** inside a multi-letter
-    ligature (≈ 18 %, a region not the whole word); ≈ 3 % unplaceable stay
-    black + on tap. Six-**category** Quran palette (`tajweed_palette.dart`).
-    No overlay, no rectangle — `TajweedPageOverlay` deleted. Opt-in «وضع
-    التجويد» (`mushaf_tajweed_mode`); `تجويد ▾` pill → legend sheet.
-    Coverage report: `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. Full
-    audit: `docs/quran/TAJWEED_RENDERING_ANALYSIS.md`.
-  - **Data limit:** MushafDatabase ligates whole words → true per-letter
-    geometry needs a different art source / an in-app shaping renderer (v3).
+    Colour injected as `fill` on the **exact glyph `<path>`** — every
+    covered diacritic + single-letter ligature (≈ 80 %, fully precise). A
+    rule inside a whole-word ligature with no mark to anchor (≈ 20 %, much
+    of `madd_246`) is **not coloured on the page** — black + on tap, every
+    skip counted. **No overlay, no rectangle, no clip band.** Six-**category**
+    Quran palette (`tajweed_palette.dart`). `TajweedPageOverlay` deleted.
+    Opt-in «وضع التجويد» (`mushaf_tajweed_mode`); `تجويد ▾` pill → legend
+    sheet. Coverage: `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. Audit:
+    `docs/quran/TAJWEED_RENDERING_ANALYSIS.md`.
+  - **Data limit:** MushafDatabase ligates whole words (no per-letter
+    path) → true per-letter geometry needs a different art source / an
+    in-app Arabic-shaping renderer (v3).
 
 ## R‑15 · Qirāʾāt / riwāyāt
 

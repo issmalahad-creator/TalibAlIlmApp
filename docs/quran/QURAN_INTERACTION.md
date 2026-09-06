@@ -140,21 +140,23 @@ them straight.
   `MushafWordGlyphs.runForCharRange(cs, ce)` returns the box run for a
   rule's range; a rule inside a multi-letter ligature colours the whole
   ligature.
-- Rendering (**v2, glyph-level — no overlay, no rectangle**):
+- Rendering (**v2, glyph-level — no overlay, no rectangle, no band**):
   `lib/services/mushaf/tajweed_svg.dart`. `resolveTajweedPaint(...)` maps a
   rule's `[cs, ce)` → SVG `<path>` ids; `paintTajweedIntoSvg(...)` injects
-  `fill` on the **exact glyph path** (every diacritic + single-letter
-  ligature — ≈ 82 % of spans, precise) or a **`clipPath` band** x-slice
-  inside a multi-letter ligature (≈ 18 %, a region of the word, never the
-  whole word). The base ink moves to `<g id="md-page" fill>` (replaces the
-  night `ColorFilter`). Runs in `MushafPageCache`'s `compute` isolate,
-  cached per `(page, night)`. **Opt-in** («وضع التجويد»,
-  `mushaf_tajweed_mode`, off by default). Colour by **category** (six).
-  `TajweedPageOverlay` and the box-wash approach are **deleted**.
-- MushafDatabase draws whole-word ligatures → true per-letter geometry is
-  impossible on this art; the ≈ 3 % unplaceable spans stay black on the
-  page, shown in the knowledge surface + on tap. Coverage:
-  `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`.
+  `fill` on the **exact glyph path** — every covered **diacritic** (wasla,
+  shadda, maddah, superscript-alef, tanwīn, sukūn…) and every
+  **single-letter ligature**. ≈ **80 % of spans**, fully precise. The base
+  ink moves to `<g id="md-page" fill>` (replaces the night `ColorFilter`).
+  Runs in `MushafPageCache`'s `compute` isolate, cached per `(page, night)`.
+  **Opt-in** («وضع التجويد», `mushaf_tajweed_mode`, off by default). Colour
+  by **category** (six). `TajweedPageOverlay` + the box-wash are **deleted**.
+- MushafDatabase draws whole-word ligatures (no per-letter path). A rule
+  that lands only inside such a ligature with no diacritic anchor (≈ 20 %,
+  much of `madd_246` at verse ends) is **not coloured on the page** — it
+  stays black, and is shown in the knowledge surface + on tap. Every skip
+  is counted: `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. True
+  per-letter colouring needs a different art source / an in-app shaping
+  renderer (v3).
 - Colour → lesson: `تجويد ▾` pill → a collapsible legend sheet (six
   categories, definition, «افتح الدرس» → `TajweedTierScreen`).
 

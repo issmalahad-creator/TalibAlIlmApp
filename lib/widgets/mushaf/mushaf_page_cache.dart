@@ -73,7 +73,7 @@ class MushafPageCache {
               ? plain
               : await compute(
                   _paintIsolate,
-                  _PaintArgs(plain, paint.directFills, paint.bands,
+                  _PaintArgs(plain, paint.directFills,
                       night ? '#e9e1d2' : '#000000'),
                 );
         } catch (e) {
@@ -181,10 +181,9 @@ String _gunzipUtf8(Uint8List bytes) =>
 class _PaintArgs {
   final String svg;
   final Map<String, String> directFills;
-  final List<TajweedBand> bands;
   final String baseInkHex;
-  const _PaintArgs(this.svg, this.directFills, this.bands, this.baseInkHex);
+  const _PaintArgs(this.svg, this.directFills, this.baseInkHex);
 }
 
 String _paintIsolate(_PaintArgs a) => paintTajweedIntoSvg(a.svg,
-    directFills: a.directFills, bands: a.bands, baseInkHex: a.baseInkHex);
+    directFills: a.directFills, baseInkHex: a.baseInkHex);

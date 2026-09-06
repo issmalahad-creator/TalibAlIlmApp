@@ -39,8 +39,8 @@ void main() {
   });
 
   test('all 604 pages: transform is safe, and the coverage report holds', () async {
-    var total = 0, direct = 0, band = 0, skip = 0;
-    final byRule = <String, List<int>>{}; // rule -> [direct, band, skip]
+    var total = 0, direct = 0, skip = 0;
+    final byRule = <String, List<int>>{}; // rule -> [direct, skip]
     final examples = <String>[];
     final failures = <String>[];
 
@@ -65,15 +65,13 @@ void main() {
 
       total += paint.spansTotal;
       direct += paint.spansDirect;
-      band += paint.spansBand;
       skip += paint.spansSkipped;
       paint.byRule.forEach((r, c) {
-        final l = byRule.putIfAbsent(r, () => [0, 0, 0]);
+        final l = byRule.putIfAbsent(r, () => [0, 0]);
         l[0] += c.direct;
-        l[1] += c.band;
-        l[2] += c.skip;
+        l[1] += c.skip;
       });
-      if (examples.length < 30) examples.addAll(paint.bandExamples);
+      if (examples.length < 30) examples.addAll(paint.skippedExamples);
 
       // ---- transform safety ----
       final raw = utf8.decode(
@@ -84,9 +82,7 @@ void main() {
       String out;
       try {
         out = paintTajweedIntoSvg(raw,
-            directFills: paint.directFills,
-            bands: paint.bands,
-            baseInkHex: '#000000');
+            directFills: paint.directFills, baseInkHex: '#000000');
       } catch (e) {
         failures.add('p$page: transform threw $e');
         continue;
@@ -94,6 +90,10 @@ void main() {
       if (!out.contains('<svg')) failures.add('p$page: no <svg> after transform');
       if ('<g id="md-page" fill='.allMatches(out).length != 1) {
         failures.add('p$page: md-page fill count != 1');
+      }
+      if (out.contains('clipPath')) failures.add('p$page: v1 must not band');
+      if ('<path '.allMatches(out).length != '<path '.allMatches(raw).length) {
+        failures.add('p$page: path count changed');
       }
       // no fill landed on a non-glyph decoration
       for (final m
@@ -106,47 +106,51 @@ void main() {
           failures.add('p$page: coloured a decoration $id');
         }
       }
-      final defs = RegExp(r'<clipPath id="tjc\d+">').allMatches(out).length;
-      final refs = RegExp(r'clip-path="url\(#tjc\d+\)"').allMatches(out).length;
-      if (defs != refs) failures.add('p$page: clip defs $defs != refs $refs');
     }
 
     // ---- write the report ----
-    final rendered = direct + band;
-    String pct(int n) => rendered == 0 ? '0' : (100 * n / rendered).toStringAsFixed(1);
+    String pct(int n) =>
+        total == 0 ? '0' : (100 * n / total).toStringAsFixed(1);
     final md = StringBuffer()
       ..writeln('# Tajwīd glyph-colouring coverage — v1 (Phase G-t v2)')
       ..writeln()
-      ..writeln('**Glyph-level Tajwīd rendering with documented ligature fallback.**')
-      ..writeln('The `[cs, ce)` rule spans (`quran_tajweed`) stay codepoint-exact;')
-      ..writeln('this measures how the *renderer* places the colour on MushafDatabase')
-      ..writeln('art, which draws 2–10-letter ligatures as one `<path>`.')
+      ..writeln('**Glyph-level Tajwīd rendering.** The colour is injected on the')
+      ..writeln('exact `<path>` of a glyph. MushafDatabase draws 2–10-letter')
+      ..writeln('ligatures as one `<path>` and has no per-letter path, so v1')
+      ..writeln('colours only what it can colour **precisely** — every covered')
+      ..writeln('diacritic (wasla, shadda, maddah, superscript-alef, tanwīn,')
+      ..writeln('sukūn…) and every single-letter ligature. The `[cs, ce)` span')
+      ..writeln('data stays codepoint-exact.')
       ..writeln()
-      ..writeln('- rule spans on the page art: **$rendered** placed (+ $skip skipped)')
-      ..writeln('- **DIRECT** (colour on the exact diacritic / single-letter glyph '
-          'path): **$direct**  (${pct(direct)}%)')
-      ..writeln('- **BAND** (clip-path x-slice inside a multi-letter ligature — '
-          'never the whole path): **$band**  (${pct(band)}%)')
-      ..writeln('- **SKIPPED** on the page (shown in the knowledge surface + on '
-          'tap): **$skip**')
+      ..writeln('- rule spans on the page art: **$total**')
+      ..writeln('- **DIRECT** — colour on the exact glyph path: **$direct**  '
+          '(${pct(direct)}%)')
+      ..writeln('- **SKIPPED** — rule lands only inside a multi-letter ligature')
+      ..writeln('  with no diacritic anchor; stays black on the page, shown in')
+      ..writeln('  the knowledge surface + on tap: **$skip**  (${pct(skip)}%)')
+      ..writeln()
+      ..writeln('True per-letter colouring on the remaining spans needs a')
+      ..writeln('different art source / an in-app Arabic-shaping renderer (v3).')
       ..writeln()
       ..writeln('## Per rule')
       ..writeln()
-      ..writeln('| rule | direct | band | skipped |')
+      ..writeln('| rule | direct | skipped | direct % |')
       ..writeln('|---|---|---|---|');
     final rules = byRule.keys.toList()
       ..sort((a, b) =>
           (byRule[b]![0] + byRule[b]![1]) - (byRule[a]![0] + byRule[a]![1]));
     for (final r in rules) {
       final c = byRule[r]!;
-      md.writeln('| `$r` | ${c[0]} | ${c[1]} | ${c[2]} |');
+      final t = c[0] + c[1];
+      md.writeln('| `$r` | ${c[0]} | ${c[1]} | '
+          '${t == 0 ? '–' : (100 * c[0] / t).round()}% |');
     }
     md
       ..writeln()
-      ..writeln('## Band examples (${examples.length > 30 ? 30 : examples.length})')
+      ..writeln('## Skipped examples (${examples.length > 30 ? 30 : examples.length})')
       ..writeln()
-      ..writeln('The colour is clipped to an x-slice of these word-ligatures — '
-          'a region of the word, never the whole word:')
+      ..writeln('These rules land inside a whole-word ligature with no mark to')
+      ..writeln('anchor to — not coloured on the page in v1:')
       ..writeln();
     for (final e in examples.take(30)) {
       md.writeln('- $e');
@@ -157,7 +161,7 @@ void main() {
     expect(failures, isEmpty,
         reason: '${failures.length}:\n${failures.take(20).join('\n')}');
     expect(total, greaterThan(60000));
-    // most spans place *something* precise or banded; skips are the honest gap
-    expect(rendered, greaterThan(total * 0.6));
+    // the precise majority is coloured; skips are the honest, tracked gap
+    expect(direct, greaterThan(total * 0.7));
   });
 }

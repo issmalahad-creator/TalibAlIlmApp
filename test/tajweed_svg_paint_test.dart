@@ -64,14 +64,14 @@ void main() {
       () {
     final raw = pageSvg(1);
     final out = paintTajweedIntoSvg(raw,
-        directFills: const {}, bands: const [], baseInkHex: '#000000');
+        directFills: const {}, baseInkHex: '#000000');
     // only change: one fill on the page group
     expect('<g id="md-page" fill="#000000"'.allMatches(out).length, 1);
     expect(out.replaceFirst(' fill="#000000"', ''), raw);
     expect('<path '.allMatches(out).length, '<path '.allMatches(raw).length);
   });
 
-  test('al-Fātiḥa p1: real fills land only on md-path ids; page group inked',
+  test('al-Fātiḥa p1: real fills land only on md-path glyph ids; page inked',
       () async {
     final paint = await paintFor(1);
     expect(paint.isEmpty, isFalse);
@@ -80,31 +80,28 @@ void main() {
     for (final id in paint.directFills.keys) {
       expect(id.startsWith('md-path-'), isTrue);
       // never a header / page-number / margin decoration
-      expect(id.contains('header') || id.contains('page-number') ||
-          id.contains('margin'), isFalse);
-    }
-    for (final b in paint.bands) {
-      expect(b.basePathId.startsWith('md-path-'), isTrue);
-      expect(b.w, greaterThan(0));
-      expect(b.h, greaterThan(0));
+      expect(
+          id.contains('header') ||
+              id.contains('page-number') ||
+              id.contains('margin'),
+          isFalse);
     }
 
     final out = paintTajweedIntoSvg(pageSvg(1),
-        directFills: paint.directFills,
-        bands: paint.bands,
-        baseInkHex: '#000000');
-    // every injected fill= sits on a <path id="md-path or a clip band <path d=
-    for (final m in RegExp(r'<path fill="(#[0-9a-f]{6})"([^>]*)>').allMatches(out)) {
+        directFills: paint.directFills, baseInkHex: '#000000');
+    // every injected fill= sits on a glyph <path id="md-path-…"
+    for (final m
+        in RegExp(r'<path fill="(#[0-9a-f]{6})"([^>]*)>').allMatches(out)) {
       final rest = m.group(2)!;
-      expect(rest.contains('id="md-path-') || rest.contains('clip-path="url(#tjc'),
-          isTrue,
+      expect(rest.contains('id="md-path-'), isTrue,
           reason: 'stray fill on: ${m.group(0)}');
     }
-    // clip defs are well-formed and referenced
-    final defs = RegExp(r'<clipPath id="(tjc\d+)">').allMatches(out).length;
-    final refs = RegExp(r'clip-path="url\(#(tjc\d+)\)"').allMatches(out).length;
-    expect(defs, refs);
+    // no clip machinery — v1 does not band
+    expect(out.contains('clipPath'), isFalse);
     expect(out.contains('<svg'), isTrue);
+    // path count unchanged (only attributes injected)
+    expect('<path '.allMatches(out).length,
+        '<path '.allMatches(pageSvg(1)).length);
   });
 
   test('diacritic rules colour the mark path exactly (hamzat al-waṣl → wasla)',
