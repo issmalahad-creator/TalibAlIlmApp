@@ -64,7 +64,7 @@ void main() {
       () {
     final raw = pageSvg(1);
     final out = paintTajweedIntoSvg(raw,
-        directFills: const {}, baseInkHex: '#000000');
+        directFills: const {}, bands: const [], baseInkHex: '#000000');
     // only change: one fill on the page group
     expect('<g id="md-page" fill="#000000"'.allMatches(out).length, 1);
     expect(out.replaceFirst(' fill="#000000"', ''), raw);
@@ -87,21 +87,26 @@ void main() {
           isFalse);
     }
 
-    final out = paintTajweedIntoSvg(pageSvg(1),
-        directFills: paint.directFills, baseInkHex: '#000000');
-    // every injected fill= sits on a glyph <path id="md-path-…"
+    final raw = pageSvg(1);
+    final out = paintTajweedIntoSvg(raw,
+        directFills: paint.directFills, bands: paint.bands, baseInkHex: '#000000');
+    // every injected fill= sits on a real glyph path (direct) or a clipped
+    // madd-band duplicate — never a stray element.
     for (final m
         in RegExp(r'<path fill="(#[0-9a-f]{6})"([^>]*)>').allMatches(out)) {
       final rest = m.group(2)!;
-      expect(rest.contains('id="md-path-'), isTrue,
+      expect(rest.contains('id="md-path-') || rest.contains('clip-path="url(#tjc'),
+          isTrue,
           reason: 'stray fill on: ${m.group(0)}');
     }
-    // no clip machinery — v1 does not band
-    expect(out.contains('clipPath'), isFalse);
-    expect(out.contains('<svg'), isTrue);
-    // path count unchanged (only attributes injected)
+    // clip defs are well-formed + referenced 1:1
+    final defs = RegExp(r'<clipPath id="(tjc\d+)">').allMatches(out).length;
+    final refs = RegExp(r'clip-path="url\(#(tjc\d+)\)"').allMatches(out).length;
+    expect(defs, refs);
+    // paths grow by exactly one clipped duplicate per band, nothing else
     expect('<path '.allMatches(out).length,
-        '<path '.allMatches(pageSvg(1)).length);
+        '<path '.allMatches(raw).length + paint.bands.length);
+    expect(out.contains('<svg'), isTrue);
   });
 
   test('diacritic rules colour the mark path exactly (hamzat al-waṣl → wasla)',

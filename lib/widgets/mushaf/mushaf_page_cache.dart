@@ -74,8 +74,10 @@ class MushafPageCache {
               TajweedGlyphPaint.empty;
           painted = paint.isEmpty
               ? plain
-              : await compute(_paintIsolate,
-                  _PaintArgs(plain, paint.directFills, baseInkHex));
+              : await compute(
+                  _paintIsolate,
+                  _PaintArgs(
+                      plain, paint.directFills, paint.bands, baseInkHex));
         } catch (e) {
           debugPrint('MushafPageCache: tajwīd paint for $page failed ($e).');
           painted = plain;
@@ -181,9 +183,10 @@ String _gunzipUtf8(Uint8List bytes) =>
 class _PaintArgs {
   final String svg;
   final Map<String, String> directFills;
+  final List<TajweedBand> bands;
   final String baseInkHex;
-  const _PaintArgs(this.svg, this.directFills, this.baseInkHex);
+  const _PaintArgs(this.svg, this.directFills, this.bands, this.baseInkHex);
 }
 
 String _paintIsolate(_PaintArgs a) => paintTajweedIntoSvg(a.svg,
-    directFills: a.directFills, baseInkHex: a.baseInkHex);
+    directFills: a.directFills, bands: a.bands, baseInkHex: a.baseInkHex);

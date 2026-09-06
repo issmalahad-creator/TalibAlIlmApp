@@ -39,8 +39,8 @@ void main() {
   });
 
   test('all 604 pages: transform is safe, and the coverage report holds', () async {
-    var total = 0, direct = 0, skip = 0;
-    final byRule = <String, List<int>>{}; // rule -> [direct, skip]
+    var total = 0, direct = 0, band = 0, skip = 0;
+    final byRule = <String, List<int>>{}; // rule -> [direct, band, skip]
     final examples = <String>[];
     final failures = <String>[];
 
@@ -65,11 +65,13 @@ void main() {
 
       total += paint.spansTotal;
       direct += paint.spansDirect;
+      band += paint.spansBand;
       skip += paint.spansSkipped;
       paint.byRule.forEach((r, c) {
-        final l = byRule.putIfAbsent(r, () => [0, 0]);
+        final l = byRule.putIfAbsent(r, () => [0, 0, 0]);
         l[0] += c.direct;
-        l[1] += c.skip;
+        l[1] += c.band;
+        l[2] += c.skip;
       });
       if (examples.length < 30) examples.addAll(paint.skippedExamples);
 
@@ -82,7 +84,7 @@ void main() {
       String out;
       try {
         out = paintTajweedIntoSvg(raw,
-            directFills: paint.directFills, baseInkHex: '#000000');
+            directFills: paint.directFills, bands: paint.bands, baseInkHex: '#000000');
       } catch (e) {
         failures.add('p$page: transform threw $e');
         continue;
@@ -91,9 +93,15 @@ void main() {
       if ('<g id="md-page" fill='.allMatches(out).length != 1) {
         failures.add('p$page: md-page fill count != 1');
       }
-      if (out.contains('clipPath')) failures.add('p$page: v1 must not band');
-      if ('<path '.allMatches(out).length != '<path '.allMatches(raw).length) {
-        failures.add('p$page: path count changed');
+      // paths grow by exactly one clipped duplicate per madd band
+      if ('<path '.allMatches(out).length !=
+          '<path '.allMatches(raw).length + paint.bands.length) {
+        failures.add('p$page: path count off by ${'<path '.allMatches(out).length - '<path '.allMatches(raw).length} (bands ${paint.bands.length})');
+      }
+      final cDefs = RegExp(r'<clipPath id="tjc\d+">').allMatches(out).length;
+      final cRefs = RegExp(r'clip-path="url\(#tjc\d+\)"').allMatches(out).length;
+      if (cDefs != cRefs || cDefs != paint.bands.length) {
+        failures.add('p$page: clip defs $cDefs / refs $cRefs / bands ${paint.bands.length}');
       }
       // EVERY id resolveTajweedPaint counted as `direct` must actually be
       // present + coloured in the output — otherwise coverage over-reports
@@ -132,25 +140,26 @@ void main() {
       ..writeln('- rule spans on the page art: **$total**')
       ..writeln('- **DIRECT** — colour on the exact glyph path: **$direct**  '
           '(${pct(direct)}%)')
-      ..writeln('- **SKIPPED** — rule lands only inside a multi-letter ligature')
-      ..writeln('  with no diacritic anchor; stays black on the page, shown in')
-      ..writeln('  the knowledge surface + on tap: **$skip**  (${pct(skip)}%)')
+      ..writeln('- **BAND** — المدّ only: a clip-path x-slice at the madd '
+          "letter's position inside a whole-word ligature (never the whole "
+          'word): **$band**  (${pct(band)}%)')
+      ..writeln('- **SKIPPED** — non-madd rule inside a whole-word ligature '
+          'with no anchor; black on the page, shown in the knowledge surface '
+          '+ on tap: **$skip**  (${pct(skip)}%)')
       ..writeln()
-      ..writeln('True per-letter colouring on the remaining spans needs a')
+      ..writeln('True per-letter colouring for the skipped spans needs a')
       ..writeln('different art source / an in-app Arabic-shaping renderer (v3).')
       ..writeln()
       ..writeln('## Per rule')
       ..writeln()
-      ..writeln('| rule | direct | skipped | direct % |')
+      ..writeln('| rule | direct | band | skipped |')
       ..writeln('|---|---|---|---|');
     final rules = byRule.keys.toList()
-      ..sort((a, b) =>
-          (byRule[b]![0] + byRule[b]![1]) - (byRule[a]![0] + byRule[a]![1]));
+      ..sort((a, b) => (byRule[b]![0] + byRule[b]![1] + byRule[b]![2]) -
+          (byRule[a]![0] + byRule[a]![1] + byRule[a]![2]));
     for (final r in rules) {
       final c = byRule[r]!;
-      final t = c[0] + c[1];
-      md.writeln('| `$r` | ${c[0]} | ${c[1]} | '
-          '${t == 0 ? '–' : (100 * c[0] / t).round()}% |');
+      md.writeln('| `$r` | ${c[0]} | ${c[1]} | ${c[2]} |');
     }
     md
       ..writeln()
