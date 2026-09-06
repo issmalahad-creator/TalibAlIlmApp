@@ -14,27 +14,33 @@ import 'mosque_api_client.dart';
 /// ([MosqueRepository.syncFromApi]). Never throws — `[]` / null on any
 /// failure, per the [MosqueApiClient] contract.
 ///
-/// Only `AppConfig.supabaseUrl` + `AppConfig.supabaseAnonKey` are used (both
-/// safe to ship — RLS protects the tables). The DB password / service_role
-/// key must never reach this file.
+/// Defaults to `AppConfig.supabaseUrl` + `AppConfig.supabaseAnonKey` (both
+/// safe to ship — RLS protects the tables); [url]/[anonKey] can override them
+/// (a test injecting a known-configured endpoint, or a future per-region
+/// setup). The DB password / service_role key must never reach this file.
 class SupabaseMosqueApi implements MosqueApiClient {
-  SupabaseMosqueApi({http.Client? client}) : _http = client ?? http.Client();
+  SupabaseMosqueApi({http.Client? client, String? url, String? anonKey})
+      : _http = client ?? http.Client(),
+        _url = url ?? AppConfig.supabaseUrl,
+        _anonKey = anonKey ?? AppConfig.supabaseAnonKey;
 
   final http.Client _http;
+  final String _url;
+  final String _anonKey;
   static const _timeout = Duration(seconds: 12);
 
-  String get _base => '${AppConfig.supabaseUrl}/rest/v1';
+  String get _base => '$_url/rest/v1';
   Map<String, String> get _headers => {
-        'apikey': AppConfig.supabaseAnonKey,
-        'Authorization': 'Bearer ${AppConfig.supabaseAnonKey}',
+        'apikey': _anonKey,
+        'Authorization': 'Bearer $_anonKey',
         'Accept': 'application/json',
       };
 
   @override
   bool get isConfigured =>
-      AppConfig.supabaseUrl.startsWith('http') &&
-      AppConfig.supabaseAnonKey.isNotEmpty &&
-      !AppConfig.supabaseAnonKey.startsWith('REPLACE_');
+      _url.startsWith('http') &&
+      _anonKey.isNotEmpty &&
+      !_anonKey.startsWith('REPLACE_');
 
   Future<List<Map<String, dynamic>>> _get(String pathAndQuery) async {
     try {

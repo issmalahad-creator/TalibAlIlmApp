@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
@@ -8,6 +9,24 @@ import 'package:talib_alilm_app/models/mosque.dart';
 import 'package:talib_alilm_app/repositories/mosque_repository.dart';
 import 'package:talib_alilm_app/services/mosque/mosque_api_client.dart';
 import 'package:talib_alilm_app/services/mosque/supabase_mosque_api.dart';
+
+/// An http client that never reaches the network — every request fails, so
+/// `SupabaseMosqueApi` exercises its offline-degradation path deterministically
+/// (no dependency on the test VM actually being offline).
+class _OfflineClient extends http.BaseClient {
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      Future.error(const SocketException('offline (test)'));
+}
+
+/// A `SupabaseMosqueApi` that is definitely `isConfigured` — a fixed test URL
+/// + key, injected rather than read from `AppConfig` (which is empty on CI /
+/// a fresh worktree and set in the executor's tree → TD-01 flake).
+SupabaseMosqueApi _configuredOfflineApi() => SupabaseMosqueApi(
+      client: _OfflineClient(),
+      url: 'https://td01.test.supabase.co',
+      anonKey: 'td01-test-anon-key',
+    );
 
 /// «مساجدنا» (Phase 74) — the local layer, against a real SQLite database:
 /// the v53 schema opens, the demo mosque seeds once, and the reads the UI
@@ -110,11 +129,11 @@ void main() {
     expect((await repo.allMosques()).length, 1);
   });
 
-  test('Supabase api reports configured from AppConfig, and offline reads '
-      'degrade to [] not a throw', () async {
-    final api = SupabaseMosqueApi();
-    expect(api.isConfigured, isTrue); // AppConfig.supabaseUrl is set
-    // no network in the test VM → every call catches and returns empty
+  test('a configured Supabase api degrades offline reads to [] / null, not a '
+      'throw', () async {
+    final api = _configuredOfflineApi();
+    expect(api.isConfigured, isTrue);
+    // the injected client always fails → every call catches and returns empty
     expect(await api.listMosques(), isEmpty);
     expect(await api.fetchMosque('MOSQ_X'), isNull);
 
@@ -126,9 +145,9 @@ void main() {
 
   test('lastSyncOk turns false when a configured backend can\'t be reached',
       () async {
-    final repo = MosqueRepository(api: SupabaseMosqueApi());
+    final repo = MosqueRepository(api: _configuredOfflineApi());
     expect(repo.lastSyncOk, isTrue); // optimistic until proven otherwise
-    // no network in the test VM → listMosques() degrades to [] → sync "fails"
+    // listMosques() degrades to [] → sync "fails"
     await repo.syncFromApi();
     expect(repo.lastSyncOk, isFalse);
   });
