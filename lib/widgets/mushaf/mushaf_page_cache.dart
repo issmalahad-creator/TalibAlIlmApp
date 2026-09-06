@@ -53,10 +53,13 @@ class MushafPageCache {
   }
 
   /// Decode [page] (or return the resident value). With `tajweed`, returns
-  /// the glyph‑coloured variant for the given `night` mode.
-  Future<String?> load(int page, {bool tajweed = false, bool night = false}) {
+  /// the glyph‑coloured variant with [baseInkHex] baked into
+  /// `<g id="md-page">` (the reader derives it from its night `artInk`, so
+  /// day/night keep separate cache entries).
+  Future<String?> load(int page,
+      {bool tajweed = false, String baseInkHex = '#000000'}) {
     if (!tajweed) return _loadPlain(page);
-    final key = '$page|$night';
+    final key = '$page|$baseInkHex';
     final cached = _painted[key];
     if (cached != null || _painted.containsKey(key)) {
       _touchPainted(key);
@@ -71,11 +74,8 @@ class MushafPageCache {
               TajweedGlyphPaint.empty;
           painted = paint.isEmpty
               ? plain
-              : await compute(
-                  _paintIsolate,
-                  _PaintArgs(plain, paint.directFills,
-                      night ? '#e9e1d2' : '#000000'),
-                );
+              : await compute(_paintIsolate,
+                  _PaintArgs(plain, paint.directFills, baseInkHex));
         } catch (e) {
           debugPrint('MushafPageCache: tajwīd paint for $page failed ($e).');
           painted = plain;

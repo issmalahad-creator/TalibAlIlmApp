@@ -95,11 +95,18 @@ void main() {
       if ('<path '.allMatches(out).length != '<path '.allMatches(raw).length) {
         failures.add('p$page: path count changed');
       }
-      // no fill landed on a non-glyph decoration
-      for (final m
-          in RegExp(r'<path fill="#[0-9a-f]{6}" id="(md-path-[0-9A-Za-z-]+)"')
-              .allMatches(out)) {
-        final id = m.group(1)!;
+      // EVERY id resolveTajweedPaint counted as `direct` must actually be
+      // present + coloured in the output — otherwise coverage over-reports
+      // and a silently-uncoloured glyph is invisible.
+      final colouredIds = RegExp(r'<path fill="#[0-9a-f]{6}" id="(md-path-[0-9A-Za-z-]+)"')
+          .allMatches(out)
+          .map((m) => m.group(1)!)
+          .toSet();
+      for (final id in paint.directFills.keys) {
+        if (!colouredIds.contains(id)) {
+          failures.add('p$page: directFills id "$id" not coloured in output');
+        }
+        // no fill landed on a non-glyph decoration
         if (id.contains('header') ||
             id.contains('page-number') ||
             id.contains('margin')) {

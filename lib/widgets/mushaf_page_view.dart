@@ -468,7 +468,14 @@ class _PageArtState extends State<_PageArt> {
   final _cache = MushafPageCache.instance;
   String? _svg;
 
-  bool get _night => widget.artInk != null;
+  /// The base-ink hex baked into the tajwīd variant — the same colour the
+  /// non-tajwīd path re-inks the whole picture with (`artInk`), so nothing
+  /// diverges if that colour is ever themed.
+  String get _baseInkHex {
+    final ink = widget.artInk;
+    if (ink == null) return '#000000';
+    return '#${(ink.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+  }
 
   @override
   void initState() {
@@ -481,7 +488,7 @@ class _PageArtState extends State<_PageArt> {
     super.didUpdateWidget(old);
     if (old.page != widget.page ||
         old.tajweed != widget.tajweed ||
-        (old.artInk != null) != _night) {
+        old.artInk?.toARGB32() != widget.artInk?.toARGB32()) {
       _svg = null;
       _load();
     }
@@ -494,7 +501,8 @@ class _PageArtState extends State<_PageArt> {
       _svg = _cache.peek(page);
       if (mounted) setState(() {});
     } else {
-      final svg = await _cache.load(page, tajweed: tj, night: _night);
+      final svg =
+          await _cache.load(page, tajweed: tj, baseInkHex: _baseInkHex);
       if (!mounted || widget.page != page || widget.tajweed != tj) return;
       setState(() => _svg = svg);
     }
