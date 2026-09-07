@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 57,
+      version: 58,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -97,6 +97,7 @@ class DatabaseHelper {
         await _createV55Tables(db);
         await _createV56Tables(db);
         await _createV57Tables(db);
+        await _createV58Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -166,6 +167,7 @@ class DatabaseHelper {
         if (oldVersion < 55) await _createV55Tables(db);
         if (oldVersion < 56) await _createV56Tables(db);
         if (oldVersion < 57) await _createV57Tables(db);
+        if (oldVersion < 58) await _createV58Tables(db);
       },
     );
   }
@@ -2199,6 +2201,22 @@ class DatabaseHelper {
         data TEXT NOT NULL
       )
     ''');
+  }
+
+  /// v58 — Life Engine · L6-DYN #1 · in-app authoring of the plan structure
+  /// (`docs/LIFE_ENGINE.md` §7). The seed stays the same; these columns let
+  /// the user own the plan instead of mirroring the sheet:
+  ///  * `life_pillars.color`    — optional `#RRGGBB` accent for the pillar.
+  ///  * `life_pillars.archived` — soft-delete: kept for history + past
+  ///    progress, hidden from the plan and the editor's active list.
+  ///  * `life_slots.archived`   — same, for a retired time-block. Old ticks
+  ///    on it stay valid; `progress()` just stops counting it.
+  Future<void> _createV58Tables(Database db) async {
+    await db.execute('ALTER TABLE life_pillars ADD COLUMN color TEXT');
+    await db.execute(
+        'ALTER TABLE life_pillars ADD COLUMN archived INTEGER NOT NULL DEFAULT 0');
+    await db.execute(
+        'ALTER TABLE life_slots ADD COLUMN archived INTEGER NOT NULL DEFAULT 0');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

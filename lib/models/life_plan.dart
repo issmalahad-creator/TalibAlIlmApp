@@ -19,6 +19,8 @@ class LifePillar {
   final LifeCadence cadence;
   final int weeklyTarget; // for weekly pillars: e.g. 4 videos
   final int sort;
+  final String? color; // optional '#RRGGBB' accent (L6-DYN)
+  final bool archived; // soft-deleted — kept for history, off the plan
 
   const LifePillar({
     required this.key,
@@ -28,6 +30,8 @@ class LifePillar {
     this.cadence = LifeCadence.daily,
     this.weeklyTarget = 0,
     this.sort = 0,
+    this.color,
+    this.archived = false,
   });
 
   factory LifePillar.fromRow(Map<String, Object?> r) => LifePillar(
@@ -38,6 +42,10 @@ class LifePillar {
         cadence: _cadence(r['cadence'] as String?),
         weeklyTarget: (r['weekly_target'] as num?)?.toInt() ?? 0,
         sort: (r['sort'] as num?)?.toInt() ?? 0,
+        color: (r['color'] as String?)?.isNotEmpty == true
+            ? r['color'] as String
+            : null,
+        archived: ((r['archived'] as num?)?.toInt() ?? 0) == 1,
       );
 
   Map<String, Object?> toRow() => {
@@ -48,7 +56,32 @@ class LifePillar {
         'cadence': cadence == LifeCadence.weekly ? 'weekly' : 'daily',
         'weekly_target': weeklyTarget,
         'sort': sort,
+        'color': color,
+        'archived': archived ? 1 : 0,
       };
+
+  LifePillar copyWith({
+    String? label,
+    String? emoji,
+    String? targetText,
+    LifeCadence? cadence,
+    int? weeklyTarget,
+    int? sort,
+    String? color,
+    bool? archived,
+    bool clearColor = false,
+  }) =>
+      LifePillar(
+        key: key,
+        label: label ?? this.label,
+        emoji: emoji ?? this.emoji,
+        targetText: targetText ?? this.targetText,
+        cadence: cadence ?? this.cadence,
+        weeklyTarget: weeklyTarget ?? this.weeklyTarget,
+        sort: sort ?? this.sort,
+        color: clearColor ? null : (color ?? this.color),
+        archived: archived ?? this.archived,
+      );
 }
 
 /// One time-block in the daily schedule (23, seeded, editable).
@@ -60,6 +93,7 @@ class LifeSlot {
   final String? mihwar; // the slot's free category ('تطوير', 'روحي', …)
   final String? pillarKey; // links to a tracked pillar, or null
   final int sort;
+  final bool archived; // retired block — old ticks stay valid, off the plan
 
   const LifeSlot({
     required this.slotNo,
@@ -69,6 +103,7 @@ class LifeSlot {
     this.mihwar,
     this.pillarKey,
     this.sort = 0,
+    this.archived = false,
   });
 
   factory LifeSlot.fromRow(Map<String, Object?> r) => LifeSlot(
@@ -77,8 +112,11 @@ class LifeSlot {
         endMin: (r['end_min'] as num).toInt(),
         activity: (r['activity'] ?? '') as String,
         mihwar: r['mihwar'] as String?,
-        pillarKey: r['pillar_key'] as String?,
+        pillarKey: (r['pillar_key'] as String?)?.isNotEmpty == true
+            ? r['pillar_key'] as String
+            : null,
         sort: (r['sort'] as num?)?.toInt() ?? 0,
+        archived: ((r['archived'] as num?)?.toInt() ?? 0) == 1,
       );
 
   Map<String, Object?> toRow() => {
@@ -89,7 +127,29 @@ class LifeSlot {
         'mihwar': mihwar,
         'pillar_key': pillarKey,
         'sort': sort,
+        'archived': archived ? 1 : 0,
       };
+
+  LifeSlot copyWith({
+    int? startMin,
+    int? endMin,
+    String? activity,
+    String? mihwar,
+    String? pillarKey,
+    int? sort,
+    bool? archived,
+    bool clearPillar = false,
+  }) =>
+      LifeSlot(
+        slotNo: slotNo,
+        startMin: startMin ?? this.startMin,
+        endMin: endMin ?? this.endMin,
+        activity: activity ?? this.activity,
+        mihwar: mihwar ?? this.mihwar,
+        pillarKey: clearPillar ? null : (pillarKey ?? this.pillarKey),
+        sort: sort ?? this.sort,
+        archived: archived ?? this.archived,
+      );
 
   bool get isTracked => pillarKey != null && pillarKey!.isNotEmpty;
 

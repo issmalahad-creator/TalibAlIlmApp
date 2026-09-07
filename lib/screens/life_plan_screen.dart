@@ -13,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import 'life_cycle_review_screen.dart';
 import 'life_day_note_sheet.dart';
+import 'life_plan_edit_screen.dart';
 import 'life_progress_screen.dart';
 import 'life_weekly_review_screen.dart';
 
@@ -173,6 +174,17 @@ class _LifePlanScreenState extends State<LifePlanScreen>
               context,
               MaterialPageRoute(builder: (_) => const LifeProgressScreen()),
             ),
+          ),
+          IconButton(
+            tooltip: basicText('life_edit_plan', lang),
+            icon: const Icon(Icons.tune_rounded),
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LifePlanEditScreen()),
+              );
+              if (mounted) _load(silent: true);
+            },
           ),
         ],
       ),

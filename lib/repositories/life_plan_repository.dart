@@ -81,17 +81,21 @@ class LifePlanRepository {
 
   // ── structure ────────────────────────────────────────────────────────
 
-  Future<List<LifePillar>> pillars() async {
+  Future<List<LifePillar>> pillars({bool includeArchived = false}) async {
     await ensureSeeded();
     final db = await _db;
-    final rows = await db.query('life_pillars', orderBy: 'sort ASC, key ASC');
+    final rows = await db.query('life_pillars',
+        where: includeArchived ? null : 'archived = 0',
+        orderBy: 'sort ASC, key ASC');
     return rows.map(LifePillar.fromRow).toList();
   }
 
-  Future<List<LifeSlot>> slots() async {
+  Future<List<LifeSlot>> slots({bool includeArchived = false}) async {
     await ensureSeeded();
     final db = await _db;
-    final rows = await db.query('life_slots', orderBy: 'sort ASC, start_min ASC');
+    final rows = await db.query('life_slots',
+        where: includeArchived ? null : 'archived = 0',
+        orderBy: 'sort ASC, start_min ASC');
     return rows.map(LifeSlot.fromRow).toList();
   }
 
@@ -104,6 +108,158 @@ class LifePlanRepository {
       if (s.containsMinute(m)) return s;
     }
     return null;
+  }
+
+  // ── authoring (L6-DYN #1) ────────────────────────────────────────────
+  //
+  // The plan is the user's to shape, not a frozen copy of the sheet. All
+  // writes are local + immediate. Deletes are **soft** (`archived = 1`) so
+  // past progress and old ticks stay meaningful; a hard delete is offered
+  // only for a custom row that was never ticked.
+
+  static const _pillarCols = {
+    'key', 'label', 'emoji', 'target_text', 'cadence', 'weekly_target',
+    'sort', 'color', 'archived'
+  };
+  static const _slotCols = {
+    'slot_no', 'start_min', 'end_min', 'activity', 'mihwar', 'pillar_key',
+    'sort', 'archived'
+  };
+
+  Future<void> upsertPillar(LifePillar p) async {
+    final db = await _db;
+    final row = {
+      for (final e in p.toRow().entries)
+        if (_pillarCols.contains(e.key)) e.key: e.value,
+    };
+    await db.insert('life_pillars', row,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  /// A fresh key for a user-made pillar: `custom_1`, `custom_2`, … (never
+  /// collides with a seed key or an archived one).
+  Future<String> newPillarKey() async {
+    final db = await _db;
+    final rows = await db.query('life_pillars', columns: ['key']);
+    final used = {for (final r in rows) r['key'] as String};
+    var n = 1;
+    while (used.contains('custom_$n')) {
+      n++;
+    }
+    return 'custom_$n';
+  }
+
+  Future<void> setPillarArchived(String key, bool archived) async {
+    final db = await _db;
+    await db.update('life_pillars', {'archived': archived ? 1 : 0},
+        where: 'key = ?', whereArgs: [key]);
+    if (archived) {
+      // a retired pillar must not keep pointing slots at itself
+      await db.update('life_slots', {'pillar_key': null},
+          where: 'pillar_key = ?', whereArgs: [key]);
+    }
+  }
+
+  /// True only for a user-made pillar with no slot pointing at it and no
+  /// historical tick under any such slot — safe to remove outright.
+  Future<bool> canHardDeletePillar(String key) async {
+    if (!key.startsWith('custom_')) return false;
+    final db = await _db;
+    final slotUse = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM life_slots WHERE pillar_key = ?', [key]));
+    return (slotUse ?? 0) == 0;
+  }
+
+  Future<void> hardDeletePillar(String key) async {
+    if (!await canHardDeletePillar(key)) {
+      await setPillarArchived(key, true);
+      return;
+    }
+    final db = await _db;
+    await db.delete('life_pillars', where: 'key = ?', whereArgs: [key]);
+  }
+
+  /// Persist a new `sort` for each key, in the given order (0-based).
+  Future<void> reorderPillars(List<String> keysInOrder) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      for (var i = 0; i < keysInOrder.length; i++) {
+        await txn.update('life_pillars', {'sort': i},
+            where: 'key = ?', whereArgs: [keysInOrder[i]]);
+      }
+    });
+  }
+
+  /// Insert or update a slot. `slotNo <= 0` means "new" — a stable id is
+  /// allocated as `max(slot_no) + 1` (archived rows included, so an id is
+  /// never reused and old ticks can't be reattached).
+  Future<int> upsertSlot(LifeSlot s) async {
+    final db = await _db;
+    var no = s.slotNo;
+    if (no <= 0) {
+      no = (Sqflite.firstIntValue(await db.rawQuery(
+                  'SELECT MAX(slot_no) FROM life_slots')) ??
+              0) +
+          1;
+    }
+    final row = {
+      for (final e in s.copyWith().toRow().entries)
+        if (_slotCols.contains(e.key)) e.key: e.value,
+    }..['slot_no'] = no;
+    await db.insert('life_slots', row,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+    return no;
+  }
+
+  Future<void> setSlotArchived(int slotNo, bool archived) async {
+    final db = await _db;
+    await db.update('life_slots', {'archived': archived ? 1 : 0},
+        where: 'slot_no = ?', whereArgs: [slotNo]);
+  }
+
+  Future<bool> canHardDeleteSlot(int slotNo) async {
+    final db = await _db;
+    final ticks = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM life_day_slots WHERE slot_no = ?', [slotNo]));
+    return (ticks ?? 0) == 0;
+  }
+
+  Future<void> hardDeleteSlot(int slotNo) async {
+    if (!await canHardDeleteSlot(slotNo)) {
+      await setSlotArchived(slotNo, true);
+      return;
+    }
+    final db = await _db;
+    await db.delete('life_slots', where: 'slot_no = ?', whereArgs: [slotNo]);
+  }
+
+  Future<void> reorderSlots(List<int> slotNosInOrder) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      for (var i = 0; i < slotNosInOrder.length; i++) {
+        await txn.update('life_slots', {'sort': i},
+            where: 'slot_no = ?', whereArgs: [slotNosInOrder[i]]);
+      }
+    });
+  }
+
+  /// Wipe the structure and re-seed Ismail's original 7 pillars + 23 slots.
+  /// Ticks are **kept** (they key on `date`+`slot_no`); any that no longer
+  /// match a live slot simply stop counting. Notes/meta untouched.
+  Future<void> resetStructureToSeed() async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      await txn.delete('life_pillars');
+      await txn.delete('life_slots');
+      final b = txn.batch();
+      for (final p in kLifePillars) {
+        b.insert('life_pillars', p.toRow());
+      }
+      for (final s in kLifeSlots) {
+        b.insert('life_slots', s.toRow());
+      }
+      await b.commit(noResult: true);
+    });
   }
 
   // ── ticks ────────────────────────────────────────────────────────────

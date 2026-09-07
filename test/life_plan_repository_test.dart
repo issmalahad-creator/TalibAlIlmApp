@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
+import 'package:talib_alilm_app/models/life_plan.dart';
 import 'package:talib_alilm_app/repositories/life_plan_repository.dart';
 
 /// «مُحرّك الحياة» L1 — the continuous daily engine. No 90‑day ceiling:
@@ -231,5 +232,121 @@ void main() {
     expect(s.avgPercent, closeTo((3 * 4 / 23) / 90, 1e-9));
     expect(s.byPillarDone['quran'], 9); // slots 2,12,20 × 3 days
     expect(s.byPillarDone['coding'], 3); // slot 6 × 3 days
+  });
+
+  // ── L6-DYN #1 — in-app authoring of the plan ──────────────────────────
+
+  group('authoring', () {
+    setUp(() => repo.resetStructureToSeed());
+
+    test('add / edit a custom pillar; new key never collides', () async {
+      final k = await repo.newPillarKey();
+      expect(k, 'custom_1');
+      await repo.upsertPillar(LifePillar(
+          key: k, label: 'تصوير', emoji: '📷', cadence: LifeCadence.weekly,
+          weeklyTarget: 2, color: '#1F7A6B', sort: 99));
+      var ps = await repo.pillars();
+      final added = ps.firstWhere((p) => p.key == k);
+      expect(added.label, 'تصوير');
+      expect(added.cadence, LifeCadence.weekly);
+      expect(added.weeklyTarget, 2);
+      expect(added.color, '#1F7A6B');
+      // next key skips the taken one
+      expect(await repo.newPillarKey(), 'custom_2');
+      // edit in place (same key = replace)
+      await repo.upsertPillar(added.copyWith(label: 'تصوير فوتوغرافي'));
+      ps = await repo.pillars();
+      expect(ps.firstWhere((p) => p.key == k).label, 'تصوير فوتوغرافي');
+      expect(ps.where((p) => p.key == k).length, 1);
+    });
+
+    test('archive a seed pillar: hidden by default, still returned with flag',
+        () async {
+      await repo.setPillarArchived('erp', true);
+      expect((await repo.pillars()).any((p) => p.key == 'erp'), isFalse);
+      final all = await repo.pillars(includeArchived: true);
+      expect(all.firstWhere((p) => p.key == 'erp').archived, isTrue);
+      // its slots are detached, not deleted
+      final erpSlots = (await repo.slots(includeArchived: true))
+          .where((s) => s.pillarKey == 'erp');
+      expect(erpSlots, isEmpty);
+      await repo.setPillarArchived('erp', false);
+      expect((await repo.pillars()).any((p) => p.key == 'erp'), isTrue);
+    });
+
+    test('seed pillar cannot be hard-deleted; unused custom one can', () async {
+      expect(await repo.canHardDeletePillar('quran'), isFalse);
+      final k = await repo.newPillarKey();
+      await repo.upsertPillar(LifePillar(key: k, label: 'x'));
+      expect(await repo.canHardDeletePillar(k), isTrue);
+      await repo.hardDeletePillar(k);
+      expect((await repo.pillars(includeArchived: true)).any((p) => p.key == k),
+          isFalse);
+    });
+
+    test('reorderPillars persists a new sort order', () async {
+      final before = (await repo.pillars()).map((p) => p.key).toList();
+      final reversed = before.reversed.toList();
+      await repo.reorderPillars(reversed);
+      expect((await repo.pillars()).map((p) => p.key).toList(), reversed);
+    });
+
+    test('add a slot: id is max+1, shows in the day, counts in progress',
+        () async {
+      final no = await repo.upsertSlot(const LifeSlot(
+          slotNo: 0,
+          startMin: 13 * 60,
+          endMin: 13 * 60 + 30,
+          activity: 'مراجعة',
+          pillarKey: 'quran'));
+      expect(no, 24); // 23 seeded + 1
+      final slots = await repo.slots();
+      expect(slots.length, 24);
+      expect(slots.firstWhere((s) => s.slotNo == 24).pillarKey, 'quran');
+      await repo.setSlotDone(today, 24, true);
+      final prog = await repo.progress(today);
+      expect(prog.totalCount, 24);
+      expect(prog.doneCount, 1);
+    });
+
+    test('edit a slot in place keeps its id and its ticks', () async {
+      await repo.setSlotDone(today, 6, true);
+      final s6 = (await repo.slots()).firstWhere((s) => s.slotNo == 6);
+      await repo.upsertSlot(s6.copyWith(activity: 'مشروع', startMin: 9 * 60));
+      final after = (await repo.slots()).firstWhere((s) => s.slotNo == 6);
+      expect(after.activity, 'مشروع');
+      expect(after.startMin, 9 * 60);
+      expect((await repo.doneSlots(today)).contains(6), isTrue); // tick survived
+    });
+
+    test('archive vs hard-delete a slot depends on whether it was ever ticked',
+        () async {
+      // slot 6, never ticked in this fresh structure → hard-deletable
+      expect(await repo.canHardDeleteSlot(6), isTrue);
+      await repo.setSlotDone(today, 7, true);
+      expect(await repo.canHardDeleteSlot(7), isFalse);
+      await repo.hardDeleteSlot(7); // falls back to archive
+      expect((await repo.slots()).any((s) => s.slotNo == 7), isFalse);
+      expect((await repo.slots(includeArchived: true))
+          .firstWhere((s) => s.slotNo == 7)
+          .archived, isTrue);
+      // an archived slot drops out of the day total
+      expect((await repo.progress(today)).totalCount, 22);
+    });
+
+    test('resetStructureToSeed restores 7 + 23 and keeps ticks', () async {
+      await repo.setSlotDone(today, 2, true);
+      await repo.upsertPillar(LifePillar(
+          key: await repo.newPillarKey(), label: 'مؤقّت'));
+      await repo.setPillarArchived('quran', true);
+      await repo.resetStructureToSeed();
+      expect((await repo.pillars()).length, 7);
+      expect((await repo.slots()).length, 23);
+      expect((await repo.pillars()).any((p) => p.key == 'quran'), isTrue);
+      expect((await repo.pillars()).any((p) => p.key.startsWith('custom_')),
+          isFalse);
+      // the tick on slot 2 is still there (keys on date+slot_no)
+      expect((await repo.doneSlots(today)).contains(2), isTrue);
+    });
   });
 }
