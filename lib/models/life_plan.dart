@@ -94,6 +94,8 @@ class LifeSlot {
   final String? pillarKey; // links to a tracked pillar, or null
   final int sort;
   final bool archived; // retired block — old ticks stay valid, off the plan
+  final int qtyTarget; // > 0 → a quantity block (a − n/target + stepper)
+  final String? qtyUnit; // 'صفحة' / 'دقيقة' / 'فيديو' …
 
   const LifeSlot({
     required this.slotNo,
@@ -104,6 +106,8 @@ class LifeSlot {
     this.pillarKey,
     this.sort = 0,
     this.archived = false,
+    this.qtyTarget = 0,
+    this.qtyUnit,
   });
 
   factory LifeSlot.fromRow(Map<String, Object?> r) => LifeSlot(
@@ -117,6 +121,10 @@ class LifeSlot {
             : null,
         sort: (r['sort'] as num?)?.toInt() ?? 0,
         archived: ((r['archived'] as num?)?.toInt() ?? 0) == 1,
+        qtyTarget: (r['qty_target'] as num?)?.toInt() ?? 0,
+        qtyUnit: (r['qty_unit'] as String?)?.isNotEmpty == true
+            ? r['qty_unit'] as String
+            : null,
       );
 
   Map<String, Object?> toRow() => {
@@ -128,6 +136,8 @@ class LifeSlot {
         'pillar_key': pillarKey,
         'sort': sort,
         'archived': archived ? 1 : 0,
+        'qty_target': qtyTarget,
+        'qty_unit': qtyUnit,
       };
 
   LifeSlot copyWith({
@@ -138,7 +148,10 @@ class LifeSlot {
     String? pillarKey,
     int? sort,
     bool? archived,
+    int? qtyTarget,
+    String? qtyUnit,
     bool clearPillar = false,
+    bool clearUnit = false,
   }) =>
       LifeSlot(
         slotNo: slotNo,
@@ -149,9 +162,12 @@ class LifeSlot {
         pillarKey: clearPillar ? null : (pillarKey ?? this.pillarKey),
         sort: sort ?? this.sort,
         archived: archived ?? this.archived,
+        qtyTarget: qtyTarget ?? this.qtyTarget,
+        qtyUnit: clearUnit ? null : (qtyUnit ?? this.qtyUnit),
       );
 
   bool get isTracked => pillarKey != null && pillarKey!.isNotEmpty;
+  bool get isQuantity => qtyTarget > 0;
 
   static String _hhmm(int m) {
     final h = (m ~/ 60).toString().padLeft(2, '0');
@@ -195,10 +211,18 @@ class LifeDayNote {
 class LifeDayProgress {
   final String date; // YYYY-MM-DD
   final int dayIndex; // days since startDate (0-based); can exceed 90
-  final int doneCount; // ticked slots
+  final int doneCount; // slots at 100%
   final int totalCount; // all slots
-  final Set<int> doneSlotNos;
+  final Set<int> doneSlotNos; // slots at 100%
   final Map<String, double> byPillar; // pillar key → 0..1 for that day
+
+  /// Per-slot completion 0..1 (L6-DYN #4). A slot absent here is 0. For a
+  /// quantity slot this is `qty / qtyTarget` clamped; otherwise the
+  /// tap-cycle fraction (0 / 0.5 / 1).
+  final Map<int, double> slotProgress;
+
+  /// Per-slot raw count, for the quantity stepper's readout.
+  final Map<int, int> slotQty;
 
   const LifeDayProgress({
     required this.date,
@@ -207,9 +231,21 @@ class LifeDayProgress {
     required this.totalCount,
     required this.doneSlotNos,
     required this.byPillar,
+    this.slotProgress = const {},
+    this.slotQty = const {},
   });
 
-  double get percent => totalCount == 0 ? 0 : doneCount / totalCount;
+  double progressOf(int slotNo) => slotProgress[slotNo] ?? 0.0;
+
+  /// The day's completion — the **mean of every slot's fraction**, so a
+  /// half-done block counts as 0.5 (L6-DYN #4). Falls back to
+  /// done/total when no fractional data is present.
+  double get percent {
+    if (totalCount == 0) return 0;
+    if (slotProgress.isEmpty) return doneCount / totalCount;
+    final sum = slotProgress.values.fold<double>(0, (s, v) => s + v);
+    return (sum / totalCount).clamp(0.0, 1.0);
+  }
 
   /// Cycle number (1-based) and the day within it — a soft milestone only.
   int cycle({int cycleLen = 90}) => (dayIndex ~/ cycleLen) + 1;
@@ -313,6 +349,8 @@ class LifeTask {
   final bool archived;
   final String createdDate; // YYYY-MM-DD
   final String? doneDate; // milestone only: when it was finished
+  final int qtyTarget; // daily recurring: > 0 → a counter
+  final String? qtyUnit;
 
   const LifeTask({
     this.id = 0,
@@ -325,9 +363,12 @@ class LifeTask {
     this.archived = false,
     this.createdDate = '',
     this.doneDate,
+    this.qtyTarget = 0,
+    this.qtyUnit,
   });
 
   bool get isMilestone => kind == LifeTaskKind.milestone;
+  bool get isQuantity => isDailyRecurring && qtyTarget > 0;
   bool get isWeekly => kind == LifeTaskKind.recurring && recurrence == LifeCadence.weekly;
   bool get isDailyRecurring =>
       kind == LifeTaskKind.recurring && recurrence == LifeCadence.daily;
@@ -348,6 +389,10 @@ class LifeTask {
         doneDate: (r['done_date'] as String?)?.isNotEmpty == true
             ? r['done_date'] as String
             : null,
+        qtyTarget: (r['qty_target'] as num?)?.toInt() ?? 0,
+        qtyUnit: (r['qty_unit'] as String?)?.isNotEmpty == true
+            ? r['qty_unit'] as String
+            : null,
       );
 
   /// For an insert/update. Omits `id` when 0 (let SQLite assign it).
@@ -362,6 +407,8 @@ class LifeTask {
         'archived': archived ? 1 : 0,
         'created_date': createdDate,
         'done_date': doneDate,
+        'qty_target': qtyTarget,
+        'qty_unit': qtyUnit,
       };
 
   LifeTask copyWith({
@@ -373,8 +420,11 @@ class LifeTask {
     int? sort,
     bool? archived,
     String? doneDate,
+    int? qtyTarget,
+    String? qtyUnit,
     bool clearPillar = false,
     bool clearDoneDate = false,
+    bool clearUnit = false,
   }) =>
       LifeTask(
         id: id,
@@ -387,6 +437,8 @@ class LifeTask {
         archived: archived ?? this.archived,
         createdDate: createdDate,
         doneDate: clearDoneDate ? null : (doneDate ?? this.doneDate),
+        qtyTarget: qtyTarget ?? this.qtyTarget,
+        qtyUnit: clearUnit ? null : (qtyUnit ?? this.qtyUnit),
       );
 }
 
@@ -423,7 +475,9 @@ class LifeMit {
 class LifeDayTasks {
   final String date;
   final List<LifeTask> daily; // recurrence == daily
-  final Set<int> dailyDone; // ids done on [date]
+  final Set<int> dailyDone; // ids at 100% on [date]
+  final Map<int, double> dailyProgress; // id → 0..1 on [date] (L6-DYN #4)
+  final Map<int, int> dailyQty; // id → raw count on [date]
   final List<({LifeTask task, int doneThisWeek})> weekly;
   final List<LifeTask> milestonesOpen;
   final List<LifeTask> milestonesDoneToday;
@@ -432,10 +486,14 @@ class LifeDayTasks {
     required this.date,
     required this.daily,
     required this.dailyDone,
+    this.dailyProgress = const {},
+    this.dailyQty = const {},
     required this.weekly,
     required this.milestonesOpen,
     required this.milestonesDoneToday,
   });
+
+  double dailyProgressOf(int id) => dailyProgress[id] ?? 0.0;
 
   bool get isEmpty =>
       daily.isEmpty &&

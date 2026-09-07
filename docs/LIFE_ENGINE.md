@@ -114,6 +114,7 @@
 | **L7** | Supabase `life_*` + تليجرام DM عبر Edge Function. *(صار §7 بند 13)* |
 | **L6-DYN #1** ✅ | محرّر المحاور والفترات داخل التطبيق (§7). مخطّط v58، `life_plan_edit_screen.dart`، 8 اختبارات. |
 | **L6-DYN #3** ✅ | المهام (متكرّرة/معالم) + «أهمّ 3 لليوم». مخطّط v59، `life_tasks`/`life_task_log`/`life_day_mit`، بطاقة MIT + قسم المهام في «اليوم» + تبويب «المهام» في المحرّر، 7 اختبارات. |
+| **L6-DYN #4** ✅ | إتمام جزئي (`_TriTick` نقرة تدور) + كمية (`_QtyStepper`). مخطّط v60، `progress`/`qty` على day-slots + task-log، `cycleSlot`/`setSlotQty`/`cycleTask`/`setTaskQty`، `percent` = متوسّط كسور، `_QtyTargetField` في النماذج، 6 اختبارات. |
 
 ## 7. L6-DYN — المحرّك الديناميكي (إسماعيل 2026-09-07: «اجعله ديناميكيًّا وأفضل بـ15 مرّة»)
 
@@ -147,7 +148,18 @@
    يتحدّث، التأشير يشطب.
 
 **ب · تتبّع ديناميكي**
-4. **إتمام جزئي + كمية** — الفترة/المهمة 0..1 أو عدّاد (٣/٥، ٢٠/٣٠ د). حساب التقدّم يستخدم الكسر لا نعم/لا.
+4. **إتمام جزئي + كمية** ✅ — مخطّط **v60**: `life_slots.qty_target`/`qty_unit`
+   + `life_tasks` مثلها، `life_day_slots.progress`(0..1)/`qty`،
+   `life_task_log.progress`/`qty`. `progress` فارغ ⇒ يُقرأ `done` القديم
+   (توافق خلفي). النموذج: `LifeSlot.isQuantity`/`LifeTask.isQuantity`،
+   `LifeDayProgress.slotProgress`/`slotQty` + `percent` = **متوسّط كسور كل
+   فترة**، `LifeDayTasks.dailyProgress`/`dailyQty`. الريبو: `slotStates`/
+   `taskStates`، `cycleSlot`/`cycleTask` (٠→٠٫٥→١→٠)، `setSlotQty`/
+   `setTaskQty` (تُقصَر عند الهدف، progress=qty÷target)؛ `dayPercents` صار
+   `SUM(COALESCE(progress,done))`. الواجهة: `_TriTick` (حلقة فارغة/نصف/ذهبي
+   كامل) للبنود العادية + `_QtyStepper` (`− n/target وحدة +`) للبنود الرقمية
+   في «اليوم»؛ `_QtyTargetField` (عدّاد هدف + حقل وحدة) في نموذجَي الفترة
+   والمهمة اليومية. ٤ مفاتيح `life_*` ×13. ٦ اختبارات repo (32/32).
 5. **تسجيل فعلي بلمسة** — وقت الإنجاز الحقيقي (`done_at` مخزَّن) + سطر «ماذا أنجزت» اختياري → يوميّات.
 6. **تذكيرات تتكيّف** — تذكير الفترة ينزاح نحو `done_at` المرصود آخر N يومًا؛ فترة فائتة → «أجّل ٣٠د / انقلها للغد».
 

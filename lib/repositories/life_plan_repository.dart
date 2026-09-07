@@ -123,7 +123,7 @@ class LifePlanRepository {
   };
   static const _slotCols = {
     'slot_no', 'start_min', 'end_min', 'activity', 'mihwar', 'pillar_key',
-    'sort', 'archived'
+    'sort', 'archived', 'qty_target', 'qty_unit'
   };
 
   Future<void> upsertPillar(LifePillar p) async {
@@ -321,21 +321,39 @@ class LifePlanRepository {
     });
   }
 
-  /// Recurring-task completions on [date].
-  Future<Set<int>> taskLog(String date) async {
+  /// Per-task state on [date]: `progress` 0..1 (a bare log row with no
+  /// `progress` counts as 1) and the raw `qty`.
+  Future<Map<int, ({double progress, int qty})>> taskStates(String date) async {
     final db = await _db;
     final rows = await db.query('life_task_log',
-        columns: ['task_id'], where: 'date = ?', whereArgs: [date]);
-    return {for (final r in rows) (r['task_id'] as num).toInt()};
+        columns: ['task_id', 'progress', 'qty'],
+        where: 'date = ?',
+        whereArgs: [date]);
+    final out = <int, ({double progress, int qty})>{};
+    for (final r in rows) {
+      final p = (r['progress'] as num?)?.toDouble() ?? 1.0;
+      out[(r['task_id'] as num).toInt()] =
+          (progress: p.clamp(0.0, 1.0), qty: (r['qty'] as num?)?.toInt() ?? 0);
+    }
+    return out;
   }
 
-  Future<bool> toggleTask(String date, int taskId) async {
+  /// Recurring-task ids that are **fully** done on [date].
+  Future<Set<int>> taskLog(String date) async {
+    final st = await taskStates(date);
+    return {
+      for (final e in st.entries)
+        if (e.value.progress >= 1.0) e.key,
+    };
+  }
+
+  Future<void> _writeTaskLog(
+      String date, int taskId, double progress, int? qty) async {
     final db = await _db;
-    final on = (await taskLog(date)).contains(taskId);
-    if (on) {
+    if (progress <= 0) {
       await db.delete('life_task_log',
           where: 'date = ? AND task_id = ?', whereArgs: [date, taskId]);
-      return false;
+      return;
     }
     await db.insert(
       'life_task_log',
@@ -343,14 +361,44 @@ class LifePlanRepository {
         'date': date,
         'task_id': taskId,
         'done_at': DateTime.now().millisecondsSinceEpoch,
+        'progress': progress.clamp(0.0, 1.0),
+        'qty': qty,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    return true;
+  }
+
+  Future<bool> toggleTask(String date, int taskId) async {
+    final on = (await taskStates(date))[taskId] != null;
+    await _writeTaskLog(date, taskId, on ? 0.0 : 1.0, null);
+    return !on;
+  }
+
+  /// Tap-cycle a daily recurring task: 0 → 0.5 → 1 → 0.
+  Future<double> cycleTask(String date, int taskId) async {
+    final cur = (await taskStates(date))[taskId]?.progress ?? 0.0;
+    final next = cur >= 1.0
+        ? 0.0
+        : cur >= 0.5
+            ? 1.0
+            : 0.5;
+    await _writeTaskLog(date, taskId, next, null);
+    return next;
+  }
+
+  Future<void> setTaskQty(String date, int taskId, int qty) async {
+    final t = (await tasks(includeArchived: true))
+        .firstWhere((e) => e.id == taskId,
+            orElse: () => const LifeTask(title: ''));
+    final target = t.qtyTarget;
+    final q = target > 0 ? qty.clamp(0, target) : (qty < 0 ? 0 : qty);
+    final p = target > 0 ? (q / target).clamp(0.0, 1.0) : (q > 0 ? 1.0 : 0.0);
+    await _writeTaskLog(date, taskId, p.toDouble(), q);
   }
 
   /// Completions of a weekly recurring task inside the 7 days ending
-  /// [weekEnding] (inclusive) — for the "2 / 5 this week" readout.
+  /// [weekEnding] (inclusive) — for the "2 / 5 this week" readout. A day
+  /// counts once it has any log row (partial or full).
   Future<int> weeklyTaskDone(int taskId, String weekEnding) async {
     final end = parseYmd(weekEnding);
     final start = ymd(end.subtract(const Duration(days: 6)));
@@ -372,7 +420,7 @@ class LifePlanRepository {
   /// The whole task picture for [date], composed so the UI does no math.
   Future<LifeDayTasks> tasksForDay(String date) async {
     final all = await tasks();
-    final doneToday = await taskLog(date);
+    final st = await taskStates(date);
     final daily = all.where((t) => t.isDailyRecurring).toList();
     final weekly = [
       for (final t in all.where((t) => t.isWeekly))
@@ -382,7 +430,15 @@ class LifePlanRepository {
     return LifeDayTasks(
       date: date,
       daily: daily,
-      dailyDone: doneToday,
+      dailyDone: {
+        for (final t in daily)
+          if ((st[t.id]?.progress ?? 0) >= 1.0) t.id,
+      },
+      dailyProgress: {for (final t in daily) t.id: st[t.id]?.progress ?? 0.0},
+      dailyQty: {
+        for (final t in daily)
+          if (st[t.id] != null) t.id: st[t.id]!.qty,
+      },
       weekly: weekly,
       milestonesOpen: milestones.where((t) => !t.milestoneDone).toList(),
       milestonesDoneToday:
@@ -456,80 +512,142 @@ class LifePlanRepository {
     return (done: m.where((e) => e.done).length, total: m.length);
   }
 
-  // ── ticks ────────────────────────────────────────────────────────────
+  // ── ticks (L6-DYN #4 · tap-cycle + quantity) ─────────────────────────
 
-  Future<Set<int>> doneSlots(String date) async {
+  /// A slot's stored state for [date]: `progress` 0..1 and the raw `qty`
+  /// (for a quantity slot). A slot absent from the map is untouched (0).
+  /// `progress` reads the new column, falling back to the legacy `done`
+  /// flag for rows written before v60.
+  Future<Map<int, ({double progress, int qty})>> slotStates(String date) async {
     final db = await _db;
     final rows = await db.query('life_day_slots',
-        columns: ['slot_no'],
-        where: 'date = ? AND done = 1',
+        columns: ['slot_no', 'done', 'progress', 'qty'],
+        where: 'date = ?',
         whereArgs: [date]);
-    return {for (final r in rows) (r['slot_no'] as num).toInt()};
+    final out = <int, ({double progress, int qty})>{};
+    for (final r in rows) {
+      final p = (r['progress'] as num?)?.toDouble() ??
+          (((r['done'] as num?)?.toInt() ?? 0) == 1 ? 1.0 : 0.0);
+      out[(r['slot_no'] as num).toInt()] =
+          (progress: p.clamp(0.0, 1.0), qty: (r['qty'] as num?)?.toInt() ?? 0);
+    }
+    return out;
   }
 
-  Future<void> setSlotDone(String date, int slotNo, bool done) async {
+  /// Slots at 100% on [date] — kept for callers that only care about "done".
+  Future<Set<int>> doneSlots(String date) async {
+    final st = await slotStates(date);
+    return {
+      for (final e in st.entries)
+        if (e.value.progress >= 1.0) e.key,
+    };
+  }
+
+  Future<void> _writeSlot(
+      String date, int slotNo, double progress, int? qty) async {
     final db = await _db;
+    final full = progress >= 1.0;
     await db.insert(
       'life_day_slots',
       {
         'date': date,
         'slot_no': slotNo,
-        'done': done ? 1 : 0,
-        'done_at': done ? DateTime.now().millisecondsSinceEpoch : null,
+        'done': full ? 1 : 0,
+        'done_at': full ? DateTime.now().millisecondsSinceEpoch : null,
+        'progress': progress.clamp(0.0, 1.0),
+        'qty': qty,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
+  Future<void> setSlotDone(String date, int slotNo, bool done) =>
+      _writeSlot(date, slotNo, done ? 1.0 : 0.0, null);
+
   Future<bool> toggleSlot(String date, int slotNo) async {
-    final cur = await doneSlots(date);
-    final next = !cur.contains(slotNo);
+    final cur = (await slotStates(date))[slotNo]?.progress ?? 0.0;
+    final next = cur < 1.0;
     await setSlotDone(date, slotNo, next);
     return next;
+  }
+
+  /// Tap-cycle a non-quantity slot: 0 → 0.5 → 1 → 0. Returns the new value.
+  Future<double> cycleSlot(String date, int slotNo) async {
+    final cur = (await slotStates(date))[slotNo]?.progress ?? 0.0;
+    final next = cur >= 1.0
+        ? 0.0
+        : cur >= 0.5
+            ? 1.0
+            : 0.5;
+    await _writeSlot(date, slotNo, next, null);
+    return next;
+  }
+
+  /// Set the count for a quantity slot; progress = qty / target.
+  Future<void> setSlotQty(String date, int slotNo, int qty) async {
+    final s = (await slots(includeArchived: true))
+        .firstWhere((e) => e.slotNo == slotNo, orElse: () => const LifeSlot(
+            slotNo: 0, startMin: 0, endMin: 0, activity: ''));
+    final target = s.qtyTarget;
+    final q = target > 0 ? qty.clamp(0, target) : (qty < 0 ? 0 : qty);
+    final p = target > 0 ? (q / target).clamp(0.0, 1.0) : (q > 0 ? 1.0 : 0.0);
+    await _writeSlot(date, slotNo, p.toDouble(), q);
   }
 
   // ── progress ─────────────────────────────────────────────────────────
 
   Future<LifeDayProgress> progress(String date) async {
     final all = await slots();
-    final done = await doneSlots(date);
-    final byPillar = <String, ({int done, int total})>{};
+    final st = await slotStates(date);
+    final slotProgress = <int, double>{};
+    final slotQty = <int, int>{};
+    final byPillarSum = <String, double>{};
+    final byPillarTot = <String, int>{};
     for (final s in all) {
-      if (!s.isTracked) continue;
-      final k = s.pillarKey!;
-      final cur = byPillar[k] ?? (done: 0, total: 0);
-      byPillar[k] = (
-        done: cur.done + (done.contains(s.slotNo) ? 1 : 0),
-        total: cur.total + 1,
-      );
+      final p = st[s.slotNo]?.progress ?? 0.0;
+      slotProgress[s.slotNo] = p;
+      if (st[s.slotNo] != null) slotQty[s.slotNo] = st[s.slotNo]!.qty;
+      if (s.isTracked) {
+        final k = s.pillarKey!;
+        byPillarSum[k] = (byPillarSum[k] ?? 0) + p;
+        byPillarTot[k] = (byPillarTot[k] ?? 0) + 1;
+      }
     }
+    final doneNos = {
+      for (final e in slotProgress.entries)
+        if (e.value >= 1.0) e.key,
+    };
     return LifeDayProgress(
       date: date,
       dayIndex: await dayIndex(parseYmd(date)),
-      doneCount: all.where((s) => done.contains(s.slotNo)).length,
+      doneCount: doneNos.length,
       totalCount: all.length,
-      doneSlotNos: done,
+      doneSlotNos: doneNos,
+      slotProgress: slotProgress,
+      slotQty: slotQty,
       byPillar: {
-        for (final e in byPillar.entries)
-          e.key: e.value.total == 0 ? 0.0 : e.value.done / e.value.total,
+        for (final k in byPillarTot.keys)
+          k: byPillarTot[k] == 0 ? 0.0 : byPillarSum[k]! / byPillarTot[k]!,
       },
     );
   }
 
-  /// Whole‑day percent for every date in `[from, to]` (inclusive), in ONE
-  /// query — for the heatmap. Dates with no ticks are 0. Keys are `ymd`.
+  /// Whole‑day fraction for every date in `[from, to]` (inclusive), in ONE
+  /// query — for the heatmap. Sums each slot's `progress` (or the legacy
+  /// `done`) over the day. Dates with no rows are absent (→ 0).
   Future<Map<String, double>> dayPercents(String from, String to) async {
     final total = (await slots()).length;
     if (total == 0) return {};
     final db = await _db;
     final rows = await db.rawQuery(
-      'SELECT date, COUNT(*) AS c FROM life_day_slots '
-      'WHERE done = 1 AND date BETWEEN ? AND ? GROUP BY date',
+      'SELECT date, SUM(COALESCE(progress, done)) AS s FROM life_day_slots '
+      'WHERE date BETWEEN ? AND ? GROUP BY date',
       [from, to],
     );
     final out = <String, double>{};
     for (final r in rows) {
-      out[r['date'] as String] = ((r['c'] as num).toInt()) / total;
+      out[r['date'] as String] =
+          (((r['s'] as num?)?.toDouble() ?? 0) / total).clamp(0.0, 1.0);
     }
     return out;
   }

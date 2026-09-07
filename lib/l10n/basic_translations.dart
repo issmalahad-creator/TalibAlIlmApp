@@ -1761,6 +1761,10 @@ const Map<String, Map<String, String>> basicTranslations = {
   'life_field_task_title': {'ar': 'المهمة', 'en': 'Task', 'am': 'ተግባር', 'fr': 'Tâche', 'sw': 'Kazi', 'ur': 'ٹاسک', 'tr': 'Görev', 'id': 'Tugas', 'bn': 'কাজ', 'ha': 'Aiki', 'so': 'Hawsha', 'fa': 'وظیفه', 'ms': 'Tugas'},
   'life_field_task_kind': {'ar': 'النوع', 'en': 'Type', 'am': 'ዓይነት', 'fr': 'Type', 'sw': 'Aina', 'ur': 'قسم', 'tr': 'Tür', 'id': 'Jenis', 'bn': 'ধরন', 'ha': 'Nau’i', 'so': 'Nooca', 'fa': 'نوع', 'ms': 'Jenis'},
   'life_task_milestone': {'ar': 'معلَم', 'en': 'Milestone', 'am': 'ምዕራፍ', 'fr': 'Jalon', 'sw': 'Hatua', 'ur': 'سنگ میل', 'tr': 'Kilometre taşı', 'id': 'Tonggak', 'bn': 'মাইলফলক', 'ha': 'Matakin ci gaba', 'so': 'Marinduub', 'fa': 'نقطهٔ عطف', 'ms': 'Pencapaian'},
+  'life_field_qty_target': {'ar': 'هدف رقمي', 'en': 'Numeric target', 'am': 'ቁጥራዊ ዒላማ', 'fr': 'Objectif chiffré', 'sw': 'Lengo la idadi', 'ur': 'عددی ہدف', 'tr': 'Sayısal hedef', 'id': 'Target angka', 'bn': 'সংখ্যাগত লক্ষ্য', 'ha': 'Manufar lamba', 'so': 'Bartilmaameed tiro', 'fa': 'هدف عددی', 'ms': 'Sasaran angka'},
+  'life_qty_off': {'ar': 'بلا', 'en': 'Off', 'am': 'የለም', 'fr': 'Aucun', 'sw': 'Hakuna', 'ur': 'نہیں', 'tr': 'Kapalı', 'id': 'Nonaktif', 'bn': 'নেই', 'ha': 'Babu', 'so': 'Ma jiro', 'fa': 'خاموش', 'ms': 'Tiada'},
+  'life_field_qty_unit': {'ar': 'الوحدة', 'en': 'Unit', 'am': 'አሃድ', 'fr': 'Unité', 'sw': 'Kipimo', 'ur': 'اکائی', 'tr': 'Birim', 'id': 'Satuan', 'bn': 'একক', 'ha': 'Naúni', 'so': 'Cutub', 'fa': 'واحد', 'ms': 'Unit'},
+  'life_field_qty_unit_hint': {'ar': 'صفحة · دقيقة · فيديو', 'en': 'page · minute · video', 'am': 'ገጽ · ደቂቃ · ቪዲዮ', 'fr': 'page · minute · vidéo', 'sw': 'ukurasa · dakika · video', 'ur': 'صفحہ · منٹ · ویڈیو', 'tr': 'sayfa · dakika · video', 'id': 'halaman · menit · video', 'bn': 'পৃষ্ঠা · মিনিট · ভিডিও', 'ha': 'shafi · minti · bidiyo', 'so': 'bog · daqiiqad · muuqaal', 'fa': 'صفحه · دقیقه · ویدیو', 'ms': 'halaman · minit · video'},
   // ---- Study benefits map (79-sa-E)
   'study_map_title': {
     'ar': 'خريطة الفوائد', 'en': 'Benefits map', 'am': 'የጥቅሞች ካርታ', 'fr': "Carte des bénéfices", 'sw': 'Ramani ya faida',

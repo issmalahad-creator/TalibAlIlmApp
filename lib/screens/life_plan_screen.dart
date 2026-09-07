@@ -145,6 +145,31 @@ class _LifePlanScreenState extends State<LifePlanScreen>
     await _load(silent: true);
   }
 
+  /// Tap-cycle a plain slot: empty → half → full → empty (L6-DYN #4).
+  Future<void> _cycleSlot(int slotNo) async {
+    await _repo.cycleSlot(_today, slotNo);
+    unawaited(HapticFeedback.selectionClick());
+    await _load(silent: true);
+  }
+
+  Future<void> _setSlotQty(int slotNo, int qty) async {
+    await _repo.setSlotQty(_today, slotNo, qty);
+    unawaited(HapticFeedback.selectionClick());
+    await _load(silent: true);
+  }
+
+  Future<void> _cycleTask(int id) async {
+    await _repo.cycleTask(_today, id);
+    unawaited(HapticFeedback.selectionClick());
+    await _load(silent: true);
+  }
+
+  Future<void> _setTaskQty(int id, int qty) async {
+    await _repo.setTaskQty(_today, id, qty);
+    unawaited(HapticFeedback.selectionClick());
+    await _load(silent: true);
+  }
+
   LifeSlot? get _nextSlot {
     final now = DateTime.now();
     final m = now.hour * 60 + now.minute;
@@ -320,77 +345,102 @@ class _LifePlanScreenState extends State<LifePlanScreen>
     Widget line({
       required String title,
       required bool done,
-      required VoidCallback onTap,
+      required Widget leading,
+      VoidCallback? onTap,
       String? trailing,
       String? pillar,
-    }) =>
-        InkWell(
-          onTap: onTap,
+    }) {
+      final body = Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.sm),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-              border: Border.all(color: AppColors.divider),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            leading,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(title,
+                  textDirection: TextDirection.rtl,
+                  style: TextStyle(
+                      fontSize: 12.5,
+                      decoration: done ? TextDecoration.lineThrough : null,
+                      color:
+                          done ? AppColors.textMuted : AppColors.textDark)),
             ),
-            child: Row(
-              textDirection: TextDirection.rtl,
-              children: [
-                _tick(done),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(title,
-                      textDirection: TextDirection.rtl,
-                      style: TextStyle(
-                          fontSize: 12.5,
-                          decoration:
-                              done ? TextDecoration.lineThrough : null,
-                          color: done
-                              ? AppColors.textMuted
-                              : AppColors.textDark)),
+            if (trailing != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: Text(trailing,
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textMuted)),
+              ),
+            if (pillar != null)
+              Container(
+                margin: const EdgeInsets.only(right: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(999),
                 ),
-                if (trailing != null)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Text(trailing,
-                        textDirection: TextDirection.ltr,
-                        style: const TextStyle(
-                            fontSize: 10, color: AppColors.textMuted)),
-                  ),
-                if (pillar != null)
-                  Container(
-                    margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(pillar,
-                        style: const TextStyle(
-                            fontSize: 9, color: AppColors.primaryDark)),
-                  ),
-              ],
-            ),
-          ),
-        );
+                child: Text(pillar,
+                    style: const TextStyle(
+                        fontSize: 9, color: AppColors.primaryDark)),
+              ),
+          ],
+        ),
+      );
+      return onTap == null
+          ? body
+          : InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              child: body);
+    }
 
     return Column(
       children: [
         for (final t in dt.daily)
-          line(
-            title: t.title,
-            done: dt.dailyDone.contains(t.id),
-            onTap: () => _toggleTask(t.id),
-            pillar: pillarLabel(t.pillarKey),
-          ),
+          if (t.isQuantity)
+            line(
+              title: t.title,
+              done: (dt.dailyQty[t.id] ?? 0) >= t.qtyTarget,
+              leading: _QtyStepper(
+                value: dt.dailyQty[t.id] ?? 0,
+                target: t.qtyTarget,
+                unit: t.qtyUnit,
+                onChanged: (v) => _setTaskQty(t.id, v),
+              ),
+              pillar: pillarLabel(t.pillarKey),
+            )
+          else
+            line(
+              title: t.title,
+              done: dt.dailyProgressOf(t.id) >= 1.0,
+              leading: _TriTick(
+                progress: dt.dailyProgressOf(t.id),
+                onTap: () => _cycleTask(t.id),
+              ),
+              onTap: () => _cycleTask(t.id),
+              pillar: pillarLabel(t.pillarKey),
+            ),
         for (final w in dt.weekly)
           line(
             title: w.task.title,
             done: w.doneThisWeek >= w.task.weeklyTarget &&
                 w.task.weeklyTarget > 0,
+            leading: _TriTick(
+                progress: (w.doneThisWeek >= w.task.weeklyTarget &&
+                        w.task.weeklyTarget > 0)
+                    ? 1.0
+                    : 0.0,
+                onTap: () => _toggleTask(w.task.id)),
             onTap: () => _toggleTask(w.task.id),
             trailing: w.task.weeklyTarget > 0
                 ? '${w.doneThisWeek}/${w.task.weeklyTarget}'
@@ -401,6 +451,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
           line(
             title: '🚩 ${m.title}',
             done: false,
+            leading: _TriTick(
+                progress: 0.0, onTap: () => _toggleMilestone(m.id, true)),
             onTap: () => _toggleMilestone(m.id, true),
             pillar: pillarLabel(m.pillarKey),
           ),
@@ -408,6 +460,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
           line(
             title: '🚩 ${m.title}',
             done: true,
+            leading: _TriTick(
+                progress: 1.0, onTap: () => _toggleMilestone(m.id, false)),
             onTap: () => _toggleMilestone(m.id, false),
             pillar: pillarLabel(m.pillarKey),
           ),
@@ -645,88 +699,175 @@ class _LifePlanScreenState extends State<LifePlanScreen>
   // ── slot row ────────────────────────────────────────────────────────
 
   Widget _slotRow(LifeSlot s, String lang) {
-    final done = _prog!.doneSlotNos.contains(s.slotNo);
+    final p = _prog!.progressOf(s.slotNo);
+    final done = p >= 1.0;
     final isNow = _current?.slotNo == s.slotNo;
-    return InkWell(
-      onTap: () {
-        unawaited(HapticFeedback.selectionClick());
-        _toggle(s.slotNo);
-      },
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-        decoration: BoxDecoration(
-          color: isNow
-              ? const Color(0xFFD9A441).withValues(alpha: 0.10)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-          border: Border.all(
-              color: isNow
-                  ? const Color(0xFFD9A441).withValues(alpha: 0.4)
-                  : AppColors.divider),
-        ),
-        child: Row(
-          textDirection: TextDirection.rtl,
-          children: [
-            _tick(done),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(s.activity,
-                      textDirection: TextDirection.rtl,
-                      style: TextStyle(
-                          fontSize: 12.5,
-                          decoration:
-                              done ? TextDecoration.lineThrough : null,
-                          color: done
-                              ? AppColors.textMuted
-                              : AppColors.textDark)),
-                  Text(s.timeLabel,
-                      textDirection: TextDirection.ltr,
-                      style: const TextStyle(
-                          fontSize: 10, color: AppColors.textMuted)),
-                ],
-              ),
-            ),
-            if (s.isTracked)
-              Container(
-                margin: const EdgeInsets.only(right: 6),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(s.mihwar ?? '',
+    final qty = _prog!.slotQty[s.slotNo] ?? 0;
+    final row = Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: isNow
+            ? const Color(0xFFD9A441).withValues(alpha: 0.10)
+            : AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(
+            color: isNow
+                ? const Color(0xFFD9A441).withValues(alpha: 0.4)
+                : AppColors.divider),
+      ),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        children: [
+          if (s.isQuantity)
+            _QtyStepper(
+              value: qty,
+              target: s.qtyTarget,
+              unit: s.qtyUnit,
+              onChanged: (v) => _setSlotQty(s.slotNo, v),
+            )
+          else
+            _TriTick(progress: p, onTap: () => _cycleSlot(s.slotNo)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(s.activity,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(
+                        fontSize: 12.5,
+                        decoration: done ? TextDecoration.lineThrough : null,
+                        color:
+                            done ? AppColors.textMuted : AppColors.textDark)),
+                Text(s.timeLabel,
+                    textDirection: TextDirection.ltr,
                     style: const TextStyle(
-                        fontSize: 9, color: AppColors.primaryDark)),
+                        fontSize: 10, color: AppColors.textMuted)),
+              ],
+            ),
+          ),
+          if (s.isTracked)
+            Container(
+              margin: const EdgeInsets.only(right: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(999),
               ),
-          ],
-        ),
+              child: Text(s.mihwar ?? '',
+                  style: const TextStyle(
+                      fontSize: 9, color: AppColors.primaryDark)),
+            ),
+        ],
       ),
     );
+    // a quantity row has its own +/- taps; only a plain row toggles on body tap
+    return s.isQuantity
+        ? row
+        : InkWell(
+            onTap: () => _cycleSlot(s.slotNo),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            child: row,
+          );
   }
 
-  Widget _tick(bool done) => AnimatedContainer(
+}
+
+/// A tap-cycle completion mark: empty ring → left-half filled → full gold
+/// (L6-DYN #4). `onTap` null = display-only.
+class _TriTick extends StatelessWidget {
+  final double progress; // 0 / 0.5 / 1 (anything between rounds visually)
+  final VoidCallback? onTap;
+  const _TriTick({required this.progress, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const gold = Color(0xFFD9A441);
+    final full = progress >= 1.0;
+    final half = progress >= 0.5 && progress < 1.0;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
         duration: AppMotion.fast,
         width: 22,
         height: 22,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: done ? const Color(0xFFD9A441) : Colors.transparent,
+          color: full ? gold : Colors.transparent,
           border: Border.all(
-              color: done
-                  ? const Color(0xFFD9A441)
+              color: (full || half)
+                  ? gold
                   : AppColors.textMuted.withValues(alpha: 0.5),
               width: 1.6),
         ),
-        child: done
+        clipBehavior: Clip.antiAlias,
+        child: full
             ? const Icon(Icons.check_rounded, size: 15, color: Colors.white)
-            : null,
-      );
+            : half
+                ? Row(children: [
+                    Expanded(
+                        child: Container(color: gold.withValues(alpha: 0.9))),
+                    const Spacer(),
+                  ])
+                : null,
+      ),
+    );
+  }
+}
+
+/// `−  n / target unit  +` for a quantity slot or task (L6-DYN #4).
+class _QtyStepper extends StatelessWidget {
+  final int value;
+  final int target;
+  final String? unit;
+  final ValueChanged<int> onChanged;
+  const _QtyStepper({
+    required this.value,
+    required this.target,
+    required this.unit,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final done = target > 0 && value >= target;
+    const gold = Color(0xFFD9A441);
+    Widget btn(IconData i, VoidCallback onTap) => InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(999),
+          child: Padding(
+            padding: const EdgeInsets.all(2),
+            child: Icon(i, size: 18, color: AppColors.textMuted),
+          ),
+        );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: done ? gold.withValues(alpha: 0.14) : AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        textDirection: TextDirection.ltr,
+        children: [
+          btn(Icons.remove, () => onChanged(value - 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              target > 0 ? '$value/$target' : '$value',
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: done ? gold : AppColors.primaryDark),
+            ),
+          ),
+          btn(Icons.add, () => onChanged(value + 1)),
+        ],
+      ),
+    );
+  }
 }
 
 // ── the completion button on the "now" card ────────────────────────────

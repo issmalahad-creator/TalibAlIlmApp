@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 59,
+      version: 60,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -99,6 +99,7 @@ class DatabaseHelper {
         await _createV57Tables(db);
         await _createV58Tables(db);
         await _createV59Tables(db);
+        await _createV60Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -170,6 +171,7 @@ class DatabaseHelper {
         if (oldVersion < 57) await _createV57Tables(db);
         if (oldVersion < 58) await _createV58Tables(db);
         if (oldVersion < 59) await _createV59Tables(db);
+        if (oldVersion < 60) await _createV60Tables(db);
       },
     );
   }
@@ -2266,6 +2268,32 @@ class DatabaseHelper {
         PRIMARY KEY (date, slot)
       )
     ''');
+  }
+
+  /// v60 — Life Engine · L6-DYN #4 · partial completion + quantity
+  /// (`docs/LIFE_ENGINE.md` §7). Ismail's choice: a tap-cycle
+  /// (empty → half → full) for every slot/task, and a **counter** for the
+  /// ones given a numeric target in the editor.
+  ///  * `life_slots.qty_target` / `qty_unit` — > 0 makes the slot a
+  ///    quantity item (e.g. 5 "فيديو", 30 "دقيقة"); the day row shows a
+  ///    − n / target + stepper instead of the tri-state tick.
+  ///  * same on `life_tasks` (for a daily recurring task).
+  ///  * `life_day_slots.progress` (0..1) and `.qty` — the fraction / count
+  ///    for that date. `done` stays: a null `progress` means "read the old
+  ///    `done` flag" (0 or 1), so existing ticks keep working untouched.
+  ///  * `life_task_log.progress` / `.qty` — same, for a recurring task on a
+  ///    date. A bare log row (no progress) still counts as done.
+  Future<void> _createV60Tables(Database db) async {
+    await db.execute(
+        'ALTER TABLE life_slots ADD COLUMN qty_target INTEGER NOT NULL DEFAULT 0');
+    await db.execute('ALTER TABLE life_slots ADD COLUMN qty_unit TEXT');
+    await db.execute('ALTER TABLE life_day_slots ADD COLUMN progress REAL');
+    await db.execute('ALTER TABLE life_day_slots ADD COLUMN qty INTEGER');
+    await db.execute(
+        'ALTER TABLE life_tasks ADD COLUMN qty_target INTEGER NOT NULL DEFAULT 0');
+    await db.execute('ALTER TABLE life_tasks ADD COLUMN qty_unit TEXT');
+    await db.execute('ALTER TABLE life_task_log ADD COLUMN progress REAL');
+    await db.execute('ALTER TABLE life_task_log ADD COLUMN qty INTEGER');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

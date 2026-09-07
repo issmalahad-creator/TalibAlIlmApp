@@ -728,14 +728,18 @@ class _SlotFormState extends State<_SlotForm> {
       TextEditingController(text: widget.slot.activity);
   late final TextEditingController _mihwar =
       TextEditingController(text: widget.slot.mihwar ?? '');
+  late final TextEditingController _unit =
+      TextEditingController(text: widget.slot.qtyUnit ?? '');
   late int _startMin = widget.slot.startMin;
   late int _endMin = widget.slot.endMin;
   late String? _pillarKey = widget.slot.pillarKey;
+  late int _qtyTarget = widget.slot.qtyTarget;
 
   @override
   void dispose() {
     _activity.dispose();
     _mihwar.dispose();
+    _unit.dispose();
     super.dispose();
   }
 
@@ -762,6 +766,7 @@ class _SlotFormState extends State<_SlotForm> {
       '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
 
   void _save() {
+    final unit = _unit.text.trim();
     Navigator.pop(
       context,
       widget.slot.copyWith(
@@ -771,6 +776,9 @@ class _SlotFormState extends State<_SlotForm> {
         mihwar: _mihwar.text.trim().isEmpty ? null : _mihwar.text.trim(),
         pillarKey: _pillarKey,
         clearPillar: _pillarKey == null,
+        qtyTarget: _qtyTarget,
+        qtyUnit: _qtyTarget > 0 && unit.isNotEmpty ? unit : null,
+        clearUnit: _qtyTarget == 0 || unit.isEmpty,
       ),
     );
   }
@@ -847,6 +855,65 @@ class _SlotFormState extends State<_SlotForm> {
             hintText: basicText('life_field_category_hint', lang),
           ),
         ),
+        const SizedBox(height: 16),
+        _QtyTargetField(
+          lang: lang,
+          target: _qtyTarget,
+          unitController: _unit,
+          onTarget: (v) => setState(() => _qtyTarget = v),
+        ),
+      ],
+    );
+  }
+}
+
+/// The "هدف رقمي" control shared by the slot & task forms: a target
+/// stepper (0 = off, tri-state tick) + a unit field once a target is set.
+class _QtyTargetField extends StatelessWidget {
+  final String lang;
+  final int target;
+  final TextEditingController unitController;
+  final ValueChanged<int> onTarget;
+  const _QtyTargetField({
+    required this.lang,
+    required this.target,
+    required this.unitController,
+    required this.onTarget,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(basicText('life_field_qty_target', lang),
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            ),
+            IconButton(
+              icon: const Icon(Icons.remove_circle_outline),
+              onPressed:
+                  target <= 0 ? null : () => onTarget((target - 1).clamp(0, 999)),
+            ),
+            Text(target == 0 ? basicText('life_qty_off', lang) : '$target',
+                style: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w700)),
+            IconButton(
+              icon: const Icon(Icons.add_circle_outline),
+              onPressed: () => onTarget((target + 1).clamp(0, 999)),
+            ),
+          ],
+        ),
+        if (target > 0)
+          TextField(
+            controller: unitController,
+            decoration: InputDecoration(
+              labelText: basicText('life_field_qty_unit', lang),
+              hintText: basicText('life_field_qty_unit_hint', lang),
+            ),
+          ),
       ],
     );
   }
@@ -872,6 +939,8 @@ class _TaskForm extends StatefulWidget {
 class _TaskFormState extends State<_TaskForm> {
   late final TextEditingController _title =
       TextEditingController(text: widget.task.title);
+  late final TextEditingController _unit =
+      TextEditingController(text: widget.task.qtyUnit ?? '');
   late _TaskKindChoice _kind = widget.task.isMilestone
       ? _TaskKindChoice.milestone
       : (widget.task.isWeekly
@@ -879,11 +948,13 @@ class _TaskFormState extends State<_TaskForm> {
           : _TaskKindChoice.daily);
   late int _weeklyTarget =
       widget.task.weeklyTarget < 1 ? 3 : widget.task.weeklyTarget;
+  late int _qtyTarget = widget.task.qtyTarget;
   late String? _pillarKey = widget.task.pillarKey;
 
   @override
   void dispose() {
     _title.dispose();
+    _unit.dispose();
     super.dispose();
   }
 
@@ -894,6 +965,8 @@ class _TaskFormState extends State<_TaskForm> {
     final rec = _kind == _TaskKindChoice.weekly
         ? LifeCadence.weekly
         : LifeCadence.daily;
+    final daily = _kind == _TaskKindChoice.daily;
+    final unit = _unit.text.trim();
     Navigator.pop(
       context,
       widget.task.copyWith(
@@ -903,6 +976,9 @@ class _TaskFormState extends State<_TaskForm> {
         weeklyTarget: _kind == _TaskKindChoice.weekly
             ? (_weeklyTarget < 1 ? 1 : _weeklyTarget)
             : 0,
+        qtyTarget: daily ? _qtyTarget : 0,
+        qtyUnit: daily && _qtyTarget > 0 && unit.isNotEmpty ? unit : null,
+        clearUnit: !daily || _qtyTarget == 0 || unit.isEmpty,
         pillarKey: _pillarKey,
         clearPillar: _pillarKey == null,
       ),
@@ -972,6 +1048,15 @@ class _TaskFormState extends State<_TaskForm> {
                     () => _weeklyTarget = (_weeklyTarget + 1).clamp(1, 99)),
               ),
             ],
+          ),
+        ],
+        if (_kind == _TaskKindChoice.daily) ...[
+          const SizedBox(height: 16),
+          _QtyTargetField(
+            lang: lang,
+            target: _qtyTarget,
+            unitController: _unit,
+            onTarget: (v) => setState(() => _qtyTarget = v),
           ),
         ],
         const SizedBox(height: 12),

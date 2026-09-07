@@ -475,4 +475,108 @@ void main() {
       expect(m[0].done, isTrue);
     });
   });
+
+  // ── L6-DYN #4 — partial completion + quantity ────────────────────────
+
+  group('partial + quantity', () {
+    setUp(() async {
+      await repo.resetStructureToSeed(); // tests here add slots
+      final db = await DatabaseHelper.instance.database;
+      await db.delete('life_day_slots');
+      await db.delete('life_tasks');
+      await db.delete('life_task_log');
+    });
+
+    test('cycleSlot walks 0 → 0.5 → 1 → 0 and the day % counts the halves',
+        () async {
+      // one slot at half, one full → day % = (0.5 + 1) / 23
+      expect(await repo.cycleSlot(today, 2), 0.5);
+      expect(await repo.cycleSlot(today, 6), 0.5);
+      expect(await repo.cycleSlot(today, 6), 1.0);
+      final prog = await repo.progress(today);
+      expect(prog.progressOf(2), 0.5);
+      expect(prog.progressOf(6), 1.0);
+      expect(prog.doneCount, 1); // only slot 6 is at 100%
+      expect(prog.percent, closeTo((0.5 + 1.0) / 23, 1e-9));
+      // per-pillar: quran has 3 slots, one at 0.5 → 0.5/3
+      expect(prog.byPillar['quran'], closeTo(0.5 / 3, 1e-9));
+      // full loop back to 0
+      expect(await repo.cycleSlot(today, 2), 1.0);
+      expect(await repo.cycleSlot(today, 2), 0.0);
+      expect((await repo.progress(today)).progressOf(2), 0.0);
+    });
+
+    test('legacy done rows still read as progress 1 (no v60 columns written)',
+        () async {
+      // setSlotDone is the old path — it now writes progress too, but
+      // simulate a pre-v60 row by writing only `done`
+      final db = await DatabaseHelper.instance.database;
+      await db.insert('life_day_slots', {'date': today, 'slot_no': 5, 'done': 1},
+          conflictAlgorithm: ConflictAlgorithm.replace);
+      final prog = await repo.progress(today);
+      expect(prog.progressOf(5), 1.0);
+      expect(prog.doneSlotNos, contains(5));
+      expect((await repo.doneSlots(today)), contains(5));
+    });
+
+    test('a quantity slot: setSlotQty drives progress = qty / target',
+        () async {
+      final no = await repo.upsertSlot(const LifeSlot(
+          slotNo: 0,
+          startMin: 600,
+          endMin: 660,
+          activity: 'محتوى',
+          pillarKey: 'social',
+          qtyTarget: 4,
+          qtyUnit: 'فيديو'));
+      expect((await repo.slots()).firstWhere((s) => s.slotNo == no).isQuantity,
+          isTrue);
+      await repo.setSlotQty(today, no, 3);
+      var prog = await repo.progress(today);
+      expect(prog.slotQty[no], 3);
+      expect(prog.progressOf(no), closeTo(0.75, 1e-9));
+      // clamps at the target, and hitting it marks done
+      await repo.setSlotQty(today, no, 9);
+      prog = await repo.progress(today);
+      expect(prog.slotQty[no], 4);
+      expect(prog.progressOf(no), 1.0);
+      expect(prog.doneSlotNos, contains(no));
+      // and back down
+      await repo.setSlotQty(today, no, -2);
+      expect((await repo.progress(today)).progressOf(no), 0.0);
+    });
+
+    test('dayPercents sums fractional progress across the range', () async {
+      final now = DateTime.now();
+      final d1 = LifePlanRepository.ymd(now.subtract(const Duration(days: 1)));
+      await repo.cycleSlot(d1, 1); // 0.5
+      await repo.cycleSlot(d1, 2); // 0.5
+      await repo.cycleSlot(d1, 3); // 0.5
+      await repo.setSlotDone(d1, 4, true); // 1.0
+      final m = await repo.dayPercents(d1, d1);
+      expect(m[d1], closeTo((0.5 * 3 + 1.0) / 23, 1e-9));
+    });
+
+    test('cycleTask + setTaskQty mirror the slot behaviour', () async {
+      final plain = await repo.upsertTask(const LifeTask(title: 'تأمل'));
+      final qty = await repo.upsertTask(const LifeTask(
+          title: 'اقرأ',
+          kind: LifeTaskKind.recurring,
+          recurrence: LifeCadence.daily,
+          qtyTarget: 20,
+          qtyUnit: 'صفحة'));
+      expect(await repo.cycleTask(today, plain), 0.5);
+      expect(await repo.cycleTask(today, plain), 1.0);
+      await repo.setTaskQty(today, qty, 5);
+      final dv = await repo.tasksForDay(today);
+      expect(dv.dailyProgressOf(plain), 1.0);
+      expect(dv.dailyDone, contains(plain));
+      expect(dv.dailyProgressOf(qty), closeTo(0.25, 1e-9));
+      expect(dv.dailyQty[qty], 5);
+      expect(dv.dailyDone, isNot(contains(qty)));
+      // a partial task still counts as "1 this week" for weekly readouts…
+      // (weekly tasks are a separate axis, but the count query is by row)
+      expect(await repo.weeklyTaskDone(plain, today), 1);
+    });
+  });
 }
