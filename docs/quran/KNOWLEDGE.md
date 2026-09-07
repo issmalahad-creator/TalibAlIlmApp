@@ -156,23 +156,30 @@ change only from `VERIFIED` / authoritative-source data.
   `tool/build_tajweed_rules.py` + re-checking the report; hard-code one
   publisher's colours; treat the two same/close-makhraj idghām rules or
   hamzat al-waṣl / lām shamsiyyah / silent as having a curriculum lesson.
-- **Status (Phase G-t, 2026-09-05): fully built.**
+- **Status (Phase G-t): fully built; emulator sign-off 2026-09-07
+  (`88dc2f5`), Ismail's phone pending.**
   - **G-t1** — `quran_tajweed` (DB v56) from `tajweed.json.gz`,
     **6236/6236 ayāt, 0 flagged, 70 085 spans**; `CorpusTajweedProvider`
     feeds the ayah/word knowledge surface (grouped by family, tap → tier
     lesson). `tajweed_rules_ref.dart` + `tajweed_palette.dart` = the
     family/colour/lesson map.
-  - **G-t2** — `mushaf_glyphs` (DB v57, `kMushafLayoutVersion` 3) from
-    `mushaf_glyphs.json.gz` (per ligature + diacritic box, 486k, 604/604 QA).
+  - **G-t2** — `mushaf_glyphs` (DB v57) from `mushaf_glyphs.json.gz` (per
+    ligature + diacritic box + `<path>` id, 486k, 604/604 QA).
+    `kMushafLayoutVersion` stays **2** — it re-seeds via its own
+    `mushaf_meta` `glyphs_v` marker, no layout re-seed (ANR fix `ce8becf`).
   - **G-t3 → v2 (glyph-level)** — `lib/services/mushaf/tajweed_svg.dart`.
-    Colour injected as `fill` on the **exact glyph `<path>`** — every
-    covered diacritic + single-letter ligature (≈ 80 %, fully precise). A
-    rule inside a whole-word ligature with no mark to anchor (≈ 20 %, much
-    of `madd_246`) is **not coloured on the page** — black + on tap, every
-    skip counted. **No overlay, no rectangle, no clip band.** Six-**category**
-    Quran palette (`tajweed_palette.dart`). `TajweedPageOverlay` deleted.
-    Opt-in «وضع التجويد» (`mushaf_tajweed_mode`); `تجويد ▾` pill → legend
-    sheet. Coverage: `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. Audit:
+    (1) direct `fill` on the **exact glyph `<path>`** — every covered
+    diacritic + single-letter ligature (≈ 80 %, fully precise). (2)
+    **clip-path band, المدّ category only** (`f41524f`) — an x-slice of the
+    ligature `<path>` at the madd letter's position (≈ 5.5 %); added because
+    verse-end elongation (al-ʿālamīn, ar-raḥīm…) is a bare madd letter
+    inside a word-ligature. (3) a **non-madd** rule inside a whole-word
+    ligature with no mark to anchor (≈ 15 %) is **not coloured on the
+    page** — black + on tap, every skip counted. **No overlay, no
+    rectangle, no whole-word fill.** Six-**category** Quran palette
+    (`tajweed_palette.dart`). `TajweedPageOverlay` deleted. Opt-in «وضع
+    التجويد» (`mushaf_tajweed_mode`); `تجويد ▾` pill → legend sheet.
+    Coverage: `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. Audit:
     `docs/quran/TAJWEED_RENDERING_ANALYSIS.md`.
   - **Data limit:** MushafDatabase ligates whole words (no per-letter
     path) → true per-letter geometry needs a different art source / an

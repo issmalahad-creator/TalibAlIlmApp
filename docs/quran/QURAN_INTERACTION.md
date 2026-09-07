@@ -134,29 +134,36 @@ them straight.
   our `(surah, ayah, word_index)` + a `[cs, ce)` char range in the word's
   own `text_uthmani` (6236/6236 clean — SOURCES §9). Stored as the **rule
   id** only; colour picked in-app.
-- The page wash uses `mushaf_glyphs` (Phase G-t2): per **ligature** +
+- Glyph geometry: `mushaf_glyphs` (Phase G-t2) — per **ligature** +
   **diacritic** box from the `md-ligature-*` / `md-diacritic-*` sub-groups
-  (`tool/extract_mushaf_glyphs.py`). Ligature-level, not per-letter —
-  `MushafWordGlyphs.runForCharRange(cs, ce)` returns the box run for a
-  rule's range; a rule inside a multi-letter ligature colours the whole
-  ligature.
-- Rendering (**v2, glyph-level — no overlay, no rectangle, no band**):
-  `lib/services/mushaf/tajweed_svg.dart`. `resolveTajweedPaint(...)` maps a
-  rule's `[cs, ce)` → SVG `<path>` ids; `paintTajweedIntoSvg(...)` injects
-  `fill` on the **exact glyph path** — every covered **diacritic** (wasla,
-  shadda, maddah, superscript-alef, tanwīn, sukūn…) and every
-  **single-letter ligature**. ≈ **80 % of spans**, fully precise. The base
-  ink moves to `<g id="md-page" fill>` (replaces the night `ColorFilter`).
-  Runs in `MushafPageCache`'s `compute` isolate, cached per `(page, night)`.
-  **Opt-in** («وضع التجويد», `mushaf_tajweed_mode`, off by default). Colour
-  by **category** (six). `TajweedPageOverlay` + the box-wash are **deleted**.
-- MushafDatabase draws whole-word ligatures (no per-letter path). A rule
-  that lands only inside such a ligature with no diacritic anchor (≈ 20 %,
-  much of `madd_246` at verse ends) is **not coloured on the page** — it
-  stays black, and is shown in the knowledge surface + on tap. Every skip
-  is counted: `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. True
-  per-letter colouring needs a different art source / an in-app shaping
-  renderer (v3).
+  (`tool/extract_mushaf_glyphs.py`), each carrying its `<path>` id + base-
+  letter count. Ligature-level, not per-letter.
+- Rendering (**v2, glyph-level — no overlay, no rectangle, no whole-word
+  fill**): `lib/services/mushaf/tajweed_svg.dart`. `resolveTajweedPaint(...)`
+  maps a rule's `[cs, ce)` → SVG `<path>` ids; `paintTajweedIntoSvg(...)`:
+  1. **direct `fill`** on the **exact glyph path** — every covered
+     **diacritic** (wasla, shadda, maddah, superscript-alef, tanwīn,
+     sukūn…) and every **single-letter ligature**. ≈ **80 %** of spans,
+     fully precise.
+  2. **clip-path band — المدّ category only** (`f41524f`): a duplicate of
+     the ligature `<path>` clipped to the `<rect>` x-slice of the madd
+     letter's position (proportional split of the ligature box by letter
+     index; a word-final madd sits at the box edge, so a verse-end band is
+     tight). Part of the word, never the whole word, never a rectangle.
+     ≈ **5.5 %** of spans. Added because verse-end elongation (al-ʿālamīn,
+     ar-raḥīm, ad-dīn, nastaʿīn, aḍ-ḍāllīn) is a bare madd letter inside a
+     word-ligature and was reading as black.
+  The base ink moves to `<g id="md-page" fill>` (replaces the night
+  `ColorFilter`). Runs in `MushafPageCache`'s `compute` isolate, cached per
+  `(page, baseInkHex)`. **Opt-in** («وضع التجويد», `mushaf_tajweed_mode`,
+  off by default). Colour by **category** (six). `TajweedPageOverlay` + the
+  box-wash are **deleted**.
+- MushafDatabase draws whole-word ligatures (no per-letter path). A
+  **non-madd** rule that lands only inside such a ligature with no diacritic
+  anchor (≈ 15 %) is **not coloured on the page** — it stays black, shown in
+  the knowledge surface + on tap. Every skip is counted:
+  `docs/quran/reports/TAJWEED_GLYPH_COVERAGE.md`. True per-letter colouring
+  for those needs a different art source / an in-app shaping renderer (v3).
 - Colour → lesson: `تجويد ▾` pill → a collapsible legend sheet (six
   categories, definition, «افتح الدرس» → `TajweedTierScreen`).
 
