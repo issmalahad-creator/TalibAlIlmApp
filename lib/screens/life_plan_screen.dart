@@ -158,6 +158,18 @@ class _LifePlanScreenState extends State<LifePlanScreen>
     await _load(silent: true);
   }
 
+  /// Edit this block (or add one, [slot] null) without leaving «اليوم» —
+  /// the save reflows the day, the "now" card, the ring and the reminders
+  /// through the same `_load`. `يتفاعل مع كل شيء`.
+  Future<void> _editSlotInline(LifeSlot? slot) async {
+    final saved = await showLifeSlotSheet(context,
+        slot: slot, pillars: _pillars, lang: _lang);
+    if (saved == null) return;
+    await _repo.upsertSlot(saved);
+    unawaited(HapticFeedback.mediumImpact());
+    await _load(silent: true);
+  }
+
   Future<void> _cycleTask(int id) async {
     await _repo.cycleTask(_today, id);
     unawaited(HapticFeedback.selectionClick());
@@ -246,6 +258,22 @@ class _LifePlanScreenState extends State<LifePlanScreen>
                           fontWeight: FontWeight.w800, fontSize: 13)),
                   const SizedBox(height: 8),
                   for (final s in _slots) _slotRow(s, lang),
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton.icon(
+                      onPressed: () => _editSlotInline(null),
+                      icon: const Icon(Icons.add_rounded, size: 16),
+                      label: Text(basicText('life_add_block_inline', lang),
+                          textDirection: TextDirection.rtl),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.primaryDark,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 34),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ),
                   if (!(_dayTasks?.isEmpty ?? true)) ...[
                     const SizedBox(height: 18),
                     Text(basicText('life_tasks_section', lang),
@@ -762,14 +790,14 @@ class _LifePlanScreenState extends State<LifePlanScreen>
         ],
       ),
     );
-    // a quantity row has its own +/- taps; only a plain row toggles on body tap
-    return s.isQuantity
-        ? row
-        : InkWell(
-            onTap: () => _cycleSlot(s.slotNo),
-            borderRadius: BorderRadius.circular(AppRadius.sm),
-            child: row,
-          );
+    // a quantity row has its own +/- taps; only a plain row toggles on body
+    // tap. Either way a long-press opens the inline block editor.
+    return InkWell(
+      onTap: s.isQuantity ? null : () => _cycleSlot(s.slotNo),
+      onLongPress: () => _editSlotInline(s),
+      borderRadius: BorderRadius.circular(AppRadius.sm),
+      child: row,
+    );
   }
 
 }

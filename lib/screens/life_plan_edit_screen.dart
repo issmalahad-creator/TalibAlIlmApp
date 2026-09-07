@@ -16,6 +16,30 @@ import '../services/language_preference_service.dart';
 ///
 /// Nothing here is bounded or sheet-dependent: it writes straight to the
 /// local `life_pillars` / `life_slots` tables via [LifePlanRepository].
+/// Open the slot editor sheet (add when [slot] is null) and return the
+/// edited [LifeSlot], or null if dismissed. Shared by the full editor and
+/// the inline "edit this block" on «اليوم» — so a quick tweak reacts with
+/// the whole day, not a detour to a separate screen.
+Future<LifeSlot?> showLifeSlotSheet(
+  BuildContext context, {
+  LifeSlot? slot,
+  required List<LifePillar> pillars,
+  required String lang,
+}) {
+  return showModalBottomSheet<LifeSlot>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _SlotForm(
+      slot: slot ??
+          const LifeSlot(
+              slotNo: 0, startMin: 8 * 60, endMin: 9 * 60, activity: ''),
+      pillars: pillars,
+      lang: lang,
+    ),
+  );
+}
+
 class LifePlanEditScreen extends StatefulWidget {
   const LifePlanEditScreen({super.key});
 
@@ -122,20 +146,8 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
   // ── slots ────────────────────────────────────────────────────────────
 
   Future<void> _editSlot([LifeSlot? existing]) async {
-    final base = existing ??
-        const LifeSlot(
-          slotNo: 0,
-          startMin: 8 * 60,
-          endMin: 9 * 60,
-          activity: '',
-        );
-    final saved = await showModalBottomSheet<LifeSlot>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) =>
-          _SlotForm(slot: base, pillars: _activePillars, lang: _lang),
-    );
+    final saved = await showLifeSlotSheet(context,
+        slot: existing, pillars: _activePillars, lang: _lang);
     if (saved == null) return;
     await _repo.upsertSlot(saved);
     await _load();
