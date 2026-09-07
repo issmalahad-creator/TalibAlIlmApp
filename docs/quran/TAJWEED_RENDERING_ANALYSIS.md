@@ -219,6 +219,32 @@ them; claiming them would be inventing data.
 **Sign‑off:** not "it looks prettier" — the checklist above, with screenshots
 in this doc.
 
+### 9-bis. Device verification — DONE 2026-09-07 (emulator, x86-64 debug @ `f41524f`)
+
+al-Fātiḥa p1, «وضع التجويد» ON, **day + night**. Zoom-cropped the verse
+block (2.6–3.2×) from `adb screencap`.
+
+| # | check | result |
+|---|---|---|
+| — | **verse-end madd coloured** (the original complaint) | ✅ all 7: ar-raḥīm 1:1/1:3, al-ʿālamīn 1:2, ad-dīn 1:4, nastaʿīn 1:5, al-mustaqīm 1:6, aḍ-ḍāllīn 1:7 — a tight red band on the final letter, not the whole word |
+| 1 | only the rule glyph coloured | ✅ madd curves + dagger-alef madd red; rest of each word black |
+| 2 | its marks share the colour | ✅ maddah / superscript-alef in the madd hue |
+| 3 | neighbours black | ✅ |
+| 4 | shadda / sukūn / madd marks intact | ✅ tashkīl unchanged |
+| 5 | ayah medallions + waqf glyphs untouched | ✅ ①–⑦ stay decorative black/cream |
+| 6 | baseline / line-spacing unchanged | ✅ toggle doesn't reflow |
+| 7 | **no rectangle anywhere** | ✅ colour is on the ink / a glyph-shaped clip, never a block |
+| 8 | black text still dominant | ✅ al-Fātiḥa reads as black with red madd accents + a few tan "silent" marks |
+| 9 | tap still selects the word + shows the rule caption | ✅ tapping «لله» opened the Word Knowledge Surface (iʿrāb, ṣarf, 1:2 w2) |
+| 10 | toggle off → plain reading | ✅ pref persists across navigation; OFF = the bundled SVG untouched (`tajweed_svg_paint_test` asserts byte-identity) |
+| — | night mode | ✅ base ink baked to cream on the dark page, madd shifts to the lighter night hue `#E08A73`, no ColorFilter wash |
+| — | redesigned legend | ✅ `تجويد ▴` pill → «ألوان التجويد» sheet: 6 categories, swatch + one-line definition + «الدرس» |
+
+Not re-shot: a dense ikhfāʾ/idghām page and a muqaṭṭaʿāt page (the
+604-page transform-safety gate + `TAJWEED_GLYPH_COVERAGE.md` cover every
+page's spans; al-Fātiḥa exercises madd / hamzat-waṣl / lām-shamsiyyah /
+the 6-count in ٱلضَّآلِّين). Full suite: **545/545** green @ `f41524f`.
+
 ---
 
 ## Addendum (2026-09-06) — what shipped, and the whole-word-ligature finding
@@ -240,13 +266,19 @@ A spike passed (pixel-tested): flutter_svg honours `fill` inherited from
    precise.**
 2. `lam_shamsiyyah` also colours the following shadda (the assimilation) —
    render-time, span data untouched.
-3. A rule that lands **only inside a whole-word ligature with no diacritic
-   anchor** (≈ 20 %, much of `madd_246` at verse ends, some `madd_2`) is
-   **not coloured on the page** — it stays black, and is shown in the
-   knowledge surface + on tap. Every skip is counted in the coverage
-   report — never a silent gap. (A clip-path x-slice "band" was tried and
-   dropped: on a calligraphic word-ligature it renders as a faint
-   baseline stroke, an artefact, not a coloured letter — Ismail's call.)
+3. **Clip-path x-slice "band" — المدّ category only** (`f41524f`,
+   2026-09-06). A rule that lands only inside a whole-word ligature with no
+   diacritic anchor gets a duplicate of that `<path>` clipped to the
+   `<rect>` x-slice of the madd letter (proportional split of the ligature
+   box by base-letter index; a word-final letter sits at the box edge, so a
+   verse-end band is tight). Scoped to `madd` because Ismail flagged the
+   verse-end elongation (al-ʿālamīn ي, ar-raḥīm, ad-dīn, nastaʿīn,
+   aḍ-ḍāllīn) reading as black on his device — those madd letters are bare
+   inside word-ligatures. **Non-madd** rules in the same situation still
+   stay black + on-tap + in the knowledge surface (their bands read as
+   baseline artefacts and the rules are less visually expected). ≈ 5.5 % of
+   spans. Every skip is still counted in the coverage report — never a
+   silent gap.
 
 Base ink moves to `<g id="md-page" fill>` (replaces the night `ColorFilter`).
 Runs in `MushafPageCache`'s `compute` isolate, cached per `(page, night)`.
