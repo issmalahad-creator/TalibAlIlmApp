@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 58,
+      version: 59,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -98,6 +98,7 @@ class DatabaseHelper {
         await _createV56Tables(db);
         await _createV57Tables(db);
         await _createV58Tables(db);
+        await _createV59Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -168,6 +169,7 @@ class DatabaseHelper {
         if (oldVersion < 56) await _createV56Tables(db);
         if (oldVersion < 57) await _createV57Tables(db);
         if (oldVersion < 58) await _createV58Tables(db);
+        if (oldVersion < 59) await _createV59Tables(db);
       },
     );
   }
@@ -2217,6 +2219,53 @@ class DatabaseHelper {
         'ALTER TABLE life_pillars ADD COLUMN archived INTEGER NOT NULL DEFAULT 0');
     await db.execute(
         'ALTER TABLE life_slots ADD COLUMN archived INTEGER NOT NULL DEFAULT 0');
+  }
+
+  /// v59 — Life Engine · L6-DYN #3 · tasks, not just time-blocks
+  /// (`docs/LIFE_ENGINE.md` §7). Three shapes, all optional and additive:
+  ///  * `life_tasks` — the catalog: a **recurring** task (`kind='recurring'`,
+  ///    `recurrence` daily|weekly, `weekly_target` for weekly) or a
+  ///    one-time **milestone** (`kind='milestone'`, `done_date` set when
+  ///    finished). `pillar_key` links it to a tracked pillar or is null.
+  ///  * `life_task_log` — a completion of a recurring task on a date.
+  ///  * `life_day_mit` — the "most important 3" for a date (`slot` 0..2),
+  ///    free text + a done flag. Chosen fresh each morning, per Ismail's
+  ///    sheet rule; not part of the catalog.
+  Future<void> _createV59Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        pillar_key TEXT,
+        kind TEXT NOT NULL DEFAULT 'recurring',   -- recurring | milestone
+        recurrence TEXT NOT NULL DEFAULT 'daily', -- recurring: daily | weekly
+        weekly_target INTEGER NOT NULL DEFAULT 0,
+        sort INTEGER NOT NULL DEFAULT 0,
+        archived INTEGER NOT NULL DEFAULT 0,
+        created_date TEXT NOT NULL,
+        done_date TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_task_log (
+        date TEXT NOT NULL,
+        task_id INTEGER NOT NULL,
+        done_at INTEGER,
+        PRIMARY KEY (date, task_id)
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_life_task_log_date ON life_task_log(date)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS life_day_mit (
+        date TEXT NOT NULL,
+        slot INTEGER NOT NULL,
+        text TEXT NOT NULL DEFAULT '',
+        done INTEGER NOT NULL DEFAULT 0,
+        done_at INTEGER,
+        PRIMARY KEY (date, slot)
+      )
+    ''');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

@@ -262,6 +262,200 @@ class LifePlanRepository {
     });
   }
 
+  // ── tasks & MITs (L6-DYN #3) ─────────────────────────────────────────
+  //
+  // A layer above the schedule: recurring habits + one-time milestones
+  // (`life_tasks` / `life_task_log`) and the "most important 3" for a date
+  // (`life_day_mit`). All optional — the engine runs the same without any.
+
+  Future<List<LifeTask>> tasks({bool includeArchived = false}) async {
+    final db = await _db;
+    final rows = await db.query('life_tasks',
+        where: includeArchived ? null : 'archived = 0',
+        orderBy: 'sort ASC, id ASC');
+    return rows.map(LifeTask.fromRow).toList();
+  }
+
+  Future<int> upsertTask(LifeTask t) async {
+    final db = await _db;
+    final row = t.toRow();
+    if (t.id == 0 && (row['created_date'] as String? ?? '').isEmpty) {
+      row['created_date'] = today();
+    }
+    if (t.id == 0) {
+      return db.insert('life_tasks', row);
+    }
+    await db.update('life_tasks', row, where: 'id = ?', whereArgs: [t.id]);
+    return t.id;
+  }
+
+  Future<void> setTaskArchived(int id, bool archived) async {
+    final db = await _db;
+    await db.update('life_tasks', {'archived': archived ? 1 : 0},
+        where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<bool> canHardDeleteTask(int id) async {
+    final db = await _db;
+    final logs = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM life_task_log WHERE task_id = ?', [id]));
+    return (logs ?? 0) == 0;
+  }
+
+  Future<void> hardDeleteTask(int id) async {
+    if (!await canHardDeleteTask(id)) {
+      await setTaskArchived(id, true);
+      return;
+    }
+    final db = await _db;
+    await db.delete('life_tasks', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> reorderTasks(List<int> idsInOrder) async {
+    final db = await _db;
+    await db.transaction((txn) async {
+      for (var i = 0; i < idsInOrder.length; i++) {
+        await txn.update('life_tasks', {'sort': i},
+            where: 'id = ?', whereArgs: [idsInOrder[i]]);
+      }
+    });
+  }
+
+  /// Recurring-task completions on [date].
+  Future<Set<int>> taskLog(String date) async {
+    final db = await _db;
+    final rows = await db.query('life_task_log',
+        columns: ['task_id'], where: 'date = ?', whereArgs: [date]);
+    return {for (final r in rows) (r['task_id'] as num).toInt()};
+  }
+
+  Future<bool> toggleTask(String date, int taskId) async {
+    final db = await _db;
+    final on = (await taskLog(date)).contains(taskId);
+    if (on) {
+      await db.delete('life_task_log',
+          where: 'date = ? AND task_id = ?', whereArgs: [date, taskId]);
+      return false;
+    }
+    await db.insert(
+      'life_task_log',
+      {
+        'date': date,
+        'task_id': taskId,
+        'done_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    return true;
+  }
+
+  /// Completions of a weekly recurring task inside the 7 days ending
+  /// [weekEnding] (inclusive) — for the "2 / 5 this week" readout.
+  Future<int> weeklyTaskDone(int taskId, String weekEnding) async {
+    final end = parseYmd(weekEnding);
+    final start = ymd(end.subtract(const Duration(days: 6)));
+    final db = await _db;
+    return Sqflite.firstIntValue(await db.rawQuery(
+          'SELECT COUNT(*) FROM life_task_log '
+          'WHERE task_id = ? AND date BETWEEN ? AND ?',
+          [taskId, start, weekEnding],
+        )) ??
+        0;
+  }
+
+  Future<void> setMilestoneDone(int id, bool done) async {
+    final db = await _db;
+    await db.update('life_tasks', {'done_date': done ? today() : null},
+        where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// The whole task picture for [date], composed so the UI does no math.
+  Future<LifeDayTasks> tasksForDay(String date) async {
+    final all = await tasks();
+    final doneToday = await taskLog(date);
+    final daily = all.where((t) => t.isDailyRecurring).toList();
+    final weekly = [
+      for (final t in all.where((t) => t.isWeekly))
+        (task: t, doneThisWeek: await weeklyTaskDone(t.id, date)),
+    ];
+    final milestones = all.where((t) => t.isMilestone).toList();
+    return LifeDayTasks(
+      date: date,
+      daily: daily,
+      dailyDone: doneToday,
+      weekly: weekly,
+      milestonesOpen: milestones.where((t) => !t.milestoneDone).toList(),
+      milestonesDoneToday:
+          milestones.where((t) => t.doneDate == date).toList(),
+    );
+  }
+
+  // ── MITs — the "most important 3" for a date ──────────────────────────
+
+  Future<List<LifeMit>> mitFor(String date) async {
+    final db = await _db;
+    final rows = await db.query('life_day_mit',
+        where: 'date = ?', whereArgs: [date], orderBy: 'slot ASC');
+    final bySlot = {
+      for (final r in rows) (r['slot'] as num).toInt(): LifeMit.fromRow(r),
+    };
+    return [
+      for (var i = 0; i < 3; i++)
+        bySlot[i] ?? LifeMit(date: date, slot: i),
+    ];
+  }
+
+  Future<void> setMitText(String date, int slot, String text) async {
+    final db = await _db;
+    final t = text.trim();
+    if (t.isEmpty) {
+      // clearing the text retires the row (and its done flag)
+      await db.delete('life_day_mit',
+          where: 'date = ? AND slot = ?', whereArgs: [date, slot]);
+      return;
+    }
+    final existing = await db.query('life_day_mit',
+        where: 'date = ? AND slot = ?', whereArgs: [date, slot], limit: 1);
+    await db.insert(
+      'life_day_mit',
+      {
+        'date': date,
+        'slot': slot,
+        'text': t,
+        'done': existing.isEmpty ? 0 : existing.first['done'],
+        'done_at': existing.isEmpty ? null : existing.first['done_at'],
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// Flip a MIT's done flag. No-op on an empty slot (nothing to complete).
+  Future<bool> toggleMit(String date, int slot) async {
+    final db = await _db;
+    final rows = await db.query('life_day_mit',
+        where: 'date = ? AND slot = ?', whereArgs: [date, slot], limit: 1);
+    if (rows.isEmpty || ((rows.first['text'] ?? '') as String).trim().isEmpty) {
+      return false;
+    }
+    final next = ((rows.first['done'] as num?)?.toInt() ?? 0) == 0;
+    await db.update(
+      'life_day_mit',
+      {
+        'done': next ? 1 : 0,
+        'done_at': next ? DateTime.now().millisecondsSinceEpoch : null,
+      },
+      where: 'date = ? AND slot = ?',
+      whereArgs: [date, slot],
+    );
+    return next;
+  }
+
+  /// `(done, total)` over the non-empty MITs of [date].
+  Future<({int done, int total})> mitProgress(String date) async {
+    final m = (await mitFor(date)).where((e) => !e.isEmpty).toList();
+    return (done: m.where((e) => e.done).length, total: m.length);
+  }
+
   // ── ticks ────────────────────────────────────────────────────────────
 
   Future<Set<int>> doneSlots(String date) async {

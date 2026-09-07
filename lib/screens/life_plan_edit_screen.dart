@@ -43,6 +43,7 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
   bool _showArchived = false;
   List<LifePillar> _pillars = const [];
   List<LifeSlot> _slots = const [];
+  List<LifeTask> _tasks = const [];
 
   String get _lang => LanguagePreferenceService.currentLanguage;
 
@@ -55,10 +56,12 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
   Future<void> _load() async {
     final pillars = await _repo.pillars(includeArchived: true);
     final slots = await _repo.slots(includeArchived: true);
+    final tasks = await _repo.tasks(includeArchived: true);
     if (!mounted) return;
     setState(() {
       _pillars = pillars;
       _slots = slots;
+      _tasks = tasks;
       _loading = false;
     });
   }
@@ -67,6 +70,8 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
       _pillars.where((p) => _showArchived || !p.archived).toList();
   List<LifeSlot> get _visibleSlots =>
       _slots.where((s) => _showArchived || !s.archived).toList();
+  List<LifeTask> get _visibleTasks =>
+      _tasks.where((t) => _showArchived || !t.archived).toList();
   List<LifePillar> get _activePillars =>
       _pillars.where((p) => !p.archived).toList();
 
@@ -158,6 +163,44 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
     await _load();
   }
 
+  // ── tasks (L6-DYN #3) ────────────────────────────────────────────────
+
+  Future<void> _editTask([LifeTask? existing]) async {
+    final base = existing ?? LifeTask(title: '', sort: _tasks.length);
+    final saved = await showModalBottomSheet<LifeTask>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) =>
+          _TaskForm(task: base, pillars: _activePillars, lang: _lang),
+    );
+    if (saved == null) return;
+    await _repo.upsertTask(saved);
+    await _load();
+  }
+
+  Future<void> _archiveTask(LifeTask t, bool archived) async {
+    if (!archived && !t.archived) {
+      if (await _repo.canHardDeleteTask(t.id)) {
+        await _repo.hardDeleteTask(t.id);
+      } else {
+        await _repo.setTaskArchived(t.id, true);
+      }
+    } else {
+      await _repo.setTaskArchived(t.id, archived);
+    }
+    await _load();
+  }
+
+  Future<void> _reorderTasks(int oldIndex, int newIndex) async {
+    final list = _visibleTasks;
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+    setState(() {});
+    await _repo.reorderTasks(list.map((t) => t.id).toList());
+    await _load();
+  }
+
   // ── seed reset ───────────────────────────────────────────────────────
 
   Future<void> _resetToSeed() async {
@@ -194,7 +237,7 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Scaffold(
           backgroundColor: const Color(0xFFFBF6EE),
           appBar: AppBar(
@@ -203,6 +246,7 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
               tabs: [
                 Tab(text: basicText('life_tab_pillars', lang)),
                 Tab(text: basicText('life_tab_slots', lang)),
+                Tab(text: basicText('life_tab_tasks', lang)),
               ],
             ),
             actions: [
@@ -232,13 +276,24 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
           body: _loading
               ? const Center(child: CircularProgressIndicator())
               : TabBarView(
-                  children: [_pillarsTab(lang), _slotsTab(lang)],
+                  children: [
+                    _pillarsTab(lang),
+                    _slotsTab(lang),
+                    _tasksTab(lang),
+                  ],
                 ),
           floatingActionButton: Builder(
             builder: (ctx) => FloatingActionButton.extended(
-              onPressed: () => DefaultTabController.of(ctx).index == 0
-                  ? _editPillar()
-                  : _editSlot(),
+              onPressed: () {
+                switch (DefaultTabController.of(ctx).index) {
+                  case 0:
+                    _editPillar();
+                  case 1:
+                    _editSlot();
+                  default:
+                    _editTask();
+                }
+              },
               icon: const Icon(Icons.add_rounded),
               label: Text(basicText('life_add', lang)),
             ),
@@ -325,6 +380,48 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
           accent: _parseColor(pillar?.color),
           onTap: () => _editSlot(s),
           onArchiveToggle: () => _archiveSlot(s, !s.archived),
+          restoreLabel: basicText('life_restore', lang),
+          archiveLabel: basicText('life_archive', lang),
+        );
+      },
+    );
+  }
+
+  Widget _tasksTab(String lang) {
+    final list = _visibleTasks;
+    if (list.isEmpty) {
+      return _empty(basicText('life_no_tasks', lang));
+    }
+    final pillarByKey = {for (final p in _pillars) p.key: p};
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
+      itemCount: list.length,
+      onReorderItem: _reorderTasks,
+      itemBuilder: (_, i) {
+        final t = list[i];
+        final pillar = t.pillarKey == null ? null : pillarByKey[t.pillarKey];
+        final kindLabel = t.isMilestone
+            ? basicText('life_task_milestone', lang)
+            : (t.isWeekly
+                ? '${basicText('life_cadence_weekly', lang)} · ${t.weeklyTarget}'
+                : basicText('life_cadence_daily', lang));
+        return _EditRow(
+          key: ValueKey('task_${t.id}'),
+          leading: Icon(
+            t.isMilestone ? Icons.flag_outlined : Icons.repeat_rounded,
+            size: 20,
+            color: Colors.black45,
+          ),
+          title: t.title.isEmpty ? basicText('life_untitled', lang) : t.title,
+          subtitle: [
+            kindLabel,
+            if (pillar != null) '${pillar.emoji} ${pillar.label}'.trim(),
+            if (t.milestoneDone) '✓',
+          ].where((s) => s.isNotEmpty).join('  ·  '),
+          archived: t.archived,
+          accent: _parseColor(pillar?.color),
+          onTap: () => _editTask(t),
+          onArchiveToggle: () => _archiveTask(t, !t.archived),
           restoreLabel: basicText('life_restore', lang),
           archiveLabel: basicText('life_archive', lang),
         );
@@ -749,6 +846,155 @@ class _SlotFormState extends State<_SlotForm> {
             labelText: basicText('life_field_category', lang),
             hintText: basicText('life_field_category_hint', lang),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── task form ─────────────────────────────────────────────────────────
+
+/// A recurring habit or a one-time milestone. `_kind` is one of three UI
+/// choices — daily / weekly / milestone — mapped to `kind` + `recurrence`.
+enum _TaskKindChoice { daily, weekly, milestone }
+
+class _TaskForm extends StatefulWidget {
+  final LifeTask task;
+  final List<LifePillar> pillars;
+  final String lang;
+  const _TaskForm(
+      {required this.task, required this.pillars, required this.lang});
+
+  @override
+  State<_TaskForm> createState() => _TaskFormState();
+}
+
+class _TaskFormState extends State<_TaskForm> {
+  late final TextEditingController _title =
+      TextEditingController(text: widget.task.title);
+  late _TaskKindChoice _kind = widget.task.isMilestone
+      ? _TaskKindChoice.milestone
+      : (widget.task.isWeekly
+          ? _TaskKindChoice.weekly
+          : _TaskKindChoice.daily);
+  late int _weeklyTarget =
+      widget.task.weeklyTarget < 1 ? 3 : widget.task.weeklyTarget;
+  late String? _pillarKey = widget.task.pillarKey;
+
+  @override
+  void dispose() {
+    _title.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    final kind = _kind == _TaskKindChoice.milestone
+        ? LifeTaskKind.milestone
+        : LifeTaskKind.recurring;
+    final rec = _kind == _TaskKindChoice.weekly
+        ? LifeCadence.weekly
+        : LifeCadence.daily;
+    Navigator.pop(
+      context,
+      widget.task.copyWith(
+        title: _title.text.trim(),
+        kind: kind,
+        recurrence: rec,
+        weeklyTarget: _kind == _TaskKindChoice.weekly
+            ? (_weeklyTarget < 1 ? 1 : _weeklyTarget)
+            : 0,
+        pillarKey: _pillarKey,
+        clearPillar: _pillarKey == null,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = widget.lang;
+    return _SheetShell(
+      title: widget.task.id == 0
+          ? basicText('life_add_task', lang)
+          : basicText('life_edit_task', lang),
+      onSave: _title.text.trim().isEmpty ? null : _save,
+      saveLabel: basicText('save', lang),
+      children: [
+        TextField(
+          controller: _title,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: basicText('life_field_task_title', lang),
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 16),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(basicText('life_field_task_kind', lang),
+              style: const TextStyle(fontWeight: FontWeight.w600)),
+        ),
+        const SizedBox(height: 6),
+        SegmentedButton<_TaskKindChoice>(
+          segments: [
+            ButtonSegment(
+              value: _TaskKindChoice.daily,
+              label: Text(basicText('life_cadence_daily', lang)),
+            ),
+            ButtonSegment(
+              value: _TaskKindChoice.weekly,
+              label: Text(basicText('life_cadence_weekly', lang)),
+            ),
+            ButtonSegment(
+              value: _TaskKindChoice.milestone,
+              label: Text(basicText('life_task_milestone', lang)),
+            ),
+          ],
+          selected: {_kind},
+          onSelectionChanged: (s) => setState(() => _kind = s.first),
+        ),
+        if (_kind == _TaskKindChoice.weekly) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Text(basicText('life_field_weekly_target', lang)),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                onPressed: () => setState(
+                    () => _weeklyTarget = (_weeklyTarget - 1).clamp(1, 99)),
+              ),
+              Text('$_weeklyTarget',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w700)),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: () => setState(
+                    () => _weeklyTarget = (_weeklyTarget + 1).clamp(1, 99)),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String?>(
+          initialValue: widget.pillars.any((p) => p.key == _pillarKey)
+              ? _pillarKey
+              : null,
+          decoration: InputDecoration(
+            labelText: basicText('life_field_pillar', lang),
+          ),
+          items: [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text(basicText('life_no_pillar', lang)),
+            ),
+            for (final p in widget.pillars)
+              DropdownMenuItem<String?>(
+                value: p.key,
+                child: Text('${p.emoji} ${p.label}'.trim(),
+                    overflow: TextOverflow.ellipsis),
+              ),
+          ],
+          onChanged: (v) => setState(() => _pillarKey = v),
         ),
       ],
     );

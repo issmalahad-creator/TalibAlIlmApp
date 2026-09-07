@@ -349,4 +349,130 @@ void main() {
       expect((await repo.doneSlots(today)).contains(2), isTrue);
     });
   });
+
+  // ── L6-DYN #3 — tasks & MITs ─────────────────────────────────────────
+
+  group('tasks & MITs', () {
+    setUp(() async {
+      final db = await DatabaseHelper.instance.database;
+      await db.delete('life_tasks');
+      await db.delete('life_task_log');
+      await db.delete('life_day_mit');
+    });
+
+    test('recurring daily task: create, appears for the day, toggles per date',
+        () async {
+      final id = await repo.upsertTask(const LifeTask(
+          title: 'مراجعة كود الأمس', pillarKey: 'coding'));
+      expect(id, greaterThan(0));
+      final dv = await repo.tasksForDay(today);
+      expect(dv.daily.single.title, 'مراجعة كود الأمس');
+      expect(dv.dailyDone, isEmpty);
+      expect(await repo.toggleTask(today, id), isTrue);
+      expect((await repo.tasksForDay(today)).dailyDone, contains(id));
+      // a different date is independent
+      final ytd = LifePlanRepository.ymd(
+          DateTime.now().subtract(const Duration(days: 1)));
+      expect((await repo.taskLog(ytd)).contains(id), isFalse);
+      expect(await repo.toggleTask(today, id), isFalse); // untoggle
+      expect((await repo.taskLog(today)), isEmpty);
+    });
+
+    test('weekly recurring task counts completions in the trailing 7 days',
+        () async {
+      final id = await repo.upsertTask(const LifeTask(
+          title: 'إرسال 3 طلبات',
+          kind: LifeTaskKind.recurring,
+          recurrence: LifeCadence.weekly,
+          weeklyTarget: 3,
+          pillarKey: 'jobs'));
+      final now = DateTime.now();
+      for (final ago in [0, 2, 5, 9]) {
+        // 9 is outside the 7-day window ending today
+        await repo.toggleTask(
+            LifePlanRepository.ymd(now.subtract(Duration(days: ago))), id);
+      }
+      expect(await repo.weeklyTaskDone(id, today), 3);
+      final dv = await repo.tasksForDay(today);
+      expect(dv.weekly.single.task.weeklyTarget, 3);
+      expect(dv.weekly.single.doneThisWeek, 3);
+      expect(dv.daily, isEmpty); // not a daily task
+    });
+
+    test('milestone: open → done today → reopen', () async {
+      final id = await repo.upsertTask(const LifeTask(
+          title: 'FastAPI: مشروع أول',
+          kind: LifeTaskKind.milestone,
+          pillarKey: 'coding'));
+      var dv = await repo.tasksForDay(today);
+      expect(dv.milestonesOpen.single.id, id);
+      expect(dv.milestonesDoneToday, isEmpty);
+      await repo.setMilestoneDone(id, true);
+      dv = await repo.tasksForDay(today);
+      expect(dv.milestonesOpen, isEmpty);
+      expect(dv.milestonesDoneToday.single.id, id);
+      expect((await repo.tasks()).single.milestoneDone, isTrue);
+      await repo.setMilestoneDone(id, false);
+      expect((await repo.tasksForDay(today)).milestonesOpen.single.id, id);
+    });
+
+    test('archive vs hard-delete a task depends on whether it was ever logged',
+        () async {
+      final a = await repo.upsertTask(const LifeTask(title: 'أ'));
+      final b = await repo.upsertTask(const LifeTask(title: 'ب'));
+      expect(await repo.canHardDeleteTask(a), isTrue);
+      await repo.toggleTask(today, b);
+      expect(await repo.canHardDeleteTask(b), isFalse);
+      await repo.hardDeleteTask(a); // gone
+      await repo.hardDeleteTask(b); // falls back to archive
+      final live = await repo.tasks();
+      final all = await repo.tasks(includeArchived: true);
+      expect(live.map((t) => t.id), isNot(contains(a)));
+      expect(live.map((t) => t.id), isNot(contains(b)));
+      expect(all.firstWhere((t) => t.id == b).archived, isTrue);
+    });
+
+    test('reorderTasks persists a new order', () async {
+      final ids = [
+        for (final t in ['x', 'y', 'z'])
+          await repo.upsertTask(LifeTask(title: t)),
+      ];
+      await repo.reorderTasks(ids.reversed.toList());
+      expect((await repo.tasks()).map((t) => t.id).toList(),
+          ids.reversed.toList());
+    });
+
+    test('MITs: always 3, text edit + done flag, empty clears the row',
+        () async {
+      var m = await repo.mitFor(today);
+      expect(m.length, 3);
+      expect(m.every((e) => e.isEmpty), isTrue);
+      await repo.setMitText(today, 0, 'أنهِ فيديو Python');
+      await repo.setMitText(today, 1, 'راسل 3 عملاء');
+      expect(await repo.toggleMit(today, 0), isTrue);
+      expect(await repo.toggleMit(today, 2), isFalse); // empty slot → no-op
+      m = await repo.mitFor(today);
+      expect(m[0].text, 'أنهِ فيديو Python');
+      expect(m[0].done, isTrue);
+      expect(m[1].done, isFalse);
+      expect(m[2].isEmpty, isTrue);
+      final p = await repo.mitProgress(today);
+      expect(p.total, 2);
+      expect(p.done, 1);
+      // clearing the text drops the row + its done flag
+      await repo.setMitText(today, 0, '   ');
+      m = await repo.mitFor(today);
+      expect(m[0].isEmpty, isTrue);
+      expect((await repo.mitProgress(today)).total, 1);
+    });
+
+    test('setMitText keeps the done flag when only the text changes', () async {
+      await repo.setMitText(today, 0, 'الأصل');
+      await repo.toggleMit(today, 0);
+      await repo.setMitText(today, 0, 'نصّ معدّل');
+      final m = await repo.mitFor(today);
+      expect(m[0].text, 'نصّ معدّل');
+      expect(m[0].done, isTrue);
+    });
+  });
 }

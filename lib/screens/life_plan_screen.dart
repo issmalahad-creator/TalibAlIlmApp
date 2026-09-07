@@ -46,6 +46,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
   LifeDayProgress? _prog;
   LifeSlot? _current;
   int _dayIndex = 0;
+  List<LifeMit> _mit = const [];
+  LifeDayTasks? _dayTasks;
 
   String get _lang => LanguagePreferenceService.currentLanguage;
   String get _today => LifePlanRepository.today();
@@ -102,6 +104,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
     final prog = await _repo.progress(_today);
     final cur = await _repo.currentSlot();
     final di = await _repo.dayIndex();
+    final mit = await _repo.mitFor(_today);
+    final dayTasks = await _repo.tasksForDay(_today);
     if (!mounted) return;
     setState(() {
       _pillars = pillars;
@@ -109,6 +113,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
       _prog = prog;
       _current = cur;
       _dayIndex = di;
+      _mit = mit;
+      _dayTasks = dayTasks;
       _loading = false;
     });
     // Keep today's block nudges / nightly review in sync with what's now
@@ -205,6 +211,8 @@ class _LifePlanScreenState extends State<LifePlanScreen>
                     label: '${prog.doneCount} / ${prog.totalCount}',
                   ),
                   const SizedBox(height: 16),
+                  _mitCard(lang),
+                  const SizedBox(height: 16),
                   _pillarsStrip(lang),
                   const SizedBox(height: 18),
                   Text(basicText('life_todays_blocks', lang),
@@ -213,11 +221,197 @@ class _LifePlanScreenState extends State<LifePlanScreen>
                           fontWeight: FontWeight.w800, fontSize: 13)),
                   const SizedBox(height: 8),
                   for (final s in _slots) _slotRow(s, lang),
+                  if (!(_dayTasks?.isEmpty ?? true)) ...[
+                    const SizedBox(height: 18),
+                    Text(basicText('life_tasks_section', lang),
+                        textDirection: TextDirection.rtl,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    _tasksSection(lang),
+                  ],
                   const SizedBox(height: 14),
                   _noteRow(lang),
                 ],
               ),
             ),
+    );
+  }
+
+  // ── L6-DYN #3 · MITs + tasks ─────────────────────────────────────────
+
+  Future<void> _saveMitText(int slot, String text) async {
+    await _repo.setMitText(_today, slot, text);
+    _load(silent: true);
+  }
+
+  Future<void> _toggleMit(int slot) async {
+    if (_mit.length <= slot || _mit[slot].isEmpty) return;
+    unawaited(HapticFeedback.selectionClick());
+    await _repo.toggleMit(_today, slot);
+    _load(silent: true);
+  }
+
+  Future<void> _toggleTask(int id) async {
+    unawaited(HapticFeedback.selectionClick());
+    await _repo.toggleTask(_today, id);
+    _load(silent: true);
+  }
+
+  Future<void> _toggleMilestone(int id, bool done) async {
+    unawaited(HapticFeedback.selectionClick());
+    await _repo.setMilestoneDone(id, done);
+    _load(silent: true);
+  }
+
+  Widget _mitCard(String lang) {
+    final p = _mit.where((e) => !e.isEmpty).toList();
+    final done = p.where((e) => e.done).length;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: const Color(0x332F5C46)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              const Text('🎯', style: TextStyle(fontSize: 15)),
+              const SizedBox(width: 8),
+              Text(basicText('life_mit_title', lang),
+                  textDirection: TextDirection.rtl,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: AppColors.textDark)),
+              const Spacer(),
+              if (p.isNotEmpty)
+                Text('$done / ${p.length}',
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textMuted)),
+            ],
+          ),
+          for (var i = 0; i < 3; i++)
+            _MitRow(
+              key: ValueKey('mit_${_today}_$i'),
+              mit: i < _mit.length
+                  ? _mit[i]
+                  : LifeMit(date: _today, slot: i),
+              hint: basicText('life_mit_hint', lang),
+              onSubmit: (t) => _saveMitText(i, t),
+              onToggle: () => _toggleMit(i),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tasksSection(String lang) {
+    final dt = _dayTasks!;
+    final pillarByKey = {for (final p in _pillars) p.key: p};
+    String? pillarLabel(String? k) =>
+        k == null ? null : pillarByKey[k]?.label;
+
+    Widget line({
+      required String title,
+      required bool done,
+      required VoidCallback onTap,
+      String? trailing,
+      String? pillar,
+    }) =>
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                _tick(done),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(title,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          decoration:
+                              done ? TextDecoration.lineThrough : null,
+                          color: done
+                              ? AppColors.textMuted
+                              : AppColors.textDark)),
+                ),
+                if (trailing != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Text(trailing,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(
+                            fontSize: 10, color: AppColors.textMuted)),
+                  ),
+                if (pillar != null)
+                  Container(
+                    margin: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(pillar,
+                        style: const TextStyle(
+                            fontSize: 9, color: AppColors.primaryDark)),
+                  ),
+              ],
+            ),
+          ),
+        );
+
+    return Column(
+      children: [
+        for (final t in dt.daily)
+          line(
+            title: t.title,
+            done: dt.dailyDone.contains(t.id),
+            onTap: () => _toggleTask(t.id),
+            pillar: pillarLabel(t.pillarKey),
+          ),
+        for (final w in dt.weekly)
+          line(
+            title: w.task.title,
+            done: w.doneThisWeek >= w.task.weeklyTarget &&
+                w.task.weeklyTarget > 0,
+            onTap: () => _toggleTask(w.task.id),
+            trailing: w.task.weeklyTarget > 0
+                ? '${w.doneThisWeek}/${w.task.weeklyTarget}'
+                : '${w.doneThisWeek}',
+            pillar: pillarLabel(w.task.pillarKey),
+          ),
+        for (final m in dt.milestonesOpen)
+          line(
+            title: '🚩 ${m.title}',
+            done: false,
+            onTap: () => _toggleMilestone(m.id, true),
+            pillar: pillarLabel(m.pillarKey),
+          ),
+        for (final m in dt.milestonesDoneToday)
+          line(
+            title: '🚩 ${m.title}',
+            done: true,
+            onTap: () => _toggleMilestone(m.id, false),
+            pillar: pillarLabel(m.pillarKey),
+          ),
+      ],
     );
   }
 
@@ -638,4 +832,110 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RingPainter old) => old.v != v;
+}
+
+/// One editable «أهمّ 3» row — a tick + an inline text field that commits
+/// on submit or when it loses focus. Empty text retires the row.
+class _MitRow extends StatefulWidget {
+  final LifeMit mit;
+  final String hint;
+  final ValueChanged<String> onSubmit;
+  final VoidCallback onToggle;
+  const _MitRow({
+    super.key,
+    required this.mit,
+    required this.hint,
+    required this.onSubmit,
+    required this.onToggle,
+  });
+
+  @override
+  State<_MitRow> createState() => _MitRowState();
+}
+
+class _MitRowState extends State<_MitRow> {
+  late final TextEditingController _c =
+      TextEditingController(text: widget.mit.text);
+  late final FocusNode _f = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _f.addListener(() {
+      if (!_f.hasFocus) _commit();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _MitRow old) {
+    super.didUpdateWidget(old);
+    // keep the field in sync when a reload brings new text and we're idle
+    if (!_f.hasFocus && widget.mit.text != _c.text) {
+      _c.text = widget.mit.text;
+    }
+  }
+
+  void _commit() {
+    if (_c.text.trim() != widget.mit.text.trim()) {
+      widget.onSubmit(_c.text);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    _f.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final done = widget.mit.done;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        children: [
+          GestureDetector(
+            onTap: widget.mit.text.trim().isEmpty ? null : widget.onToggle,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                done
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                size: 20,
+                color: done
+                    ? const Color(0xFFD9A441)
+                    : AppColors.textMuted.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _c,
+              focusNode: _f,
+              textDirection: TextDirection.rtl,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _commit(),
+              style: TextStyle(
+                fontSize: 12.5,
+                decoration: done ? TextDecoration.lineThrough : null,
+                color: done ? AppColors.textMuted : AppColors.textDark,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                border: InputBorder.none,
+                hintText: widget.hint,
+                hintStyle: const TextStyle(
+                    fontSize: 12.5, color: AppColors.textMuted),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

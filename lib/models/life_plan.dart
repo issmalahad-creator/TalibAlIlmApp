@@ -289,3 +289,159 @@ class LifeCycleSummary {
     required this.byPillarDone,
   });
 }
+
+// ── L6-DYN #3 · tasks (not just time-blocks) ──────────────────────────
+
+enum LifeTaskKind { recurring, milestone }
+
+LifeTaskKind _taskKind(String? s) =>
+    s == 'milestone' ? LifeTaskKind.milestone : LifeTaskKind.recurring;
+
+/// A task in the catalog — a **recurring** habit (daily or N×/week) or a
+/// one-time **milestone** (e.g. one of Python's 6 stages). `pillarKey`
+/// links it to a tracked pillar or is null. Time-blocks stay in
+/// `life_slots`; this is the "3 MITs / recurring / milestone" layer the
+/// sheet has that a schedule can't express.
+class LifeTask {
+  final int id; // 0 = new
+  final String title;
+  final String? pillarKey;
+  final LifeTaskKind kind;
+  final LifeCadence recurrence; // recurring only: daily | weekly
+  final int weeklyTarget; // recurring weekly: how many per week
+  final int sort;
+  final bool archived;
+  final String createdDate; // YYYY-MM-DD
+  final String? doneDate; // milestone only: when it was finished
+
+  const LifeTask({
+    this.id = 0,
+    required this.title,
+    this.pillarKey,
+    this.kind = LifeTaskKind.recurring,
+    this.recurrence = LifeCadence.daily,
+    this.weeklyTarget = 0,
+    this.sort = 0,
+    this.archived = false,
+    this.createdDate = '',
+    this.doneDate,
+  });
+
+  bool get isMilestone => kind == LifeTaskKind.milestone;
+  bool get isWeekly => kind == LifeTaskKind.recurring && recurrence == LifeCadence.weekly;
+  bool get isDailyRecurring =>
+      kind == LifeTaskKind.recurring && recurrence == LifeCadence.daily;
+  bool get milestoneDone => isMilestone && (doneDate?.isNotEmpty ?? false);
+
+  factory LifeTask.fromRow(Map<String, Object?> r) => LifeTask(
+        id: (r['id'] as num).toInt(),
+        title: (r['title'] ?? '') as String,
+        pillarKey: (r['pillar_key'] as String?)?.isNotEmpty == true
+            ? r['pillar_key'] as String
+            : null,
+        kind: _taskKind(r['kind'] as String?),
+        recurrence: _cadence(r['recurrence'] as String?),
+        weeklyTarget: (r['weekly_target'] as num?)?.toInt() ?? 0,
+        sort: (r['sort'] as num?)?.toInt() ?? 0,
+        archived: ((r['archived'] as num?)?.toInt() ?? 0) == 1,
+        createdDate: (r['created_date'] ?? '') as String? ?? '',
+        doneDate: (r['done_date'] as String?)?.isNotEmpty == true
+            ? r['done_date'] as String
+            : null,
+      );
+
+  /// For an insert/update. Omits `id` when 0 (let SQLite assign it).
+  Map<String, Object?> toRow() => {
+        if (id != 0) 'id': id,
+        'title': title,
+        'pillar_key': pillarKey,
+        'kind': kind == LifeTaskKind.milestone ? 'milestone' : 'recurring',
+        'recurrence': recurrence == LifeCadence.weekly ? 'weekly' : 'daily',
+        'weekly_target': weeklyTarget,
+        'sort': sort,
+        'archived': archived ? 1 : 0,
+        'created_date': createdDate,
+        'done_date': doneDate,
+      };
+
+  LifeTask copyWith({
+    String? title,
+    String? pillarKey,
+    LifeTaskKind? kind,
+    LifeCadence? recurrence,
+    int? weeklyTarget,
+    int? sort,
+    bool? archived,
+    String? doneDate,
+    bool clearPillar = false,
+    bool clearDoneDate = false,
+  }) =>
+      LifeTask(
+        id: id,
+        title: title ?? this.title,
+        pillarKey: clearPillar ? null : (pillarKey ?? this.pillarKey),
+        kind: kind ?? this.kind,
+        recurrence: recurrence ?? this.recurrence,
+        weeklyTarget: weeklyTarget ?? this.weeklyTarget,
+        sort: sort ?? this.sort,
+        archived: archived ?? this.archived,
+        createdDate: createdDate,
+        doneDate: clearDoneDate ? null : (doneDate ?? this.doneDate),
+      );
+}
+
+/// One of the "most important 3" for a date — free text + a done flag,
+/// chosen fresh each morning. `mitFor` always returns exactly 3 (padded
+/// with empty rows for slots 0..2).
+class LifeMit {
+  final String date; // YYYY-MM-DD
+  final int slot; // 0..2
+  final String text;
+  final bool done;
+
+  const LifeMit({
+    required this.date,
+    required this.slot,
+    this.text = '',
+    this.done = false,
+  });
+
+  bool get isEmpty => text.trim().isEmpty;
+
+  factory LifeMit.fromRow(Map<String, Object?> r) => LifeMit(
+        date: r['date'] as String,
+        slot: (r['slot'] as num).toInt(),
+        text: (r['text'] ?? '') as String? ?? '',
+        done: ((r['done'] as num?)?.toInt() ?? 0) == 1,
+      );
+}
+
+/// The task picture for one date — composed so «اليوم» does no logic:
+/// daily recurring tasks (with today's done set), weekly recurring tasks
+/// (with this-week's count vs target), and milestones still open plus any
+/// finished today. Never stored.
+class LifeDayTasks {
+  final String date;
+  final List<LifeTask> daily; // recurrence == daily
+  final Set<int> dailyDone; // ids done on [date]
+  final List<({LifeTask task, int doneThisWeek})> weekly;
+  final List<LifeTask> milestonesOpen;
+  final List<LifeTask> milestonesDoneToday;
+
+  const LifeDayTasks({
+    required this.date,
+    required this.daily,
+    required this.dailyDone,
+    required this.weekly,
+    required this.milestonesOpen,
+    required this.milestonesDoneToday,
+  });
+
+  bool get isEmpty =>
+      daily.isEmpty &&
+      weekly.isEmpty &&
+      milestonesOpen.isEmpty &&
+      milestonesDoneToday.isEmpty;
+
+  int get dailyDoneCount => daily.where((t) => dailyDone.contains(t.id)).length;
+}
