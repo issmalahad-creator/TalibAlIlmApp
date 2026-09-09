@@ -29,6 +29,7 @@ import '../widgets/knowledge_review_entry_card.dart';
 import '../widgets/nav_tile.dart';
 import '../widgets/time_accountability_dashboard.dart';
 import '../widgets/worship_coach_card.dart';
+import 'akhlaq/akhlaq_home_screen.dart';
 import 'life_plan_screen.dart';
 import 'worship_coach_screen.dart';
 import 'add_task_screen.dart';
@@ -194,6 +195,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 12),
                   _LifeEngineCard(lang: lang),
+                  const SizedBox(height: 12),
+                  _AkhlaqCard(lang: lang),
                   const SizedBox(height: 12),
                   _MyMosqueCard(
                       key: ValueKey('my_mosque_$_mosqueRefreshTick'),
@@ -978,6 +981,61 @@ class _LifeEngineCard extends StatelessWidget {
                           color: AppColors.textDark)),
                   const SizedBox(height: 2),
                   Text(basicText('life_engine_tagline', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontSize: 11.5, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AkhlaqCard extends StatelessWidget {
+  final String lang;
+  const _AkhlaqCard({required this.lang});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const AkhlaqHomeScreen())),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0x334E8368)),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x1F4E8368),
+                blurRadius: 16,
+                offset: Offset(0, 5)),
+          ],
+        ),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            const Text('🌿', style: TextStyle(fontSize: 26)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(basicText('akhlaq_card_title', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: AppColors.textDark)),
+                  const SizedBox(height: 2),
+                  Text(basicText('akhlaq_card_tagline', lang),
                       textDirection: TextDirection.rtl,
                       style: const TextStyle(
                           fontSize: 11.5, color: AppColors.textMuted)),
