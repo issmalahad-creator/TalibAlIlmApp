@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 60,
+      version: 61,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -100,6 +100,7 @@ class DatabaseHelper {
         await _createV58Tables(db);
         await _createV59Tables(db);
         await _createV60Tables(db);
+        await _createV61Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -172,6 +173,7 @@ class DatabaseHelper {
         if (oldVersion < 58) await _createV58Tables(db);
         if (oldVersion < 59) await _createV59Tables(db);
         if (oldVersion < 60) await _createV60Tables(db);
+        if (oldVersion < 61) await _createV61Tables(db);
       },
     );
   }
@@ -2294,6 +2296,62 @@ class DatabaseHelper {
     await db.execute('ALTER TABLE life_tasks ADD COLUMN qty_unit TEXT');
     await db.execute('ALTER TABLE life_task_log ADD COLUMN progress REAL');
     await db.execute('ALTER TABLE life_task_log ADD COLUMN qty INTEGER');
+  }
+
+  /// v61 — AKHLAQ training system · user state for a virtue slice
+  /// (`docs/akhlaq/`). Content (evidence/principles/scenarios/translations)
+  /// is a bundled asset parsed by `AkhlaqContent`; **only the student's own
+  /// training data lives here**, and it is never seeded.
+  ///  * `akhlaq_attempt`   — one answered scenario: the chosen option, its
+  ///    verdict/quality (aqrab=5/maqbul=3/baid=1) and per-dimension tally.
+  ///  * `akhlaq_sr_state`   — spaced-repetition state per (user × subskill):
+  ///    K/S/R track, interval, ease, current scenario difficulty, due date.
+  ///  * `akhlaq_progress`   — a derived training indicator per subskill
+  ///    (trend + band). NOT a verdict on the person.
+  ///  * `akhlaq_meta`       — small key/value (e.g. the "focus of the week").
+  Future<void> _createV61Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS akhlaq_attempt (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        subskill TEXT NOT NULL,
+        scenario_id TEXT NOT NULL,
+        chosen_ord TEXT NOT NULL,
+        verdict TEXT NOT NULL,
+        quality INTEGER NOT NULL,
+        difficulty INTEGER NOT NULL,
+        dim_score TEXT,                 -- JSON: {dimension: net}
+        answered_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_akhlaq_attempt_sub ON akhlaq_attempt(subskill, answered_at)');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS akhlaq_sr_state (
+        subskill TEXT PRIMARY KEY,
+        track TEXT NOT NULL DEFAULT 'S',   -- K | S | R
+        interval_days INTEGER NOT NULL DEFAULT 1,
+        ease REAL NOT NULL DEFAULT 2.3,
+        difficulty INTEGER NOT NULL DEFAULT 1,
+        due_date TEXT NOT NULL DEFAULT '',
+        last_quality INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS akhlaq_progress (
+        subskill TEXT PRIMARY KEY,
+        trend REAL NOT NULL DEFAULT 0,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        band TEXT NOT NULL DEFAULT 'beginner',
+        weak_dimension TEXT,
+        updated_at INTEGER
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS akhlaq_meta (
+        k TEXT PRIMARY KEY,
+        v TEXT
+      )
+    ''');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

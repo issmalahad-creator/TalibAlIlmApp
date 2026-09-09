@@ -197,6 +197,10 @@ flutter:
     - assets/quran/corpus/translations/
     - assets/quran/corpus/tafsir/
     - assets/quran/corpus/riwaya/
+    # AKHLAQ training system — content spec for a virtue slice (docs/akhlaq/).
+    # Arabic = source of truth; translations are a separate layer. Loaded once
+    # in a compute isolate by AkhlaqContent; user state lives in SQLite (v61).
+    - assets/akhlaq/
     # Quran Learning Layer (phase 79-ql) — seeded knowledge for the Prototype
     # slice (al-Fatiha + al-Ikhlas): ṣarf (Quranic Arabic Corpus), naḥw
     # (derived iʿrāb, cited), tajwīd (cpfair/quran-tajweed, CC BY 4.0,
