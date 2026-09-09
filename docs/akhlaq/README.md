@@ -16,9 +16,23 @@
    (قواعد لا LLM)، ممنوعات gamification.
 5. **`AKHLAQ_EVIDENCE_MODEL.md`** — تراتب المصادر، مخطّط الدليل، حالاته،
    خطّ الإنتاج، المراجعة البشرية.
-6. **`AKHLAQ_ARCHITECTURE.md`** — تجمع الخمس، النموذج العلائقي، التكرار
+6. **`AKHLAQ_TRANSLATION_MODEL.md`** — طبقة الترجمة: العربيّة = SOURCE OF
+   TRUTH؛ ترجمة حرفيّة أمينة لكلّ لغةٍ ممكنة؛ الطبقات الأربع منفصلة
+   (Source / Translation / Explanation / Pedagogical)؛ `translation_status`
+   منفصلة عن `source_status`.
+7. **`AKHLAQ_ARCHITECTURE.md`** — تجمع الكلّ، النموذج العلائقي، التكرار
    المتباعد، الملف التدريبي، خارطة المراحل، ومواصفة الشريحة الرأسية
    «الرفق».
+
+## سياسة الاعتماد (2026‑09‑10)
+
+**المراجعة البشرية ليست شرطًا.** الخطّ الأساسيّ = `Source‑grounded
+automated validation`: SOURCE → FETCH → VERIFY METADATA → EXTRACT →
+CLASSIFY → TRANSLATE → PEDAGOGICAL MODEL → `tool/akhlaq_validate.py` →
+PUBLISHABLE. الـ`Human Review` طبقةٌ مستقبليّة اختياريّة؛ الـmetadata
+تُحفَظ للتتبّع. `source_status` = درجة التحقّق من المصدر نفسه
+(`source_confirmed` / `source_located` / `source_uncertain`)، لا تعني
+«راجعها بشريّ».
 
 ## مراجع مساندة (تُغذّي نموذج الأدلّة)
 

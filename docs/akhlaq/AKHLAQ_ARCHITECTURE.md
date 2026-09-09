@@ -18,8 +18,12 @@
 │  الكتب والشروح — Turath Corpus │  tier 3–5 · استخراج عبر tool/ فقط
 └──────────────┬───────────────┘
 ┌──────────────▼───────────────┐
-│  Evidence Layer               │  EvidenceItem + source_status + review
-│  (التحقّق والتخريج)           │  AKHLAQ_EVIDENCE_MODEL
+│  Evidence Layer               │  EvidenceItem + source_status (source_confirmed/
+│  (التحقّق الآليّ + التخريج)   │  located/uncertain) · AKHLAQ_EVIDENCE_MODEL
+└──────────────┬───────────────┘
+┌──────────────▼───────────────┐
+│  Translation Layer            │  الأصل العربيّ ثابت · ترجمة حرفيّة لكلّ لغةٍ
+│  (العربيّة = SOURCE OF TRUTH) │  ممكنة · طبقات مفصولة · AKHLAQ_TRANSLATION_MODEL
 └──────────────┬───────────────┘
 ┌──────────────▼───────────────┐
 │  Character Ontology           │  domain → virtue → subskill → behavior
@@ -43,7 +47,13 @@
 └──────────────────────────────┘
 ```
 
-**القاعدة العابرة:** كل ما فوق «Evidence Layer» يحدث في `tool/` وقت
+**سياسة الاعتماد (2026‑09‑10):** الخطّ الأساسيّ = `Source‑grounded
+automated validation` (Claude ينفّذ البحث/التصنيف/الترجمة/بناء النموذج
+التربويّ، ثمّ `tool/akhlaq_validate.py`). **المراجعة البشرية طبقةٌ
+مستقبليّة اختياريّة**، لا تُوقِف الـpipeline؛ الـmetadata تُحفَظ للتتبّع
+(`AKHLAQ_EVIDENCE_MODEL §4، §5`).
+
+**القاعدة العابرة:** كل ما فوق «Translation Layer» يحدث في `tool/` وقت
 التأليف. كل ما تحته يحدث **محليًّا على الجهاز**. لا تبعيّة إنترنت وقت
 التشغيل.
 
@@ -191,7 +201,12 @@ akhlaq_conflict_script(slug PK, subskill_slugs, opening_ar, review_status)
 akhlaq_conflict_turn(id PK, script_slug, ord, prompt_ar, options_json, transitions_json)
 akhlaq_lesson(id PK, stage, ord, subskill_slug, title_ar, body_ar, mission_ar, est_minutes, status)
 akhlaq_curriculum_stage(stage PK, title_ar, intro_ar, outcome_ar)
+akhlaq_content_translation(ref_kind, ref_id, layer, lang, translation_type,
+    text, translator, machine_model, translation_status, notes,
+    reviewed_by, reviewed_at, PRIMARY KEY(ref_kind, ref_id, layer, lang))
+    -- الأصل العربيّ يبقى في جداوله؛ هذا للترجمات فقط (AKHLAQ_TRANSLATION_MODEL §4)
 akhlaq_review(id PK, ref_kind, ref_id, state, reviewer, checked_json, note_ar, reviewed_at)
+    -- اختياريّ: طبقة مراجعة بشرية مستقبليّة؛ غيابه لا يمنع النشر
 ```
 
 ### 7.2 بيانات المستخدم (لا تُبذَر أبدًا)
@@ -241,20 +256,27 @@ Widget  →  AkhlaqRepository (sqflite)  →  المحرّكات النقيّة
 
 ---
 
-## 9. الجودة (QA) — بوّابات
+## 9. الجودة (QA) — تحقّقٌ آليٌّ (`tool/akhlaq_validate.py`)
 
-- **توثيق:** كل `hadith_marfu` منشور له `grader`+`grading`+`takhrij`؛
-  القرآن مُقابَل بالمحلّي؛ لا `published` بلا `review approved`.
-- **فصل:** كل `principle`/`behavior` موسوم `interpretation_by = تربوي`؛
-  لا نسبة تفسير لعالِم.
-- **عدم الحُكم:** لا سطر تقدّم يُخرج رقمًا للشخص؛ فحص قائمة كلمات ممنوعة
-  في صياغة المؤشّرات وأسئلة المحاسبة («أنت»، صفة مجرّدة كخبر…).
-- **إنصاف المواقف:** لا موقف يجعل طرفَ مسألةٍ خلافيّةٍ «الخطأ».
+- **توثيق:** كل `hadith_marfu` بحالة `source_confirmed` له
+  `grader`+`grading`+`takhrij` **كما وردت في المصدر** (لا تُختلَق)؛ القرآن
+  مُقابَل بالمصحف المحلّي.
+- **فصل رباعيّ:** Source / Translation / Explanation / Pedagogical —
+  لا دمج. كل `principle`/`behavior` موسوم `interpretation_by = منهج
+  التطبيق التربوي`؛ لا نسبة تفسير لعالِم؛ لا نسبة داخل الترجمة.
+- **الترجمة:** لا ترجمة بلا `original_arabic`؛ `QURAN_MEANING` مترجمُه
+  إصدارٌ مُرخَّص لا آليّ؛ كل وحدةٍ لها `translation_status` صريح.
+- **عدم الحُكم:** لا سطر تقدّم يُخرج رقمًا للشخص؛ قائمة كلمات ممنوعة في
+  المؤشّرات وأسئلة المحاسبة.
+- **إنصاف المواقف:** لا موقف يجعل طرفَ مسألةٍ خلافيّةٍ «الخطأ»؛ كل
+  `scenario` له `subskill` و`difficulty`.
 - **الأنطولوجيا:** DAG على `requires`/`prerequisite_for`؛ لا يتامى؛ كل
   `vice` لها `opposite_of`.
-- تقرير `docs/akhlaq/reports/AKHLAQ_COVERAGE.md` يولّده اختبار على كل
-  الأصول.
-- **مراجعة بشرية موسومة** شرط إطلاق كل دفعة.
+- **لا بيانات وهمية ولا نصّ مختلَق** (فحص placeholders).
+- تقرير `docs/akhlaq/reports/AKHLAQ_COVERAGE.md` + تقرير تحقّقٍ لكل شريحة
+  (`AR-RIFQ_VALIDATION.md`).
+- **المراجعة البشرية:** طبقةٌ اختياريّة مستقبليّة، **ليست شرط إطلاق**؛
+  سجلّها (`akhlaq_review`) يُملأ إن/حين تُجرى.
 
 اختبارات: `akhlaq_ontology_test` · `akhlaq_evidence_qa_test` ·
 `akhlaq_behavior_test` · `akhlaq_scenario_engine_test` (تقييم/اختيار
@@ -282,10 +304,12 @@ Widget  →  AkhlaqRepository (sqflite)  →  المحرّكات النقيّة
 
 ---
 
-## 11. الشريحة الرأسية المرجعية: «الرفق» (PHASE 19)
+## 11. الشريحة الرأسية المرجعية: «الرفق» — **مُنجَزة كمواصفة محتوى**
 
-**لا تُبنى قبل اعتماد المعمارية.** حين تبدأ، تُنفَّذ كاملةً وتصير **القالب**
-لكل فضيلة بعدها:
+المعمارية معتمَدة، ومرحلة CONTENT RESEARCH + TRANSLATION منجَزة:
+`docs/akhlaq/alrifq/` (`AR-RIFQ_*` + `AR-RIFQ_TRANSLATION` + `ar-rifq.json`
++ `AR-RIFQ_VALIDATION`). التحقّق الآليّ أخضر. جاهزة للانتقال إلى **التنفيذ
+البرمجيّ** (P3). الخطوات الأصليّة للقالب تبقى مرجعًا:
 
 ```text
 1. الأنطولوجيا:
@@ -310,7 +334,9 @@ Widget  →  AkhlaqRepository (sqflite)  →  المحرّكات النقيّة
 8. المراجعة السلوكية: «آخر مرّة صحّحت لأحدٍ خطأً — بأيّ نبرة بدأت؟».
 9. التكرار المتباعد: K/S/R على subskills الرفق بالفواصل §4.
 10. الملف التدريبي: شريط «الرفق» + أضعف بُعد + جملة التحذير.
-11. مراجعة بشرية لكل ما سبق → published.
+11. الترجمة الحرفيّة لكلّ نصٍّ وعنصر (`AR-RIFQ_TRANSLATION`) + تحقّقٌ آليّ
+    (`tool/akhlaq_validate.py`) → PUBLISHABLE (المراجعة البشرية اختياريّة
+    لاحقة).
 ```
 
 معيار نجاح الشريحة: يمرّ متطوّع بها أسبوعًا، فيلاحظ في مواقف حقيقية أنّه
@@ -321,8 +347,8 @@ Widget  →  AkhlaqRepository (sqflite)  →  المحرّكات النقيّة
 
 ## 12. المواءمة مع الوثائق السابقة
 
-هذه المعمارية والوثائق الخمس هي **المرجع الحاكم**. من `docs/akhlaq/`
-السابقة:
+هذه المعمارية والوثائق الخمس **+ `AKHLAQ_TRANSLATION_MODEL`** هي **المرجع
+الحاكم**. من `docs/akhlaq/` السابقة:
 - **يبقى مرجعًا:** `AKHLAQ_SOURCES` · `AKHLAQ_SOURCE_SCAN` ·
   `AKHLAQ_SOURCE_SHORTLIST` (تُغذّي `AKHLAQ_EVIDENCE_MODEL`).
 - **مطويّ هنا:** `AKHLAQ_KNOWLEDGE_MODEL` · `AKHLAQ_DATA_SCHEMA` ·

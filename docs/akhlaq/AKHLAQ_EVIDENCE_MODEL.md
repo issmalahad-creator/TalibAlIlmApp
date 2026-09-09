@@ -46,89 +46,101 @@ grader                  مَن حكم بالدرجة (كتاب/عالِم)
 grading                 sahih | sahih_li_ghayrih | hasan | hasan_li_ghayrih | daif | daif_jiddan | mawdu | mukhtalaf_fih | lam_yudras
 takhrij                 مواضع الحديث في الدواوين (نصّ/إحالة)
 principle_refs[]        المبادئ المبنيّة عليه (interpretation_by = تربوي)
-source_status           §3
-review_id               → akhlaq_review
+source_status           §3  (source_confirmed | source_located | source_uncertain | weak | disputed)
+review_id               → akhlaq_review   (اختياريّ — طبقة مستقبليّة)
 added_at / updated_at
 ```
 
-**قيود اتّساق (تُفحَص في خطّ الإنتاج، لا في SQLite):**
+**طبقات الترجمة** لا تُخزَّن هنا بل في `akhlaq_content_translation`
+(`AKHLAQ_TRANSLATION_MODEL §4`)، مربوطةً بـ`ref_kind='evidence'` و
+`ref_id=<id>` و`layer ∈ {text, meaning, explanation}`. الأصل العربيّ
+(`text_ar` / `meaning_ar`) **لا يُستبدَل ولا يُنسَخ**؛ الترجمة **تمثيلٌ**
+له، وعند اختلاف المعنى **العربيّ يفوز**. الترجمة **ليست مصدرًا مستقلًّا**.
+
+**قيود اتّساق (تُفحَص آليًّا في خطّ الإنتاج):**
 - `source_type=quran` ⇒ `locator` غير فارغ + مُقابَل بالكوربوس المحلّي.
-- `source_type=hadith_marfu` ⇒ `grader` + `grading` + `takhrij` غير
-  فارغة، و`grading ∉ {lam_yudras}` لأيّ `source_status=verified`.
+- `source_type=hadith_marfu` ⇒ `grader` + `grading` + `takhrij` غير فارغة
+  لأيّ `source_status=source_confirmed`.
 - `grading ∈ {daif, daif_jiddan, mawdu}` ⇒ **لا يُدرَج كدليل**؛ يجوز فقط
   في مادّة «ما لا يصحّ» بوسمٍ صريح وبمصدر الحكم.
-- كل `EvidenceItem` منشور له `review_id` بحالة `approved`.
+- `review_id` **اختياريّ** (طبقة مستقبليّة). غيابه لا يمنع النشر.
 
 ---
 
-## 3. حالات الدليل (`source_status`)
+## 3. حالات الدليل (`source_status`) — درجة التحقّق من المصدر نفسه
 
-| الحالة | المعنى | يظهر للمستخدم؟ |
+> تعديل 2026‑09‑10: `verified/needs_review` لم تَعُد بوّابةً بشريّة. الحالة
+> تعكس **مدى التحقّق من المصدر آليًّا**، لا مراجعة إنسان.
+
+| الحالة | المعنى | يُبنى عليه محتوًى منشور؟ |
 |---|---|---|
-| `not_verified` | لم يُتحقّق منه بعد | لا |
-| `needs_review` | مُدخَل، بانتظار مراجعة بشرية | لا |
-| `weak` | ثبت ضعفه | فقط في «ما لا يصحّ»، موسومًا |
-| `disputed` | مختلَف في ثبوته/فهمه | يُعرَض مع بيان الخلاف، لا يُبنى عليه موقف قاطع |
-| `verified` | مصدر + (للمرفوع) تخريج ودرجة + مراجعة `approved` | نعم، وتظهر له علامة «موثّق» |
+| `source_confirmed` | وُصِل إلى النصّ الأصليّ من المصدر · الكتاب والطبعة والموضع (مج/ص/رقم) محدَّدة · وللمرفوع: التخريج والدرجة موجودان في المصدر المُدخَل (الصحيحان، أو طبعةٌ فيها أحكام) | **نعم** |
+| `source_located` | المصدر والكتاب محدَّدان، لكن بعض البيانات (الصفحة الدقيقة/رقم الحديث/ضبط اللفظ) لم تُثبَّت بعد | نعم، بوسمٍ «المصدر محدَّد، بعض البيانات غير مثبَّتة» |
+| `source_uncertain` | النسبة أو النصّ لم يستقرّا | **لا** |
+| `weak` | ثبت ضعفه (بمصدر الحكم) | فقط في «ما لا يصحّ»، موسومًا |
+| `disputed` | مختلَفٌ في ثبوته/فهمه | يُعرَض مع بيان الخلاف، لا يُبنى عليه موقفٌ قاطع |
 
-**الواجهة تُظهر «موثّق» حصرًا لـ`verified`.** أيّ مادّة أخرى إمّا لا تظهر
-أو تظهر بوسم حالتها.
+**الواجهة تُظهر وسم الحالة دائمًا**؛ «موثّق التوثيق» تُطلَق على
+`source_confirmed` فقط (بمعنى: تحقّقنا من المصدر، لا: راجعه عالِم).
 
 ---
 
-## 4. خطّ الإنتاج (Content Pipeline — PHASE 17)
+## 4. خطّ الإنتاج (Content Pipeline) — الخطّ الأساسيّ آليّ
 
 ```text
-Turath  ─(tool/, وقت التأليف فقط)─►  Book  ─►  Page  ─►  استخراج نصّ
-        ─►  Candidate evidence (source_status = not_verified)
-        ─►  إدخال الحقول §2 + جلب القرآن عبر أداة موثّقة
-        ─►  needs_review
-        ─►  ┌ مراجعة بشرية (PHASE 18) ┐
-            └────────────┬────────────┘
-                         ▼
-        approved ─►  verified evidence
-        ─►  EthicalPrinciple (تربوي، موسوم)
-        ─►  BehavioralIndicators
-        ─►  Scenarios (+ options + probes + feedback + evidence_ref)
-        ─►  Lesson (درس يومي)
-        ─►  Curriculum (مرحلة)
+SOURCE
+  ▼ FETCH ORIGINAL            من api.turath.io / المصحف المحلّي (tool/، وقت التأليف)
+  ▼ VERIFY AVAILABLE METADATA الكتاب · الطبعة · المجلّد/الصفحة · رقم الحديث · التخريج/الدرجة الموجودة
+  ▼ EXTRACT                   النصّ كما ورد
+  ▼ CLASSIFY                  content_class · source_type · source_status (§3)
+  ▼ TRANSLATE                 حرفيّة أمينة، كل لغةٍ ممكنة (AKHLAQ_TRANSLATION_MODEL)
+  ▼ PEDAGOGICAL MODEL         مبدأ → مؤشّرات → مواقف  (موسومة «منهج تطبيق تربوي»)
+  ▼ CONTENT VALIDATION        tool/akhlaq_validate.py  (§4‑bis)
+  ▼ PUBLISHABLE CONTENT
 ```
 
-**ممنوع منعًا باتًّا:** انتقال مادّة من Turath إلى المستخدم مباشرة.
+- **لا يتوقّف الـpipeline لغياب مراجعةٍ بشريّة.** الـ`Human Review` طبقةٌ
+  **مستقبليّة اختياريّة**؛ الـmetadata تُحفَظ للتتبّع.
+- **ممنوع:** انتقال مادّةٍ من Turath إلى المستخدم دون المرور بـ CLASSIFY +
+  TRANSLATE + PEDAGOGICAL MODEL + VALIDATION.
+- الأداة: `tool/build_akhlaq_corpus.py` تُنتج `assets/akhlaq/*.json.gz`
+  وتُفشِل البناء عند خرق أيّ قيد §2 أو فشل `akhlaq_validate`.
 
-- الأداة: `tool/build_akhlaq_corpus.py` — تقرأ ملفّات مصدر منظّمة (نتيجة
-  البحث والاستخراج) وتُنتج `assets/akhlaq/*.json.gz`، وتُفشِل البناء عند
-  خرق أيّ قيد §2 أو وجود `published` بلا `review approved`.
-- البحث والاستخراج من Turath: عملية تطوير عبر `TurathApiClient.search` /
-  `getPage` — **ليست تبعيّة وقت تشغيل**؛ التطبيق النهائي offline‑first
-  بالكامل.
+## 4‑bis. التحقّق الآليّ من المحتوى (CONTENT VALIDATION)
+
+`tool/akhlaq_validate.py` يُفشِل عند أيٍّ من:
+1. نصٌّ بلا `source` (أو `[TARBAWI]` صريح للمحتوى التربويّ).
+2. ترجمةٌ بلا `original_arabic`.
+3. نسبةٌ لعالِمٍ بلا `source`.
+4. `pedagogical_interpretation` منسوبٌ لعالِمٍ (يجب `interpretation_by =
+   منهج التطبيق التربوي`).
+5. `behavior` بلا `evidence` وبلا `[TARBAWI]`.
+6. `scenario` بلا `subskill` أو بلا `difficulty`.
+7. أيّ حقلٍ عليه علامة «بيانات وهمية / نصّ مختلَق» (placeholder/lorem/…).
+8. `source_type=hadith_marfu` و`source_status=source_confirmed` بلا
+   `grading`+`takhrij`.
+9. `translation_type=QURAN_MEANING` و`translator` = "Claude"/آليّ.
 
 ---
 
-## 5. المراجعة البشرية (`akhlaq_review` — PHASE 18)
+## 5. المراجعة البشرية — طبقةٌ مستقبليّة اختياريّة (تتبّعٌ لا بوّابة)
 
-هذا مشروع ديني: **الأتمتة/AI أداة، لا مرجع.**
+**الأتمتة/Claude تنفّذ البحث والتحليل والتصنيف والترجمة في هذه المرحلة.**
+الـmetadata تُحفَظ كاملةً للتتبّع؛ ومَن أراد لاحقًا مراجعةً بشريّة يجدها
+جاهزة.
 
-| يجوز للأتمتة | لا يجوز لها |
+| تفعله الأتمتة الآن | يبقى مسجَّلًا للتتبّع/المراجعة المستقبليّة |
 |---|---|
-| البحث في الكتب | الحكم بأنّ حديثًا صحيح/ضعيف |
-| التصنيف الأوّلي، الربط، كشف التكرار | نسبة تفسير سلوكي إلى عالِم |
-| اقتراح مبادئ/مؤشّرات/مواقف كـ`draft` | نشر مادّة حسّاسة |
-| بناء مسودّات خطّ الإنتاج | تقرير `grading` أو `source_status=verified` |
+| الوصول للنصّ الأصليّ + تحديد الكتاب/الطبعة/الموضع | حالة `source_status` ومصدرها |
+| نقل التخريج/الدرجة **الموجودة في المصدر** (لا اختلاقها) | `grader` + `grading` + `takhrij` كما وردت |
+| التصنيف · الترجمة الحرفيّة · بناء المبادئ/المواقف | وسم `translation_status` و`interpretation_by` |
 
 ```text
-akhlaq_review
-  ref_kind        evidence | principle | behavior | scenario | conflict_script | lesson
-  ref_id
-  state           pending | approved | rejected | changes_requested
-  reviewer        اسم/دور المراجع (بشري)
-  checked[]       source_ok · grading_ok · classification_ok · no_new_ruling ·
-                  interpretation_labeled · not_judgmental · scenario_fair
-  note_ar
-  reviewed_at
+akhlaq_review   (اختياريّ — يُملأ إن/حين تُجرى مراجعة)
+  ref_kind · ref_id · state (pending|approved|changes_requested)
+  reviewer · checked[] · note · reviewed_at
 ```
-- كل عُقدة `sensitivity=high` (من الأنطولوجيا) تحتاج مراجعة أدقّ وموسّعة.
-- لا `published` بلا `state=approved`.
+- غياب `akhlaq_review` **لا يمنع** النشر. وجوده يُثري التتبّع فقط.
 
 ---
 
