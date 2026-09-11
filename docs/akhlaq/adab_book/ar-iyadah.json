@@ -1,0 +1,1013 @@
+{
+ "slice": "iyadat-almarid",
+ "virtue": {
+  "slug": "iyadat_almarid",
+  "title_ar": "عيادة المريض",
+  "domain": "rel_people",
+  "opposite": "الإهمال (قطيعة المريض) / الزيارة المؤذية المُثقِلة",
+  "strengthened_by": [
+   "الرفق",
+   "الصدق"
+  ],
+  "leads_to": [
+   "بِرّ الأخ المسلم",
+   "تفريج الكُرَب"
+  ],
+  "tension_with": [
+   "الصدق حين يُسأل المريض عن خطورة حاله"
+  ]
+ },
+ "policy": {
+  "pipeline": "Source-grounded automated validation",
+  "human_review": "optional future layer — not a gate",
+  "source_status_values": [
+   "source_confirmed",
+   "source_located",
+   "source_uncertain",
+   "weak",
+   "disputed"
+  ],
+  "translation_status_values": [
+   "generated",
+   "machine_assisted",
+   "human_reviewed",
+   "approved"
+  ],
+  "provenance": "Evidence sourced from ADAB_UNWAN_ALSAADAH_SOURCE_P4.md + P8 (resolution round), itself grounded in «الأدب عنوان السعادة» by Ṣāliḥ b. ʿAbd al-ʿAzīz Sindī, cross-verified against Turath."
+ },
+ "evidence": [
+  {
+   "id": "EV-AB-34",
+   "source_type": "hadith_marfu",
+   "source_tier": 2,
+   "content_class": "khuluq_shari",
+   "book": "الأدب المفرد",
+   "author": "محمد بن إسماعيل البخاري",
+   "edition": "ت عبد الباقي — Turath 12991",
+   "chapter": "باب أين يقعد العائد؟",
+   "vol": "-",
+   "page": "-",
+   "hadith_id": "٥٣٦",
+   "narrator": "عبد الله بن عباس رضي الله عنهما",
+   "text_ar": "«كان النبيُّ ﷺ إذا عاد المريضَ جلس عند رأسه، ثم قال سبع مرارٍ: أسألُ اللهَ العظيمَ ربَّ العرشِ العظيمِ أن يشفيَك، فإن كان في أجَلِه تأخيرٌ عُوفيَ من وجَعِه».",
+   "authentication": "أخرجه البخاري في الأدب المفرد.",
+   "grader": "الألباني",
+   "grading": "sahih",
+   "takhrij": "الأدب المفرد ٥٣٦ — صححه الألباني. النصّ الكامل (بما فيه الدعاء المكرَّر سبعًا) أوسع مما اقتبسه كتاب «الأدب عنوان السعادة» (الذي أورد الجملة الأولى فقط).",
+   "source_status": "source_confirmed",
+   "principle_refs": [
+    "P-IY-02"
+   ]
+  },
+  {
+   "id": "EV-AB-35",
+   "source_type": "hadith_marfu",
+   "source_tier": 2,
+   "content_class": "khuluq_shari",
+   "book": "صحيح مسلم",
+   "author": "مسلم بن الحجاج",
+   "edition": "ت عبد الباقي — Turath 1727",
+   "chapter": "كتاب الجنائز — باب (٣) ما يقال عند المريض والميت",
+   "vol": "2",
+   "page": "633",
+   "hadith_id": "٦ – (٩١٩)",
+   "narrator": "أمّ سلمة رضي الله عنها",
+   "text_ar": "«إذا حضرتُم المريضَ أو الميّتَ فقولوا خيرًا؛ فإنّ الملائكةَ يؤمِّنون على ما تقولون».",
+   "authentication": "أخرجه مسلم في صحيحه.",
+   "grader": "مسلم",
+   "grading": "sahih",
+   "takhrij": "مسلم ٩١٩.",
+   "source_status": "source_confirmed",
+   "principle_refs": [
+    "P-IY-04"
+   ]
+  },
+  {
+   "id": "EV-AB-36",
+   "source_type": "hadith_marfu",
+   "source_tier": 2,
+   "content_class": "khuluq_shari",
+   "book": "صحيح مسلم",
+   "author": "مسلم بن الحجاج",
+   "edition": "ت عبد الباقي — Turath 1727",
+   "chapter": "كتاب السلام — باب (٢٠) رقية المريض بالمعوذات والنفث",
+   "vol": "4",
+   "page": "1723",
+   "hadith_id": "٥٠ – (٢١٩٢)",
+   "narrator": "عائشة رضي الله عنها",
+   "text_ar": "كان النبيُّ ﷺ إذا مرض أحدٌ من أهله نفث عليه بالمعوذات.",
+   "authentication": "أخرجه مسلم في صحيحه.",
+   "grader": "مسلم",
+   "grading": "sahih",
+   "takhrij": "مسلم ٢١٩٢.",
+   "source_status": "source_confirmed",
+   "principle_refs": [
+    "P-IY-05"
+   ]
+  },
+  {
+   "id": "EV-AB-37",
+   "source_type": "qawl_alim",
+   "source_tier": 5,
+   "content_class": "adab_urf",
+   "book": "الكافي في فقه أهل المدينة",
+   "author": "ابن عبد البرّ",
+   "edition": "Turath غير محدَّد بعد",
+   "chapter": "-",
+   "vol": "2",
+   "page": "1142",
+   "hadith_id": "-",
+   "narrator": "-",
+   "text_ar": "«أفضلُ العيادةِ أخفُّها، ولا يُطيلُ العائدُ الجلوسَ عند العليل، إلا أن يكون صديقًا يأنسُ به ويسُرُّه ذلك منه».",
+   "authentication": "قولٌ فقهيّ منسوبٌ صراحةً لابن عبد البرّ، لا حديثًا مرفوعًا.",
+   "grader": "-",
+   "grading": "-",
+   "takhrij": "الكافي في فقه أهل المدينة (٢/١١٤٢) — لم يُراجَع نصّ Turath مباشرة.",
+   "source_status": "source_located",
+   "principle_refs": [
+    "P-IY-07"
+   ]
+  }
+ ],
+ "principles": [
+  {
+   "id": "P-IY-01",
+   "subskill": "iy_hiyah",
+   "statement_ar": "الاستعداد قبل الزيارة (نظافةً واعتدالًا) إظهارٌ عمليّ لاهتمامك بمن تزور.",
+   "interpretation_by": "منهج التطبيق التربوي",
+   "evidence": []
+  },
+  {
+   "id": "P-IY-02",
+   "subskill": "iy_julus",
+   "statement_ar": "القربُ الجسديّ الصحيح (الجلوس عند الرأس) يترجم القربَ القلبيّ.",
+   "interpretation_by": "منهج التطبيق التربوي",
+   "evidence": [
+    "EV-AB-34"
+   ]
+  },
+  {
+   "id": "P-IY-03",
+   "subskill": "iy_sual",
+   "statement_ar": "السؤال عن الحال اهتمامٌ؛ الاستقصاء فيه تجاوزٌ لحدود المريض.",
+   "interpretation_by": "منهج التطبيق التربوي",
+   "evidence": []
+  },
+  {
+   "id": "P-IY-04",
+   "subskill": "iy_dua",
+   "statement_ar": "الدعاء الصريح المسموع جزءٌ مقصودٌ من العيادة، لا زيادةٌ اختيارية.",
+   "interpretation_by": "منهج التطبيق التربوي",
+   "evidence": [
+    "EV-AB-35"
+   ]
+  },
+  {
+   "id": "P-IY-05",
+   "subskill": "iy_ruqyah",
+   "statement_ar": "الرقية الشرعية بالمعوذات سنّةٌ ثابتة عند مرض الأهل، لا بدعةٌ ولا تكلّف.",
+   "interpretation_by": "منهج التطبيق التربوي",
+   "evidence": [
+    "EV-AB-36"
+   ]
+  },
+  {
+   "id": "P-IY-06",
+   "subskill": "iy_hadith",
+   "statement_ar": "حماية نفسية المريض من الأخبار المُثقِلة رفقٌ به، ما لم يستلزم ذلك كذبًا.",
+   "interpretation_by": "منهج التطبيق التربوي",
+   "evidence": []
+  },
+  {
+   "id": "P-IY-07",
+   "subskill": "iy_ijaz",
+   "statement_ar": "الإيجاز أصلٌ في العيادة يحمي راحة المريض؛ والإطالة استثناءٌ مضبوطٌ بإذنه وأُنسِه.",
+   "interpretation_by": "منهج التطبيق التربوي",
+   "evidence": [
+    "EV-AB-37"
+   ]
+  }
+ ],
+ "subskills": [
+  {
+   "slug": "iy_hiyah",
+   "title_ar": "تهيئة الهيئة قبل الزيارة (نظافة، بلا مبالغة في التطيّب)"
+  },
+  {
+   "slug": "iy_julus",
+   "title_ar": "اختيار موضع الجلوس (عند رأس المريض)"
+  },
+  {
+   "slug": "iy_sual",
+   "title_ar": "السؤال عن الحال دون استقصاء"
+  },
+  {
+   "slug": "iy_dua",
+   "title_ar": "الدعاء للمريض وعدم نسيانه"
+  },
+  {
+   "slug": "iy_ruqyah",
+   "title_ar": "الرقية بالمعوذات"
+  },
+  {
+   "slug": "iy_hadith",
+   "title_ar": "حُسن الحديث عند المريض (لا نقل الأخبار السيئة)"
+  },
+  {
+   "slug": "iy_ijaz",
+   "title_ar": "إيجاز الزيارة (إلا لصديقٍ يأنس بالإطالة)"
+  }
+ ],
+ "behaviors": [
+  {
+   "id": "B-IY-01a",
+   "subskill": "iy_hiyah",
+   "text_ar": "يحرص على نقاء الثوب وطيب الرائحة قبل دخوله على المريض.",
+   "basis": "TARBAWI"
+  },
+  {
+   "id": "B-IY-01b",
+   "subskill": "iy_hiyah",
+   "text_ar": "لا يبالغ في التطيّب حتى لا يؤذي مريضًا حسّاسًا للروائح.",
+   "basis": "TARBAWI"
+  },
+  {
+   "id": "B-IY-02a",
+   "subskill": "iy_julus",
+   "text_ar": "يجلس عند رأس المريض لا عند قدميه أو بعيدًا عنه.",
+   "basis": "EV-AB-34"
+  },
+  {
+   "id": "B-IY-02b",
+   "subskill": "iy_julus",
+   "text_ar": "يدعو للمريض بالدعاء المأثور عند جلوسه عند رأسه، لا يكتفي بالحضور الصامت.",
+   "basis": "EV-AB-34"
+  },
+  {
+   "id": "B-IY-03a",
+   "subskill": "iy_sual",
+   "text_ar": "يسأل عن حال المريض عمومًا دون إلحاح.",
+   "basis": "TARBAWI"
+  },
+  {
+   "id": "B-IY-03b",
+   "subskill": "iy_sual",
+   "text_ar": "لا يُلحّ بأسئلة تفصيلية عن طبيعة المرض إن لم يُبدِ المريض رغبة في الإفصاح.",
+   "basis": "TARBAWI"
+  },
+  {
+   "id": "B-IY-04a",
+   "subskill": "iy_dua",
+   "text_ar": "يدعو للمريض بالخير صراحةً، لا فقط بالنيّة.",
+   "basis": "EV-AB-35"
+  },
+  {
+   "id": "B-IY-05a",
+   "subskill": "iy_ruqyah",
+   "text_ar": "يرقي مريض أهله بالمعوذات والنفث اتباعًا للسنة.",
+   "basis": "EV-AB-36"
+  },
+  {
+   "id": "B-IY-06a",
+   "subskill": "iy_hadith",
+   "text_ar": "يتجنّب نقل الأخبار السيئة إلى المريض أثناء زيارته.",
+   "basis": "TARBAWI"
+  },
+  {
+   "id": "B-IY-06b",
+   "subskill": "iy_hadith",
+   "text_ar": "يحضر حديثًا خفيفًا مُبهجًا يُدخل السرور على المريض.",
+   "basis": "TARBAWI"
+  },
+  {
+   "id": "B-IY-06c",
+   "subskill": "iy_hadith",
+   "text_ar": "إن سُئل مباشرةً عن أمرٍ مُقلِق، يجيب بصدقٍ موجزٍ يُحيل التفصيل لأهله، لا بكذبٍ ولا بإثقال.",
+   "basis": "TARBAWI"
+  },
+  {
+   "id": "B-IY-07a",
+   "subskill": "iy_ijaz",
+   "text_ar": "يُقصِّر زمن الجلوس عند المريض، لا يُثقل عليه.",
+   "basis": "EV-AB-37"
+  },
+  {
+   "id": "B-IY-07b",
+   "subskill": "iy_ijaz",
+   "text_ar": "يُطيل فقط إذا كان صديقًا حميمًا يأنس بذلك ويسرّه.",
+   "basis": "EV-AB-37"
+  }
+ ],
+ "scenarios": [
+  {
+   "id": "S-IY-01",
+   "difficulty": 1,
+   "setting": "hospital_room",
+   "subskills": [
+    "iy_julus",
+    "iy_hiyah"
+   ],
+   "pressure": [],
+   "composite": false,
+   "stem_ar": "دخلت على صديقٍ مريضٍ في المستشفى، والغرفة فيها كرسيّان: واحد عند قدميه قرب الباب، وآخر عند رأسه.",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "تجلس عند قدميه قرب الباب؛ أسهل للخروج سريعًا",
+     "dimensions": {
+      "timing": -1,
+      "respect": -1
+     },
+     "verdict": "baid",
+     "why_ar": "يوحي بأن الزيارة عابرة، لا اهتمام حقيقي",
+     "evidence": [
+      "EV-AB-34"
+     ]
+    },
+    {
+     "ord": "B",
+     "text_ar": "تجلس عند رأسه، بعد أن تأكّدت من نظافة هيئتك قبل الدخول",
+     "dimensions": {
+      "respect": 1,
+      "gentleness": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "السنّة الجلوس عند الرأس؛ يُشعِر المريض بقربٍ حقيقي",
+     "evidence": [
+      "EV-AB-34"
+     ]
+    },
+    {
+     "ord": "C",
+     "text_ar": "تبقى واقفًا قليلًا ثم تجلس أينما اتّفق دون تفكير",
+     "dimensions": {
+      "timing": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "لا إساءة، لكن بلا مراعاة لموضع أليق",
+     "evidence": []
+    },
+    {
+     "ord": "D",
+     "text_ar": "تجلس عند رأسه لكنك جئت من العمل مباشرة بلا اهتمام بهيئتك",
+     "dimensions": {
+      "respect": 1,
+      "gentleness": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "الموضع صحيح، لكن الهيئة قد تُثقِل على مريضٍ حسّاس",
+     "evidence": []
+    }
+   ],
+   "probe_ar": "هل فكّرت في أين تجلس، أم جلست دون قصد؟",
+   "feedback_ar": "الأقرب (B): الجلوس عند الرأس سنّةٌ ثابتة (EV-AB-34)، ومعها هيئةٌ تُشعِر المريض بأنك أتيت من أجله لا عرَضًا.",
+   "reflection_ar": "آخر زيارة مرضٍ — أين جلست، ولماذا؟"
+  },
+  {
+   "id": "S-IY-02",
+   "difficulty": 2,
+   "setting": "home_visit",
+   "subskills": [
+    "iy_sual"
+   ],
+   "pressure": [],
+   "composite": false,
+   "stem_ar": "صديقٌ مريضٌ يبدو متجنِّبًا لذكر تفاصيل تشخيصه. تشعر بفضولٍ لمعرفة ما به بالضبط.",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "تُلحّ بالسؤال: «لكن ما التشخيص بالضبط؟ قل لي كل شيء»",
+     "dimensions": {
+      "respect": -1,
+      "timing": -1
+     },
+     "verdict": "baid",
+     "why_ar": "استخبارٌ مستقصٍ يُحرج من لا يرغب في الإفصاح",
+     "evidence": []
+    },
+    {
+     "ord": "B",
+     "text_ar": "تسأل عمومًا: «كيف حالك؟ تحتاج شيئًا؟» وتترك له المبادرة إن أراد التفصيل",
+     "dimensions": {
+      "respect": 1,
+      "gentleness": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "اهتمامٌ بلا تطفّل، يحترم رغبته",
+     "evidence": []
+    },
+    {
+     "ord": "C",
+     "text_ar": "لا تسأل شيئًا البتة، خشية الإحراج",
+     "dimensions": {
+      "truthfulness": -1,
+      "timing": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "تجنّبٌ زائد قد يُفهَم بردةٍ لا اهتمامًا",
+     "evidence": []
+    },
+    {
+     "ord": "D",
+     "text_ar": "تسأل غيره من الحاضرين عن تفاصيل مرضه بعد خروجك",
+     "dimensions": {
+      "respect": -1,
+      "truthfulness": -1
+     },
+     "verdict": "baid",
+     "why_ar": "تجسّسٌ على خصوصية غاب صاحبها",
+     "evidence": []
+    }
+   ],
+   "probe_ar": "",
+   "feedback_ar": "الأقرب (B): سؤالٌ عامٌّ يُظهر الاهتمام، ثم الصمت إن لم يُفصِح المريض؛ الخيار (D) يتجاوز إلى غِيبة/تجسّس ولو بنيّة الاطمئنان.",
+   "reflection_ar": "هل سألتُ لأطمئن، أم لأشبع فضولي؟"
+  },
+  {
+   "id": "S-IY-03",
+   "difficulty": 1,
+   "setting": "hospital_room",
+   "subskills": [
+    "iy_dua"
+   ],
+   "pressure": [],
+   "composite": false,
+   "stem_ar": "زُرت مريضًا، تبادلتما حديثًا لطيفًا نصف ساعة، ثم قمت لتنصرف.",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "تنصرف بابتسامةٍ وسلام، دون أن تذكر دعاءً صريحًا",
+     "dimensions": {
+      "timing": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "الزيارة نفسها بِرّ، لكن فاتها ركنٌ مقصود من العيادة",
+     "evidence": [
+      "EV-AB-35"
+     ]
+    },
+    {
+     "ord": "B",
+     "text_ar": "تتذكّر قبل الباب فتلتفت وتدعو له بصوتٍ يسمعه: «شفاك الله وعافاك»",
+     "dimensions": {
+      "gentleness": 1,
+      "timing": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "دعاءٌ صريح، والملائكة تُؤمِّن على مثله",
+     "evidence": [
+      "EV-AB-35"
+     ]
+    },
+    {
+     "ord": "C",
+     "text_ar": "تدعو له في نفسك فقط دون أن يسمع",
+     "dimensions": {
+      "gentleness": 1
+     },
+     "verdict": "maqbul",
+     "why_ar": "دعاءٌ حاصل، لكن فاتت فائدة سماعه له وتطمينه",
+     "evidence": [
+      "EV-AB-35"
+     ]
+    },
+    {
+     "ord": "D",
+     "text_ar": "تعتذر بأنك «لست من أهل الدعاء المستجاب» فتتركه لغيرك",
+     "dimensions": {
+      "firmness_when_needed": -1
+     },
+     "verdict": "baid",
+     "why_ar": "تهوينٌ لأمر مشروعٍ لكل زائر",
+     "evidence": []
+    }
+   ],
+   "probe_ar": "",
+   "feedback_ar": "الأقرب (B): دعاءٌ صريح مسموع، اتّباعًا لما ورد (EV-AB-35) — (C) لا بأس به لكنه أنقص أثرًا على نفس المريض.",
+   "reflection_ar": "هل دعوتُ لمن عُدته اليوم؟"
+  },
+  {
+   "id": "S-IY-04",
+   "difficulty": 2,
+   "setting": "home",
+   "subskills": [
+    "iy_ruqyah"
+   ],
+   "pressure": [
+    "family_pressure"
+   ],
+   "composite": false,
+   "stem_ar": "ارتفعت حرارة طفلك الصغير ليلًا، وجدّتك تقترح تمائم شعبية «تحميه من العين».",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "تقبل التميمة إرضاءً للجدّة، دون تعليق",
+     "dimensions": {
+      "firmness_when_needed": -1
+     },
+     "verdict": "baid",
+     "why_ar": "مجاراةٌ في أمرٍ قد يُخالف التوحيد، سكوتٌ عن بيان واجب",
+     "evidence": []
+    },
+    {
+     "ord": "B",
+     "text_ar": "تنفث على طفلك بالمعوذات برفقٍ، وتشرح لجدّتك بأدبٍ أن هذا هو المأثور",
+     "dimensions": {
+      "gentleness": 1,
+      "respect": 1,
+      "firmness_when_needed": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "اتّباعٌ للسنة الثابتة، مع رفقٍ في التوجيه لا تجريح",
+     "evidence": [
+      "EV-AB-36"
+     ]
+    },
+    {
+     "ord": "C",
+     "text_ar": "تُنكر على جدّتك بحدّةٍ أمام الجميع وتتّهمها بالبدعة",
+     "dimensions": {
+      "truthfulness": 1,
+      "gentleness": -1,
+      "respect": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "المضمون صحيح، لكن الأسلوب يُهين ويُحرِج",
+     "evidence": []
+    },
+    {
+     "ord": "D",
+     "text_ar": "تكتفي بالدعاء دون رقية، ظنًّا أن الرقية «تكلّف زائد»",
+     "dimensions": {
+      "firmness_when_needed": -1
+     },
+     "verdict": "baid",
+     "why_ar": "تركُ سنّةٍ ثابتة بلا مسوّغ",
+     "evidence": [
+      "EV-AB-36"
+     ]
+    }
+   ],
+   "probe_ar": "",
+   "feedback_ar": "الأقرب (B): الرقية بالمعوذات سنّةٌ ثابتة (EV-AB-36)، وتصحيح مسارٍ عقديّ لا يعني الغلظة على الأقارب.",
+   "reflection_ar": "هل تعرف الرقية المأثورة، وهل تُمارسها فعلًا؟"
+  },
+  {
+   "id": "S-IY-05",
+   "difficulty": 3,
+   "setting": "hospital_room",
+   "subskills": [
+    "iy_hadith"
+   ],
+   "pressure": [],
+   "composite": false,
+   "stem_ar": "علمتَ للتو أن مشروعًا مشتركًا فشل، وأنت في طريقك لعيادة صديقٍ يتعافى من عملية جراحية.",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "تفرغ همّك فور دخولك: «لن تصدق ماذا حصل اليوم!»",
+     "dimensions": {
+      "respect": -1,
+      "timing": -1
+     },
+     "verdict": "baid",
+     "why_ar": "إثقالٌ على مريضٍ لا طاقة له بهمومك",
+     "evidence": []
+    },
+    {
+     "ord": "B",
+     "text_ar": "تؤجّل الخبر، وتفتح حديثًا خفيفًا يُبهج، وتُخبره لاحقًا بعد شفائه",
+     "dimensions": {
+      "timing": 1,
+      "respect": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "حمايةٌ لنفسية المريض دون كذبٍ ولا كتمانٍ دائم",
+     "evidence": []
+    },
+    {
+     "ord": "C",
+     "text_ar": "يسألك المريض «ما بك، تبدو منزعجًا؟» فتكذب: «لا شيء، كل شيء بخير»",
+     "dimensions": {
+      "truthfulness": -1,
+      "respect": 1
+     },
+     "verdict": "maqbul",
+     "why_ar": "صدقٌ ناقص؛ يمكن الجواب بصدقٍ مقتضب دون تفصيلٍ مُثقِل",
+     "evidence": []
+    },
+    {
+     "ord": "D",
+     "text_ar": "تتجاهل سؤاله تمامًا وتُغيّر الموضوع بجفاء",
+     "dimensions": {
+      "respect": -1,
+      "gentleness": -1
+     },
+     "verdict": "baid",
+     "why_ar": "جفاءٌ يُشعِره بأنك مشغولٌ عنه لا معه",
+     "evidence": []
+    }
+   ],
+   "probe_ar": "",
+   "feedback_ar": "الأقرب (B). إن سُئلتَ مباشرة (كما في C) فالأليق جوابٌ صادقٌ موجز («أمرٌ سأحلّه، لا يستحق انشغالك به») لا كذبٌ ولا تفريغ.",
+   "reflection_ar": "هل تركتُ عند المريض أثرًا مُثقِلًا أم مُريحًا؟"
+  },
+  {
+   "id": "S-IY-06",
+   "difficulty": 2,
+   "setting": "hospital_room",
+   "subskills": [
+    "iy_ijaz"
+   ],
+   "pressure": [],
+   "composite": false,
+   "stem_ar": "أنت وصديقك المريض في حديثٍ ممتع عن ذكرياتكما، مرّت ساعة، وتلاحظ أن جفنيه بدآ يثقلان.",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "تستمرّ في الحديث لأنك تستمتع به، ولم يطلب منك المغادرة",
+     "dimensions": {
+      "respect": -1
+     },
+     "verdict": "baid",
+     "why_ar": "إيجاز الزيارة أصلٌ لا يُترَك بانتظار طلبٍ صريح",
+     "evidence": [
+      "EV-AB-37"
+     ]
+    },
+    {
+     "ord": "B",
+     "text_ar": "تلاحظ تعبه فتختصر وتودّعه برفقٍ، مع وعدٍ بالعودة",
+     "dimensions": {
+      "respect": 1,
+      "timing": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "مراعاة حاجته للراحة؛ الإيجاز أصلٌ",
+     "evidence": [
+      "EV-AB-37"
+     ]
+    },
+    {
+     "ord": "C",
+     "text_ar": "تسأله مباشرة: «هل تعبت؟ أريد المغادرة» بجفاءٍ يُشعِره أنه عبء",
+     "dimensions": {
+      "respect": -1,
+      "gentleness": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "المغادرة صحيحة، لكن الصياغة تُحرِجه",
+     "evidence": []
+    },
+    {
+     "ord": "D",
+     "text_ar": "يطلب هو أن تبقى أكثر لأنه يأنس بحديثك، فتلبّي طلبه",
+     "dimensions": {
+      "respect": 1,
+      "gentleness": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "الاستثناء المنصوص: الصديق الذي يأنس ويُسَرّ بالإطالة",
+     "evidence": [
+      "EV-AB-37"
+     ]
+    }
+   ],
+   "probe_ar": "",
+   "feedback_ar": "الإيجاز أصلٌ (EV-AB-37)، لكن الاستثناء صريحٌ لصديقٍ حميمٍ يطلب البقاء ويُسَرّ به — (B) و(D) كلاهما أقرب بحسب الحال.",
+   "reflection_ar": "هل أطلتُ لحاجتي أنا للحديث، أم لحاجة المريض؟"
+  },
+  {
+   "id": "S-IY-07",
+   "difficulty": 6,
+   "setting": "hospital_room",
+   "subskills": [
+    "iy_hadith",
+    "iy_sual",
+    "iy_dua"
+   ],
+   "pressure": [
+    "emotional_weight",
+    "multi_virtue"
+   ],
+   "composite": true,
+   "stem_ar": "صديقٌ مريضٌ يُمسك بيدك ويسألك بجدّية: «أنت صريح معي دائمًا — هل سمعت الأطباء يقولون شيئًا عن خطورة حالتي؟» وأنت تعلم أن تقرير الطبيب كان متحفّظًا فعلًا.",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "«لا، لا شيء، أنت بخير تمامًا» رغم علمك بتحفّظ التقرير",
+     "dimensions": {
+      "truthfulness": -1,
+      "gentleness": 1
+     },
+     "verdict": "baid",
+     "why_ar": "كذبٌ صريح باسم الرفق؛ الرفق لا يُبنى على الكذب",
+     "evidence": []
+    },
+    {
+     "ord": "B",
+     "text_ar": "تنقل له كل تفاصيل تحفّظات الأطباء بجفاءٍ وقلق ظاهر على وجهك",
+     "dimensions": {
+      "truthfulness": 1,
+      "gentleness": -1,
+      "self_control": -1
+     },
+     "verdict": "baid",
+     "why_ar": "صدقٌ بلا رحمةٍ في التوقيت والأسلوب، يزيد قلقه",
+     "evidence": []
+    },
+    {
+     "ord": "C",
+     "text_ar": "«الأطباء يتابعون حالتك بعناية، وأنا لست الطبيب لأحدّثك بتفاصيل لم أفهمها كاملة؛ الأولى أن تسأل طبيبك مباشرة، وأنا معك بالدعاء والرقية»",
+     "dimensions": {
+      "truthfulness": 1,
+      "gentleness": 1,
+      "respect": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "صدقٌ بلا كذبٍ ولا تفصيلٍ مُثقِل، يُحيله لمصدره الصحيح، ويقرن ذلك بالدعاء والرقية",
+     "evidence": [
+      "EV-AB-35",
+      "EV-AB-36"
+     ]
+    },
+    {
+     "ord": "D",
+     "text_ar": "تتهرّب من السؤال وتُغيّر الموضوع فجأة",
+     "dimensions": {
+      "respect": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "ليس كذبًا، لكنه جفاءٌ يُشعِره بأنك تتجنّبه في أحوج لحظاته",
+     "evidence": []
+    }
+   ],
+   "probe_ar": "هل كان الباعث على إجابتي حماية مشاعره، أم الهروب من إحراجي أنا؟",
+   "feedback_ar": "الأقرب (C): لا يُستعمَل الرفق غطاءً للكذب، ولا يُستعمَل الصدق سلاحًا قاسيًا؛ الجواب الأمين هنا هو إحالة السؤال الطبي لأهله مع صدقٍ فيما تملك، مقرونًا بالدعاء والرقية.",
+   "reflection_ar": "هل سبق أن اخترتُ الكذبَ الرفيقَ على الصدقِ الأمين مع مريض؟"
+  },
+  {
+   "id": "S-IY-08",
+   "difficulty": 2,
+   "setting": "formal_visit",
+   "subskills": [
+    "iy_hiyah",
+    "iy_julus"
+   ],
+   "pressure": [],
+   "composite": false,
+   "stem_ar": "طُلب منك مرافقة وفدٍ لعيادة شخصيةٍ معروفة في المستشفى، لا تربطك به صداقة.",
+   "options": [
+    {
+     "ord": "A",
+     "text_ar": "تلتزم الصمت طوال الزيارة لأنك لا تعرفه، وتكتفي بالحضور",
+     "dimensions": {
+      "respect": -1,
+      "timing": -1
+     },
+     "verdict": "baid",
+     "why_ar": "حضورٌ بلا اهتمامٍ فعليّ يُفرِغ الزيارة من معناها",
+     "evidence": []
+    },
+    {
+     "ord": "B",
+     "text_ar": "تُقدّم نفسك بأدبٍ، تجلس بهدوء عند إتاحة المكان، وتدعو له بصدق رغم عدم معرفتك السابقة به",
+     "dimensions": {
+      "respect": 1,
+      "gentleness": 1,
+      "intention_awareness": 1
+     },
+     "verdict": "aqrab",
+     "why_ar": "العيادة حقٌّ للمريض بصرف النظر عن درجة القرابة",
+     "evidence": []
+    },
+    {
+     "ord": "C",
+     "text_ar": "تتصدّر الحديث لتُظهر حضورك أمام الوفد",
+     "dimensions": {
+      "intention_awareness": -1,
+      "respect": -1
+     },
+     "verdict": "baid",
+     "why_ar": "الزيارة تتحوّل إلى استعراضٍ للنفس لا اهتمامًا بالمريض",
+     "evidence": []
+    },
+    {
+     "ord": "D",
+     "text_ar": "تلتزم الأدب الشكلي (سلام مختصر) دون دعاءٍ حقيقي، فقط لإنهاء الواجب",
+     "dimensions": {
+      "intention_awareness": -1
+     },
+     "verdict": "maqbul",
+     "why_ar": "أداءٌ ظاهريّ بلا قصدٍ صادق، لكنه ليس إساءة",
+     "evidence": []
+    }
+   ],
+   "probe_ar": "",
+   "feedback_ar": "الأقرب (B): لا فرق في حقّ العيادة بين صديقٍ حميمٍ وغريب؛ الباعث الصادق هو الفارق بين عيادةٍ حقيقية واستعراضٍ اجتماعي.",
+   "reflection_ar": "هل عُدتُ مريضًا يومًا لا أعرفه، وماذا كان باعثي؟"
+  }
+ ],
+ "curriculum": [
+  {
+   "stage": 1,
+   "title_ar": "تعريفٌ وهيئة الزيارة",
+   "subskills": [
+    "iy_hiyah",
+    "iy_julus"
+   ],
+   "outcome_ar": "يستعدّ للزيارة بهيئةٍ لائقة، ويعرف أين يجلس ولماذا.",
+   "scenarios": [
+    "S-IY-01",
+    "S-IY-08"
+   ]
+  },
+  {
+   "stage": 2,
+   "title_ar": "صلب العيادة: سؤالٌ، دعاءٌ، رقية",
+   "subskills": [
+    "iy_sual",
+    "iy_dua",
+    "iy_ruqyah"
+   ],
+   "outcome_ar": "يسأل بلطفٍ دون استقصاء، لا ينسى الدعاء الصريح، ويرقي أهله عند المرض.",
+   "scenarios": [
+    "S-IY-02",
+    "S-IY-03",
+    "S-IY-04"
+   ]
+  },
+  {
+   "stage": 3,
+   "title_ar": "حماية نفسية المريض",
+   "subskills": [
+    "iy_hadith"
+   ],
+   "outcome_ar": "يقي المريض الأخبار المُثقِلة دون أن يقع في الكذب إن سُئل مباشرة.",
+   "scenarios": [
+    "S-IY-05"
+   ]
+  },
+  {
+   "stage": 4,
+   "title_ar": "إيجازٌ وموازين (اختبار)",
+   "subskills": [
+    "iy_ijaz",
+    "iy_hadith",
+    "iy_sual",
+    "iy_dua"
+   ],
+   "outcome_ar": "يوازن بين الإيجاز وإذن المريض، وبين الصدق ورفق القلب، في موقفٍ تتزاحم فيه أكثر من مهارة.",
+   "scenarios": [
+    "S-IY-06",
+    "S-IY-07"
+   ]
+  }
+ ],
+ "spaced_repetition": {
+  "unit": "(user × subskill)",
+  "tracks": [
+   "K knowledge-recall",
+   "S scenario-recall",
+   "R behavioral-reflection"
+  ],
+  "intervals": {
+   "D1": "تعلّم + أوّل موقف",
+   "D2": "K",
+   "D4": "S",
+   "D7": "S+",
+   "D14": "R",
+   "D30": "S مركّب",
+   "D60": "K+S+R"
+  },
+  "quality_map": {
+   "aqrab": 5,
+   "maqbul": 3,
+   "baid": 1
+  },
+  "rule": "quality<=1 → يُعاد قريبًا ولا تُرفَع الصعوبة"
+ },
+ "translations": [
+  {
+   "ref_kind": "evidence",
+   "ref_id": "EV-AB-34",
+   "layer": "text",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "\"When the Prophet ﷺ visited a sick person, he would sit by his head, then say seven times: 'I ask Allah the Mighty, Lord of the mighty Throne, to heal you' — and if his term had not come, he would recover from his illness.\"",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": "Al-Adab al-Mufrad #536, graded ṣaḥīḥ by al-Albānī. The booklet quoted only the first clause; this translation covers the full hadith as found in Turath."
+  },
+  {
+   "ref_kind": "evidence",
+   "ref_id": "EV-AB-35",
+   "layer": "text",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "\"When you are present with the sick or the dying, say good words, for the angels say 'āmīn' to what you say.\"",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": "Muslim 919."
+  },
+  {
+   "ref_kind": "evidence",
+   "ref_id": "EV-AB-36",
+   "layer": "text",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "When someone of his household fell ill, the Prophet ﷺ would blow (nafth) over him while reciting the muʿawwidhāt (the protective sūrahs).",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": "Muslim 2192."
+  },
+  {
+   "ref_kind": "evidence",
+   "ref_id": "EV-AB-37",
+   "layer": "text",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "\"The best visit is the shortest one; the visitor should not prolong sitting with the ill person, unless he is a close friend who finds comfort and is pleased by it.\"",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": "Ibn ʿAbd al-Barr, al-Kāfī fī fiqh ahl al-Madīnah — a named scholar's fiqh opinion, not a hadith."
+  },
+  {
+   "ref_kind": "principle",
+   "ref_id": "P-IY-01",
+   "layer": "statement",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "Preparing before the visit (cleanliness, moderation) is a practical expression of your concern for the one you visit.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "principle",
+   "ref_id": "P-IY-02",
+   "layer": "statement",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "Correct physical closeness (sitting by the head) translates closeness of heart.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "principle",
+   "ref_id": "P-IY-03",
+   "layer": "statement",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "Asking about one's condition is care; prying into it oversteps the sick person's boundaries.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "principle",
+   "ref_id": "P-IY-04",
+   "layer": "statement",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "An explicit, audible supplication is an intended part of the visit, not an optional add-on.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "principle",
+   "ref_id": "P-IY-05",
+   "layer": "statement",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "Legislated ruqyah with the muʿawwidhāt is an established Sunnah when one's household falls ill — neither an innovation nor an excess.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "principle",
+   "ref_id": "P-IY-06",
+   "layer": "statement",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "Protecting the sick person's peace of mind from heavy news is gentleness towards him, so long as it does not require lying.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "principle",
+   "ref_id": "P-IY-07",
+   "layer": "statement",
+   "lang": "en",
+   "translation_type": "literal",
+   "text": "Brevity is the default in a sick-visit, protecting the patient's rest; prolonging it is a bounded exception, conditioned on his permission and comfort.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  }
+ ]
+}
