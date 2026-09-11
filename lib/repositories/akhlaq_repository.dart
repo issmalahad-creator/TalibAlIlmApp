@@ -9,18 +9,36 @@ import '../services/akhlaq/akhlaq_engine.dart';
 
 /// AKHLAQ — the store for a virtue slice.
 ///
-/// Content is read from `AkhlaqContent` (a bundled asset). Only the
-/// student's own training data is in SQLite (v61: `akhlaq_attempt`,
-/// `akhlaq_sr_state`, `akhlaq_progress`, `akhlaq_meta`). All scoring is
-/// done by the pure functions in `akhlaq_engine.dart`.
+/// Content is read from `AkhlaqContent` (a bundled asset, one per
+/// [sliceId]). Only the student's own training data is in SQLite (v61:
+/// `akhlaq_attempt`, `akhlaq_sr_state`, `akhlaq_progress`,
+/// `akhlaq_meta`). All scoring is done by the pure functions in
+/// `akhlaq_engine.dart`. Subskill slugs are namespaced per virtue
+/// (`rifq_*`, `iy_*`, …), so `akhlaq_attempt`/`akhlaq_sr_state`/
+/// `akhlaq_progress` are shared safely across slices; only the "focus of
+/// the week" meta key is explicitly scoped by [sliceId] below.
 class AkhlaqRepository {
+  final String sliceId;
+  AkhlaqRepository({this.sliceId = AkhlaqContent.defaultSliceId});
+
   Future<Database> get _db async => DatabaseHelper.instance.database;
 
   static String ymd(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
 
-  Future<AkhlaqSlice?> slice() => AkhlaqContent.instance.load();
+  Future<AkhlaqSlice?> slice() => AkhlaqContent.instance.load(sliceId: sliceId);
+
+  /// This slice's own subskill slugs — used to scope every read below to
+  /// *this* virtue, since `akhlaq_attempt`/`akhlaq_sr_state`/
+  /// `akhlaq_progress` are shared tables across slices.
+  Future<Set<String>> _mySubskills() async {
+    final s = await slice();
+    return {for (final sk in s?.subskills ?? const []) sk.slug};
+  }
+
+  String _inClause(Iterable<String> ids) =>
+      'subskill IN (${List.filled(ids.length, '?').join(',')})';
 
   // ── SR seed ─────────────────────────────────────────────────────────
 
@@ -30,10 +48,16 @@ class AkhlaqRepository {
     final s = await slice();
     if (s == null) return;
     final db = await _db;
-    final existing = {
-      for (final r in await db.query('akhlaq_sr_state', columns: ['subskill']))
-        r['subskill'] as String,
-    };
+    final slugs = [for (final sk in s.subskills) sk.slug];
+    final existing = slugs.isEmpty
+        ? const <String>{}
+        : {
+            for (final r in await db.query('akhlaq_sr_state',
+                columns: ['subskill'],
+                where: _inClause(slugs),
+                whereArgs: slugs))
+              r['subskill'] as String,
+          };
     final today = ymd(now ?? DateTime.now());
     final b = db.batch();
     for (final sk in s.subskills) {
@@ -55,12 +79,19 @@ class AkhlaqRepository {
 
   Future<List<AkhlaqAttempt>> attempts({String? subskill}) async {
     final db = await _db;
-    final rows = await db.query(
-      'akhlaq_attempt',
-      where: subskill == null ? null : 'subskill = ?',
-      whereArgs: subskill == null ? null : [subskill],
-      orderBy: 'answered_at DESC',
-    );
+    final List<Object?> args;
+    final String where;
+    if (subskill != null) {
+      where = 'subskill = ?';
+      args = [subskill];
+    } else {
+      final mine = (await _mySubskills()).toList();
+      if (mine.isEmpty) return const [];
+      where = _inClause(mine);
+      args = mine;
+    }
+    final rows = await db.query('akhlaq_attempt',
+        where: where, whereArgs: args, orderBy: 'answered_at DESC');
     return rows.map(_attemptFromRow).toList();
   }
 
@@ -169,7 +200,10 @@ class AkhlaqRepository {
 
   Future<List<AkhlaqSrState>> srStates() async {
     final db = await _db;
-    final rows = await db.query('akhlaq_sr_state', orderBy: 'due_date ASC');
+    final mine = (await _mySubskills()).toList();
+    if (mine.isEmpty) return const [];
+    final rows = await db.query('akhlaq_sr_state',
+        where: _inClause(mine), whereArgs: mine, orderBy: 'due_date ASC');
     return [for (final r in rows) await _srFor(db, r['subskill'] as String)];
   }
 
@@ -177,7 +211,10 @@ class AkhlaqRepository {
 
   Future<List<AkhlaqProgress>> progressAll() async {
     final db = await _db;
-    final rows = await db.query('akhlaq_progress');
+    final mine = (await _mySubskills()).toList();
+    if (mine.isEmpty) return const [];
+    final rows = await db.query('akhlaq_progress',
+        where: _inClause(mine), whereArgs: mine);
     return [
       for (final r in rows)
         AkhlaqProgress(
@@ -192,20 +229,22 @@ class AkhlaqRepository {
 
   // ── focus of the week ──────────────────────────────────────────────
 
+  String get _focusKey => 'focus:$sliceId';
+
   Future<String?> focusSubskill() async {
     final db = await _db;
     final r = await db.query('akhlaq_meta',
-        where: "k = 'focus'", limit: 1);
+        where: 'k = ?', whereArgs: [_focusKey], limit: 1);
     return r.isEmpty ? null : r.first['v'] as String?;
   }
 
   Future<void> setFocusSubskill(String? subskill) async {
     final db = await _db;
     if (subskill == null) {
-      await db.delete('akhlaq_meta', where: "k = 'focus'");
+      await db.delete('akhlaq_meta', where: 'k = ?', whereArgs: [_focusKey]);
       return;
     }
-    await db.insert('akhlaq_meta', {'k': 'focus', 'v': subskill},
+    await db.insert('akhlaq_meta', {'k': _focusKey, 'v': subskill},
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

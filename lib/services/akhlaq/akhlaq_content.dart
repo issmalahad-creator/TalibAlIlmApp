@@ -8,44 +8,59 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../models/akhlaq.dart';
 
-/// AKHLAQ — the read-only content layer for a virtue slice.
+/// AKHLAQ — the read-only content layer, one instance shared by every
+/// virtue slice (`al-rifq`, `iyadat-almarid`, …).
 ///
-/// The content spec (`docs/akhlaq/alrifq/ar-rifq.json`) ships as one small
-/// gzipped asset and is parsed **once** in a background isolate. User state
-/// (attempts, spaced-repetition, progress) lives in SQLite v61 — see
-/// `AkhlaqRepository`.
+/// Each slice ships as one small gzipped asset and is parsed **once per
+/// slice** in a background isolate, then cached. User state (attempts,
+/// spaced-repetition, progress) lives in SQLite v61 — see
+/// `AkhlaqRepository`, which takes a `sliceId` and stays agnostic to how
+/// many slices exist. Subskill slugs are namespaced per virtue
+/// (`rifq_*`, `iy_*`, …) so they never collide across slices sharing the
+/// same `akhlaq_attempt`/`akhlaq_sr_state` tables.
 ///
 /// > Deviation from `AKHLAQ_ARCHITECTURE §7` (which seeds content into
-/// > SQLite via `AkhlaqSync`): for a single ~85 KB slice, an in-memory
-/// > parse is simpler and preserves the intent (offline-first, no runtime
-/// > network, bundled seed). Move to SQLite + FTS when there are many
-/// > virtues / search is built.
+/// > SQLite via `AkhlaqSync`): for a handful of small slices, an
+/// > in-memory parse is simpler and preserves the intent (offline-first,
+/// > no runtime network, bundled seed). Move to SQLite + FTS when there
+/// > are many virtues / search is built.
 class AkhlaqContent {
   AkhlaqContent._();
   static final AkhlaqContent instance = AkhlaqContent._();
 
-  static const _asset = 'assets/akhlaq/ar-rifq.json.gz';
+  /// slice id → bundled asset path. Add one entry per vertical slice.
+  static const Map<String, String> assets = {
+    'al-rifq': 'assets/akhlaq/ar-rifq.json.gz',
+    'iyadat-almarid': 'assets/akhlaq/ar-iyadah.json.gz',
+  };
+  static const defaultSliceId = 'al-rifq';
   static const arSource = 'ar-source';
 
-  AkhlaqSlice? _slice;
-  Future<AkhlaqSlice?>? _inflight;
+  final Map<String, AkhlaqSlice> _slices = {};
+  final Map<String, Future<AkhlaqSlice?>> _inflight = {};
 
-  bool get isLoaded => _slice != null;
-  AkhlaqSlice? get sliceOrNull => _slice;
+  bool isLoaded([String sliceId = defaultSliceId]) =>
+      _slices.containsKey(sliceId);
+  AkhlaqSlice? sliceOrNull([String sliceId = defaultSliceId]) =>
+      _slices[sliceId];
 
-  /// Load + parse (idempotent). Safe to call from many places.
-  Future<AkhlaqSlice?> load() {
-    if (_slice != null) return Future.value(_slice);
-    return _inflight ??= () async {
+  /// Load + parse [sliceId] (idempotent, cached). Safe to call from many
+  /// places. Returns null for an unknown id or a load failure — never
+  /// throws, never fabricates content.
+  Future<AkhlaqSlice?> load({String sliceId = defaultSliceId}) {
+    final cached = _slices[sliceId];
+    if (cached != null) return Future.value(cached);
+    final asset = assets[sliceId];
+    if (asset == null) return Future.value(null);
+    return _inflight[sliceId] ??= () async {
       try {
-        final data = await rootBundle.load(_asset);
-        _slice = await compute(_parse, data.buffer.asUint8List());
+        final data = await rootBundle.load(asset);
+        _slices[sliceId] = await compute(_parse, data.buffer.asUint8List());
       } catch (e) {
-        debugPrint('AkhlaqContent: failed to load $_asset ($e).');
-        _slice = null;
+        debugPrint('AkhlaqContent: failed to load $asset ($e).');
       }
-      _inflight = null;
-      return _slice;
+      _inflight.remove(sliceId);
+      return _slices[sliceId];
     }();
   }
 
@@ -59,8 +74,9 @@ class AkhlaqContent {
     required String refId,
     required String layer,
     required String lang,
+    String sliceId = defaultSliceId,
   }) {
-    final s = _slice;
+    final s = _slices[sliceId];
     if (s == null || lang == arSource) return null;
     for (final t in s.translations) {
       if (t.refKind == refKind &&
@@ -74,8 +90,8 @@ class AkhlaqContent {
   }
 
   /// Languages that actually have at least one showable translation.
-  Set<String> get availableLanguages {
-    final s = _slice;
+  Set<String> availableLanguages([String sliceId = defaultSliceId]) {
+    final s = _slices[sliceId];
     if (s == null) return const {};
     return {
       for (final t in s.translations)
@@ -90,13 +106,17 @@ class AkhlaqContent {
   }
 
   /// Parse a raw (un-gzipped) JSON string — used by the seed builder /
-  /// asset tests that read `ar-rifq.json` directly.
+  /// asset tests that read a slice's `.json` directly.
   static AkhlaqSlice parseJsonString(String s) =>
       AkhlaqSlice.fromJson(jsonDecode(s) as Map<String, dynamic>);
 
   @visibleForTesting
-  void debugSetSlice(AkhlaqSlice? s) {
-    _slice = s;
-    _inflight = null;
+  void debugSetSlice(AkhlaqSlice? s, [String sliceId = defaultSliceId]) {
+    if (s == null) {
+      _slices.remove(sliceId);
+    } else {
+      _slices[sliceId] = s;
+    }
+    _inflight.remove(sliceId);
   }
 }

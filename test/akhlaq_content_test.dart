@@ -143,7 +143,7 @@ void main() {
             layer: 'text',
             lang: AkhlaqContent.arSource),
         isNull);
-    expect(c.availableLanguages, containsAll(['en', 'fr']));
+    expect(c.availableLanguages(), containsAll(['en', 'fr']));
     c.debugSetSlice(null);
   });
 }
