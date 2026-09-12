@@ -678,13 +678,20 @@ class _ReaderView extends StatelessWidget {
                   icon: const Icon(Icons.list_alt_outlined, size: 18),
                   label: Text(basicText('all_sources_action', lang)),
                 ),
-                const Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(sourceLabels[source] ?? source, style: const TextStyle(fontWeight: FontWeight.w800)),
-                    if (entry != null) Text(QuranSearchRepository.languageLabels[entry.language] ?? entry.language, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                  ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(sourceLabels[source] ?? source,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(fontWeight: FontWeight.w800)),
+                      if (entry != null)
+                        Text(QuranSearchRepository.languageLabels[entry.language] ?? entry.language,
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -770,13 +777,20 @@ class _BookReaderView extends StatelessWidget {
                   icon: const Icon(Icons.list_alt_outlined, size: 18),
                   label: Text(basicText('all_sources_action', lang)),
                 ),
-                const Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('${book['name'] ?? book['short'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w800)),
-                    if (author.isNotEmpty) Text(author, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                  ],
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('${book['name'] ?? book['short'] ?? ''}',
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(fontWeight: FontWeight.w800)),
+                      if (author.isNotEmpty)
+                        Text(author,
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -918,18 +932,23 @@ class _UloomReaderView extends StatelessWidget {
                   icon: const Icon(Icons.list_alt_outlined, size: 18),
                   label: Text(basicText('all_sources_action', lang)),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 if (entry != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        entry.label.isNotEmpty ? entry.label : basicText(_uloomDomainLabelKeys[entry.domain] ?? entry.domain, lang),
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      if (entry.author != null)
-                        Text(entry.author!, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          entry.label.isNotEmpty ? entry.label : basicText(_uloomDomainLabelKeys[entry.domain] ?? entry.domain, lang),
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                        if (entry.author != null)
+                          Text(entry.author!,
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                      ],
+                    ),
                   ),
               ],
             ),
