@@ -59,7 +59,7 @@ const _editions = [
   ('chinese_suliman', 'tafsir-chinese_suliman.jsonl.gz'),
   ('uyghur_saleh', 'tafsir-uyghur_saleh.jsonl.gz'),
   ('japanese_saeedsato', 'tafsir-japanese_saeedsato.jsonl.gz'),
-  ('somali_abduh', 'tafsir-somali_abduh.jsonl.gz'),
+  ('somali_yacob', 'tafsir-somali_yacob.jsonl.gz'),
   ('hindi_omari', 'tafsir-hindi_omari.jsonl.gz'),
   ('luganda_foundation', 'tafsir-luganda_foundation.jsonl.gz'),
 ];

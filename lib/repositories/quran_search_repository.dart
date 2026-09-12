@@ -86,7 +86,10 @@ class QuranSearchRepository {
     ('chinese_suliman', 'Suliman', 'zh'),
     ('uyghur_saleh', 'Saleh', 'ug'),
     ('japanese_saeedsato', 'Saeed Sato', 'ja'),
-    ('somali_abduh', 'Mahmud Muhammad Abduh', 'so'),
+    // 2026-09-12: swapped for 'somali_yacob' (Abdullah Hasan Yaqoub) — the
+    // current live quranenc.com Somali edition, which carries real
+    // footnotes; the old 'somali_abduh' key has none.
+    ('somali_yacob', 'Abdullah Hasan Yaqoub', 'so'),
     ('hindi_omari', 'Azizul Haq Al-Omari', 'hi'),
     ('luganda_foundation', 'African Institution for Development', 'lg'),
     // 2026-09-12: Ismail is in Ethiopia and asked specifically about

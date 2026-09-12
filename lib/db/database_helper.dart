@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 62,
+      version: 63,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -102,6 +102,7 @@ class DatabaseHelper {
         await _createV60Tables(db);
         await _createV61Tables(db);
         await _createV62Tables(db);
+        await _createV63Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -176,6 +177,7 @@ class DatabaseHelper {
         if (oldVersion < 60) await _createV60Tables(db);
         if (oldVersion < 61) await _createV61Tables(db);
         if (oldVersion < 62) await _createV62Tables(db);
+        if (oldVersion < 63) await _createV63Tables(db);
       },
     );
   }
@@ -2372,6 +2374,19 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE tafsir_entries ADD COLUMN footnote TEXT');
     }
     await db.delete('tafsir_entries');
+  }
+
+  /// Ismail asked (2026-09-12) whether Somali could have a real explanatory
+  /// note — a live check on quranenc.com found the bundled `somali_abduh`
+  /// key no longer exists in their current catalog and carries zero
+  /// footnotes across every sūrah sampled. Swapped for `somali_yacob`
+  /// (Abdullah Hasan Yaqoub), the current live Somali edition, which
+  /// carries 1,137 real footnotes (docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md
+  /// §5). This only clears the now-orphaned `somali_abduh` rows on an
+  /// existing install — `QuranImportService`'s per-source self-heal loop
+  /// picks up the new `somali_yacob` key on its own since it has zero rows.
+  Future<void> _createV63Tables(Database db) async {
+    await db.delete('tafsir_entries', where: 'source = ?', whereArgs: ['somali_abduh']);
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

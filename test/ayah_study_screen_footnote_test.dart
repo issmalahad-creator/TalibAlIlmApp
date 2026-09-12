@@ -62,6 +62,22 @@ void main() {
     expect(oromo.footnote!, contains('bukhaariitu'));
   });
 
+  test(
+      'somali_yacob — swapped in 2026-09-12 after somali_abduh proved footnote-less — carries a real footnote',
+      () async {
+    // Ismail asked specifically whether Somali could have a real
+    // explanatory note; the previously-bundled 'somali_abduh' key turned
+    // out to be gone from quranenc.com's live catalog and footnote-less.
+    // 'somali_yacob' (Abdullah Hasan Yaqoub) is the real, current, live
+    // Somali edition and carries one here for al-Fātiḥa 1:3.
+    final entries = await QuranReadingRepository().tafsirEntriesForAyah(1, 3);
+    final somali = entries.where((e) => e.source == 'somali_yacob').firstOrNull;
+    expect(somali, isNotNull, reason: 'somali_yacob must be imported for 1:3');
+    expect(somali!.text.trim(), isNotEmpty);
+    expect(somali.footnote, isNotNull);
+    expect(somali.footnote!, contains('Ar-Raxmaan'));
+  });
+
   test('a source with no footnote for this ayah stays null, never fabricated',
       () async {
     // 1:2 has no footnote in the real QuranEnc data (verified against the

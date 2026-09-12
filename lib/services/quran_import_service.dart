@@ -323,7 +323,14 @@ class QuranImportService {
     ('assets/quran/tafsir-chinese_suliman.jsonl.gz', 'chinese_suliman', 'zh'),
     ('assets/quran/tafsir-uyghur_saleh.jsonl.gz', 'uyghur_saleh', 'ug'),
     ('assets/quran/tafsir-japanese_saeedsato.jsonl.gz', 'japanese_saeedsato', 'ja'),
-    ('assets/quran/tafsir-somali_abduh.jsonl.gz', 'somali_abduh', 'so'),
+    // 2026-09-12: swapped from 'somali_abduh' — Ismail asked whether Somali
+    // could have a real explanatory note; that edition's live QuranEnc key
+    // no longer exists in their current catalog and carries zero footnotes
+    // across every sūrah sampled (1, 2, 18, 36, 55, 112 — 561 āyāt, 0 real
+    // notes). 'somali_yacob' (Abdullah Hasan Yaqoub) is the current live
+    // Somali edition on quranenc.com and carries 1,137 real footnotes across
+    // all 6236 āyāt (verified). See TAFSIR_UNIFIED_ARCHITECTURE.md §5.
+    ('assets/quran/tafsir-somali_yacob.jsonl.gz', 'somali_yacob', 'so'),
     ('assets/quran/tafsir-hindi_omari.jsonl.gz', 'hindi_omari', 'hi'),
     ('assets/quran/tafsir-luganda_foundation.jsonl.gz', 'luganda_foundation', 'lg'),
     // New language (2026-09-12) — Ismail asked specifically about Oromo

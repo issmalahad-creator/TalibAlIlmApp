@@ -151,7 +151,7 @@ flutter:
     - assets/quran/tafsir-chinese_suliman.jsonl.gz
     - assets/quran/tafsir-uyghur_saleh.jsonl.gz
     - assets/quran/tafsir-japanese_saeedsato.jsonl.gz
-    - assets/quran/tafsir-somali_abduh.jsonl.gz
+    - assets/quran/tafsir-somali_yacob.jsonl.gz
     - assets/quran/tafsir-hindi_omari.jsonl.gz
     - assets/quran/tafsir-luganda_foundation.jsonl.gz
     - assets/quran/tafsir-oromo_ababor.jsonl.gz

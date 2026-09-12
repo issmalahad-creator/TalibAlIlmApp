@@ -44,7 +44,7 @@ Editions used (language — translator/publisher — translation key):
 - Chinese — Suliman — chinese_suliman
 - Uyghur — Saleh — uyghur_saleh
 - Japanese — Saeed Sato — japanese_saeedsato
-- Somali — Mahmud Muhammad Abduh — somali_abduh
+- Somali — Abdullah Hasan Yaqoub — somali_yacob
 - Hindi — Azizul Haq Al-Omari — hindi_omari
 - Luganda — African Institution for Development — luganda_foundation
 
