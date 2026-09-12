@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 63,
+      version: 64,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -103,6 +103,7 @@ class DatabaseHelper {
         await _createV61Tables(db);
         await _createV62Tables(db);
         await _createV63Tables(db);
+        await _createV64Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -178,6 +179,7 @@ class DatabaseHelper {
         if (oldVersion < 61) await _createV61Tables(db);
         if (oldVersion < 62) await _createV62Tables(db);
         if (oldVersion < 63) await _createV63Tables(db);
+        if (oldVersion < 64) await _createV64Tables(db);
       },
     );
   }
@@ -2387,6 +2389,16 @@ class DatabaseHelper {
   /// picks up the new `somali_yacob` key on its own since it has zero rows.
   Future<void> _createV63Tables(Database db) async {
     await db.delete('tafsir_entries', where: 'source = ?', whereArgs: ['somali_abduh']);
+  }
+
+  /// Follow-up audit (2026-09-12) of every bundled QuranEnc language after
+  /// the Somali finding: 'albanian_rwwad' and 'uzbek_rwwad' also carry zero
+  /// footnotes live, and both languages have a real alternative edition on
+  /// quranenc.com with real ones — 'albanian_nahi' (405 footnotes) and
+  /// 'uzbek_mansour' (527 footnotes). Same swap pattern as v63.
+  Future<void> _createV64Tables(Database db) async {
+    await db.delete('tafsir_entries',
+        where: 'source IN (?, ?)', whereArgs: ['albanian_rwwad', 'uzbek_rwwad']);
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

@@ -222,6 +222,16 @@ work by book / edition / page. Candidate classical/authoritative sources:
   labelled "شرح توضيحي من المصدر" layer in `AyahStudyScreen`'s reader —
   never merged into the translation text itself. See
   `docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md §5`.
+- **2026-09-12 follow-up — 3 dead/deprecated keys found and swapped**: a
+  full live audit of all 43 non-Arabic keys (`tool/audit_quranenc_editions.py`)
+  after the Somali finding turned up two more editions that were both
+  missing from quranenc.com's current catalog *and* footnote-less —
+  `albanian_rwwad` (→ **`albanian_nahi`**, 405 real footnotes) and
+  `uzbek_rwwad` (→ **`uzbek_mansour`**, 527 real footnotes) — on top of the
+  earlier `somali_abduh` → `somali_yacob` swap. DB v64. 7 languages
+  (Bulgarian, Belarusian, Kazakh, Circassian, Malay, Luganda, Greek) were
+  confirmed to have **no** footnote-bearing edition currently offered by
+  QuranEnc at all — a genuine source gap, not a bug, left as-is.
 
 ### D2 · Word-by-word meaning
 - **QUL word-by-word translations** (multi-language, JSON/CSV/SQL, open) —

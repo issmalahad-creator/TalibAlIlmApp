@@ -64,7 +64,10 @@ class QuranSearchRepository {
     ('azeri_musayev', 'Musayev', 'az'),
     ('georgian_rwwad', 'Rowwad Translation Center', 'ka'),
     ('macedonian_group', 'Translation Group', 'mk'),
-    ('albanian_rwwad', 'Rowwad Translation Center', 'sq'),
+    // 2026-09-12: swapped for 'albanian_nahi' (Hasan Efendi Nahi) — the
+    // old 'albanian_rwwad' key carries zero footnotes; this one has real
+    // ones (12 sampled across 3 sūrahs).
+    ('albanian_nahi', 'Hasan Efendi Nahi', 'sq'),
     ('bosnian_rwwad', 'Rowwad Translation Center', 'bs'),
     ('russian_rwwad', 'Rowwad Translation Center', 'ru'),
     ('belarusian_krivtsov', 'Krivtsov', 'be'),
@@ -73,7 +76,9 @@ class QuranSearchRepository {
     ('lithuanian_rwwad', 'Rowwad Translation Center', 'lt'),
     ('ukrainian_yakubovych', 'Yakubovych', 'uk'),
     ('kazakh_altai', 'Altai', 'kk'),
-    ('uzbek_rwwad', 'Rowwad Translation Center', 'uz'),
+    // 2026-09-12: swapped for 'uzbek_mansour' — the old 'uzbek_rwwad' key
+    // carries zero footnotes; this one has 527 real ones across the Quran.
+    ('uzbek_mansour', 'Mansour', 'uz'),
     ('tajik_arifi', 'Arifi', 'tg'),
     ('kyrgyz_hakimov', 'Hakimov', 'ky'),
     ('circassian_rwwad', 'Rowwad Translation Center', 'ady'),

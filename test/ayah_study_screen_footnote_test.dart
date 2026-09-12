@@ -78,6 +78,33 @@ void main() {
     expect(somali.footnote!, contains('Ar-Raxmaan'));
   });
 
+  test(
+      'albanian_nahi — swapped in 2026-09-12 after a full 43-language audit — carries a real footnote',
+      () async {
+    // Same audit that found the Somali issue was run across the other 42
+    // bundled languages; 'albanian_rwwad' also proved footnote-less live,
+    // and 'albanian_nahi' (Hasan Efendi Nahi) is the real replacement.
+    final entries = await QuranReadingRepository().tafsirEntriesForAyah(1, 1);
+    final albanian = entries.where((e) => e.source == 'albanian_nahi').firstOrNull;
+    expect(albanian, isNotNull, reason: 'albanian_nahi must be imported for 1:1');
+    expect(albanian!.text.trim(), isNotEmpty);
+    expect(albanian.footnote, isNotNull);
+    expect(albanian.footnote!, contains('Besmele'));
+  });
+
+  test(
+      'uzbek_mansour — swapped in 2026-09-12 after the same audit — carries a real footnote',
+      () async {
+    // 'uzbek_rwwad' also proved footnote-less live; 'uzbek_mansour' is the
+    // real replacement, with a footnote starting at 1:4 (not 1:1).
+    final entries = await QuranReadingRepository().tafsirEntriesForAyah(1, 4);
+    final uzbek = entries.where((e) => e.source == 'uzbek_mansour').firstOrNull;
+    expect(uzbek, isNotNull, reason: 'uzbek_mansour must be imported for 1:4');
+    expect(uzbek!.text.trim(), isNotEmpty);
+    expect(uzbek.footnote, isNotNull);
+    expect(uzbek.footnote!.trim(), isNotEmpty);
+  });
+
   test('a source with no footnote for this ayah stays null, never fabricated',
       () async {
     // 1:2 has no footnote in the real QuranEnc data (verified against the

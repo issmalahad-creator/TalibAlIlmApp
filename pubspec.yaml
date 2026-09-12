@@ -129,7 +129,7 @@ flutter:
     - assets/quran/tafsir-azeri_musayev.jsonl.gz
     - assets/quran/tafsir-georgian_rwwad.jsonl.gz
     - assets/quran/tafsir-macedonian_group.jsonl.gz
-    - assets/quran/tafsir-albanian_rwwad.jsonl.gz
+    - assets/quran/tafsir-albanian_nahi.jsonl.gz
     - assets/quran/tafsir-bosnian_rwwad.jsonl.gz
     - assets/quran/tafsir-russian_rwwad.jsonl.gz
     - assets/quran/tafsir-belarusian_krivtsov.jsonl.gz
@@ -138,7 +138,7 @@ flutter:
     - assets/quran/tafsir-lithuanian_rwwad.jsonl.gz
     - assets/quran/tafsir-ukrainian_yakubovych.jsonl.gz
     - assets/quran/tafsir-kazakh_altai.jsonl.gz
-    - assets/quran/tafsir-uzbek_rwwad.jsonl.gz
+    - assets/quran/tafsir-uzbek_mansour.jsonl.gz
     - assets/quran/tafsir-tajik_arifi.jsonl.gz
     - assets/quran/tafsir-kyrgyz_hakimov.jsonl.gz
     - assets/quran/tafsir-circassian_rwwad.jsonl.gz

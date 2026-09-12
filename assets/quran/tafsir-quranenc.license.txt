@@ -23,7 +23,7 @@ Editions used (language — translator/publisher — translation key):
 - Azerbaijani — Musayev — azeri_musayev
 - Georgian — Rowwad Translation Center — georgian_rwwad
 - Macedonian — macedonian_group
-- Albanian — Rowwad Translation Center — albanian_rwwad
+- Albanian — Hasan Efendi Nahi — albanian_nahi
 - Bosnian — Rowwad Translation Center — bosnian_rwwad
 - Russian — Rowwad Translation Center — russian_rwwad
 - Belarusian — Krivtsov — belarusian_krivtsov
@@ -32,7 +32,7 @@ Editions used (language — translator/publisher — translation key):
 - Lithuanian — Rowwad Translation Center — lithuanian_rwwad
 - Ukrainian — Yakubovych — ukrainian_yakubovych
 - Kazakh — Altai — kazakh_altai
-- Uzbek — Rowwad Translation Center — uzbek_rwwad
+- Uzbek — Mansour — uzbek_mansour
 - Tajik — Arifi — tajik_arifi
 - Kyrgyz — Hakimov — kyrgyz_hakimov
 - Circassian — Rowwad Translation Center — circassian_rwwad

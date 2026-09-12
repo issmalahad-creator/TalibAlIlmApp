@@ -296,7 +296,9 @@ class QuranImportService {
     ('assets/quran/tafsir-azeri_musayev.jsonl.gz', 'azeri_musayev', 'az'),
     ('assets/quran/tafsir-georgian_rwwad.jsonl.gz', 'georgian_rwwad', 'ka'),
     ('assets/quran/tafsir-macedonian_group.jsonl.gz', 'macedonian_group', 'mk'),
-    ('assets/quran/tafsir-albanian_rwwad.jsonl.gz', 'albanian_rwwad', 'sq'),
+    // 2026-09-12: swapped for 'albanian_nahi' — 'albanian_rwwad' carries
+    // zero footnotes on quranenc.com; this one has 405 real ones.
+    ('assets/quran/tafsir-albanian_nahi.jsonl.gz', 'albanian_nahi', 'sq'),
     ('assets/quran/tafsir-bosnian_rwwad.jsonl.gz', 'bosnian_rwwad', 'bs'),
     ('assets/quran/tafsir-russian_rwwad.jsonl.gz', 'russian_rwwad', 'ru'),
     ('assets/quran/tafsir-belarusian_krivtsov.jsonl.gz', 'belarusian_krivtsov', 'be'),
@@ -305,7 +307,9 @@ class QuranImportService {
     ('assets/quran/tafsir-lithuanian_rwwad.jsonl.gz', 'lithuanian_rwwad', 'lt'),
     ('assets/quran/tafsir-ukrainian_yakubovych.jsonl.gz', 'ukrainian_yakubovych', 'uk'),
     ('assets/quran/tafsir-kazakh_altai.jsonl.gz', 'kazakh_altai', 'kk'),
-    ('assets/quran/tafsir-uzbek_rwwad.jsonl.gz', 'uzbek_rwwad', 'uz'),
+    // 2026-09-12: swapped for 'uzbek_mansour' — 'uzbek_rwwad' carries zero
+    // footnotes on quranenc.com; this one has 527 real ones.
+    ('assets/quran/tafsir-uzbek_mansour.jsonl.gz', 'uzbek_mansour', 'uz'),
     ('assets/quran/tafsir-tajik_arifi.jsonl.gz', 'tajik_arifi', 'tg'),
     ('assets/quran/tafsir-kyrgyz_hakimov.jsonl.gz', 'kyrgyz_hakimov', 'ky'),
     ('assets/quran/tafsir-circassian_rwwad.jsonl.gz', 'circassian_rwwad', 'ady'),
