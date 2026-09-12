@@ -199,7 +199,10 @@ work by book / edition / page. Candidate classical/authoritative sources:
 
 ### D1 · Tafsīr editions already in the repo
 - `assets/quran/tafsir-*.jsonl.gz`: AR — `ibn_kathir`, `saadi`, `muyassar`,
-  `ibn_ashur`, `almukhtasar`; + ~40 language translation-tafsir editions.
+  `ibn_ashur`, `almukhtasar`; + **44** language translation-tafsir editions
+  (added `oromo_ababor` 2026-09-12, translator Ghali/Gali Ababor — Ismail
+  is in Ethiopia and asked specifically about Oromo; verified live on
+  quranenc.com, complete for all 114 sūrahs).
 - **Source/licence:** mostly via KFGQPC (spa.qurancomplex.gov.sa) / QuranEnc
   / Tanzil trans — **CC-BY family**; attribution on the "About sources"
   screen. `TafsirMuyassar` is an official KFGQPC edition.
@@ -208,6 +211,17 @@ work by book / edition / page. Candidate classical/authoritative sources:
   tafsīr", or present a translation as the Quran (mirrors `quran.ai` MCP
   grounding rules).
 - **Class:** `VERIFIED` (present, in use since Phase 72).
+- **2026-09-12 upgrade — footnotes field**: every one of the 44 language
+  editions was re-fetched via `tool/fetch_quranenc_footnotes.py`, this time
+  keeping QuranEnc's `footnotes` field (real explanatory notes — e.g. a
+  hadith on a sūrah's virtue) alongside `translation`, which the original
+  `tool/fetch_quranenc_translations.dart` discarded. 26,871 real footnote
+  rows captured across the 44 editions (0 fabricated — many editions
+  genuinely have none; Urdu/Bengali/Japanese have thousands). Stored in a
+  new `tafsir_entries.footnote` column (DB v62), shown as a separate
+  labelled "شرح توضيحي من المصدر" layer in `AyahStudyScreen`'s reader —
+  never merged into the translation text itself. See
+  `docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md §5`.
 
 ### D2 · Word-by-word meaning
 - **QUL word-by-word translations** (multi-language, JSON/CSV/SQL, open) —

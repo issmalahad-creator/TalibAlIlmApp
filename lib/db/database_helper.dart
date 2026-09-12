@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 61,
+      version: 62,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -101,6 +101,7 @@ class DatabaseHelper {
         await _createV59Tables(db);
         await _createV60Tables(db);
         await _createV61Tables(db);
+        await _createV62Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -174,6 +175,7 @@ class DatabaseHelper {
         if (oldVersion < 59) await _createV59Tables(db);
         if (oldVersion < 60) await _createV60Tables(db);
         if (oldVersion < 61) await _createV61Tables(db);
+        if (oldVersion < 62) await _createV62Tables(db);
       },
     );
   }
@@ -2352,6 +2354,24 @@ class DatabaseHelper {
         v TEXT
       )
     ''');
+  }
+
+  /// docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md §5 — QuranEnc.com's per-ayah
+  /// API returns a `footnotes` field (real explanatory notes, e.g. a hadith
+  /// on al-Fātiḥa's virtue) that the original import only ever discarded;
+  /// `tafsir_entries.text` carried a dangling "[1]" marker with nothing to
+  /// show for it. Adds the column and clears the table so
+  /// `QuranImportService`'s existing per-edition self-heal loop (it only
+  /// (re)imports a `source` with zero rows) reimports every edition fresh
+  /// from the regenerated assets — harmless no-op on a brand-new install
+  /// where the table is already empty.
+  Future<void> _createV62Tables(Database db) async {
+    final cols = await db.rawQuery('PRAGMA table_info(tafsir_entries)');
+    final hasFootnote = cols.any((c) => c['name'] == 'footnote');
+    if (!hasFootnote) {
+      await db.execute('ALTER TABLE tafsir_entries ADD COLUMN footnote TEXT');
+    }
+    await db.delete('tafsir_entries');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

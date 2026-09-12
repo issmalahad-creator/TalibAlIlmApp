@@ -17,7 +17,17 @@ class AyahTafsirEntry {
   final String source;
   final String language;
   final String text;
-  const AyahTafsirEntry({required this.source, required this.language, required this.text});
+  /// A real explanatory note from the source (e.g. a hadith on this
+  /// ayah's virtue) — separate from the literal translation/tafsir text
+  /// itself, never merged into it. Null when the source has none for
+  /// this ayah (see docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md §5).
+  final String? footnote;
+  const AyahTafsirEntry({
+    required this.source,
+    required this.language,
+    required this.text,
+    this.footnote,
+  });
 }
 
 /// "قراءة القرآن" — the periodic full read-through concept added in
@@ -153,7 +163,7 @@ class QuranReadingRepository {
   Future<List<AyahTafsirEntry>> tafsirEntriesForAyah(int surah, int ayah) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.rawQuery(
-      "SELECT source, language, text FROM tafsir_entries WHERE surah = ? AND ? BETWEEN ayah_from AND ayah_to AND text != ''",
+      "SELECT source, language, text, footnote FROM tafsir_entries WHERE surah = ? AND ? BETWEEN ayah_from AND ayah_to AND text != ''",
       [surah, ayah],
     );
     return rows
@@ -161,6 +171,7 @@ class QuranReadingRepository {
               source: r['source'] as String,
               language: r['language'] as String,
               text: r['text'] as String,
+              footnote: r['footnote'] as String?,
             ))
         .toList();
   }

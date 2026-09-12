@@ -587,7 +587,14 @@ class _EntryCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
           ),
-          trailing: const Icon(Icons.chevron_left_rounded),
+          trailing: (entry.footnote?.trim().isNotEmpty ?? false)
+              // A real explanatory note (not the literal text itself) is
+              // attached to this ayah for this source — surfaced here so
+              // the student knows before opening the reader, not just
+              // discovered inside it (docs/quran/
+              // TAFSIR_UNIFIED_ARCHITECTURE.md §5).
+              ? const Icon(Icons.sticky_note_2_outlined, size: 18, color: AppColors.primaryDark)
+              : const Icon(Icons.chevron_left_rounded),
           onTap: onTap,
         ),
       );
@@ -685,11 +692,36 @@ class _ReaderView extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-              child: Text(
-                entry?.text ?? basicText('no_tafsir_for_this_ayah', lang),
-                textAlign: TextAlign.right,
-                textDirection: TextDirection.rtl,
-                style: TextStyle(fontSize: 15.5 * scale, height: 1.9, color: AppColors.textDark),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    entry?.text ?? basicText('no_tafsir_for_this_ayah', lang),
+                    textAlign: TextAlign.right,
+                    textDirection: TextDirection.rtl,
+                    style: TextStyle(fontSize: 15.5 * scale, height: 1.9, color: AppColors.textDark),
+                  ),
+                  // A separate, clearly-labelled layer — never merged into
+                  // the translation/tafsir text above it (same separation
+                  // principle as AKHLAQ_TRANSLATION_MODEL.md's source/
+                  // translation/explanation layers).
+                  if (entry?.footnote?.trim().isNotEmpty ?? false) ...[
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(height: 1),
+                    ),
+                    Text(basicText('ql_footnote_section', lang),
+                        textDirection: TextDirection.rtl,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: AppColors.primaryDark)),
+                    const SizedBox(height: 6),
+                    Text(
+                      entry!.footnote!,
+                      textAlign: TextAlign.right,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(fontSize: 14 * scale, height: 1.8, color: AppColors.textMuted),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

@@ -154,6 +154,7 @@ flutter:
     - assets/quran/tafsir-somali_abduh.jsonl.gz
     - assets/quran/tafsir-hindi_omari.jsonl.gz
     - assets/quran/tafsir-luganda_foundation.jsonl.gz
+    - assets/quran/tafsir-oromo_ababor.jsonl.gz
     - assets/hadith/nawawi40.json
     - assets/aqeedah/wasitiyyah.json
     - assets/fiqh_seerah/zad_almaad_vol1.json

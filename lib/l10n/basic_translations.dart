@@ -4840,6 +4840,13 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'اس ذریعے سے اس آیت کے لیے کوئی تفسیر محفوظ نہیں ہے', 'tr': 'Bu kaynaktan bu ayet için kayıtlı tefsir yok', 'id': 'Tidak ada tafsir tersimpan untuk ayat ini dari sumber ini', 'bn': 'এই উৎস থেকে এই আয়াতের জন্য কোনো তাফসীর সংরক্ষিত নেই', 'ha': 'Babu tafsirin da aka adana wa wannan ayar daga wannan tushen',
     'so': 'Ilahan tafsiir looma kaydin ayadan', 'fa': 'از این منبع تفسیری برای این آیه ذخیره نشده است', 'ms': 'Tiada tafsir disimpan untuk ayat ini daripada sumber ini',
   },
+  // ---- TAFSIR_UNIFIED_ARCHITECTURE.md §5 — a real explanatory note from
+  // the source, kept visually separate from the translation/tafsir text.
+  'ql_footnote_section': {
+    'ar': 'شرح توضيحي من المصدر', 'en': 'Explanatory note from the source', 'am': 'ከምንጩ የተገኘ ማብራሪያ', 'fr': 'Note explicative de la source', 'sw': 'Ufafanuzi kutoka chanzo',
+    'ur': 'ماخذ سے وضاحتی نوٹ', 'tr': 'Kaynaktan açıklayıcı not', 'id': 'Catatan penjelasan dari sumber', 'bn': 'উৎস থেকে ব্যাখ্যামূলক নোট', 'ha': 'Bayani daga tushen',
+    'so': 'Faah faahin ka timid isha', 'fa': 'یادداشت توضیحی از منبع', 'ms': 'Nota penjelasan daripada sumber',
+  },
   'exit_compare_action': {
     'ar': 'إنهاء المقارنة', 'en': 'Exit Comparison', 'am': 'ንጽጽርን ዝጋ', 'fr': 'Quitter la comparaison', 'sw': 'Toka Kulinganisha',
     'ur': 'موازنہ ختم کریں', 'tr': 'Karşılaştırmadan Çık', 'id': 'Keluar dari Perbandingan', 'bn': 'তুলনা থেকে বের হন', 'ha': 'Fita Kwatancen',

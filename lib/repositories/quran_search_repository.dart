@@ -89,6 +89,9 @@ class QuranSearchRepository {
     ('somali_abduh', 'Mahmud Muhammad Abduh', 'so'),
     ('hindi_omari', 'Azizul Haq Al-Omari', 'hi'),
     ('luganda_foundation', 'African Institution for Development', 'lg'),
+    // 2026-09-12: Ismail is in Ethiopia and asked specifically about
+    // Oromo — verified live on quranenc.com, complete + real footnotes.
+    ('oromo_ababor', 'Ghali Ababor', 'om'),
   ];
   static const defaultTafsirSource = 'almukhtasar';
 
@@ -139,6 +142,7 @@ class QuranSearchRepository {
     'so': 'Soomaali',
     'hi': 'हिन्दी',
     'lg': 'Luganda',
+    'om': 'Afaan Oromoo',
   };
 
   /// Also accepts a direct `"سورة آية"` / `"سورة:آية"` reference (e.g.
