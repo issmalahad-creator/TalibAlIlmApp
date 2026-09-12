@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../l10n/basic_translations.dart';
 import '../../repositories/quran_book_cache.dart';
 import '../../repositories/quran_corpus_repository.dart';
+import '../../repositories/quran_reading_repository.dart';
+import '../../repositories/quran_search_repository.dart';
 import '../../theme/app_theme.dart';
 
 /// Phase 80 / QC3 — the **Quran Corpus** surfaced on the mushaf.
@@ -1100,11 +1102,20 @@ class AyahTranslationPanel extends StatefulWidget {
 
 class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
   final _repo = QuranCorpusRepository();
+  final _readingRepo = QuranReadingRepository();
 
   bool _loadingEds = true;
   List<Map<String, Object?>> _eds = [];
   final Map<String, String> _localeName = {}; // locale → display language
   String _locale = '';
+
+  /// A real explanatory note per language, keyed by locale — the same
+  /// QuranEnc-sourced `footnote` field surfaced in `AyahStudyScreen`
+  /// (docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md §5), shown here directly
+  /// under the everyday language/edition picker instead of requiring a
+  /// separate screen. Only populated when a real footnote exists for this
+  /// ayah — never fabricated.
+  final Map<String, AyahTafsirEntry> _explainByLocale = {};
 
   @override
   void initState() {
@@ -1113,12 +1124,27 @@ class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
   }
 
   Future<void> _init() async {
-    final eds = await _repo.translationEditions();
+    final results = await Future.wait([
+      _repo.translationEditions(),
+      _readingRepo.tafsirEntriesForAyah(widget.surah, widget.ayah),
+    ]);
     if (!mounted) return;
+    final eds = results[0] as List<Map<String, Object?>>;
+    final entries = results[1] as List<AyahTafsirEntry>;
     for (final e in eds) {
       final loc = '${e['locale'] ?? ''}';
       if (loc.isEmpty) continue;
       _localeName.putIfAbsent(loc, () => '${e['lang'] ?? loc}');
+    }
+    for (final e in entries) {
+      if (e.language == 'ar') continue;
+      if (e.footnote == null || e.footnote!.trim().isEmpty) continue;
+      _explainByLocale.putIfAbsent(e.language, () => e);
+      // A language with a real explanatory note but no bundled edition in
+      // this 138-edition corpus still deserves a place in the picker —
+      // never drop a language just because only one system has it.
+      _localeName.putIfAbsent(
+          e.language, () => QuranSearchRepository.languageLabels[e.language] ?? e.language);
     }
     final locs = _localeName.keys.toSet();
     final String locale = locs.contains(widget.lang)
@@ -1131,6 +1157,13 @@ class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
       _loadingEds = false;
       _locale = locale;
     });
+  }
+
+  static String _sourceLabel(String source) {
+    for (final t in QuranSearchRepository.tafsirSources) {
+      if (t.$1 == source) return t.$2;
+    }
+    return source;
   }
 
   @override
@@ -1173,7 +1206,7 @@ class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
           onChanged: (v) => v == null ? null : setState(() => _locale = v),
         ),
         const SizedBox(height: 8),
-        if (editionsForLocale.isEmpty)
+        if (editionsForLocale.isEmpty && _explainByLocale[_locale] == null)
           _calmNoData(lang)
         else
           for (var i = 0; i < editionsForLocale.length; i++)
@@ -1189,7 +1222,98 @@ class _AyahTranslationPanelState extends State<AyahTranslationPanel> {
               initiallyOpen: false,
               lang: lang,
             ),
+        if (_explainByLocale[_locale] != null)
+          _ExplanationBox(
+            key: ValueKey(
+                'explain-$_locale-${widget.surah}-${widget.ayah}'),
+            sourceLabel: _sourceLabel(_explainByLocale[_locale]!.source),
+            footnote: _explainByLocale[_locale]!.footnote!,
+            lang: lang,
+          ),
       ],
+    );
+  }
+}
+
+/// A real explanatory note for this ayah in this language — separate from
+/// every literal translation box above it, never merged into one of them
+/// (same separation principle as `_ReaderView`'s footnote layer in
+/// ayah_study_screen.dart / AKHLAQ_TRANSLATION_MODEL.md). Collapsed by
+/// default like the edition boxes it sits beside.
+class _ExplanationBox extends StatefulWidget {
+  final String sourceLabel;
+  final String footnote;
+  final String lang;
+  const _ExplanationBox({
+    super.key,
+    required this.sourceLabel,
+    required this.footnote,
+    required this.lang,
+  });
+
+  @override
+  State<_ExplanationBox> createState() => _ExplanationBoxState();
+}
+
+class _ExplanationBoxState extends State<_ExplanationBox> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = widget.lang;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.primaryLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _open = !_open),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: Row(
+                children: [
+                  const Icon(Icons.sticky_note_2_outlined,
+                      size: 16, color: AppColors.primaryDark),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(basicText('ql_footnote_section', lang),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12.5,
+                            color: AppColors.primaryDark)),
+                  ),
+                  Icon(_open ? Icons.expand_less : Icons.expand_more,
+                      size: 18, color: AppColors.primaryDark),
+                ],
+              ),
+            ),
+          ),
+          if (_open)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(widget.sourceLabel,
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textMuted)),
+                  const SizedBox(height: 6),
+                  Text(widget.footnote,
+                      textAlign: TextAlign.right,
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontSize: 13.5, height: 1.7, color: AppColors.textDark)),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
