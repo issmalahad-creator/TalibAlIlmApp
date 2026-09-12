@@ -4941,6 +4941,10 @@ const Map<String, Map<String, String>> basicTranslations = {
   'akhlaq_dim_timing': {'ar': 'حُسن التوقيت', 'en': 'Good timing', 'am': 'ጥሩ ጊዜ አመራረጥ', 'fr': 'Bon moment', 'sw': 'Wakati mzuri', 'ur': 'درست وقت', 'tr': 'İyi zamanlama', 'id': 'Waktu yang tepat', 'bn': 'সঠিক সময়', 'ha': 'Kyakkyawan lokaci', 'so': 'Waqti wanaagsan', 'fa': 'زمان‌بندی خوب', 'ms': 'Pemasaan yang baik'},
   'akhlaq_dim_intention_awareness': {'ar': 'مراقبة الباعث', 'en': 'Awareness of one\'s motive', 'am': 'የፍላጎት ንቃት', 'fr': 'Conscience du motif', 'sw': 'Kutambua nia', 'ur': 'نیت کی نگرانی', 'tr': 'Niyet farkındalığı', 'id': 'Kesadaran akan niat', 'bn': 'উদ্দেশ্য সম্পর্কে সচেতনতা', 'ha': 'Sanin dalili', 'so': 'Ogaanshaha ujeeddada', 'fa': 'آگاهی از انگیزه', 'ms': 'Kesedaran tentang niat'},
   'akhlaq_dim_firmness_when_needed': {'ar': 'الحزم عند الحاجة', 'en': 'Firmness when needed', 'am': 'በሚያስፈልግበት ጊዜ ጽናት', 'fr': 'Fermeté au besoin', 'sw': 'Uthabiti inapohitajika', 'ur': 'ضرورت پر سختی', 'tr': 'Gerektiğinde kararlılık', 'id': 'Ketegasan saat diperlukan', 'bn': 'প্রয়োজনে দৃঢ়তা', 'ha': 'Ƙarfi lokacin da ake buƙata', 'so': 'Adkeysi marka loo baahdo', 'fa': 'قاطعیت در صورت نیاز', 'ms': 'Ketegasan bila perlu'},
+
+  // ---- Tafsir/translation section headers (TAFSIR_UNIFIED_ARCHITECTURE, 2026-09-11)
+  'ql_tafsir_section': {'ar': 'تفاسير', 'en': 'Tafsir (exegesis)', 'am': 'ተፍሲር (ማብራሪያ)', 'fr': 'Tafsir (exégèse)', 'sw': 'Tafsiri (ufafanuzi)', 'ur': 'تفاسیر (تشریح)', 'tr': 'Tefsir (yorum)', 'id': 'Tafsir (penjelasan)', 'bn': 'তাফসির (ব্যাখ্যা)', 'ha': 'Tafsiri (bayani)', 'so': 'Tafsiir (sharraxaad)', 'fa': 'تفسیر (شرح)', 'ms': 'Tafsir (penjelasan)'},
+  'ql_translation_section': {'ar': 'ترجمات', 'en': 'Translations', 'am': 'ትርጉሞች', 'fr': 'Traductions', 'sw': 'Tafsiri za lugha', 'ur': 'تراجم', 'tr': 'Çeviriler', 'id': 'Terjemahan', 'bn': 'অনুবাদসমূহ', 'ha': 'Fassarori', 'so': 'Turjumaadaha', 'fa': 'ترجمه‌ها', 'ms': 'Terjemahan'},
 };
 
 /// Looks up [key] in the student's current language, falling back to

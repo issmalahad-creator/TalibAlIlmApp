@@ -647,7 +647,7 @@ class _AyahSurfaceState extends State<_AyahSurface> {
   /// (full tafsīr, translations, sources, prev/next — or العلوم المرتبطة
   /// when that's the tab the user was on). Deep reading never happens
   /// inside the surface.
-  void _openAyahPage() {
+  void _openAyahPage({int? bookId}) {
     Navigator.pop(context);
     Navigator.push(
       context,
@@ -656,6 +656,7 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           surah: surah,
           ayah: ayah,
           initialFamily: _seg == _AyahSeg.uloom ? AyahStudyFamily.uloom : null,
+          initialBookId: bookId,
         ),
       ),
     );
@@ -838,7 +839,7 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           surah: surah,
           ayah: ayah,
           lang: lang,
-          onOpenFull: _openAyahPage,
+          onOpenFull: (bookId) => _openAyahPage(bookId: bookId),
         );
       case _AyahSeg.sources:
         if (r.sources.isEmpty) return _calmNoData(lang);

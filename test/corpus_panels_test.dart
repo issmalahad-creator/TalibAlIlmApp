@@ -89,14 +89,14 @@ void main() {
 
   testWidgets('AyahTafsirPanel shows a short excerpt + «للمزيد» for 1:1',
       (t) async {
-    var opened = false;
+    int? openedBookId;
     await pumpPanel(
       t,
       AyahTafsirPanel(
         surah: 1,
         ayah: 1,
         lang: 'ar',
-        onOpenFull: () => opened = true,
+        onOpenFull: (bookId) => openedBookId = bookId,
       ),
     );
     expect(find.byType(DropdownButton<int>), findsOneWidget);
@@ -104,11 +104,11 @@ void main() {
     expect(find.textContaining('المصدر:'), findsOneWidget);
     // the card shows an excerpt, not a full reader
     expect(find.byType(SelectableText), findsNothing);
-    // «التفسير كاملًا» opens the dedicated page
+    // «التفسير كاملًا» opens the dedicated page on the exact book selected
     final more = find.widgetWithText(OutlinedButton, 'التفسير كاملًا');
     expect(more, findsOneWidget);
     await t.tap(more);
-    expect(opened, isTrue);
+    expect(openedBookId, isNotNull);
   });
 
   testWidgets('AyahTranslationPanel: language arrow + per-edition boxes for 1:1',

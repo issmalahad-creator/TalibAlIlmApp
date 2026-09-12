@@ -918,9 +918,11 @@ class AyahTafsirPanel extends StatefulWidget {
   final int ayah;
   final String lang;
 
-  /// «للمزيد» — opens the dedicated ayah tafsīr page. The card only ever
+  /// «للمزيد» — opens the dedicated ayah tafsir page **on the book
+  /// currently selected in this panel's dropdown** (the exact bundled
+  /// book id, not a generic "open the ayah page"). The card only ever
   /// shows a short excerpt; deep reading happens there.
-  final VoidCallback? onOpenFull;
+  final void Function(int bookId)? onOpenFull;
 
   const AyahTafsirPanel({
     super.key,
@@ -1070,7 +1072,10 @@ class _AyahTafsirPanelState extends State<AyahTafsirPanel> {
           '${(current['author'] ?? '') != '' ? ' — ${current['author']}' : ''}'
           '${(current['year'] ?? '') != '' ? ' (${current['year']})' : ''}',
         ),
-        moreButton(basicText('ql_full_tafsir', lang), widget.onOpenFull),
+        moreButton(
+          basicText('ql_full_tafsir', lang),
+          _bookId == -1 ? null : () => widget.onOpenFull?.call(_bookId),
+        ),
       ],
     );
   }

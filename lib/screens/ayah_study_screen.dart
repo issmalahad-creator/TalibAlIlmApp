@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
+import '../repositories/quran_book_cache.dart';
 import '../repositories/quran_corpus_repository.dart';
 import '../repositories/quran_reading_repository.dart';
 import 'ayah_notebook_screen.dart';
@@ -23,23 +24,35 @@ const Map<String, String> _uloomDomainLabelKeys = {
   'sayings': 'ql_athar',
 };
 
-/// "دراسة الآية" — QURAN_COMPANION_ROADMAP.md Phase 72. Turns one ayah into
-/// a study hub: every real tafsir/translation source available for it as
-/// cards, a full reader with prev/next-ayah swipe (no need to back out to
-/// the card list between ayat), and a side-by-side comparison of 2-4
+/// "دراسة الآية" — QURAN_COMPANION_ROADMAP.md Phase 72, unified per
+/// `docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md` (2026-09-11). Turns one
+/// ayah into a study hub: **every** real tafsir/translation source
+/// available for it as cards — the 5 legacy `tafsir_entries` Arabic
+/// editions AND the 122 bundled corpus tafsir books (`quran_tafsir_book` /
+/// `QuranBookCache`), grouped under «تفاسير», kept visually separate from
+/// the ~42 language "translation-tafsir" entries under «ترجمات» — a full
+/// reader with prev/next-ayah swipe, and a side-by-side comparison of 2-4
 /// sources. Deterministic only — every word shown here is a real stored
-/// text from `tafsir_entries` (see `quran_reading_repository.dart`'s
-/// `tafsirEntriesForAyah`); nothing is generated or summarized by AI,
-/// matching Ismail's explicit "لا AI، كله رياضيات" rule for anything
-/// student-facing, confirmed again for this specific feature 2026-08-22.
+/// text (`tafsir_entries` or a bundled corpus asset); nothing is
+/// generated or summarized by AI, matching Ismail's explicit "لا AI، كله
+/// رياضيات" rule for anything student-facing.
 class AyahStudyScreen extends StatefulWidget {
   final int surah;
   final int ayah;
-  /// When set, opens straight into the reader for this source instead of
-  /// the card list — backs the reading screen's "الترجمة" shortcut
-  /// (2026-08-25: Ismail wanted picking a language to jump directly to
-  /// that translation, not through the full source list every time).
+  /// When set, opens straight into the reader for this `tafsir_entries`
+  /// source instead of the card list — backs the reading screen's
+  /// "الترجمة" shortcut (2026-08-25: Ismail wanted picking a language to
+  /// jump directly to that translation, not through the full source list
+  /// every time).
   final String? initialSource;
+  /// When set, opens straight into the reader for this bundled corpus
+  /// tafsir book (`quran_tafsir_book.id`) — backs the Ayah Knowledge
+  /// Surface's tafsir panel «التفسير كاملًا» button, so the exact book the
+  /// student was reading in the quick card is what opens here (2026-09-11
+  /// fix: this used to be silently discarded, always reopening on the 5
+  /// legacy Arabic editions regardless of which of the 122 bundled books
+  /// was actually selected).
+  final int? initialBookId;
   /// Opens straight into "العلوم المرتبطة" instead of التفسير والترجمة —
   /// used by the Ayah Knowledge Surface's «توسّع في صفحة الآية» when it's
   /// reached from the uloom tab, so the button actually lands on the
@@ -51,6 +64,7 @@ class AyahStudyScreen extends StatefulWidget {
     required this.surah,
     required this.ayah,
     this.initialSource,
+    this.initialBookId,
     this.initialFamily,
   });
 
@@ -80,11 +94,22 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
   Map<int, int> _asbabSurahCoverage = {};
   bool _loading = true;
 
+  // The bundled corpus tafsir book catalog (System B — 122 bundled + ~27
+  // online-mirror books). Loaded once; doesn't change per ayah.
+  List<Map<String, Object?>> _tafsirBooks = [];
+
   late AyahStudyFamily _family = widget.initialFamily ?? AyahStudyFamily.tafsirTranslation;
-  late _StudyMode _mode = widget.initialSource != null ? _StudyMode.reader : _StudyMode.cards;
+  late _StudyMode _mode = widget.initialSource != null || widget.initialBookId != null
+      ? _StudyMode.reader
+      : _StudyMode.cards;
   late String? _readerSource = widget.initialSource;
+  late int? _readerBookId = widget.initialBookId;
   String? _readerUloomId;
   final Set<String> _compareSelection = {};
+
+  bool _bookTextLoading = false;
+  String? _bookText;
+  bool _bookMirror = false;
 
   bool _sepia = false;
 
@@ -92,6 +117,36 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
   void initState() {
     super.initState();
     _load();
+    _loadBooks();
+    if (_readerBookId != null) _loadBookText();
+  }
+
+  Future<void> _loadBooks() async {
+    final books = await _corpusRepo.tafsirBooks();
+    if (!mounted) return;
+    setState(() => _tafsirBooks = books);
+  }
+
+  Future<void> _loadBookText() async {
+    final id = _readerBookId;
+    if (id == null) return;
+    setState(() {
+      _bookTextLoading = true;
+      _bookText = null;
+      _bookMirror = false;
+    });
+    final e = await QuranBookCache.instance.tafsirEntry(id, _surah, _ayah);
+    if (!mounted) return;
+    setState(() {
+      _bookTextLoading = false;
+      if (e == null) {
+        _bookText = null;
+      } else if (e['mirror'] == true) {
+        _bookMirror = true;
+      } else {
+        _bookText = '${e['text'] ?? ''}';
+      }
+    });
   }
 
   Future<void> _load() async {
@@ -137,13 +192,24 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
       _ayah = next.ayah;
     });
     await _load();
+    if (_readerBookId != null) await _loadBookText();
   }
 
   void _openReader(String source) {
     setState(() {
       _mode = _StudyMode.reader;
       _readerSource = source;
+      _readerBookId = null;
     });
+  }
+
+  void _openBookReader(int bookId) {
+    setState(() {
+      _mode = _StudyMode.reader;
+      _readerBookId = bookId;
+      _readerSource = null;
+    });
+    _loadBookText();
   }
 
   void _openUloomReader(String entryId) {
@@ -159,6 +225,7 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
       _family = family;
       _mode = _StudyMode.cards;
       _readerSource = null;
+      _readerBookId = null;
       _readerUloomId = null;
       _compareSelection.clear();
     });
@@ -237,22 +304,39 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
                         : switch (_mode) {
                             _StudyMode.cards => _CardsView(
                                 entries: _entries,
+                                tafsirBooks: _tafsirBooks,
                                 sourceLabels: _sourceLabels,
                                 lang: lang,
                                 onOpenReader: _openReader,
+                                onOpenBookReader: _openBookReader,
                                 onStartCompare: () => setState(() => _mode = _StudyMode.compare),
                               ),
-                            _StudyMode.reader => _ReaderView(
-                                source: _readerSource!,
-                                entries: _entries,
-                                sourceLabels: _sourceLabels,
-                                sepia: _sepia,
-                                lang: lang,
-                                onBackToCards: () => setState(() {
-                                  _mode = _StudyMode.cards;
-                                  _readerSource = null;
-                                }),
-                              ),
+                            _StudyMode.reader => _readerBookId != null
+                                ? _BookReaderView(
+                                    book: _tafsirBooks.firstWhere(
+                                        (b) => b['id'] == _readerBookId,
+                                        orElse: () => const {}),
+                                    loading: _bookTextLoading,
+                                    text: _bookText,
+                                    mirror: _bookMirror,
+                                    sepia: _sepia,
+                                    lang: lang,
+                                    onBackToCards: () => setState(() {
+                                      _mode = _StudyMode.cards;
+                                      _readerBookId = null;
+                                    }),
+                                  )
+                                : _ReaderView(
+                                    source: _readerSource!,
+                                    entries: _entries,
+                                    sourceLabels: _sourceLabels,
+                                    sepia: _sepia,
+                                    lang: lang,
+                                    onBackToCards: () => setState(() {
+                                      _mode = _StudyMode.cards;
+                                      _readerSource = null;
+                                    }),
+                                  ),
                             _StudyMode.compare => _CompareView(
                                 entries: _entries,
                                 sourceLabels: _sourceLabels,
@@ -391,23 +475,40 @@ class _FamilySwitcher extends StatelessWidget {
   }
 }
 
+/// Groups every real tafsir/translation source into two clearly-labelled
+/// sections instead of one flat, mixed list — the fix for "مخلوط
+/// بترجمات": `entries` with `language == 'ar'` (the 5 legacy Arabic
+/// `tafsir_entries` editions) plus every bundled `tafsirBooks` row (the
+/// 122+ corpus tafsir books) are real exegesis and go under «تفاسير»;
+/// every other-language `entries` row is a literal translation and goes
+/// under «ترجمات». Compare mode stays scoped to `entries` only (comparing
+/// full classical tomes side by side is a different, heavier operation —
+/// `docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md §5` scopes this explicitly
+/// rather than silently limiting it).
 class _CardsView extends StatelessWidget {
   final List<AyahTafsirEntry> entries;
+  final List<Map<String, Object?>> tafsirBooks;
   final Map<String, String> sourceLabels;
   final String lang;
   final void Function(String source) onOpenReader;
+  final void Function(int bookId) onOpenBookReader;
   final VoidCallback onStartCompare;
   const _CardsView({
     required this.entries,
+    required this.tafsirBooks,
     required this.sourceLabels,
     required this.lang,
     required this.onOpenReader,
+    required this.onOpenBookReader,
     required this.onStartCompare,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (entries.isEmpty) {
+    final arabicTafsir = entries.where((e) => e.language == 'ar').toList();
+    final translations = entries.where((e) => e.language != 'ar').toList();
+
+    if (arabicTafsir.isEmpty && tafsirBooks.isEmpty && translations.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -427,35 +528,112 @@ class _CardsView extends StatelessWidget {
               label: Text(basicText('compare_tafsirs_action', lang)),
             ),
           ),
-        ...entries.map((e) => Card(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: ListTile(
-                title: Row(
-                  children: [
-                    Expanded(child: Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w700))),
-                    // Several sources share an identical organizational
-                    // label across languages (e.g. several "Rowwad
-                    // Translation Center" editions) — without this tag
-                    // those cards would be indistinguishable by title alone.
-                    Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
-                      child: Text(QuranSearchRepository.languageLabels[e.language] ?? e.language, style: const TextStyle(fontSize: 10.5, color: AppColors.primaryDark)),
-                    ),
-                  ],
-                ),
-                subtitle: Text(
-                  e.text,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
-                ),
-                trailing: const Icon(Icons.chevron_left_rounded),
-                onTap: () => onOpenReader(e.source),
-              ),
-            )),
+        if (arabicTafsir.isNotEmpty || tafsirBooks.isNotEmpty) ...[
+          _SectionHeader(basicText('ql_tafsir_section', lang)),
+          ...arabicTafsir.map((e) => _EntryCard(entry: e, sourceLabels: sourceLabels, lang: lang, onTap: () => onOpenReader(e.source))),
+          ...tafsirBooks.map((b) => _BookCard(book: b, lang: lang, onTap: () => onOpenBookReader(b['id'] as int))),
+        ],
+        if (translations.isNotEmpty) ...[
+          _SectionHeader(basicText('ql_translation_section', lang)),
+          ...translations.map((e) => _EntryCard(entry: e, sourceLabels: sourceLabels, lang: lang, onTap: () => onOpenReader(e.source))),
+        ],
       ],
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader(this.title);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 12, 4, 8),
+        child: Text(title,
+            textDirection: TextDirection.rtl,
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.primaryDark)),
+      );
+}
+
+class _EntryCard extends StatelessWidget {
+  final AyahTafsirEntry entry;
+  final Map<String, String> sourceLabels;
+  final String lang;
+  final VoidCallback onTap;
+  const _EntryCard({required this.entry, required this.sourceLabels, required this.lang, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Card(
+        margin: const EdgeInsets.only(bottom: 10),
+        child: ListTile(
+          title: Row(
+            children: [
+              Expanded(child: Text(sourceLabels[entry.source] ?? entry.source, style: const TextStyle(fontWeight: FontWeight.w700))),
+              // Several sources share an identical organizational label
+              // across languages (e.g. several "Rowwad Translation
+              // Center" editions) — without this tag those cards would
+              // be indistinguishable by title alone.
+              Container(
+                margin: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
+                child: Text(QuranSearchRepository.languageLabels[entry.language] ?? entry.language, style: const TextStyle(fontSize: 10.5, color: AppColors.primaryDark)),
+              ),
+            ],
+          ),
+          subtitle: Text(
+            entry.text,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
+          ),
+          trailing: const Icon(Icons.chevron_left_rounded),
+          onTap: onTap,
+        ),
+      );
+}
+
+/// One bundled corpus tafsir book — metadata only (name/author/year), no
+/// text preview: fetching all 122+ books' text just to render this list
+/// would mean 122+ gz-asset reads per screen open, against
+/// `QuranBookCache`'s on-demand-LRU(4) design (`docs/quran/
+/// TAFSIR_UNIFIED_ARCHITECTURE.md §3`). Full text loads lazily, only for
+/// the one book actually opened.
+class _BookCard extends StatelessWidget {
+  final Map<String, Object?> book;
+  final String lang;
+  final VoidCallback onTap;
+  const _BookCard({required this.book, required this.lang, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final bundled = book['bundled'] == 1;
+    final author = '${book['author'] ?? ''}';
+    final year = '${book['year'] ?? ''}';
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        title: Row(
+          children: [
+            Expanded(child: Text('${book['name'] ?? book['short'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w700))),
+            if (!bundled)
+              Container(
+                margin: const EdgeInsets.only(right: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(6)),
+                child: Text(basicText('ql_online', lang), style: const TextStyle(fontSize: 10.5, color: AppColors.primaryDark)),
+              ),
+          ],
+        ),
+        subtitle: (author.isEmpty && year.isEmpty)
+            ? null
+            : Text(
+                [author, year].where((s) => s.isNotEmpty).join(' — '),
+                style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+              ),
+        trailing: const Icon(Icons.chevron_left_rounded),
+        onTap: onTap,
+      ),
     );
   }
 }
@@ -514,6 +692,79 @@ class _ReaderView extends StatelessWidget {
                 style: TextStyle(fontSize: 15.5 * scale, height: 1.9, color: AppColors.textDark),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Full reader for one bundled corpus tafsir book (System B) — the
+/// destination that used to be unreachable: tapping «التفسير كاملًا» in
+/// the quick-card panel now lands here with the SAME book still open,
+/// full untruncated text, not the unrelated 5-source legacy list.
+class _BookReaderView extends StatelessWidget {
+  final Map<String, Object?> book;
+  final bool loading;
+  final String? text;
+  final bool mirror;
+  final bool sepia;
+  final String lang;
+  final VoidCallback onBackToCards;
+  const _BookReaderView({
+    required this.book,
+    required this.loading,
+    required this.text,
+    required this.mirror,
+    required this.sepia,
+    required this.lang,
+    required this.onBackToCards,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final author = '${book['author'] ?? ''}';
+    return ValueListenableBuilder<double>(
+      valueListenable: TextScalePreferenceService.scaleNotifier,
+      builder: (context, scale, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+            child: Row(
+              children: [
+                TextButton.icon(
+                  onPressed: onBackToCards,
+                  icon: const Icon(Icons.list_alt_outlined, size: 18),
+                  label: Text(basicText('all_sources_action', lang)),
+                ),
+                const Spacer(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('${book['name'] ?? book['short'] ?? ''}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                    if (author.isNotEmpty) Text(author, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: loading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      mirror
+                          ? basicText('ql_tafsir_mirror', lang)
+                          : (text?.trim().isNotEmpty ?? false)
+                              ? text!
+                              : basicText('no_tafsir_for_this_ayah', lang),
+                      textAlign: TextAlign.right,
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(fontSize: 15.5 * scale, height: 1.9, color: AppColors.textDark),
+                    ),
+                  ),
           ),
         ],
       ),
