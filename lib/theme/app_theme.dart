@@ -128,7 +128,7 @@ ThemeData buildAppTheme() {
       ),
     ),
     cardTheme: CardThemeData(
-      color: AppColors.surface,
+      color: AppColors.surfaceCard,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
