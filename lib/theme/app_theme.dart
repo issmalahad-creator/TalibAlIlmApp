@@ -154,6 +154,19 @@ ThemeData buildAppTheme() {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
+    // VISUAL_IDENTITY_STYLE_GUIDE.md §1.3/§1.4 — a default only: none of
+    // the 12 existing `showModalBottomSheet` call sites are touched by
+    // this (they each set their own backgroundColor/shape explicitly
+    // today, screen-by-screen work for a later phase); this just gives
+    // any future/unconfigured sheet the same surfaceCard tone and
+    // top-only rounding as the card component, `AppRadius.lg` reused
+    // (already the card's own radius, not a new number).
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: AppColors.surfaceCard,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+      ),
+    ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: AppColors.surface,
       selectedItemColor: AppColors.primary,
