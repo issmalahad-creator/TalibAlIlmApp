@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/basic_translations.dart';
 import '../../models/akhlaq.dart';
 import '../../repositories/akhlaq_repository.dart';
+import '../../services/akhlaq/akhlaq_content.dart';
 import '../../services/akhlaq/akhlaq_engine.dart';
 import '../../services/language_preference_service.dart';
 import '../../theme/app_theme.dart';
@@ -52,6 +53,21 @@ class _AkhlaqHomeScreenState extends State<AkhlaqHomeScreen> {
 
   String _subskillTitle(String slug) =>
       _slice?.subskillBySlug(slug)?.titleAr ?? slug;
+
+  /// A real translation of a subskill's title for the current app
+  /// language, shown directly under the Arabic — never fabricated (returns
+  /// nothing when `AkhlaqContent` has no showable translation for it).
+  Widget _subskillTranslationLine(String slug) {
+    final tr = AkhlaqContent.instance
+        .translation(refKind: 'subskill', refId: slug, layer: 'title', lang: _lang);
+    if (tr == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Text(tr.text,
+          textDirection: TextDirection.ltr,
+          style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+    );
+  }
 
   String _trackLabel(String track) {
     switch (track) {
@@ -128,6 +144,18 @@ class _AkhlaqHomeScreenState extends State<AkhlaqHomeScreen> {
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primaryDark)),
+                Builder(builder: (_) {
+                  final tr = AkhlaqContent.instance.translation(
+                      refKind: 'virtue', refId: v.slug, layer: 'title', lang: _lang);
+                  if (tr == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(tr.text,
+                        textDirection: TextDirection.ltr,
+                        style: const TextStyle(
+                            fontSize: 13, color: AppColors.primaryDark)),
+                  );
+                }),
                 const SizedBox(height: 4),
                 Text('${basicText('akhlaq_opposite', _lang)}: ${v.opposite}',
                     style: const TextStyle(
@@ -225,11 +253,17 @@ class _AkhlaqHomeScreenState extends State<AkhlaqHomeScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(_subskillTitle(item.subskill),
-                    style: const TextStyle(
-                        fontFamily: 'Amiri',
-                        fontSize: 15,
-                        color: AppColors.textDark)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_subskillTitle(item.subskill),
+                        style: const TextStyle(
+                            fontFamily: 'Amiri',
+                            fontSize: 15,
+                            color: AppColors.textDark)),
+                    _subskillTranslationLine(item.subskill),
+                  ],
+                ),
               ),
               const Icon(Icons.chevron_left_rounded,
                   color: AppColors.textMuted),

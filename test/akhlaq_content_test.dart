@@ -18,7 +18,7 @@ void main() {
     expect(slice.behaviors.length, 37);
     expect(slice.scenarios.length, 12);
     expect(slice.curriculum.length, 7);
-    expect(slice.translations.length, 116);
+    expect(slice.translations.length, 249);
   });
 
   test('every evidence has a source + text; marfūʿ@confirmed has takhrij',
@@ -99,7 +99,12 @@ void main() {
       'principle': slice.principles.map((p) => p.id).toSet(),
       'subskill': slice.subskills.map((s) => s.slug).toSet(),
       'scenario': slice.scenarios.map((s) => s.id).toSet(),
+      'scenario_option': {
+        for (final s in slice.scenarios)
+          for (final o in s.options) '${s.id}:${o.key}',
+      },
       'stage': slice.curriculum.map((c) => '${c.stage}').toSet(),
+      'virtue': {slice.virtue.slug},
     };
     for (final t in slice.translations) {
       if (ids.containsKey(t.refKind)) {
@@ -120,6 +125,29 @@ void main() {
         .map((t) => t.refId)
         .toSet();
     expect(enEv.length, 11);
+    // en covers every scenario option's text + why (2026-09-13: Ismail
+    // asked for a real translation under the Arabic everywhere, not just
+    // the stem — this was the gap the original pass deferred).
+    final totalOptions =
+        slice.scenarios.fold<int>(0, (n, s) => n + s.options.length);
+    for (final layer in ['text', 'why']) {
+      final enOpt = slice.translations
+          .where((t) =>
+              t.refKind == 'scenario_option' &&
+              t.lang == 'en' &&
+              t.layer == layer)
+          .map((t) => t.refId)
+          .toSet();
+      expect(enOpt.length, totalOptions, reason: 'layer=$layer');
+    }
+    for (final layer in ['probe', 'feedback', 'reflection']) {
+      final enLayer = slice.translations
+          .where((t) =>
+              t.refKind == 'scenario' && t.lang == 'en' && t.layer == layer)
+          .map((t) => t.refId)
+          .toSet();
+      expect(enLayer.length, 12, reason: 'layer=$layer');
+    }
   });
 
   test('AkhlaqContent.translation never fabricates a missing language', () {

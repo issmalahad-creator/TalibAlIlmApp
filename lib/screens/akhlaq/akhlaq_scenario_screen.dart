@@ -125,19 +125,25 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Text(sc.stemAr,
-              style: const TextStyle(
-                  fontFamily: 'Amiri',
-                  fontSize: 18,
-                  height: 1.8,
-                  color: AppColors.textDark)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(sc.stemAr,
+                  style: const TextStyle(
+                      fontFamily: 'Amiri',
+                      fontSize: 18,
+                      height: 1.8,
+                      color: AppColors.textDark)),
+              _translationLine(refKind: 'scenario', refId: sc.id, layer: 'stem'),
+            ],
+          ),
         ),
         const SizedBox(height: 20),
         Text(basicText('akhlaq_choose', _lang),
             style: const TextStyle(
                 fontWeight: FontWeight.w800, color: AppColors.textDark)),
         const SizedBox(height: 10),
-        for (final o in sc.options) _optionCard(o),
+        for (final o in sc.options) _optionCard(sc.id, o),
         if (chosen != null) ...[
           const SizedBox(height: 20),
           _resultPanel(sc, chosen),
@@ -160,7 +166,7 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
                 color: AppColors.textMuted)),
       );
 
-  Widget _optionCard(AkhlaqOption o) {
+  Widget _optionCard(String scenarioId, AkhlaqOption o) {
     final locked = _chosenKey != null;
     final isChosen = _chosenKey == o.key;
     Color border = AppColors.divider;
@@ -194,12 +200,21 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
                   style: const TextStyle(
                       fontWeight: FontWeight.w800, color: AppColors.textMuted)),
               Expanded(
-                child: Text(o.textAr,
-                    style: const TextStyle(
-                        fontFamily: 'Amiri',
-                        fontSize: 16,
-                        height: 1.7,
-                        color: AppColors.textDark)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(o.textAr,
+                        style: const TextStyle(
+                            fontFamily: 'Amiri',
+                            fontSize: 16,
+                            height: 1.7,
+                            color: AppColors.textDark)),
+                    _translationLine(
+                        refKind: 'scenario_option',
+                        refId: '$scenarioId:${o.key}',
+                        layer: 'text'),
+                  ],
+                ),
               ),
               if (locked)
                 Padding(
@@ -240,6 +255,10 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
                   fontSize: 15,
                   height: 1.7,
                   color: AppColors.textDark)),
+          _translationLine(
+              refKind: 'scenario_option',
+              refId: '${sc.id}:${chosen.key}',
+              layer: 'why'),
           if (sc.feedbackAr.trim().isNotEmpty) ...[
             const SizedBox(height: 12),
             _label(basicText('akhlaq_full_feedback', _lang)),
@@ -249,6 +268,7 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
                     fontSize: 15,
                     height: 1.8,
                     color: AppColors.textDark)),
+            _translationLine(refKind: 'scenario', refId: sc.id, layer: 'feedback'),
           ],
           const SizedBox(height: 12),
           _label(basicText('akhlaq_evidence', _lang)),
@@ -262,6 +282,7 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
                     fontSize: 15,
                     height: 1.7,
                     color: AppColors.textDark)),
+            _translationLine(refKind: 'scenario', refId: sc.id, layer: 'probe'),
           ],
           if (sc.reflectionAr.trim().isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -272,6 +293,7 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
                     fontSize: 15,
                     height: 1.7,
                     color: AppColors.textDark)),
+            _translationLine(refKind: 'scenario', refId: sc.id, layer: 'reflection'),
           ],
           const SizedBox(height: 16),
           Row(
@@ -293,6 +315,24 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// A real translation of `(refKind, refId, layer)` for the current app
+  /// language, shown directly under the Arabic it belongs to — never
+  /// merged into it, never shown when none exists (`AkhlaqContent
+  /// .translation` already returns null rather than fabricate one).
+  Widget _translationLine(
+      {required String refKind, required String refId, required String layer}) {
+    final tr = AkhlaqContent.instance
+        .translation(refKind: refKind, refId: refId, layer: layer, lang: _lang);
+    if (tr == null) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Text(tr.text,
+          textDirection: TextDirection.ltr,
+          style: const TextStyle(
+              fontSize: 12.5, height: 1.5, color: AppColors.textMuted)),
     );
   }
 

@@ -89,7 +89,9 @@ def check(doc):
         'principle': {p['id'] for p in doc['principles']},
         'subskill': {s['slug'] for s in doc['subskills']},
         'scenario': {s['id'] for s in doc['scenarios']},
+        'scenario_option': {f"{s['id']}:{o['ord']}" for s in doc['scenarios'] for o in s.get('options', [])},
         'stage': {str(c['stage']) for c in doc['curriculum']},
+        'virtue': {doc['virtue']['slug']},
         'term_gloss': None,
     }
     for t in doc['translations']:

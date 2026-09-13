@@ -456,10 +456,185 @@ SC_EN_STEM = {
  "S-11":"In a circle, one student talks a great deal and interrupts others. If you advise him gently, some attendees will think you fear him; if you are harsh, the gathering breaks up.",
  "S-12":"Your shaykh erred in attributing a statement to an imam (the error is verified and carries no serious ruling). You are in his gathering, and a beginner student wrote the error in his notebook.",
 }
+# Full scenario content in EN: options (text+why), probe, feedback, reflection.
+# Completes what the first pass deferred (Ismail, 2026-09-13: every AKHLAQ
+# text needs a real translation under the Arabic, not just the UI chrome).
+SC_EN_OPT = {
+ "S-01": {
+  "A": ("“How can you say this and you’re a student of knowledge?”",
+        "Belittling and demeaning; the effect of the truth diminishes."),
+  "B": ("You stay silent and leave it (you’re not in the mood for discussion).",
+        "Withholding an easy clarification without excuse."),
+  "C": ("“A benefit: the correct view on this matter is such-and-such, and the evidence is...” calmly.",
+        "Gentle, sufficient clarification that separates the error from the person."),
+  "D": ("You correct him sharply in front of everyone: “This is wrong, the correct view is...”",
+        "The content is correct, but the manner disgraces and embarrasses."),
+ },
+ "S-02": {
+  "A": ("“I told you once! Why don’t you remember?” with irritation.",
+        "Escalating harshness with repetition."),
+  "B": ("You correct calmly, in a different style from the first time, and ask yourself: was my explanation clear?",
+        "Patience + changing style + self-review."),
+  "C": ("You ignore it — the repetition is “his problem.”",
+        "Withholding necessary clarification."),
+  "D": ("You correct gently, then add a light sarcastic remark “so you won’t forget it again.”",
+        "Gentleness tainted with a jab that weakens its effect."),
+ },
+ "S-03": {
+  "A": ("“A fitting question; the matter has some detail...” then you explain.",
+        "Welcome + explanation without rebuke (EV-08)."),
+  "B": ("“This is well-known, read the book of purification first.”",
+        "Harsh scolding and a referral that belittles."),
+  "C": ("You answer curtly then walk away.",
+        "Correct content, but no gentleness toward the questioner."),
+  "D": ("You laugh along with those present out of courtesy, then answer.",
+        "Participating in embarrassing the questioner."),
+ },
+ "S-04": {
+  "A": ("“If you had read carefully you would have understood; but haste is a habit of yours.”",
+        "Defending yourself + shifting to attacking the person."),
+  "B": ("“I mean such-and-such, because of such-and-such indication, not what you understood. Thanks for pointing it out.”",
+        "Clarifying the truth with the lightest response, without being drawn in (EV-06)."),
+  "C": ("You delete the comment and withdraw.",
+        "You are safe from harm but you forgo a possible harmless clarification."),
+  "D": ("“Your words are a blatant misunderstanding” without explanation.",
+        "Establishing the truth in a humiliating form."),
+ },
+ "S-05": {
+  "A": ("“Your view is weak and abandoned” and you cut off the discussion.",
+        "Declaring error in a matter of legitimate disagreement + a harsh cutoff."),
+  "B": ("“The matter has two views; I prefer such-and-such for such-and-such evidence, and your view has a basis.”",
+        "Fairness + stating the preferred view without declaring the opponent wrong (EV-10)."),
+  "C": ("You flatter him “your words are lovely” and withhold stating what you consider preferable.",
+        "Gentleness that squanders stating what you believe is correct."),
+  "D": ("You stay silent because you dislike him and don’t want to flatter him.",
+        "The motive is personal, not scholarly."),
+ },
+ "S-06": {
+  "A": ("“And you haven’t read a single complete book in your life.”",
+        "Meeting obscenity with obscenity (against EV-06)."),
+  "B": ("“If you have a specific scholarly remark, I’m listening” calmly, then you continue.",
+        "Composure + a response for the truth without being drawn in, preserving your standing."),
+  "C": ("You stay silent, show irritation, and leave the gathering.",
+        "You avoid a clash, but the sulky withdrawal carries a trace of anger."),
+  "D": ("“May Allah forgive you” in a sarcastic tone.",
+        "A form of pardon whose surface is gentle but whose core is a jab."),
+ },
+ "S-07": {
+  "A": ("You interrupt him immediately “that is not so.”",
+        "Correct, but immediate publicity embarrasses unnecessarily."),
+  "B": ("You let him finish, then privately: “your benefit is useful; and the correct attribution is such-and-such.”",
+        "Covering + timing that preserves dignity (EV-06, EV-09)."),
+  "C": ("You write the error in the circle’s public group so everyone notices.",
+        "A “piece of advice” made public = exposure."),
+  "D": ("You leave it without any remark at all.",
+        "Covering is good, but leaving it wholly unaddressed lets the error stand."),
+ },
+ "S-08": {
+  "A": ("You publish a public clarification naming your peer and describing him as distorting.",
+        "Establishing a right in a way that discredits the person and exposes him."),
+  "B": ("You clarify your intent to the shaykh directly, and rebuke your peer privately without belittling.",
+        "Preserving the truth + a gentle, private rebuke (EV-10, EV-11 “repel with that which is better”)."),
+  "C": ("You stay completely silent to preserve “gentleness.”",
+        "Weakness, not gentleness; a wrong understanding of you remains."),
+  "D": ("You cut off your peer and show him coldness without telling him why.",
+        "Punishment without explanation, motivated by defending yourself."),
+ },
+ "S-09": {
+  "A": ("“This is not up for discussion, the matter is clear” and you end it.",
+        "Firmness phrased in a humiliating way; certainty of the truth does not permit harshness (EV-02)."),
+  "B": ("“Your question matters; time is short, let’s continue it at the start of next lesson — and briefly: my point is such-and-such.”",
+        "Gentleness + a promise to continue + a hint at the correct view."),
+  "C": ("You enter a long discussion that overruns the time to defeat him.",
+        "The motive is to overwhelm him, and it violates the rights of the rest of those present."),
+  "D": ("“Your words are wrong” curtly, then you leave.",
+        "Correct in ruling, harsh in manner and timing."),
+ },
+ "S-10": {
+  "A": ("You react to the remark about your father and neglect the matter of the book, and you make him feel coldness for the rest of the session.",
+        "An unbalanced reaction, and neglect of another right."),
+  "B": ("You continue the hospitality, and at a suitable moment you gently point out the error of the remark, and reassure him the matter of the book is minor while you honestly handle fixing it with the shaykh.",
+        "Balance: hosting etiquette + gentle correction of the remark + honestly handling the book’s right, without downplaying it."),
+  "C": ("You overlook everything and mention nothing to preserve the friendship, and you tell the shaykh the book “got damaged with you” without detail.",
+        "Gentleness that sacrifices honesty regarding the shaykh’s right and the remark’s right."),
+  "D": ("You rebuke him firmly about the remark and the book immediately, in words containing reproach.",
+        "The content is obligatory, but immediate reproach of a guest disgraces and could be deferred."),
+ },
+ "S-11": {
+  "A": ("You are harsh with him publicly to prove you “don’t fear him.”",
+        "A motive of self-display, and it breaks up the gathering."),
+  "B": ("You organize the turn-taking gently and firmly for everyone, “let’s hear so-and-so, then so-and-so,” and you advise him privately after the gathering.",
+        "Firmness in the procedure + gentleness in wording + private advice (EV-10, EV-11)."),
+  "C": ("You let him monopolize the talk to avoid embarrassment.",
+        "Weakness in the name of gentleness, and injustice to the rest of the students."),
+  "D": ("You jab him with a clever remark that makes the gathering laugh at his expense.",
+        "“Firmness” through veiled insult."),
+ },
+ "S-12": {
+  "A": ("You correct the shaykh directly in front of the gathering: “May Allah reward you well, the statement belongs to so-and-so, not so-and-so.”",
+        "The content is correct and preventing the error from spreading is intended, but publicity with the shaykh needs something gentler, and a hint might suffice."),
+  "B": ("You stay completely silent out of respect for the shaykh, and leave the beginner in his error.",
+        "Respect does not permit letting a spreading error stand."),
+  "C": ("You hint politely in the gathering “perhaps I am mistaken, isn’t this statement attributed to so-and-so?”, and after the gathering you privately review it with the shaykh, and privately alert the beginner.",
+        "Combines: respect for the shaykh + stating the truth in the gentlest form + stopping the error’s spread to the beginner privately."),
+  "D": ("You wait until the gathering ends and correct only the beginner, leaving the shaykh be.",
+        "Preserves the beginner, but leaves the error standing with the rest who heard it."),
+ },
+}
+SC_EN_PROBE = {
+ "S-01": "If you chose (A) or (D) — was the motive to clarify the truth, or not to appear lesser than him?",
+ "S-02": "Did you get angry at his repetition, or did you review your teaching method?",
+ "S-03": "When you were asked an easy question — did you make the questioner feel his weakness?",
+ "S-04": "What moved you first: correcting the understanding, or that he “overstepped with you”?",
+ "S-05": "Was my stance toward his view because it is wrong, or because it is his?",
+ "S-06": "When you responded — was my response for the truth or for myself?",
+ "S-07": "Could I have said it to him privately?",
+ "S-08": "My first wish: correcting the picture with the shaykh, or punishing my peer?",
+ "S-09": "When you were certain — did you increase in gentleness or harshness?",
+ "S-10": "Which right was I inclined to drop for the sake of “not causing embarrassment”?",
+ "S-11": "Was my concern fixing the gathering, or my image before those present?",
+ "S-12": "What did I fear more: that the error would remain, or that I would appear to be “correcting my shaykh” before people?",
+}
+SC_EN_FEEDBACK = {
+ "S-01": "The closest is (C): gentle wording + clarification + evidence, without belittling. (D) is correct but disgraces the situation (EV-02). (A) is belittling. (B) is withholding.",
+ "S-02": "The closest is (B). Repetition does not permit harshness (measured against EV-03), and the flaw may be in the clarity of your earlier explanation [TARBAWI].",
+ "S-03": "The closest is (A): “he did not scold me, nor strike me, nor revile me” (EV-08) — the question is welcomed, then explained.",
+ "S-04": "The closest is (B): clarifying the intent + a word of thanks ends the tension — a response for the truth, not for yourself (EV-03, EV-06).",
+ "S-05": "The closest is (B): “just in what he forbids” (EV-10); a matter of legitimate disagreement should not have one side declared “the error.”",
+ "S-06": "The closest is (B): “Gently... hold to gentleness and beware of harshness and coarse speech” (EV-06). Gentleness here is a choice despite your ability to respond, not an inability.",
+ "S-07": "The closest is (B): combining the correction (so the error doesn’t remain) with covering (choosing the time and place).",
+ "S-08": "The closest is (B): “repel with that which is better” (EV-11) — you fix the understanding and rebuke privately. Silence here is weakness, not gentleness.",
+ "S-09": "The closest is (B): certainty of the truth is the most dangerous place to abandon gentleness — “it is not removed from anything except that it disgraces it” (EV-02). Firm in content, gentle in wording.",
+ "S-10": "The closest is (B): the situation combines competing virtues — gentleness does not cancel your father’s right nor honesty regarding the shaykh’s right (EV-06, EV-10). Do not downplay the book’s matter with a lie in the name of gentleness.",
+ "S-11": "The closest is (B): firmness belongs in the procedure (organizing turns), and gentleness in the wording; what people think is not the measure of what is correct.",
+ "S-12": "The closest is (C): level eight = balancing competing virtues. Gentleness here is the form of hinting, not abandoning the correction; respecting the shaykh publicly, and addressing it with him privately (EV-06, EV-10, EV-11).",
+}
+SC_EN_REFLECTION = {
+ "S-01": "The last time you corrected someone — did you begin with the benefit or with blaming?",
+ "S-02": "Did you get angry at his repetition, or did you review your teaching?",
+ "S-03": "The next time you were asked another easy question — did you make the questioner feel his weakness?",
+ "S-04": "When you were provoked — did you respond for the truth or for yourself?",
+ "S-05": "Was my stance toward his view because it is wrong, or because it is his?",
+ "S-06": "Did the trace of provocation remain in me after the gathering ended?",
+ "S-07": "Could I have said it to him privately?",
+ "S-08": "My first wish: correcting the picture, or punishing my peer?",
+ "S-09": "When you were certain — did you increase in gentleness or harshness?",
+ "S-10": "Did I use “gentleness” as a cover for dropping a difficult right?",
+ "S-11": "Was my concern fixing the gathering, or my image?",
+ "S-12": "Did I prioritize my image, or respect for the shaykh, or the truth? And could they have been combined?",
+}
 for s in S:
     tr("scenario", s["id"], "stem", "en", "pedagogical", SC_EN_STEM[s["id"]])
     for o in s["options"]:
-        pass  # option-level EN deferred to the code phase; stems+feedback carry the training sense
+        key = o["ord"]
+        text, why = SC_EN_OPT[s["id"]][key]
+        tr("scenario_option", f"{s['id']}:{key}", "text", "en", "pedagogical", text)
+        tr("scenario_option", f"{s['id']}:{key}", "why", "en", "pedagogical", why)
+    tr("scenario", s["id"], "probe", "en", "pedagogical", SC_EN_PROBE[s["id"]])
+    tr("scenario", s["id"], "feedback", "en", "pedagogical", SC_EN_FEEDBACK[s["id"]])
+    tr("scenario", s["id"], "reflection", "en", "pedagogical", SC_EN_REFLECTION[s["id"]])
+
+tr("virtue", "rifq", "title", "en", "pedagogical", "Gentleness (Rifq)")
 
 CUR_EN = {
  1:"Distinguishes between 'abandoning the truth' and 'softening the style'; cites an example from his day.",
