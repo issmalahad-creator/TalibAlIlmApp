@@ -2947,6 +2947,17 @@
    "notes": ""
   },
   {
+   "ref_kind": "scenario",
+   "ref_id": "S-01",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በትምህርት ውስጥ አንድ ባልደረባ ጉዳይን ጠቅሶ ተሳሳተ፤ በእናንተ መካከልም ወዳጅነት አለ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
    "ref_kind": "scenario_option",
    "ref_id": "S-01:A",
    "layer": "text",
@@ -2964,6 +2975,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Belittling and demeaning; the effect of the truth diminishes.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-01:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ይህን እንዴት ትላለህ የዕውቀት ተማሪ ሆነህ?»",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-01:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ማዋረድና ማሳነስ፤ የእውነት ተጽዕኖ ይቀንሳል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -2992,6 +3025,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-01:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ዝም ትላለህ ትተወዋለህም (ለውይይት ስሜት የለህም)።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-01:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ያለ ምክንያት ቀላል ማብራሪያን መደበቅ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-01:C",
    "layer": "text",
    "lang": "en",
@@ -3014,6 +3069,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-01:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ጥቅም፦ በዚህ ጉዳይ ትክክሉ እንዲህ ነው፣ ማስረጃውም...» በእርጋታ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-01:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በቂ ገር ማብራሪያ፣ ስህተትን ከሰው የሚለይ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-01:D",
    "layer": "text",
    "lang": "en",
@@ -3030,6 +3107,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "The content is correct, but the manner disgraces and embarrasses.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-01:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በሁሉም ፊት በጭካኔ ታርመዋለህ «ይህ ስህተት ነው፣ ትክክሉ...»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-01:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ይዘቱ ትክክል ነው፤ ዘዴው ግን ያሳፍራል፣ ያሸማቅቃል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3069,11 +3168,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-01",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "(ሀ) ወይም (መ) ብትመርጥ — ምክንያቱ እውነትን ማብራራት ነበር ወይስ ከእርሱ ያነስክ ላለመምሰል?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-01",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ሐ) ነው፦ ገር ንግግር + ማብራሪያ + ማስረጃ፣ ያለ ማሳነስ። (መ) ትክክል ነው ግን ሁኔታውን ያሳፍራል (EV-02)። (ሀ) ማዋረድ ነው። (ለ) መደበቅ ነው።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-01",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ላንድ ሰው በሌላ ጊዜ ባረምክ ጊዜ — በጥቅሙ ጀመርክ ወይስ በስህተት መጠቆም?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-02",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "A week ago you pointed out an error to a student; today he repeated it in another gathering.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-02",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ከሳምንት በፊት ተማሪ ወደ ስህተት ቀስቅሰሃል፤ ዛሬም በሌላ ስብሰባ ደገመው።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3102,6 +3245,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-02:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«አንድ ጊዜ ነግሬሃለሁ! ለምን አታስታውስም?» በብስጭት።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-02:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ከድግግሞሽ ጋር እየጨመረ የሚሄድ ጭካኔ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-02:B",
    "layer": "text",
    "lang": "en",
@@ -3118,6 +3283,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Patience + changing style + self-review.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-02:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በእርጋታ ታርመዋለህ፣ ከመጀመሪያው ጊዜ በተለየ ዘዴም፣ ራስህንም ትጠይቃለህ፦ ማብራሪያዬ ግልጽ ነበር?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-02:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ትዕግስት + ዘዴን መቀየር + ራስን መመርመር።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3146,6 +3333,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-02:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ችላ ትላለህ፣ ድግግሞሹ «የእርሱ ችግር ነው»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-02:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አስፈላጊ ማብራሪያን መተው።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-02:D",
    "layer": "text",
    "lang": "en",
@@ -3162,6 +3371,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Gentleness tainted with a jab that weakens its effect.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-02:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በገርነት ታርመዋለህ፣ ከዚያም ቀላል አላገጣ አስተያየት ትጨምራለህ «እንዳትረሳው»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-02:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ገርነት በስላቅ የተቀላቀለ ተጽዕኖውን ያዳክማል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3201,11 +3432,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-02",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በድግግሞሹ ተቆጣህ ወይስ የማስተማር ዘዴህን መረመርክ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-02",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው። ድግግሞሽ ጭካኔን አይፈቅድም (በEV-03 ይመዘናል)፣ ችግሩም ቀደም ባለው ማብራሪያህ ግልጽነት ላይ ሊሆን ይችላል [TARBAWI]።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-02",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በድግግሞሹ ተቆጣህ ወይስ ማስተማርህን መረመርክ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-03",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "A recently-practising man asked, in a gathering, a question some attendees considered obvious, and some of them smiled.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-03",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አዲስ ወደ ሃይማኖት ቁርጠኝነት የገባ ሰው በስብሰባ ውስጥ አንዳንድ ተሳታፊዎች ግልጽ አድርገው የቆጠሩትን ጥያቄ ጠየቀ፤ አንዳንዶቹም ፈገግ አሉ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3234,6 +3509,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-03:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ተገቢ ጥያቄ ነው፤ ጉዳዩ ዝርዝር አለው...» ከዚያም ታብራራለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-03:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አቀባበል + ያለ ተግሣጽ ማብራሪያ (EV-08)።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-03:B",
    "layer": "text",
    "lang": "en",
@@ -3250,6 +3547,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Harsh scolding and a referral that belittles.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-03:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ይህ የታወቀ ነው፣ መጀመሪያ የጥራት መጽሐፍን አንብብ»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-03:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ብርቱ ተግሣጽና ማሳነስ ያለበት ማመላከት።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3278,6 +3597,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-03:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በደረቅነት ትመልስና ትሄዳለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-03:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ይዘቱ ትክክል ነው፣ ግን ለጠያቂው ገርነት የለውም።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-03:D",
    "layer": "text",
    "lang": "en",
@@ -3294,6 +3635,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Participating in embarrassing the questioner.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-03:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ከተሳታፊዎቹ ጋር በአክብሮት ትስቃለህ ከዚያም ትመልሳለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-03:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ጠያቂውን በማሳፈር ውስጥ መካፈል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3333,11 +3696,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-03",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ቀላል ጥያቄ በተጠየክ ጊዜ — ጠያቂውን ደካማነቱን አስተሰማህው?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-03",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ሀ) ነው፦ «አልገሠጹኝም፣ አልመቱኝም፣ አልሰደቡኝም» (EV-08) — ጥያቄው ተቀብሎ ከዚያ ይብራራል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-03",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በሌላ ጊዜ ቀላል ጥያቄ በተጠየክ ጊዜ — ጠያቂውን ደካማነቱን አስተሰማህው?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-04",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "You said something in a comment; someone understood it contrary to your intent and replied to you sharply in public.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-04",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በአስተያየት ውስጥ ሐረግ ተናገርክ፤ አንዱ ሰው ግን ካሰብከው ውጪ ተረዳው፤ በሰዎችም ፊት በጭካኔ መለሰልህ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3366,6 +3773,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-04:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«በጥንቃቄ ብታነብ ኖሮ ትረዳ ነበር፤ ችኮላ ግን ልማድህ ነው»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-04:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ለራስ የሚደረግ ምላሽ + ወደ ሰውየው መሸጋገር።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-04:B",
    "layer": "text",
    "lang": "en",
@@ -3382,6 +3811,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Clarifying the truth with the lightest response, without being drawn in (EV-06).",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-04:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«እንዲህ ማለቴ ነው በዚህ ምክንያት፣ የተረዳኸው አይደለም። ስለ ማሳወቅህ አመሰግናለሁ»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-04:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እውነትን በቀላል ምላሽ ማብራራት፣ ያለ መሳብ (EV-06)።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3410,6 +3861,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-04:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አስተያየቱን ትሰርዝና ትወጣለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-04:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ከክፉ ትድናለህ ግን ያለ ጉዳት የሚቻል ማብራሪያን ትተዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-04:D",
    "layer": "text",
    "lang": "en",
@@ -3426,6 +3899,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Establishing the truth in a humiliating form.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-04:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ንግግርህ ግልጽ የተሳሳተ ግንዛቤ ነው» ያለ ማብራሪያ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-04:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እውነትን በሚያዋርድ መልኩ ማረጋገጥ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3465,11 +3960,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-04",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በአንተ ውስጥ መጀመሪያ የተነሳሳው ምንድን ነው፦ ግንዛቤን ማረም ወይስ «በአንተ ላይ መድፈሩ»?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-04",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ ዓላማን ማብራራት + የምስጋና ቃል ውጥረትን ያበቃል — ለእውነት እንጂ ለራስ ያልሆነ ምላሽ (EV-03, EV-06)።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-04",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በተቆጣህ ጊዜ — ለእውነት ወይስ ለራስህ መለስክ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-05",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "A peer disagreed with you on a matter with two respected positions and held to his view politely.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-05",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ባልደረባ ሁለት የተከበሩ አመለካከቶች ባሉበት ጉዳይ ተቃወመህ፤ በአስተያየቱም በሥነ ምግባር ጸና።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3498,6 +4037,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-05:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«አስተያየትህ ደካማና የተተወ ነው» ብለህ ውይይቱን ትቆርጣለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-05:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በተፈቀደ ልዩነት ጉዳይ ላይ ስህተት ማድረግ + ጨካኝ መቁረጥ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-05:B",
    "layer": "text",
    "lang": "en",
@@ -3514,6 +4075,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Fairness + stating the preferred view without declaring the opponent wrong (EV-10).",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-05:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ጉዳዩ ሁለት አመለካከቶች አሉት፤ በዚህ ማስረጃ እንዲህ እመርጣለሁ፣ አስተያየትህም መሠረት አለው»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-05:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ፍትሓዊነት + የተመረጠውን ማብራራት ያለ ተቃዋሚውን ማሳሳት (EV-10)።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3542,6 +4125,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-05:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ንግግርህ ውብ ነው» ብለህ ታሞካሽውና የምትመርጠውን ማብራራት ትተዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-05:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ገርነት ትክክል ነው ብለህ የምታምነውን ማብራሪያ ያጠፋል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-05:D",
    "layer": "text",
    "lang": "en",
@@ -3558,6 +4163,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "The motive is personal, not scholarly.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-05:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ስለማትወደው እና ላታሞካሸው ስለምትፈልግ ዝም ትላለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-05:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ምክንያቱ ግላዊ ነው እንጂ ትምህርታዊ አይደለም።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3597,11 +4224,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-05",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አቋሜ ከአስተያየቱ የተነሳ ስህተት ስለሆነ ነው ወይስ እርሱ ስለሆነ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-05",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ «በሚከለክለው ፍትሓዊ» (EV-10)፤ የልዩነት ጉዳይ አንዱ ወገን «ስህተት» ተብሎ አይደረግም።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-05",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አቋሜ ከአስተያየቱ የተነሳ ስህተት ስለሆነ ነው ወይስ እርሱ ስለሆነ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-06",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "In a public gathering, someone said, pointing at you: 'Some who put themselves forward to teach cannot read a line well.'",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-06",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በአደባባይ ስብሰባ ውስጥ አንድ ሰው ወደ አንተ እየጠቆመ፦ «ለማስተማር የሚቀድሙ አንዳንዶች አንድ መስመር በደንብ ማንበብ አይችሉም» አለ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3630,6 +4301,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-06:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«አንተም በሕይወትህ ሙሉ መጽሐፍ አላነበብክም»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-06:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ብልግናን በብልግና መመለስ (ከEV-06 ተቃራኒ)።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-06:B",
    "layer": "text",
    "lang": "en",
@@ -3646,6 +4339,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Composure + a response for the truth without being drawn in, preserving your standing.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-06:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«የተለየ ትምህርታዊ አስተያየት ካለህ እሰማዋለሁ» በእርጋታ፣ ከዚያም ትቀጥላለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-06:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ራስን መቆጣጠር + ላለመሳብ ለእውነት ምላሽ መስጠት፣ ቦታህንም መጠበቅ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3674,6 +4389,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-06:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ዝም ትላለህ ብስጭትንም ታሳያለህ ስብሰባውንም ትለቃለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-06:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ከጭቅጭቅ ትድናለህ፣ ግን በንዴት መውጣት የቁጣ ውጤት አለው።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-06:D",
    "layer": "text",
    "lang": "en",
@@ -3690,6 +4427,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "A form of pardon whose surface is gentle but whose core is a jab.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-06:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«አላህ ይቅር ይበልህ» በአላገጣ ቃና።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-06:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ውጫዊው ገር የሆነ ግን ውስጡ ስላቅ ያለበት የይቅርታ አገላለጽ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3729,11 +4488,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-06",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በመለስክ ጊዜ — ምላሼ ለእውነት ነበር ወይስ ለራሴ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-06",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ «ገር ሁን... ገርነትን ያዝ ከጭካኔና ከብልግናም ተጠንቀቅ» (EV-06)። ገርነት እዚህ ላይ የመመለስ አቅም እያለህ የሚደረግ ምርጫ ነው እንጂ አቅም ማጣት አይደለም።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-06",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ስብሰባው ካበቃ በኋላ የቁጣው ውጤት በእኔ ውስጥ ቀርቷል?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-07",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "A student delivered a benefit before the study circle and attributed a statement to the wrong person. The error causes no urgent harm.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-07",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ተማሪ በክበቡ ፊት ጥቅምን አቀረበ አንድ ንግግርንም ላልተናገረው ሰው አገናኘው። ስህተቱ አፋጣኝ ጉዳት አያስከትልም።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3762,6 +4565,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-07:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ወዲያውኑ ታቋርጠዋለህ «ይህ እንደዚያ አይደለም»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-07:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ትክክል ነው፣ ግን ወዲያውኑ በአደባባይ ማድረግ ያለ አስፈላጊነት ያሳፍራል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-07:B",
    "layer": "text",
    "lang": "en",
@@ -3778,6 +4603,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Covering + timing that preserves dignity (EV-06, EV-09).",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-07:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እንዲጨርስ ትተወዋለህ፣ ከዚያም በግል፦ «ጥቅምህ ጠቃሚ ነው፤ በአገናኘት ግን ትክክሉ እንዲህ ነው»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-07:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "መሸፈን + የፊት ክብርን የሚጠብቅ ጊዜ (EV-06, EV-09)።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3806,6 +4653,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-07:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ሁሉም እንዲያስተውል ስህተቱን በክበቡ የጋራ ቡድን ውስጥ ትጽፋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-07:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አደባባይ «ምክር» = ውርደት ነው።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-07:D",
    "layer": "text",
    "lang": "en",
@@ -3822,6 +4691,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Covering is good, but leaving it wholly unaddressed lets the error stand.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-07:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ያለ ምንም ማስተካከያ ትተወዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-07:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "መሸፈን ጥሩ ነው፣ ግን ሙሉ በሙሉ ማስተካከያን መተው ስህተቱን ያስቀራል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3861,11 +4752,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-07",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በግል ልነግረው እችል ነበር?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-07",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ ማስተካከያ (ስህተቱ እንዳይቀር) እና መሸፈን (ጊዜንና ቦታን መምረጥ) ማጣመር።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-07",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በግል ልነግረው እችል ነበር?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-08",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "A peer conveyed your words, with a changed meaning, to a shaykh; you learned the shaykh understood you contrary to your intent.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-08",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ባልደረባ ንግግርህን ትርጉሙን ቀይሮ ለሼኽ አስተላለፈ፤ ሼኹም ካሰብከው ተቃራኒ እንደተረዳህ ደረሰህ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3894,6 +4829,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-08:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ባልደረባውን በስም ጠቅሰህ አዛብቷል ብለህ የገለጽክበትን የጋራ ማብራሪያ ታወጣለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-08:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እውነትን በሰውየው ላይ በሚያሳፍርና በሚያዋርድ መልኩ ማረጋገጥ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-08:B",
    "layer": "text",
    "lang": "en",
@@ -3910,6 +4867,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Preserving the truth + a gentle, private rebuke (EV-10, EV-11 “repel with that which is better”).",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-08:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ዓላማህን ለሼኹ በቀጥታ ታብራራለህ፣ ባልደረባውንም በግል ያለ ማዋረድ ትወቅሳለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-08:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እውነትን መጠበቅ + ገር ሚስጥራዊ ወቀሳ (EV-10, EV-11 «በመልካሚቱ ገፍትር»)።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3938,6 +4917,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-08:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ገርነትን» ለመጠበቅ ሙሉ በሙሉ ዝም ትላለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-08:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ደካማነት እንጂ ገርነት አይደለም፤ የተሳሳተ ግንዛቤ በአንተ ላይ ይቀራል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-08:D",
    "layer": "text",
    "lang": "en",
@@ -3954,6 +4955,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Punishment without explanation, motivated by defending yourself.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-08:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ባልደረባውን ታቋርጣለህ ምክንያቱንም ሳትነግረው ቅዝቃዜን ታሳየዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-08:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ያለ ማብራሪያ ቅጣት፣ ምክንያቱም ለራስ ማሸነፍ ነው።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -3993,11 +5016,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-08",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "የመጀመሪያ ፍላጎቴ፦ በሼኹ ዘንድ ያለውን ምስል ማረም ነው ወይስ ባልደረባውን መቅጣት?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-08",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ «በመልካሚቱ ገፍትር» (EV-11) — ግንዛቤውን ታስተካክላለህ በሚስጥርም ትወቅሳለህ። ዝምታ እዚህ ላይ ደካማነት ነው እንጂ ገርነት አይደለም።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-08",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "የመጀመሪያ ፍላጎቴ፦ ምስሉን ማረም ነው ወይስ ባልደረባውን መቅጣት?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-09",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Five minutes remain in the lesson. A student objected to your account of a matter you are certain is correct; his objection contains a misunderstanding.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-09",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ትምህርቱ እስኪያልቅ አምስት ደቂቃ ቀርቷል። ትክክለኛነቱን በምታረጋግጥበት ጉዳይ ላይ ተማሪ በሪፖርትህ ላይ ተቃወመ፤ ተቃውሞውም የተሳሳተ ግንዛቤ አለው።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4026,6 +5093,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-09:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ይህ የውይይት ቦታ አይደለም፣ ንግግሩ ግልጽ ነው» ብለህ ታበቃለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-09:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አገላለጹ አዋራጅ የሆነ ጥብቅነት፤ የእውነት እርግጠኝነት ጭካኔን አይፈቅድም (EV-02)።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-09:B",
    "layer": "text",
    "lang": "en",
@@ -4042,6 +5131,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Gentleness + a promise to continue + a hint at the correct view.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-09:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ጥያቄህ አስፈላጊ ነው፤ ጊዜው አጠረ፣ በሚቀጥለው ትምህርት መጀመሪያ እንጨርሰው — በአጭሩ፦ ዓላማዬ እንዲህ ነው»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-09:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ገርነት + የመቀጠል ቃል + ወደ ትክክለኛው መጠቆም።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4070,6 +5181,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-09:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ጊዜውን የሚያልፍ ረጅም ውይይት ትገባለህ እርሱን ለማሳፈር።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-09:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ምክንያቱ ማሸነፍ ነው፣ የተቀሩትን ተሳታፊዎች መብትም ማጓደል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-09:D",
    "layer": "text",
    "lang": "en",
@@ -4086,6 +5219,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Correct in ruling, harsh in manner and timing.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-09:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ንግግርህ ስህተት ነው» በደረቅነት ከዚያም ትወጣለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-09:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በፍርድ ትክክል ነው፣ በዘዴና በጊዜ ግን ጨካኝ ነው።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4125,11 +5280,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-09",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እርግጠኛ በነበርክ ጊዜ — ገርነት ጨመርክ ወይስ ጭካኔ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-09",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ የእውነት እርግጠኝነት ገርነትን ለመተው በጣም አደገኛ ቦታ ነው — «ከማንኛውም ነገር ከተወገደ ያሳፍረዋል» (EV-02)። በይዘት ጥብቅነት፣ በንግግር ገርነት።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-09",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እርግጠኛ በነበርክ ጊዜ — ገርነት ጨመርክ ወይስ ጭካኔ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-10",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "You hosted a peer to study. He spoke of your father with an unintended slight, then spilled tea on a book lent to you by your shaykh.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-10",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ባልደረባን ለጥናት ጋበዝክ። ስለ አባትህ ሆን ባልተባለ ንቀት ያለበት ቃል ተናገረ፣ ከዚያም ከሼኽህ በተዋሰህ መጽሐፍ ላይ ሻይ አፈሰሰ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4158,6 +5357,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-10:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ስለ አባትህ በተባለው ቃል ትናደዳለህ የመጽሐፉንም ጉዳይ ትተዋለህ፣ ቀሪውንም ስብሰባ ቅዝቃዜ ታሳየዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-10:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ያልተመጣጠነ ምላሽ፣ ሌላ መብትንም መተው።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-10:B",
    "layer": "text",
    "lang": "en",
@@ -4174,6 +5395,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Balance: hosting etiquette + gentle correction of the remark + honestly handling the book’s right, without downplaying it.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-10:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "እንግድነትን ትቀጥላለህ፣ በተስማሚ ቅጽበትም የቃሉን ስህተት በገርነት ታብራራለህ፣ የመጽሐፉ ጉዳይ ቀላል መሆኑን ታረጋግጥለታለህ ከሼኹም ጋር በእውነት ማስተካከሉን ትረከባለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-10:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ሚዛን፦ የእንግድነት ሥነ ምግባር + የቃሉ ገር ማረም + የመጽሐፉን መብት በእውነት መያዝ ያለ ማቅለል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4202,6 +5445,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-10:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ወዳጅነትን ለመጠበቅ ሁሉንም ነገር ትታለፋለህ ምንም ነገር አትናገርም፣ ሼኹንም መጽሐፉ «በአንተ ዘንድ ተበላሸ» ብለህ ያለ ዝርዝር ትነግረዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-10:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ገርነት በሼኹ መብትና በቃሉ መብት ላይ እውነትን ያጠፋል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-10:D",
    "layer": "text",
    "lang": "en",
@@ -4218,6 +5483,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "The content is obligatory, but immediate reproach of a guest disgraces and could be deferred.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-10:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ስለ ቃሉና ስለ መጽሐፉ ወዲያውኑ በተግሣጽ ያለበት አነጋገር በጥብቅ ትወቅሰዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-10:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ይዘቱ ግዴታ ነው፣ ግን ወዲያውኑ እንግድን መውቀስ ያሳፍራል ሊራዘምም ይችላል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4257,11 +5544,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-10",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ላለማሳፈር» ስል የትኛውን መብት ልተው ነበር ዝንባሌዬ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-10",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ ሁኔታው የሚጋጩ በጎ ምግባራትን ያጣምራል — ገርነት የአባትን መብትም የሼኹንም ታማኝነት አይሽርም (EV-06, EV-10)። የመጽሐፉን ጉዳይ በገርነት ስም በውሸት አታቅልል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-10",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«ገርነትን» ከባድ መብትን ለመተው ሽፋን አድርጌ ተጠቀምኩ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-11",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "In a circle, one student talks a great deal and interrupts others. If you advise him gently, some attendees will think you fear him; if you are harsh, the gathering breaks up.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-11",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በክበብ ውስጥ አንድ ተማሪ ብዙ ይናገራል ሌሎችንም ያቋርጣል። በገርነት ብትመክረው አንዳንድ ተሳታፊዎች እንደምትፈራው ያስባሉ፣ ብትጠነክርም ስብሰባው ይሰበራል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4290,6 +5621,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-11:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "«አትፈራም» መሆንህን ለማረጋገጥ በአደባባይ ትጠነክርበታለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-11:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "የመታየት ምክንያት፣ ስብሰባውንም መስበር።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-11:B",
    "layer": "text",
    "lang": "en",
@@ -4306,6 +5659,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Firmness in the procedure + gentleness in wording + private advice (EV-10, EV-11).",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-11:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ተራውን ለሁሉም በገርነትና በጥብቅነት ታደራጃለህ «እገሌን እንስማ ከዚያም እገሌን»፣ ከስብሰባውም በኋላ በሚስጥር ትመክረዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-11:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በሂደት ጥብቅነት + በንግግር ገርነት + ሚስጥራዊ ምክር (EV-10, EV-11)።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4334,6 +5709,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-11:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ማሳፈርን ለማስወገድ ንግግሩን ብቻውን እንዲወስድ ትተወዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-11:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በገርነት ስም ደካማነት፣ ለተቀሩት ተማሪዎችም ግፍ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-11:D",
    "layer": "text",
    "lang": "en",
@@ -4350,6 +5747,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "“Firmness” through veiled insult.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-11:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በእርሱ ወጪ ስብሰባውን በሚያስቅ ብልህ አገላለጽ ትሸነቁጠዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-11:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በተሸፈነ ስድብ በኩል «ጥብቅነት»።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4389,11 +5808,55 @@
   },
   {
    "ref_kind": "scenario",
+   "ref_id": "S-11",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ጭንቀቴ ስብሰባውን ማስተካከል ነበር ወይስ በተሳታፊዎች ፊት ያለው ምስሌ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-11",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ለ) ነው፦ ጥብቅነት በሂደት (ተራን ማደራጀት) ውስጥ ነው፣ ገርነትም በንግግር ውስጥ፤ ሰዎች የሚያስቡት የትክክለኛነት መለኪያ አይደለም።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-11",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ጭንቀቴ ስብሰባውን ማስተካከል ነበር ወይስ ምስሌ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
    "ref_id": "S-12",
    "layer": "stem",
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Your shaykh erred in attributing a statement to an imam (the error is verified and carries no serious ruling). You are in his gathering, and a beginner student wrote the error in his notebook.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-12",
+   "layer": "stem",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ሼኽህ ንግግርን ለአንድ ኢማም በማገናኘት ተሳስቷል (ስህተቱ የተረጋገጠ ነው፣ ከባድ ፍርድም አያስከትልም)። አንተ በስብሰባው ውስጥ ነህ፣ አዲስ ተማሪም ስህተቱን በደብተሩ ውስጥ መዘገበ።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4422,6 +5885,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-12:A",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ለሼኹ በስብሰባው ፊት በቀጥታ ታርማለህ «አላህ መልካም ያድርግልህ፣ ንግግሩ ለእገሌ ነው ለእገሌ አይደለም»።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-12:A",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ይዘቱ ትክክል ነው የስህተቱንም መስፋፋት መከልከል ዓላማ ነው፣ ግን ከሼኹ ጋር በአደባባይ ማድረግ ገር የሆነ ነገር ይፈልጋል፣ ፍንጭም በቂ ሊሆን ይችላል።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-12:B",
    "layer": "text",
    "lang": "en",
@@ -4438,6 +5923,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Respect does not permit letting a spreading error stand.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-12:B",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ሼኹን ለማክበር ሙሉ በሙሉ ዝም ትላለህ፣ አዲሱንም ተማሪ በስህተቱ ትተዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-12:B",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ማክበር የሚስፋፋ ስህተትን ማጽደቅን አይፈቅድም።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4466,6 +5973,28 @@
   },
   {
    "ref_kind": "scenario_option",
+   "ref_id": "S-12:C",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በስብሰባው ውስጥ በሥነ ምግባር ፍንጭ ትሰጣለህ «ምናልባት እኔ ተሳስቼ ይሆናል፣ ይህ ንግግር ለእገሌ አይገናኝም?»፣ ከስብሰባውም በኋላ ከሼኹ ጋር በሚስጥር ትከልሳለህ፣ አዲሱን ተማሪም በግል ታስተካክለዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-12:C",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ያጣምራል፦ የሼኽ ሥነ ምግባር + እውነትን በገር አገላለጽ ማብራራት + በአዲሱ ተማሪ ዘንድ የስህተቱን መስፋፋት በሚስጥር መቁረጥ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
    "ref_id": "S-12:D",
    "layer": "text",
    "lang": "en",
@@ -4482,6 +6011,28 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Preserves the beginner, but leaves the error standing with the rest who heard it.",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-12:D",
+   "layer": "text",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ስብሰባው እስኪያልቅ ትጠብቃለህ ለአዲሱ ተማሪ ብቻ ታርማለህ፣ ሼኹንም ትተዋለህ።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario_option",
+   "ref_id": "S-12:D",
+   "layer": "why",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "አዲሱን ተማሪ ይጠብቃል፣ ግን ስህተቱ በሰሙት ቀሪዎች ዘንድ እንደቀጠለ ይተዋል።",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""
@@ -4515,6 +6066,39 @@
    "lang": "en",
    "translation_type": "pedagogical",
    "text": "Did I prioritize my image, or respect for the shaykh, or the truth? And could they have been combined?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-12",
+   "layer": "probe",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የፈራሁት ምንድን ነው፦ ስህተቱ መቆየቱ ወይስ በሰዎች ፊት «ሼኽየን የማርም» መምሰሌ?",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-12",
+   "layer": "feedback",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "በጣም የቀረበው (ሐ) ነው፦ ስምንተኛው ደረጃ = የሚጋጩ በጎ ምግባራትን ማመዛዘን። ገርነት እዚህ ላይ የፍንጭ አገላለጽ ነው እንጂ ማረምን መተው አይደለም፤ ሼኽንም በአደባባይ ማክበር፣ ከእርሱም ጋር በሚስጥር መከልስ (EV-06, EV-10, EV-11)።",
+   "translator": "مسودّة أوليّة — Claude",
+   "translation_status": "generated",
+   "notes": ""
+  },
+  {
+   "ref_kind": "scenario",
+   "ref_id": "S-12",
+   "layer": "reflection",
+   "lang": "am",
+   "translation_type": "pedagogical",
+   "text": "ምስሌን፣ ወይም የሼኽን ማክበር፣ ወይም እውነትን አስቀደምኩ? ማጣመርስ ይቻል ነበር?",
    "translator": "مسودّة أوليّة — Claude",
    "translation_status": "generated",
    "notes": ""

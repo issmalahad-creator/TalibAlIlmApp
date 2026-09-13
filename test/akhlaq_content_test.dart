@@ -18,7 +18,7 @@ void main() {
     expect(slice.behaviors.length, 37);
     expect(slice.scenarios.length, 12);
     expect(slice.curriculum.length, 7);
-    expect(slice.translations.length, 285);
+    expect(slice.translations.length, 429);
   });
 
   test('every evidence has a source + text; marfūʿ@confirmed has takhrij',
@@ -183,6 +183,32 @@ void main() {
             .where((t) => t.refKind == 'virtue' && t.lang == 'am')
             .length,
         1);
+    // am also covers full scenario content — stem, every option's text+why,
+    // probe, feedback, reflection — full parity with the EN reference.
+    final amStem = slice.translations
+        .where((t) =>
+            t.refKind == 'scenario' && t.lang == 'am' && t.layer == 'stem')
+        .map((t) => t.refId)
+        .toSet();
+    expect(amStem.length, 12);
+    for (final layer in ['text', 'why']) {
+      final amOpt = slice.translations
+          .where((t) =>
+              t.refKind == 'scenario_option' &&
+              t.lang == 'am' &&
+              t.layer == layer)
+          .map((t) => t.refId)
+          .toSet();
+      expect(amOpt.length, totalOptions, reason: 'am layer=$layer');
+    }
+    for (final layer in ['probe', 'feedback', 'reflection']) {
+      final amLayer = slice.translations
+          .where((t) =>
+              t.refKind == 'scenario' && t.lang == 'am' && t.layer == layer)
+          .map((t) => t.refId)
+          .toSet();
+      expect(amLayer.length, 12, reason: 'am layer=$layer');
+    }
     // EV-11 (Qur'an) in Amharic must be the real bundled licensed
     // translation, never Claude-generated for the ayah text itself.
     final amQuran = slice.translations.firstWhere((t) =>
