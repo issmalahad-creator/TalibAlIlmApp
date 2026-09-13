@@ -270,7 +270,7 @@ class _GoalCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
+      decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(AppRadius.lg), border: Border.all(color: AppColors.divider)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -279,7 +279,7 @@ class _GoalCard extends StatelessWidget {
               Expanded(child: _GoalTitle(goal: g)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(AppRadius.sm)),
                 child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w700)),
               ),
             ],
