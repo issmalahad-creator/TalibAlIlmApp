@@ -385,16 +385,46 @@ EV_NOTES = {
  "EV-08": "«كهر» = harsh scolding/rebuke (kahara); kept with transliteration. Negations «ما ... ولا ... ولا» preserved as a triple negation.",
  "EV-10": "«الإنكار» = censure / forbidding wrong; kept close, with transliteration. Sufyān's three-fold parallel structure preserved.",
 }
+# Amharic (Ismail is in Ethiopia, 2026-09-13 request: a real translation
+# under the Arabic for every language, not just EN/FR). Evidence text
+# translated literally from the Arabic hadith wording; EV-11 (Qur'an) uses
+# the REAL bundled licensed Amharic Qur'an translation
+# (assets/quran/tafsir-amharic_sadiq.jsonl.gz, QuranEnc.com / Sadiq and
+# Sani) for 3:134, 7:199, 41:34 — never Claude-generated for Qur'an text.
+EV_AM = {
+ "EV-01": "«አኢሻ ሆይ! አላህ ገር ነው፤ ገርነትን ይወዳል፤ በገርነት ላይ የማይሰጠውን በጭካኔ ላይ ይሰጣል፤ በሌላ በማንኛውም ነገር ላይም የማይሰጠውን ይሰጣል።»",
+ "EV-02": "«ገርነት በያዘው ነገር ሁሉ ውበት ይጨምራል፤ ከተወገደበት ነገር ሁሉም ውርደት ያመጣል።»",
+ "EV-03": "«ገርነት የተከለከለ ሰው በጎውን ነገር ተከልክሏል።»",
+ "EV-04": "«አቅልሉ እንጂ አታክብዱ፤ አረጋጉ እንጂ አታስፈሩ» — በሌላ ዘገባ፦ «...አብስሩ እንጂ አታስፈሩ።»",
+ "EV-05": "የአላህ መልእክተኛ ﷺ ከባልደረቦቻቸው አንዱን በአንዳች ጉዳይ በላኩ ጊዜ፦ «አብስሩ እንጂ አታስፈሩ፤ አቅልሉ እንጂ አታክብዱ» ይሉ ነበር።",
+ "EV-06": "ከአይሁድ የሆነ ጭፍራ ወደ አላህ መልእክተኛ ﷺ ገብተው፦ «አልሳሙ ዐለይኩም (ሞት በእናንተ ላይ ይሁን)» አሉ። ዓኢሻ፦ «ተረድቼውና፦ 'ዐለይኩሙ አልሳሙ ወአልለዕነህ' (ሞትና ርግማን በእናንተ ላይ ይሁን) አልኩ» አለች። የአላህ መልእክተኛ ﷺም፦ «ገር ሁኚ አኢሻ ሆይ፣ ገርነትን ያዢ፤ ከጭካኔና ከብልግና ተጠንቀቂ» አሉ። እርሷም፦ «የተናገሩትን አልሰማህም?» አለች። እርሳቸውም፦ «የተናገርኩትን አልሰማሽም? በእነርሱ ላይ መለስኩ፤ በእነርሱ ላይ የእኔ ጸሎት ይሰማል፤ በእኔ ላይ ግን የነርሱ አይሰማም» አሉ።",
+ "EV-07": "ከነቢዩ ﷺ፦ «የመልካም ደረጃ ያላቸውን ሰዎች ስህተቶች ይቅር በሉ።»",
+ "EV-08": "(በሶላት ውስጥ ክልከላውን ሳያውቅ ተናገረ፣ ሰዎችም በዓይናቸው ገሠጹት)... ከዚያም፦ «በአባቴና በእናቴ እምላለሁ፣ ከእርሳቸው በፊትም ሆነ በኋላ ከእርሳቸው የተሻለ አስተማሪ አላየሁም፤ በአላህ እምላለሁ፣ አልገሠጹኝም፣ አልመቱኝም፣ አልሰደቡኝም» አለ።",
+ "EV-09": "አንድ በዱር የሚኖር ሰው ተነስቶ በመስጊድ ውስጥ ሸና፤ ሰዎችም ያዙት፤ ነቢዩ ﷺም፦ «ተውት፤ በሽንቱ ላይም አንድ ባልዲ ውሃ — ወይም ትልቅ ባልዲ ውሃ — አፍስሱ፤ እናንተ ለማቅለል የተላካችሁ እንጂ ለማክበድ አልተላካችሁም» አሉ።",
+ "EV-10": "ኢብኑ ረጀብ፦ «በማንኛውም ሁኔታ በተግሣጽ ውስጥ ገርነት የግድ ነው» አሉ። ከሱፍያን አልሠውሪም፦ «በመልካም የሚያዝዝና ከመጥፎ የሚከለክል ሦስት ባህርያት ያለው ብቻ ነው፦ በሚያዝዘውም በሚከለክለውም ገር፣ በሚያዝዘውም በሚከለክለውም ፍትሓዊ፣ በሚያዝዘውም በሚከለክለውም አዋቂ» የሚለውን ጠቀሱ። ከኢማም አሕመድም፦ «ሰዎች ገር አያያዝ ያስፈልጋቸዋል...» የሚለውን ጠቀሱ።",
+}
+EV_AM_NOTES = {
+ "EV-01": "«ረፊቅ» የሚለው የአላህ ስም እንደወረደ ተላልፏል፤ ያለ ተጨማሪ ትርጓሜ።",
+ "EV-06": "«አልሳሙ» የሚለው የአይሁድ ሰላምታ ማጣመም (ሞት ማለት) እንደወረደ ተላልፏል።",
+ "EV-08": "«ከህር» (ብርቱ ተግሣጽ) የሚለው ቃል በዐረብኛ ትርጉሙ ተጠብቆ ተላልፏል።",
+}
+EV_AM_QURAN_TEXT = {
+ "EV-11": "3:134 — ለእነዚያ በድሎትም ኾነ በችግር ለሚለግሱት፣ ቁጭትንም ገቺዎች ከሰዎችም ይቅርታ አድራጊዎች ለኾኑት (ተደግሳለች)፡፡ አላህም በጎ ሠሪዎችን ይወዳል፡፡ · 7:199 — ገርን ጠባይ ያዝ፡፡ በመልካምም እዘዝ፡፡ ባለጌዎቹንም ተዋቸው፡፡ · 41:34 — መልካሚቱና ክፉይቱም (ጸባይ) አይተካከሉም፡፡ በዚያች እርሷ መልካም በኾነችው ጸባይ (መጥፎይቱን) ገፍትር፡፡ ያን ጊዜ ያ ባንተና በእርሱ መካከል ጠብ ያለው ሰው እርሱ ልክ እንደ አዛኝ ዘመድ ይኾናል፡፡",
+}
 for e in EV:
     if e["source_type"] == "quran":
         tr("evidence", e["id"], "text", "en", "quran_meaning",
            "[ترجمة معاني الآيات تُؤخَذ من إصدارٍ مُرخَّص عند التنفيذ — Āl ʿImrān 3:134, al-Aʿrāf 7:199, Fuṣṣilat 41:34. NOT generated here.]",
            status="pending", translator="(إصدار مُرخَّص — يُحدَّد لاحقًا)",
            notes="لا تُولَّد ترجمةٌ آليّةٌ للآيات. تُسمّى «ترجمة معاني الآية».")
+        tr("evidence", e["id"], "text", "am", "quran_meaning", EV_AM_QURAN_TEXT[e["id"]],
+           status="approved", translator="Sadiq and Sani — QuranEnc.com (real licensed Amharic Qur'an translation, already bundled)",
+           notes="مأخوذةٌ حرفيًّا من assets/quran/tafsir-amharic_sadiq.jsonl.gz، لا مُولَّدة آليًّا لمعاني القرآن.")
         continue
     tr("evidence", e["id"], "text", "en", "literal", EV_EN[e["id"]], notes=EV_NOTES.get(e["id"], ""))
     tr("evidence", e["id"], "text", "fr", "literal", EV_FR[e["id"]])
-    for lang in ("ur", "id", "tr", "am"):
+    tr("evidence", e["id"], "text", "am", "literal", EV_AM[e["id"]], notes=EV_AM_NOTES.get(e["id"], ""))
+    for lang in ("ur", "id", "tr"):
         tr("evidence", e["id"], "text", lang, "literal", "", status="pending",
            translator="—", notes="مسار جاهز؛ الترجمة الحرفيّة لهذه اللغة تحتاج تمريرةً مخصّصة.")
 
@@ -420,9 +450,21 @@ P_FR = {
  "P8": "Si réprimander maintenant accroît le mal, patiente — puis rectifie et enseigne avec douceur.",
  "P9": "Nul ne devrait entreprendre la réprobation sinon celui qui réunit la douceur dans la méthode, la justice dans le jugement et la connaissance du sujet.",
 }
+P_AM = {
+ "P1": "ገርነት እውነትን ለማድረስ መንገድ ነው፤ ምትክ አይደለም።",
+ "P2": "አነጋገርህ ሲጠነክር የቃልህ ተጽዕኖ ይቀንሳል፣ እውነት ቢሆንም እንኳ።",
+ "P3": "ሁኔታው ሲከብድ እንኳ ገርነትን መፈለግ የታሰበ ነው።",
+ "P4": "በሚያቀራርብ ነገር ጀምር፤ ከሚያርቅ ተቆጠብ፤ በደረጃ ደረጃ ሂድ።",
+ "P5": "እውነትን ማብራራት ይቀራል፤ ገርነት ማለት በቂ የሆነውን ቀላል ምላሽ መምረጥ ነው፤ ብልግናም ዝምታም አይደለም።",
+ "P6": "ከመልካም ሰዎች የሚደርስ ጊዜያዊ ስህተት ይታለፋል፣ አይከተልም።",
+ "P7": "የማያውቀው ይማራል እንጂ አይገሠጽም፤ በድንቁርናውም አይወቀስም።",
+ "P8": "አሁን መገሠጽህ ጉዳትን የሚጨምር ከሆነ ታገሥ፤ ከዚያም በገርነት አስተካክልና አስተምር።",
+ "P9": "በተግሣጽ ላይ የሚግባው በዘዴው ገርነትን፣ በፍርዱ ፍትሕን፣ በጉዳዩም እውቀትን የሚያጣምር ብቻ ነው።",
+}
 for p in P:
     tr("principle", p["id"], "statement", "en", "pedagogical", P_EN[p["id"]])
     tr("principle", p["id"], "statement", "fr", "pedagogical", P_FR[p["id"]])
+    tr("principle", p["id"], "statement", "am", "pedagogical", P_AM[p["id"]])
 
 SUB_EN = {
  "rifq_ibara":"Choosing the gentlest sufficient wording to point out an error",
@@ -438,8 +480,23 @@ SUB_EN = {
  "rifq_nush":"Gentleness in advising: counsel, not public exposure",
  "rifq_mukarrir":"Gentleness with one who repeats a mistake: patience and gradualness without escalating harshness",
 }
+SUB_AM = {
+ "rifq_ibara": "ስህተትን ለማስረዳት በቂ የሆነውን በጣም ገር አገላለጽ መምረጥ",
+ "rifq_nabra": "ሲገሥጹ የድምጽ ቃናንና የሰውነት ቋንቋን መቆጣጠር",
+ "rifq_tawqit": "ለማረም ተስማሚ ጊዜንና ቦታን መምረጥ (ከተቻለ በግል)",
+ "rifq_taysir": "ስህተትን ከመግለጽ በፊት በሚያቀራርብ ነገር መጀመር (ማቅለል እንጂ ማራቅ አይደለም)",
+ "rifq_fahs": "ቅድመ ምርመራ፦ አዋቂ ነኝ? ፍርዴ ፍትሓዊ ነው? ዘዴዬ ገር ነው?",
+ "rifq_jahil": "ለማያውቀውና ለጠያቂው ገርነት፦ ያለ ተግሣጽና ያለ ጭካኔ ማረም",
+ "rifq_la_taqta3": "መቋረጡ ጉዳትን የሚጨምር ከሆነ ሁኔታውን በጭካኔ አለማቋረጥ፤ ከዚያ በኋላ ማስተካከል",
+ "rifq_istifzaz": "በቁጣ ጊዜ ሆን ብሎ ገርነትን መምረጥ (ገርነት ምርጫ ነው እንጂ አቅም ማጣት አይደለም)",
+ "rifq_hazm": "በይዘት ጥብቅነትንና በዘዴ ገርነትን ማጣመር",
+ "rifq_naqd_qawl": "የቃልን ትችት ከሰው ስድብ መለየት፣ የተግሣጽ ሥነ ምግባርን እየጠበቁ",
+ "rifq_nush": "በምክር ውስጥ ገርነት፦ ምክር እንጂ ውርደት አይደለም",
+ "rifq_mukarrir": "ስህተትን ከደጋገመ ሰው ጋር ገርነት፦ ትዕግስትና ደረጃ በደረጃ መሄድ ያለ እየጨመረ የሚሄድ ጭካኔ",
+}
 for sid, ar in SUBSKILLS:
     tr("subskill", sid, "title", "en", "pedagogical", SUB_EN[sid])
+    tr("subskill", sid, "title", "am", "pedagogical", SUB_AM[sid])
 
 # scenario stems + feedback in EN (proves a non-Arab user can train)
 SC_EN_STEM = {
@@ -635,6 +692,7 @@ for s in S:
     tr("scenario", s["id"], "reflection", "en", "pedagogical", SC_EN_REFLECTION[s["id"]])
 
 tr("virtue", "rifq", "title", "en", "pedagogical", "Gentleness (Rifq)")
+tr("virtue", "rifq", "title", "am", "pedagogical", "ገርነት (ሪፍቅ)")
 
 CUR_EN = {
  1:"Distinguishes between 'abandoning the truth' and 'softening the style'; cites an example from his day.",
@@ -645,8 +703,18 @@ CUR_EN = {
  6:"Verifies before censuring, criticises the statement not its author, and preserves his standing.",
  7:"In a situation where two virtues compete, does not drop one in the name of the other; seeks to combine them.",
 }
+CUR_AM = {
+ 1: "በ«እውነትን መተው» እና «ዘዴን ማለስለስ» መካከል ይለያል፤ ከዕለቱ ምሳሌ ይጠቅሳል።",
+ 2: "ሲቆጣ ለራሱ ሳይሆን ለእውነት ይመልሳል፤ ብልግናንም አይመልስም።",
+ 3: "«ይህ ስህተት ነው» ብሎ በግልጽና በማይጎዳ አገላለጽ ይናገራል፤ ገር ለመሆንም ፍርዱን አይለውጥም።",
+ 4: "ማረምን በሚያቀራርብ ነገር ይከፍታል፤ በበቂው መጠንም ይወሰናል።",
+ 5: "ቢያንስ በአንድ ጫና ውስጥ በቂውን ገር ምላሽ ይመርጣል።",
+ 6: "ከመገሠጹ በፊት ያረጋግጣል፤ ቃሉን እንጂ ባለቤቱን አይተችም፤ ክብሩንም ይጠብቃል።",
+ 7: "ሁለት በጎ ምግባራት በሚጋጩበት ሁኔታ አንዱን በሌላው ስም አይተውም፤ ማጣመርን ይፈልጋል።",
+}
 for c in CURRICULUM:
     tr("stage", str(c["stage"]), "outcome", "en", "pedagogical", CUR_EN[c["stage"]])
+    tr("stage", str(c["stage"]), "outcome", "am", "pedagogical", CUR_AM[c["stage"]])
 
 # term glosses
 GLOSS = [
@@ -657,9 +725,20 @@ GLOSS = [
  ("dhawu_l_hayat","dhawū al-hayʾāt","ذوو الهيئات","en","people of good standing and dignity, known for uprightness."),
  ("inkar","inkār","الإنكار","en","censure; forbidding a wrong / objecting to it."),
 ]
+GLOSS_AM = {
+ "rifq": "ገርነት (ሪፍቅ) — የባህርይ ልስላሴ፤ ተቃራኒው ዑንፍ (ጭካኔ) ነው።",
+ "unf": "ጭካኔ (ዑንፍ) — በንግግር ወይም በተግባር ያለ ጭካኔ፤ ተቃራኒው ሪፍቅ (ገርነት) ነው።",
+ "kahr": "ብርቱ ተግሣጽ (ከህር) — በጥብቅ መገሠጽ ወይም ሰውን በሐይል መመለስ።",
+ "mudarah": "ገር አያያዝ (ሙዳራህ) — ሃይማኖትን ሳይነካ ሰዎችን በዘዴ ማስተናገድ።",
+ "dhawu_l_hayat": "የመልካም ደረጃ ሰዎች (ዘዉ አልሀይኣት) — በቅንነትና በታማኝነት የሚታወቁ ሰዎች።",
+ "inkar": "ተግሣጽ (ኢንካር) — መጥፎን መከልከል ወይም መቃወም።",
+}
 for gid, translit, ar, lang, text in GLOSS:
     TR.append(dict(ref_kind="term_gloss", ref_id=gid, layer="gloss", lang=lang,
                    translation_type="term_gloss", text=f"{ar} ({translit}) — {text}",
+                   translator="مسودّة أوليّة — Claude", translation_status="generated", notes=""))
+    TR.append(dict(ref_kind="term_gloss", ref_id=gid, layer="gloss", lang="am",
+                   translation_type="term_gloss", text=GLOSS_AM[gid],
                    translator="مسودّة أوليّة — Claude", translation_status="generated", notes=""))
 
 # ---- assemble ----------------------------------------------------------------

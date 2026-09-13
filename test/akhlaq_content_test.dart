@@ -18,7 +18,7 @@ void main() {
     expect(slice.behaviors.length, 37);
     expect(slice.scenarios.length, 12);
     expect(slice.curriculum.length, 7);
-    expect(slice.translations.length, 249);
+    expect(slice.translations.length, 285);
   });
 
   test('every evidence has a source + text; marfūʿ@confirmed has takhrij',
@@ -115,7 +115,12 @@ void main() {
       }
       if (t.translationType == 'quran_meaning') {
         expect(t.translator.toLowerCase().contains('claude'), isFalse);
-        expect(t.translationStatus, 'pending');
+        // Never AI-generated: either genuinely not sourced yet (pending),
+        // or copied verbatim from a real bundled licensed Qur'an
+        // translation (approved) — never 'generated'/'machine_assisted'/
+        // 'human_reviewed', which would imply someone produced the wording.
+        expect(['pending', 'approved'], contains(t.translationStatus),
+            reason: '${t.refKind}/${t.refId}/${t.lang}');
       }
     }
     // en covers every evidence text
@@ -148,6 +153,43 @@ void main() {
           .toSet();
       expect(enLayer.length, 12, reason: 'layer=$layer');
     }
+    // am covers evidence (10 literal + 1 real bundled Qur'an translation),
+    // every principle, subskill, stage outcome, term gloss, and the virtue
+    // title (2026-09-13: Ismail is in Ethiopia and asked specifically that
+    // every AKHLAQ text have a real translation under the Arabic).
+    final amEv = slice.translations
+        .where((t) =>
+            t.refKind == 'evidence' && t.lang == 'am' && t.layer == 'text')
+        .map((t) => t.refId)
+        .toSet();
+    expect(amEv.length, 11);
+    for (final entry in {
+      'principle': slice.principles.length,
+      'subskill': slice.subskills.length,
+      'stage': slice.curriculum.length,
+    }.entries) {
+      final amCount = slice.translations
+          .where((t) => t.refKind == entry.key && t.lang == 'am')
+          .length;
+      expect(amCount, entry.value, reason: entry.key);
+    }
+    expect(
+        slice.translations
+            .where((t) => t.refKind == 'term_gloss' && t.lang == 'am')
+            .length,
+        6);
+    expect(
+        slice.translations
+            .where((t) => t.refKind == 'virtue' && t.lang == 'am')
+            .length,
+        1);
+    // EV-11 (Qur'an) in Amharic must be the real bundled licensed
+    // translation, never Claude-generated for the ayah text itself.
+    final amQuran = slice.translations.firstWhere((t) =>
+        t.refKind == 'evidence' && t.refId == 'EV-11' && t.lang == 'am');
+    expect(amQuran.translationType, 'quran_meaning');
+    expect(amQuran.translator.toLowerCase().contains('claude'), isFalse);
+    expect(amQuran.translationStatus, 'approved');
   });
 
   test('AkhlaqContent.translation never fabricates a missing language', () {
@@ -171,7 +213,7 @@ void main() {
             layer: 'text',
             lang: AkhlaqContent.arSource),
         isNull);
-    expect(c.availableLanguages(), containsAll(['en', 'fr']));
+    expect(c.availableLanguages(), containsAll(['en', 'fr', 'am']));
     c.debugSetSlice(null);
   });
 }
