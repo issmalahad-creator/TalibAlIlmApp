@@ -605,9 +605,9 @@ class _MushafSemanticReaderScreenState
   /// A single small pill under the page while «وضع التجويد» is on — `تجويد ▾`
   /// — opens the collapsible legend sheet. Zero permanent screen cost.
   Widget _tajweedLegendPill(String lang) {
-    final fg = _night ? const Color(0xFFCFC6B6) : AppColors.textDark;
+    final fg = _night ? AppColors.textDarkNight : AppColors.textDark;
     return Material(
-      color: _night ? const Color(0xFF14110E) : const Color(0xFFFBF6EE),
+      color: _night ? AppColors.backgroundNight : const Color(0xFFFBF6EE),
       child: SafeArea(
         top: false,
         bottom: !_audioBar,
@@ -655,9 +655,9 @@ class _MushafSemanticReaderScreenState
       context: context,
       showDragHandle: true,
       backgroundColor:
-          _night ? const Color(0xFF1E1B17) : AppColors.surface,
+          _night ? AppColors.surfaceNight : AppColors.surface,
       builder: (_) {
-        final fg = _night ? const Color(0xFFEDE6D9) : AppColors.textDark;
+        final fg = _night ? AppColors.textDarkNight : AppColors.textDark;
         return SafeArea(
           child: ListView(
             shrinkWrap: true,
@@ -878,11 +878,11 @@ class _MushafSemanticReaderScreenState
       top: false,
       child: Container(
         decoration: BoxDecoration(
-          color: _night ? const Color(0xFF1E1A16) : AppColors.surface,
+          color: _night ? AppColors.surfaceNight : AppColors.surface,
           border: Border(
               top: BorderSide(
                   color: _night
-                      ? const Color(0xFF2E2A24)
+                      ? AppColors.dividerNight
                       : AppColors.divider)),
         ),
         padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
@@ -921,7 +921,7 @@ class _MushafSemanticReaderScreenState
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
                             color: _night
-                                ? const Color(0xFFE9E1D2)
+                                ? AppColors.textDarkNight
                                 : AppColors.textDark)),
                     if (at != null)
                       Text(
@@ -953,8 +953,8 @@ class _MushafSemanticReaderScreenState
 
   @override
   Widget build(BuildContext context) {
-    final bg = _night ? const Color(0xFF14110E) : const Color(0xFFFBF6EE);
-    final onBg = _night ? const Color(0xFFE9E1D2) : AppColors.textDark;
+    final bg = _night ? AppColors.backgroundNight : const Color(0xFFFBF6EE);
+    final onBg = _night ? AppColors.textDarkNight : AppColors.textDark;
     return ValueListenableBuilder<String>(
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
@@ -1070,12 +1070,12 @@ class _MushafSemanticReaderScreenState
                         child: Container(
                           decoration: BoxDecoration(
                             color: _night
-                                ? const Color(0xFF1E1A16)
+                                ? AppColors.surfaceNight
                                 : AppColors.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                                 color: _night
-                                    ? const Color(0xFF2E2A24)
+                                    ? AppColors.dividerNight
                                     : AppColors.divider),
                           ),
                           clipBehavior: Clip.antiAlias,
@@ -1093,7 +1093,7 @@ class _MushafSemanticReaderScreenState
                                         : (surah: _selMark!.surah,
                                             ayah: _selMark!.ayah))),
                             artInk: _night
-                                ? const Color(0xFFE9E1D2)
+                                ? AppColors.textDarkNight
                                 : null,
                             onWordTap: _onWord,
                             onAyaMarkTap: _onAyaMark,

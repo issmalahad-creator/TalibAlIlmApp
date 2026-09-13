@@ -2,15 +2,35 @@ import 'package:flutter/material.dart';
 
 /// Design tokens for the app — soft sage-green palette, warm off-white
 /// background, rounded cards with soft shadows.
+///
+/// `primary`/`primaryDark`/`background`/`surfaceCard` are pinned to the
+/// measured values in `docs/quran/VISUAL_IDENTITY_STYLE_GUIDE.md` §2
+/// (real pixel samples from the reference app's video, not invented) —
+/// 2026-09-13, Phase 2 of that guide's rollout. `surface` stays the
+/// existing pure white (the guide's own `surface.control`, for input
+/// fields/the mushaf page itself, deliberately distinct from
+/// `surfaceCard`'s warm beige for cards/sheets).
 class AppColors {
-  static const primary = Color(0xFF4E8368);
-  static const primaryDark = Color(0xFF2F5C46);
+  static const primary = Color(0xFF4F8D53);
+  static const primaryDark = Color(0xFF26402A);
   static const primaryLight = Color(0xFFE6F2EA);
-  static const background = Color(0xFFF7F8F5);
+  static const background = Color(0xFFFBF2D9);
   static const surface = Color(0xFFFFFFFF);
+  static const surfaceCard = Color(0xFFEFE4C8);
   static const textDark = Color(0xFF1F2937);
   static const textMuted = Color(0xFF6B7280);
   static const divider = Color(0xFFE5E7EB);
+
+  /// Night-mode counterparts — one source of truth for the dark colours
+  /// `mushaf_semantic_reader_screen.dart`'s existing `_night` toggle reads,
+  /// replacing that screen's own scattered (and previously inconsistent —
+  /// e.g. three slightly different "night text" hexes) local constants.
+  /// No app-wide `ThemeMode`/`darkTheme` yet — this only unifies the
+  /// values an existing per-screen toggle already needed.
+  static const backgroundNight = Color(0xFF14110E);
+  static const surfaceNight = Color(0xFF1E1A16);
+  static const textDarkNight = Color(0xFFE9E1D2);
+  static const dividerNight = Color(0xFF2E2A24);
 
   // Category pill colors: (background, foreground)
   static const categoryColors = <String, (Color, Color)>{
