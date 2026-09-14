@@ -340,9 +340,12 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
                                   ),
                             _StudyMode.compare => _CompareView(
                                 entries: _entries,
+                                tafsirBooks: _tafsirBooks,
                                 sourceLabels: _sourceLabels,
                                 selection: _compareSelection,
                                 lang: lang,
+                                surah: widget.surah,
+                                ayah: widget.ayah,
                                 onToggle: _toggleCompareSelection,
                                 onBackToCards: () => setState(() {
                                   _mode = _StudyMode.cards;
@@ -971,24 +974,74 @@ class _UloomReaderView extends StatelessWidget {
   }
 }
 
+/// One comparable source in the picker — either a legacy `tafsir_entries`
+/// row (`text` set synchronously) or a bundled corpus book (`bookId` set;
+/// its ayah text is fetched on demand via `QuranBookCache`, same as the
+/// single-source reader already does for these 122 books).
+class _CompareSource {
+  final String key;
+  final String label;
+  final String? text;
+  final int? bookId;
+  const _CompareSource({required this.key, required this.label, this.text, this.bookId});
+}
+
 class _CompareView extends StatelessWidget {
   final List<AyahTafsirEntry> entries;
+  final List<Map<String, Object?>> tafsirBooks;
   final Map<String, String> sourceLabels;
   final Set<String> selection;
   final String lang;
-  final void Function(String source) onToggle;
+  final int surah;
+  final int ayah;
+  final void Function(String key) onToggle;
   final VoidCallback onBackToCards;
   const _CompareView({
     required this.entries,
+    required this.tafsirBooks,
     required this.sourceLabels,
     required this.selection,
     required this.lang,
+    required this.surah,
+    required this.ayah,
     required this.onToggle,
     required this.onBackToCards,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Same grouping as the cards view (TAFSIR_UNIFIED_ARCHITECTURE.md):
+    // Arabic tafsir_entries + the 122 bundled corpus books under «تفاسير»,
+    // the ~44 translation tafsir_entries under «ترجمات» — so the compare
+    // picker finally offers everything the cards view already does.
+    final tafsirItems = [
+      for (final e in entries.where((e) => e.language == 'ar'))
+        _CompareSource(key: 'e:${e.source}', label: sourceLabels[e.source] ?? e.source, text: e.text),
+      for (final b in tafsirBooks)
+        _CompareSource(key: 'b:${b['id']}', label: '${b['name'] ?? b['short'] ?? ''}', bookId: b['id'] as int?),
+    ];
+    final translationItems = [
+      for (final e in entries.where((e) => e.language != 'ar'))
+        _CompareSource(
+          key: 'e:${e.source}',
+          label: '${sourceLabels[e.source] ?? e.source} (${QuranSearchRepository.languageLabels[e.language] ?? e.language})',
+          text: e.text,
+        ),
+    ];
+    final byKey = {for (final s in [...tafsirItems, ...translationItems]) s.key: s};
+
+    Widget chipGroup(List<_CompareSource> items) => Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: items
+              .map((s) => ChoiceChip(
+                    label: Text(s.label, style: const TextStyle(fontSize: 12)),
+                    selected: selection.contains(s.key),
+                    onSelected: (_) => onToggle(s.key),
+                  ))
+              .toList(),
+        );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1011,17 +1064,18 @@ class _CompareView extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 190),
             child: SingleChildScrollView(
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: entries.map((e) {
-                  final selected = selection.contains(e.source);
-                  return ChoiceChip(
-                    label: Text('${sourceLabels[e.source] ?? e.source} (${QuranSearchRepository.languageLabels[e.language] ?? e.language})', style: const TextStyle(fontSize: 12)),
-                    selected: selected,
-                    onSelected: (_) => onToggle(e.source),
-                  );
-                }).toList(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (tafsirItems.isNotEmpty) ...[
+                    _SectionHeader(basicText('ql_tafsir_section', lang)),
+                    chipGroup(tafsirItems),
+                  ],
+                  if (translationItems.isNotEmpty) ...[
+                    _SectionHeader(basicText('ql_translation_section', lang)),
+                    chipGroup(translationItems),
+                  ],
+                ],
               ),
             ),
           ),
@@ -1032,39 +1086,94 @@ class _CompareView extends StatelessWidget {
               ? Center(child: Text(basicText('pick_two_to_four_sources', lang), style: const TextStyle(color: AppColors.textMuted)))
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  children: entries.where((e) => selection.contains(e.source)).map((e) {
+                  children: selection.map((k) => byKey[k]).whereType<_CompareSource>().map((s) {
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
                       color: AppColors.surfaceCard,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md), side: const BorderSide(color: AppColors.divider)),
                       child: Padding(
                         padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.share_outlined, size: 18, color: AppColors.textMuted),
-                                  tooltip: basicText('share_action', lang),
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () => Share.share('${sourceLabels[e.source] ?? e.source}\n\n${e.text}'),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            SelectableText(e.text, textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.8)),
-                          ],
-                        ),
+                        child: s.bookId != null
+                            ? _CompareBookBody(bookId: s.bookId!, label: s.label, surah: surah, ayah: ayah, lang: lang)
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(s.label, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.share_outlined, size: 18, color: AppColors.textMuted),
+                                        tooltip: basicText('share_action', lang),
+                                        visualDensity: VisualDensity.compact,
+                                        onPressed: () => Share.share('${s.label}\n\n${s.text}'),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  SelectableText(s.text ?? '', textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.8)),
+                                ],
+                              ),
                       ),
                     );
                   }).toList(),
                 ),
         ),
       ],
+    );
+  }
+}
+
+/// A selected corpus-book source's card body — its ayah text isn't
+/// preloaded (unlike `tafsir_entries`), so it's fetched on demand through
+/// the same `QuranBookCache` the single-source reader already uses.
+class _CompareBookBody extends StatelessWidget {
+  final int bookId;
+  final String label;
+  final int surah;
+  final int ayah;
+  final String lang;
+  const _CompareBookBody({required this.bookId, required this.label, required this.surah, required this.ayah, required this.lang});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, Object?>?>(
+      future: QuranBookCache.instance.tafsirEntry(bookId, surah, ayah),
+      builder: (context, snapshot) {
+        final row = snapshot.data;
+        final text = row?['text'] as String?;
+        final isMirror = row?['mirror'] == true;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark))),
+                if (text != null)
+                  IconButton(
+                    icon: const Icon(Icons.share_outlined, size: 18, color: AppColors.textMuted),
+                    tooltip: basicText('share_action', lang),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => Share.share('$label\n\n$text'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            if (snapshot.connectionState != ConnectionState.done)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+              )
+            else if (isMirror)
+              Text(basicText('ql_tafsir_mirror', lang), style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5))
+            else if (text == null)
+              Text(basicText('no_tafsir_for_this_ayah', lang), style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5))
+            else
+              SelectableText(text, textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.8)),
+          ],
+        );
+      },
     );
   }
 }
