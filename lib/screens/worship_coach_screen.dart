@@ -205,35 +205,41 @@ class _ConsistencyRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final percent = (value * 100).round();
     final color = isFocus ? const Color(0xFFB8860B) : AppColors.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: isFocus ? color : AppColors.divider, width: isFocus ? 1.5 : 1)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                  if (isFocus) ...[
-                    const SizedBox(width: 6),
-                    _PulsingFocusBadge(color: color),
+    return Card(
+      color: AppColors.surfaceCard,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        side: BorderSide(color: isFocus ? color : AppColors.divider, width: isFocus ? 1.5 : 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                    if (isFocus) ...[
+                      const SizedBox(width: 6),
+                      _PulsingFocusBadge(color: color),
+                    ],
                   ],
-                ],
-              ),
-              Text('$percent%', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(value: value.clamp(0, 1), minHeight: 8, backgroundColor: AppColors.divider, valueColor: AlwaysStoppedAnimation(color)),
-          ),
-          const SizedBox(height: 4),
-          Text(basicText('last_7_days_label', LanguagePreferenceService.currentLanguage), style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
-        ],
+                ),
+                Text('$percent%', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(value: value.clamp(0, 1), minHeight: 8, backgroundColor: AppColors.divider, valueColor: AlwaysStoppedAnimation(color)),
+            ),
+            const SizedBox(height: 4),
+            Text(basicText('last_7_days_label', LanguagePreferenceService.currentLanguage), style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+          ],
+        ),
       ),
     );
   }
