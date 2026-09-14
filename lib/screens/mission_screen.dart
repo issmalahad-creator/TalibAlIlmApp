@@ -384,22 +384,25 @@ class _ResultsView extends StatelessWidget {
         ),
         if (weakest != null) ...[
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${basicText('biggest_opportunity_prefix', lang)} ${placementAreaLabelFor(weakest.area, lang)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => _screenForArea(weakest.area))),
-                    child: Text(basicText('start_here_action', lang)),
+          Card(
+            color: AppColors.surfaceCard,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: const BorderSide(color: AppColors.divider)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${basicText('biggest_opportunity_prefix', lang)} ${placementAreaLabelFor(weakest.area, lang)}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => _screenForArea(weakest.area))),
+                      child: Text(basicText('start_here_action', lang)),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
