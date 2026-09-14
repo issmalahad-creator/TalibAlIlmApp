@@ -1032,17 +1032,20 @@ class _CompareView extends StatelessWidget {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   children: entries.where((e) => selection.contains(e.source)).map((e) {
-                    return Container(
+                    return Card(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
-                          const SizedBox(height: 6),
-                          Text(e.text, textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.8)),
-                        ],
+                      color: AppColors.surfaceCard,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md), side: const BorderSide(color: AppColors.divider)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                            const SizedBox(height: 6),
+                            Text(e.text, textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.8)),
+                          ],
+                        ),
                       ),
                     );
                   }).toList(),
