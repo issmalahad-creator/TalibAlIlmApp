@@ -1007,17 +1007,22 @@ class _CompareView extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: entries.map((e) {
-              final selected = selection.contains(e.source);
-              return ChoiceChip(
-                label: Text('${sourceLabels[e.source] ?? e.source} (${QuranSearchRepository.languageLabels[e.language] ?? e.language})', style: const TextStyle(fontSize: 12)),
-                selected: selected,
-                onSelected: (_) => onToggle(e.source),
-              );
-            }).toList(),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 140),
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: entries.map((e) {
+                  final selected = selection.contains(e.source);
+                  return ChoiceChip(
+                    label: Text('${sourceLabels[e.source] ?? e.source} (${QuranSearchRepository.languageLabels[e.language] ?? e.language})', style: const TextStyle(fontSize: 12)),
+                    selected: selected,
+                    onSelected: (_) => onToggle(e.source),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
         ),
         const Divider(height: 20),
