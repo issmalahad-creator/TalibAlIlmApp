@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
@@ -1008,7 +1009,7 @@ class _CompareView extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 140),
+            constraints: const BoxConstraints(maxHeight: 190),
             child: SingleChildScrollView(
               child: Wrap(
                 spacing: 6,
@@ -1041,9 +1042,21 @@ class _CompareView extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
-                            const SizedBox(height: 6),
-                            Text(e.text, textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.8)),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(sourceLabels[e.source] ?? e.source, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.share_outlined, size: 18, color: AppColors.textMuted),
+                                  tooltip: basicText('share_action', lang),
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => Share.share('${sourceLabels[e.source] ?? e.source}\n\n${e.text}'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            SelectableText(e.text, textAlign: TextAlign.right, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 14, height: 1.8)),
                           ],
                         ),
                       ),
