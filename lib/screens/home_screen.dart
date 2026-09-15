@@ -773,36 +773,39 @@ class _ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(22),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(22), border: Border.all(color: AppColors.divider)),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-              child: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(basicText('review_label', lang), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
-                  const SizedBox(height: 2),
-                  Text(
-                    dueCount > 0 ? '$dueCount ${basicText('pages_due_today', lang)}' : basicText('no_reviews_due_today', lang),
-                    style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                  ),
-                ],
+    return Card(
+      color: AppColors.surfaceCard,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.xl), side: const BorderSide(color: AppColors.divider)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+                child: const Icon(Icons.refresh_rounded, color: AppColors.primary),
               ),
-            ),
-            const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
-          ],
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(basicText('review_label', lang), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
+                    const SizedBox(height: 2),
+                    Text(
+                      dueCount > 0 ? '$dueCount ${basicText('pages_due_today', lang)}' : basicText('no_reviews_due_today', lang),
+                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
+            ],
+          ),
         ),
       ),
     );

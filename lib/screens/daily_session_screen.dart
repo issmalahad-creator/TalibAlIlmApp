@@ -192,28 +192,31 @@ class _StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Card(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
-      child: Row(
-        children: [
-          Icon(icon, color: done ? AppColors.primary : AppColors.textMuted),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                Text(subtitle, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-              ],
+      color: AppColors.surfaceCard,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: const BorderSide(color: AppColors.divider)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: done ? AppColors.primary : AppColors.textMuted),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                  Text(subtitle, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                ],
+              ),
             ),
-          ),
-          if (done)
-            const Icon(Icons.check_circle, color: AppColors.primary)
-          else
-            TextButton(onPressed: onTap, child: Text(actionLabel, style: const TextStyle(fontSize: 12))),
-        ],
+            if (done)
+              const Icon(Icons.check_circle, color: AppColors.primary)
+            else
+              TextButton(onPressed: onTap, child: Text(actionLabel, style: const TextStyle(fontSize: 12))),
+          ],
+        ),
       ),
     );
   }

@@ -67,7 +67,7 @@ class QiblaMapView extends StatelessWidget {
           right: 12,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)]),
+            decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(AppRadius.sm), boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)]),
             child: Text('المسافة إلى الكعبة: ${distanceKm.toStringAsFixed(0)} كم', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
           ),
         ),

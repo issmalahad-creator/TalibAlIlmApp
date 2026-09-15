@@ -483,19 +483,22 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-      child: Column(
-        children: [
-          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
-          if (subtitle != null) ...[
-            const SizedBox(height: 1),
-            Text(subtitle!, style: const TextStyle(fontSize: 10.5, color: AppColors.primary, fontWeight: FontWeight.w600)),
+    return Card(
+      color: AppColors.surfaceCard,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md), side: const BorderSide(color: AppColors.divider)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          children: [
+            Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+            if (subtitle != null) ...[
+              const SizedBox(height: 1),
+              Text(subtitle!, style: const TextStyle(fontSize: 10.5, color: AppColors.primary, fontWeight: FontWeight.w600)),
+            ],
+            const SizedBox(height: 2),
+            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           ],
-          const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-        ],
+        ),
       ),
     );
   }
@@ -667,25 +670,28 @@ class _SunViewState extends State<_SunView> {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(14), border: Border.all(color: AppColors.divider)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: const [
-                  Icon(Icons.wb_shade_outlined, color: AppColors.textMuted, size: 18),
-                  SizedBox(width: 8),
-                  Text('أو بطريقة الظل', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'إن كانت الشمس قوية على عينيك، انظر إلى ظل أي شيء عمودي (عصا، عمود) بدلًا منها — الظل الآن يشير إلى ${shadowAzimuth.toStringAsFixed(0)}°، أي بعيدًا عن الشمس تمامًا. قف وظلك في هذا الاتجاه، ثم استدر ${turn.abs().toStringAsFixed(0)}° نحو ${turnRight ? "يمينك" : "يسارك"} كما في الطريقة الأولى.',
-                style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
-              ),
-            ],
+        Card(
+          color: AppColors.surfaceCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md), side: const BorderSide(color: AppColors.divider)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: const [
+                    Icon(Icons.wb_shade_outlined, color: AppColors.textMuted, size: 18),
+                    SizedBox(width: 8),
+                    Text('أو بطريقة الظل', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'إن كانت الشمس قوية على عينيك، انظر إلى ظل أي شيء عمودي (عصا، عمود) بدلًا منها — الظل الآن يشير إلى ${shadowAzimuth.toStringAsFixed(0)}°، أي بعيدًا عن الشمس تمامًا. قف وظلك في هذا الاتجاه، ثم استدر ${turn.abs().toStringAsFixed(0)}° نحو ${turnRight ? "يمينك" : "يسارك"} كما في الطريقة الأولى.',
+                  style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 12),
