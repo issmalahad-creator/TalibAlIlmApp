@@ -122,16 +122,19 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.divider)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(timeAccountabilityHadith, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'Amiri', fontSize: 16, height: 1.9, color: AppColors.textDark)),
-                      const SizedBox(height: 10),
-                      Text(timeAccountabilityHadithSource, textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                    ],
+                Card(
+                  color: AppColors.surfaceCard,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: const BorderSide(color: AppColors.divider)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(timeAccountabilityHadith, textAlign: TextAlign.right, style: const TextStyle(fontFamily: 'Amiri', fontSize: 16, height: 1.9, color: AppColors.textDark)),
+                        const SizedBox(height: 10),
+                        Text(timeAccountabilityHadithSource, textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
