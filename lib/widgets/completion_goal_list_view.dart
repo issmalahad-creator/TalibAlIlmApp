@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 
 import '../l10n/basic_translations.dart';
 import '../models/personal_book.dart';
@@ -70,7 +71,11 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   // §2.3 field 5 — a day-count stepper replaces the raw calendar picker;
   // `target_date` is only ever computed internally from this at creation
   // time (today + durationDays), never shown to the user as a date here.
+  // `durationDays` is the source of truth used at creation; `durationController`
+  // is kept in sync with it (both directions) so typing a number directly
+  // and tapping −/+ never disagree.
   int durationDays = 30;
+  final durationController = TextEditingController(text: '30');
   final repo = CompletionGoalRepository();
 
   // §2.3 grain 3.1 — the two simplest fields: an explicit colour pick
@@ -152,15 +157,40 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
               children: [
                 IconButton(
                   icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: durationDays > 1 ? () => setSheetState(() => durationDays--) : null,
+                  onPressed: durationDays > 1
+                      ? () => setSheetState(() {
+                            durationDays--;
+                            durationController.text = '$durationDays';
+                          })
+                      : null,
                 ),
                 SizedBox(
-                  width: 56,
-                  child: Text('$durationDays', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  width: 72,
+                  child: TextField(
+                    controller: durationController,
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                    decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
+                    // A value < 1 (or an empty/unparsable field, since
+                    // digitsOnly already blocks "-") is silently ignored —
+                    // durationDays just keeps its last valid value rather
+                    // than crashing or accepting a bad plan length.
+                    onChanged: (v) {
+                      final parsed = int.tryParse(v);
+                      if (parsed != null && parsed >= 1) {
+                        setSheetState(() => durationDays = parsed);
+                      }
+                    },
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => setSheetState(() => durationDays++),
+                  onPressed: () => setSheetState(() {
+                    durationDays++;
+                    durationController.text = '$durationDays';
+                  }),
                 ),
               ],
             ),
@@ -173,7 +203,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   contentType: contentType,
                   bookRef: bookRef,
                   totalUnits: totalUnits,
-                  targetDate: hijriDateStringForDate(DateTime.now().add(Duration(days: durationDays))),
+                  targetDate: hijriDateStringForDate(DateTime.now().add(Duration(days: durationDays < 1 ? 1 : durationDays))),
                   name: typedName.isEmpty ? null : typedName,
                   colorIndex: selectedColorIndex,
                 );
