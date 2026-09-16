@@ -56,11 +56,17 @@ Future<List<(String, String?, String, int)>> _personalBookOptions(String lang) a
 /// create a plan). Exactly one implementation; callers only differ in what
 /// they do with [onCreated] (typically reloading their own
 /// `CompletionGoalListView` via its `GlobalKey`).
-Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onCreated}) async {
+/// [lockedContentType], when passed, fixes the plan to that one
+/// `content_type` (e.g. the mushaf reader's "الختمات" popup only ever
+/// creates `quran_reading` plans — the type picker + "أضف من مكتبتك" hint
+/// would be dead weight there) and hides the type picker entirely. The
+/// full "خطط ختمي" screen calls this with no lock, so its picker (reading
+/// vs memorization vs any book, personal library included) is unchanged.
+Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onCreated, String? lockedContentType}) async {
   final lang = LanguagePreferenceService.currentLanguage;
-  final personalOptions = await _personalBookOptions(lang);
+  final personalOptions = lockedContentType == null ? await _personalBookOptions(lang) : <(String, String?, String, int)>[];
   final allOptions = [..._fixedGoalOptions, ...personalOptions];
-  var selected = allOptions.first;
+  var selected = lockedContentType == null ? allOptions.first : allOptions.firstWhere((o) => o.$1 == lockedContentType);
   // §2.3 field 5 — a day-count stepper replaces the raw calendar picker;
   // `target_date` is only ever computed internally from this at creation
   // time (today + durationDays), never shown to the user as a date here.
@@ -122,15 +128,16 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
             const SizedBox(height: 4),
             TextField(controller: nameController),
             const SizedBox(height: 16),
-            DropdownButton<(String, String?, String, int)>(
-              isExpanded: true,
-              value: selected,
-              items: allOptions
-                  .map((o) => DropdownMenuItem(value: o, child: Text(_resolveOptionLabel(o.$3, lang), overflow: TextOverflow.ellipsis)))
-                  .toList(),
-              onChanged: (v) => setSheetState(() => selected = v!),
-            ),
-            if (personalOptions.isEmpty)
+            if (lockedContentType == null)
+              DropdownButton<(String, String?, String, int)>(
+                isExpanded: true,
+                value: selected,
+                items: allOptions
+                    .map((o) => DropdownMenuItem(value: o, child: Text(_resolveOptionLabel(o.$3, lang), overflow: TextOverflow.ellipsis)))
+                    .toList(),
+                onChanged: (v) => setSheetState(() => selected = v!),
+              ),
+            if (lockedContentType == null && personalOptions.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Text(

@@ -632,7 +632,7 @@ class _MushafSemanticReaderScreenState
                   IconButton(
                     tooltip: basicText('create_plan_action', lang),
                     icon: const Icon(Icons.add),
-                    onPressed: () => openNewCompletionGoalSheet(sheetContext, onCreated: () => listKey.currentState?.reload()),
+                    onPressed: () => openNewCompletionGoalSheet(sheetContext, onCreated: () => listKey.currentState?.reload(), lockedContentType: 'quran_reading'),
                   ),
                 ],
               ),
