@@ -18,6 +18,7 @@ import '../services/language_preference_service.dart';
 import '../services/quran_audio/quran_audio_provider_registry.dart';
 import '../services/quran_audio_engine.dart';
 import '../widgets/companion_floating_bubble.dart';
+import '../widgets/completion_goal_list_view.dart';
 import '../widgets/mushaf_page_view.dart';
 import '../theme/app_theme.dart';
 import '../theme/tajweed_palette.dart';
@@ -602,6 +603,49 @@ class _MushafSemanticReaderScreenState
     );
   }
 
+  /// Persistent "الختمات" entry point (KHATM_SYSTEM_AND_STYLE_REFERENCE.md
+  /// §2.2) — a bottom sheet, filtered to `quran_reading` goals only, that
+  /// opens *over* this reader screen (the mushaf page stays visible behind
+  /// it). Reuses `CompletionGoalListView` — the same list/card widget the
+  /// full "خطط ختمي" screen uses — with its opt-in colour-stripe +
+  /// percentage decoration turned on. The header's "+" reuses the exact
+  /// same creation wizard as the full screen's FAB (Ismail 2026-09-16: the
+  /// reader user shouldn't have to leave and come back just to start a
+  /// plan) — still no *new* wizard built here, per §2.3 being a later grain.
+  Future<void> _openKhatmSheet(String lang) async {
+    final listKey = GlobalKey<CompletionGoalListViewState>();
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(basicText('khatm_reading_plans_short', lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                  ),
+                  IconButton(
+                    tooltip: basicText('create_plan_action', lang),
+                    icon: const Icon(Icons.add),
+                    onPressed: () => openNewCompletionGoalSheet(sheetContext, onCreated: () => listKey.currentState?.reload()),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: CompletionGoalListView(key: listKey, contentTypeFilter: 'quran_reading', showStripeAndPercent: true),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// A single small pill under the page while «وضع التجويد» is on — `تجويد ▾`
   /// — opens the collapsible legend sheet. Zero permanent screen cost.
   Widget _tajweedLegendPill(String lang) {
@@ -1010,6 +1054,11 @@ class _MushafSemanticReaderScreenState
                   ? Icons.wb_sunny_rounded
                   : Icons.nightlight_outlined),
               onPressed: () => _setNight(!_night),
+            ),
+            IconButton(
+              tooltip: basicText('khatm_reading_plans_short', lang),
+              icon: const Icon(Icons.flag_circle_outlined),
+              onPressed: () => _openKhatmSheet(lang),
             ),
             IconButton(
               tooltip: basicText('mushaf_index_surahs', lang),

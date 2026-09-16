@@ -128,6 +128,15 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'میرے تکمیل کے منصوبے', 'tr': 'Hatim Planlarım', 'id': 'Rencana Khatam Saya', 'bn': 'আমার সমাপ্তি পরিকল্পনা', 'ha': 'Shirye-shiryen Kammalawa',
     'so': 'Qorshayaashayda Dhamaystirka', 'fa': 'برنامه‌های ختم من', 'ms': 'Rancangan Khatam Saya',
   },
+  // Short generic form (no possessive "my") for the mushaf reader's
+  // persistent "الختمات" entry point + its filtered bottom-sheet title
+  // (KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2.2) — distinct from
+  // 'completion_plans' which labels the full "خطط ختمي" screen/nav tile.
+  'khatm_reading_plans_short': {
+    'ar': 'الختمات', 'en': 'Completion Plans', 'am': 'የማጠናቀቂያ እቅዶች', 'fr': 'Plans de complétion', 'sw': 'Mipango ya Kukamilisha',
+    'ur': 'تکمیل کے منصوبے', 'tr': 'Hatim Planları', 'id': 'Rencana Khatam', 'bn': 'সমাপ্তি পরিকল্পনা', 'ha': 'Shirye-shiryen Kammalawa',
+    'so': 'Qorshayaasha Dhamaystirka', 'fa': 'برنامه‌های ختم', 'ms': 'Rancangan Khatam',
+  },
   'support_faq': {
     'ar': 'الدعم والأسئلة الشائعة', 'en': 'Support & FAQ', 'am': 'ድጋፍ እና ተደጋጋሚ ጥያቄዎች', 'fr': 'Assistance et FAQ', 'sw': 'Msaada na Maswali',
     'ur': 'مدد اور اکثر پوچھے گئے سوالات', 'tr': 'Destek ve SSS', 'id': 'Dukungan & FAQ', 'bn': 'সহায়তা ও সাধারণ প্রশ্ন', 'ha': 'Taimako da Tambayoyi',
