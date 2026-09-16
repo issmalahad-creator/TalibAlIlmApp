@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 64,
+      version: 65,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -104,6 +104,7 @@ class DatabaseHelper {
         await _createV62Tables(db);
         await _createV63Tables(db);
         await _createV64Tables(db);
+        await _createV65Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -180,6 +181,7 @@ class DatabaseHelper {
         if (oldVersion < 62) await _createV62Tables(db);
         if (oldVersion < 63) await _createV63Tables(db);
         if (oldVersion < 64) await _createV64Tables(db);
+        if (oldVersion < 65) await _createV65Tables(db);
       },
     );
   }
@@ -2399,6 +2401,75 @@ class DatabaseHelper {
   Future<void> _createV64Tables(Database db) async {
     await db.delete('tafsir_entries',
         where: 'source IN (?, ?)', whereArgs: ['albanian_rwwad', 'uzbek_rwwad']);
+  }
+
+  /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2 (Ismail, 2026-09-16) — the
+  /// foundation for multiple independent completion goals ("ختمات"). Each
+  /// goal's own progress now lives here, keyed by its own id, entirely
+  /// separate from the *global* trackers (`quran_reading_progress`,
+  /// `memorization_progress`, each book's own progress table) that 10+
+  /// other files/features already own and keep updating independently —
+  /// `CompletionGoalRepository` never reads or writes those tables for a
+  /// goal's progress again after this migration.
+  ///
+  /// The backfill below is a ONE-TIME value copy for every currently-active
+  /// goal, from whichever global tracker it used to read live from — so an
+  /// existing real completion plan doesn't appear to reset to zero the
+  /// moment this ships. It is not a live link: from here on, a goal's
+  /// position only ever changes via `CompletionGoalRepository
+  /// .recordProgress`.
+  Future<void> _createV65Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE completion_goal_progress (
+        goal_id INTEGER PRIMARY KEY REFERENCES completion_goals(id),
+        last_position INTEGER NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    final activeGoals = await db.query('completion_goals', where: "status = 'active'");
+    final now = DateTime.now().toIso8601String();
+    for (final g in activeGoals) {
+      final contentType = g['content_type'] as String;
+      final bookRef = g['book_ref'] as String?;
+      final goalId = g['id'] as int;
+      int position;
+      switch (contentType) {
+        case 'quran_reading':
+          final rows = await db.query('quran_reading_progress', where: 'id = 1', limit: 1);
+          position = rows.isEmpty ? 0 : (rows.first['last_page'] as int? ?? 0);
+        case 'quran_memorization':
+          position = Sqflite.firstIntValue(
+                await db.rawQuery("SELECT COUNT(*) FROM memorization_progress WHERE status != 'not_started'"),
+              ) ??
+              0;
+        case 'personal_book':
+          final rows = await db.query('book_bookmarks',
+              where: 'book_key = ?', whereArgs: ['personal_$bookRef'], limit: 1);
+          position = rows.isEmpty ? 0 : (rows.first['last_page'] as int? ?? 0);
+        case 'book':
+          final table = switch (bookRef) {
+            'zad_almaad' => ('zad_almaad_progress', 'read_done'),
+            'madarij' => ('madarij_progress', 'read_done'),
+            'wasitiyyah' => ('wasitiyyah_progress', 'memorized'),
+            'nawawi_hadith' => ('hadith_progress', 'memorized'),
+            _ => null,
+          };
+          position = table == null
+              ? 0
+              : Sqflite.firstIntValue(
+                    await db.rawQuery('SELECT COUNT(*) FROM ${table.$1} WHERE ${table.$2} = 1'),
+                  ) ??
+                  0;
+        default:
+          position = 0;
+      }
+      await db.insert('completion_goal_progress', {
+        'goal_id': goalId,
+        'last_position': position,
+        'updated_at': now,
+      });
+    }
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

@@ -221,36 +221,44 @@ class CompletionGoalRepository {
     }
   }
 
+  /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2 (Ismail, 2026-09-16) — this used
+  /// to read live from whichever *global* tracker matched the goal's
+  /// content_type (`quran_reading_progress`, `memorization_progress`, a
+  /// book's own progress table...). Those tables aren't owned by this
+  /// feature — `quran_reading_progress` alone backs the mushaf reader's own
+  /// "continue reading" position across 10 other files, plus
+  /// `WirdRepository`'s independent "read today" check — so two
+  /// simultaneous completion goals for the same content_type always showed
+  /// identical progress (both reading the one shared value), and this
+  /// method writing to those tables would have silently affected those
+  /// unrelated features too. A completion goal now owns its progress in
+  /// `completion_goal_progress`, keyed by its own id, entirely separate
+  /// from every global tracker — see `recordProgress` for the write side.
+  /// No row yet (a goal created before this migration's one-time backfill,
+  /// edge case aside) simply reads as 0, same as "just started".
   Future<int> _currentPosition(CompletionGoal goal) async {
     final db = await DatabaseHelper.instance.database;
-    switch (goal.contentType) {
-      case 'quran_reading':
-        final rows = await db.query('quran_reading_progress', where: 'id = 1', limit: 1);
-        return rows.isEmpty ? 0 : (rows.first['last_page'] as int? ?? 0);
-      case 'quran_memorization':
-        return Sqflite.firstIntValue(
-              await db.rawQuery("SELECT COUNT(*) FROM memorization_progress WHERE status != 'not_started'"),
-            ) ??
-            0;
-      case 'personal_book':
-        // Reuses the existing book_bookmarks tracking already maintained by
-        // BookViewerScreen (flutter_pdfview's own page callbacks) — no new
-        // position-tracking needed for this content type at all.
-        final rows = await db.query('book_bookmarks', where: 'book_key = ?', whereArgs: ['personal_${goal.bookRef}'], limit: 1);
-        return rows.isEmpty ? 0 : (rows.first['last_page'] as int? ?? 0);
-      case 'book':
-        final table = switch (goal.bookRef) {
-          'zad_almaad' => ('zad_almaad_progress', 'read_done'),
-          'madarij' => ('madarij_progress', 'read_done'),
-          'wasitiyyah' => ('wasitiyyah_progress', 'memorized'),
-          'nawawi_hadith' => ('hadith_progress', 'memorized'),
-          _ => null,
-        };
-        if (table == null) return 0;
-        return Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM ${table.$1} WHERE ${table.$2} = 1')) ?? 0;
-      default:
-        return 0;
-    }
+    final rows = await db.query('completion_goal_progress', where: 'goal_id = ?', whereArgs: [goal.id], limit: 1);
+    return rows.isEmpty ? 0 : (rows.first['last_position'] as int? ?? 0);
+  }
+
+  /// "أتممت الورد" — the one write path for a completion goal's own
+  /// progress. Writes *only* to `completion_goal_progress` for this
+  /// `goalId` — deliberately never touches `quran_reading_progress`,
+  /// `memorization_progress`, or any other global tracker, so marking a
+  /// goal's daily portion done here never moves the mushaf reader's
+  /// "continue reading" bookmark (or any other unrelated feature), and
+  /// reading a page in the mushaf never advances a goal's own progress
+  /// either — the two concepts stay fully independent until a future
+  /// explicit decision links them. Upserts, so calling it again for the
+  /// same goal just corrects/advances the position rather than erroring.
+  Future<void> recordProgress(int goalId, int position) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.insert(
+      'completion_goal_progress',
+      {'goal_id': goalId, 'last_position': position, 'updated_at': DateTime.now().toIso8601String()},
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   CompletionGoal _toGoal(Map<String, Object?> row) => CompletionGoal(
