@@ -14,6 +14,21 @@ class CompletionGoal {
   final String targetDate;
   final double dailyTarget;
   final String status;
+
+  /// §2.3 grain 3.1 — an optional user-chosen display name. Null for every
+  /// goal created before this field existed, and for goals whose creator
+  /// left the field at its suggested default without changing it (the
+  /// wizard still sends that suggested text through, so a non-null [name]
+  /// here always reflects something the user saw and kept/typed) — falls
+  /// back to [displayLabel]/[displayLabelFor] when null.
+  final String? name;
+
+  /// §2.3 grain 3.1 — an optional explicit index into the fixed 5-colour
+  /// tab palette (`kKhatmTabColors`). Null means "not chosen" — the caller
+  /// (`_GoalCard`) falls back to the existing cyclic-by-creation-order
+  /// colour, unchanged for every goal created before this field existed.
+  final int? colorIndex;
+
   CompletionGoal({
     required this.id,
     required this.contentType,
@@ -23,6 +38,8 @@ class CompletionGoal {
     required this.targetDate,
     required this.dailyTarget,
     required this.status,
+    this.name,
+    this.colorIndex,
   });
 
   /// For 'personal_book' goals, `bookRef` is the personal_books.id — the
@@ -43,12 +60,17 @@ class CompletionGoal {
   /// Same as [displayLabel] but translated for the two Quran plan types
   /// (UI-chrome feature names). Specific book/curriculum titles (Zad
   /// al-Ma'ad, Madarij, al-Wasitiyyah, al-Arbain) stay Arabic — they're
-  /// real classical-text titles, not chrome.
-  String displayLabelFor(String lang) => switch ((contentType, bookRef)) {
-        ('quran_reading', _) => basicText('goal_quran_reading_label', lang),
-        ('quran_memorization', _) => basicText('goal_quran_memorization_label', lang),
-        _ => displayLabel,
-      };
+  /// real classical-text titles, not chrome. A user-set [name] wins over
+  /// both when present (grain 3.1).
+  String displayLabelFor(String lang) {
+    final n = name;
+    if (n != null && n.trim().isNotEmpty) return n;
+    return switch ((contentType, bookRef)) {
+      ('quran_reading', _) => basicText('goal_quran_reading_label', lang),
+      ('quran_memorization', _) => basicText('goal_quran_memorization_label', lang),
+      _ => displayLabel,
+    };
+  }
 
   /// The unit this goal's daily target is counted in — used to render the
   /// "15 صفحة اليوم"-style KPI on both the goal card and its reminder
@@ -94,6 +116,8 @@ class CompletionGoalRepository {
     String? bookRef,
     required int totalUnits,
     required String targetDate,
+    String? name,
+    int? colorIndex,
   }) async {
     final db = await DatabaseHelper.instance.database;
     final start = todayDate();
@@ -107,6 +131,8 @@ class CompletionGoalRepository {
       'target_date': targetDate,
       'daily_target': dailyTarget,
       'status': 'active',
+      'name': name,
+      'color_index': colorIndex,
     });
     return CompletionGoal(
       id: id,
@@ -117,6 +143,8 @@ class CompletionGoalRepository {
       targetDate: targetDate,
       dailyTarget: dailyTarget,
       status: 'active',
+      name: name,
+      colorIndex: colorIndex,
     );
   }
 
@@ -270,6 +298,8 @@ class CompletionGoalRepository {
         targetDate: row['target_date'] as String,
         dailyTarget: row['daily_target'] as double,
         status: row['status'] as String,
+        name: row['name'] as String?,
+        colorIndex: row['color_index'] as int?,
       );
 
   int _daysBetween(String hijriFrom, String hijriTo) {

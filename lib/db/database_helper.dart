@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 65,
+      version: 66,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -105,6 +105,7 @@ class DatabaseHelper {
         await _createV63Tables(db);
         await _createV64Tables(db);
         await _createV65Tables(db);
+        await _createV66Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -182,6 +183,7 @@ class DatabaseHelper {
         if (oldVersion < 63) await _createV63Tables(db);
         if (oldVersion < 64) await _createV64Tables(db);
         if (oldVersion < 65) await _createV65Tables(db);
+        if (oldVersion < 66) await _createV66Tables(db);
       },
     );
   }
@@ -2470,6 +2472,18 @@ class DatabaseHelper {
         'updated_at': now,
       });
     }
+  }
+
+  /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2.3 grain 3.1 (Ismail 2026-09-16)
+  /// — a free-form display name + an explicit tab-colour choice, both
+  /// optional: `name` null falls back to `CompletionGoal.displayLabel`
+  /// (unchanged for every goal created before this migration); `color_index`
+  /// null falls back to the existing cyclic-by-creation-order stripe colour
+  /// (`kKhatmTabColors[i % 5]` in `completion_goal_list_view.dart`) — no
+  /// backfill needed, both columns simply start NULL for existing rows.
+  Future<void> _createV66Tables(Database db) async {
+    await db.execute('ALTER TABLE completion_goals ADD COLUMN name TEXT');
+    await db.execute('ALTER TABLE completion_goals ADD COLUMN color_index INTEGER');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

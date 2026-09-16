@@ -3798,6 +3798,19 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'نیا تکمیل کا منصوبہ', 'tr': 'Yeni Tamamlama Planı', 'id': 'Rencana Khatam Baru', 'bn': 'নতুন সমাপ্তি পরিকল্পনা', 'ha': 'Sabon Tsarin Kammalawa',
     'so': 'Qorshe Dhammaystir Cusub', 'fa': 'برنامه ختم جدید', 'ms': 'Rancangan Khatam Baharu',
   },
+  // §2.3 grain 3.1 — the free-text name field's own label.
+  'khatm_name_field_label': {
+    'ar': 'اسم الختمة', 'en': 'Plan name', 'am': 'የእቅድ ስም', 'fr': 'Nom du plan', 'sw': 'Jina la mpango',
+    'ur': 'منصوبے کا نام', 'tr': 'Plan adı', 'id': 'Nama rencana', 'bn': 'পরিকল্পনার নাম', 'ha': 'Sunan tsari',
+    'so': 'Magaca qorshaha', 'fa': 'نام برنامه', 'ms': 'Nama rancangan',
+  },
+  // §2.3 grain 3.1 — the name field's suggested default, composed with
+  // today's date: "$khatm_default_name_prefix - <date>".
+  'khatm_default_name_prefix': {
+    'ar': 'ختمتي', 'en': 'My Khatm', 'am': 'ኸተሜ', 'fr': 'Mon khatm', 'sw': 'Khatm Yangu',
+    'ur': 'میرا ختم', 'tr': 'Hatmim', 'id': 'Khatam Saya', 'bn': 'আমার খতম', 'ha': 'Kammalawata',
+    'so': 'Khatmkayga', 'fa': 'ختم من', 'ms': 'Khatam Saya',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',

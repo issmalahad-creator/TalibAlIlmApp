@@ -64,6 +64,17 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   DateTime targetDate = DateTime.now().add(const Duration(days: 30));
   final repo = CompletionGoalRepository();
 
+  // §2.3 grain 3.1 — the two simplest fields: an explicit colour pick
+  // (null until tapped, so the existing cyclic stripe colour still applies
+  // if the user never touches this) and a free-text name pre-filled with
+  // the spec's suggested default ("ختمتي - <today>"), which is what gets
+  // saved if the user leaves it untouched — only an explicitly emptied
+  // field falls back to the auto-derived label.
+  int? selectedColorIndex;
+  final nameController = TextEditingController(
+    text: '${basicText('khatm_default_name_prefix', lang)} - ${formatDateForDisplay(hijriDateStringForDate(DateTime.now()))}',
+  );
+
   if (!context.mounted) return;
   await showModalBottomSheet(
     context: context,
@@ -81,6 +92,32 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(basicText('new_completion_plan_title', lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 0; i < kKhatmTabColors.length; i++)
+                  GestureDetector(
+                    onTap: () => setSheetState(() => selectedColorIndex = i),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(radius: 14, backgroundColor: kKhatmTabColors[i]),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: 20,
+                          height: 2,
+                          color: selectedColorIndex == i ? AppColors.primary : Colors.transparent,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(basicText('khatm_name_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            const SizedBox(height: 4),
+            TextField(controller: nameController),
             const SizedBox(height: 16),
             DropdownButton<(String, String?, String, int)>(
               isExpanded: true,
@@ -116,11 +153,14 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
             FilledButton(
               onPressed: () async {
                 final (contentType, bookRef, _, totalUnits) = selected;
+                final typedName = nameController.text.trim();
                 await repo.create(
                   contentType: contentType,
                   bookRef: bookRef,
                   totalUnits: totalUnits,
                   targetDate: hijriDateStringForDate(targetDate),
+                  name: typedName.isEmpty ? null : typedName,
+                  colorIndex: selectedColorIndex,
                 );
                 if (context.mounted) Navigator.pop(context);
                 onCreated?.call();
@@ -284,7 +324,12 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
       itemCount: _statuses.length,
       itemBuilder: (context, i) => _GoalCard(
         status: _statuses[i],
-        stripeColor: widget.showStripeAndPercent ? kKhatmTabColors[i % kKhatmTabColors.length] : null,
+        // grain 3.1 — an explicit `color_index` chosen at creation wins;
+        // null (every goal created before this field, or left unset) falls
+        // back to the original cyclic-by-creation-order colour.
+        stripeColor: widget.showStripeAndPercent
+            ? kKhatmTabColors[(_statuses[i].goal.colorIndex ?? i) % kKhatmTabColors.length]
+            : null,
         onReschedule: () => _reschedule(_statuses[i]),
         onDelete: () => _confirmAndDelete(_statuses[i]),
       ),
@@ -397,6 +442,13 @@ class _GoalTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final lang = LanguagePreferenceService.currentLanguage;
     const style = TextStyle(fontWeight: FontWeight.w800, fontSize: 14);
+    // grain 3.1 — a user-set name wins for every content type, personal
+    // books included; only fall through to the live book-title lookup
+    // below when the goal has no name of its own.
+    final customName = goal.name;
+    if (customName != null && customName.trim().isNotEmpty) {
+      return Text(customName, style: style, overflow: TextOverflow.ellipsis);
+    }
     if (goal.contentType != 'personal_book') {
       return Text(goal.displayLabelFor(lang), style: style);
     }
