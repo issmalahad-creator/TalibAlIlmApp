@@ -3811,6 +3811,13 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'میرا ختم', 'tr': 'Hatmim', 'id': 'Khatam Saya', 'bn': 'আমার খতম', 'ha': 'Kammalawata',
     'so': 'Khatmkayga', 'fa': 'ختم من', 'ms': 'Khatam Saya',
   },
+  // §2.3 field 5, grain "duration stepper" — replaces the raw calendar
+  // target-date picker with a day-count label.
+  'khatm_duration_field_label': {
+    'ar': 'المدة (الأيام)', 'en': 'Duration (days)', 'am': 'ቆይታ (ቀናት)', 'fr': 'Durée (jours)', 'sw': 'Muda (siku)',
+    'ur': 'مدت (دن)', 'tr': 'Süre (gün)', 'id': 'Durasi (hari)', 'bn': 'সময়কাল (দিন)', 'ha': 'Tsawon lokaci (kwanaki)',
+    'so': 'Muddada (maalmo)', 'fa': 'مدت (روز)', 'ms': 'Tempoh (hari)',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',

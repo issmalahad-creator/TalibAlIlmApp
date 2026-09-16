@@ -61,7 +61,10 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   final personalOptions = await _personalBookOptions(lang);
   final allOptions = [..._fixedGoalOptions, ...personalOptions];
   var selected = allOptions.first;
-  DateTime targetDate = DateTime.now().add(const Duration(days: 30));
+  // §2.3 field 5 — a day-count stepper replaces the raw calendar picker;
+  // `target_date` is only ever computed internally from this at creation
+  // time (today + durationDays), never shown to the user as a date here.
+  int durationDays = 30;
   final repo = CompletionGoalRepository();
 
   // §2.3 grain 3.1 — the two simplest fields: an explicit colour pick
@@ -136,18 +139,23 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                 ),
               ),
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.calendar_today_outlined, size: 18),
-              label: Text('${basicText('target_date_prefix', lang)} ${formatDateForDisplay(hijriDateStringForDate(targetDate))}'),
-              onPressed: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: targetDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 3650)),
-                );
-                if (picked != null) setSheetState(() => targetDate = picked);
-              },
+            Text(basicText('khatm_duration_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: durationDays > 1 ? () => setSheetState(() => durationDays--) : null,
+                ),
+                SizedBox(
+                  width: 56,
+                  child: Text('$durationDays', textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () => setSheetState(() => durationDays++),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             FilledButton(
@@ -158,7 +166,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   contentType: contentType,
                   bookRef: bookRef,
                   totalUnits: totalUnits,
-                  targetDate: hijriDateStringForDate(targetDate),
+                  targetDate: hijriDateStringForDate(DateTime.now().add(Duration(days: durationDays))),
                   name: typedName.isEmpty ? null : typedName,
                   colorIndex: selectedColorIndex,
                 );
