@@ -5,6 +5,7 @@ import '../l10n/basic_translations.dart';
 import '../models/personal_book.dart';
 import '../repositories/book_repository.dart';
 import '../repositories/completion_goal_repository.dart';
+import '../repositories/mushaf_layout_repository.dart';
 import '../repositories/personal_book_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
@@ -78,6 +79,15 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   final durationController = TextEditingController(text: '30');
   final repo = CompletionGoalRepository();
 
+  // §2.3 field 4 — a juz-to-juz range, quran_reading/quran_memorization
+  // only (the only content types with a "juz" concept at all; book goals
+  // keep their fixed whole-book totalUnits, no slider shown for them).
+  // Kept as juz numbers while the sheet is open — converted to real mushaf
+  // pages via `MushafLayoutRepository.pageForJuz()` once, only at "إنشاء
+  // الخطة" time, not on every drag frame (avoids a DB round-trip per pixel).
+  RangeValues juzRange = const RangeValues(1, 30);
+  bool isQuranRange(String contentType) => contentType == 'quran_reading' || contentType == 'quran_memorization';
+
   // §2.3 grain 3.1 — the two simplest fields: an explicit colour pick
   // (null until tapped, so the existing cyclic stripe colour still applies
   // if the user never touches this) and a free-text name pre-filled with
@@ -150,6 +160,21 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                 ),
               ),
+            if (isQuranRange(selected.$1)) ...[
+              const SizedBox(height: 16),
+              Text(
+                '${basicText('khatm_range_field_label', lang)}: ${basicText('juz_label', lang)} ${juzRange.start.round()} → ${basicText('juz_label', lang)} ${juzRange.end.round()}',
+                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+              ),
+              RangeSlider(
+                min: 1,
+                max: 30,
+                divisions: 29,
+                labels: RangeLabels('${juzRange.start.round()}', '${juzRange.end.round()}'),
+                values: juzRange,
+                onChanged: (v) => setSheetState(() => juzRange = v),
+              ),
+            ],
             const SizedBox(height: 12),
             Text(basicText('khatm_duration_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
             Row(
@@ -199,6 +224,29 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
               onPressed: () async {
                 final (contentType, bookRef, _, totalUnits) = selected;
                 final typedName = nameController.text.trim();
+                int? startUnit;
+                int? endUnit;
+                if (isQuranRange(contentType)) {
+                  final startJuz = juzRange.start.round();
+                  final endJuz = juzRange.end.round();
+                  final layoutRepo = MushafLayoutRepository();
+                  startUnit = await layoutRepo.pageForJuz(startJuz);
+                  // No juz 31 to derive the end from — the last mushaf page
+                  // is a known constant, not another pageForJuz() call.
+                  if (endJuz == 30) {
+                    endUnit = 604;
+                  } else {
+                    final nextJuzStart = await layoutRepo.pageForJuz(endJuz + 1);
+                    endUnit = nextJuzStart == null ? null : nextJuzStart - 1;
+                  }
+                  // A half-resolved range (one lookup failed) is worse than
+                  // none — fall back to the full mushaf rather than storing
+                  // a mismatched start/end pair.
+                  if (startUnit == null || endUnit == null) {
+                    startUnit = null;
+                    endUnit = null;
+                  }
+                }
                 await repo.create(
                   contentType: contentType,
                   bookRef: bookRef,
@@ -206,6 +254,8 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   targetDate: hijriDateStringForDate(DateTime.now().add(Duration(days: durationDays < 1 ? 1 : durationDays))),
                   name: typedName.isEmpty ? null : typedName,
                   colorIndex: selectedColorIndex,
+                  startUnit: startUnit,
+                  endUnit: endUnit,
                 );
                 if (context.mounted) Navigator.pop(context);
                 onCreated?.call();

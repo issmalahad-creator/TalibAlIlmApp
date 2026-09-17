@@ -3818,6 +3818,13 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'مدت (دن)', 'tr': 'Süre (gün)', 'id': 'Durasi (hari)', 'bn': 'সময়কাল (দিন)', 'ha': 'Tsawon lokaci (kwanaki)',
     'so': 'Muddada (maalmo)', 'fa': 'مدت (روز)', 'ms': 'Tempoh (hari)',
   },
+  // §2.3 field 4 — the juz-to-juz RangeSlider's label, quran_reading/
+  // quran_memorization only.
+  'khatm_range_field_label': {
+    'ar': 'نطاق الختمة', 'en': 'Plan range', 'am': 'የእቅድ ወሰን', 'fr': 'Plage du plan', 'sw': 'Wigo wa mpango',
+    'ur': 'منصوبے کی حد', 'tr': 'Plan aralığı', 'id': 'Rentang rencana', 'bn': 'পরিকল্পনার পরিসীমা', 'ha': 'Iyakar tsari',
+    'so': 'Xudduudka qorshaha', 'fa': 'محدوده برنامه', 'ms': 'Julat rancangan',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',

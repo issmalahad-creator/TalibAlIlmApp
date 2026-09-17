@@ -29,6 +29,15 @@ class CompletionGoal {
   /// colour, unchanged for every goal created before this field existed.
   final int? colorIndex;
 
+  /// §2.3 field 4 grain "partial range" — an optional juz-derived page
+  /// range for `quran_reading`/`quran_memorization` goals only. Both null
+  /// for every book-type goal and every goal created before this field
+  /// existed, meaning "the whole mushaf" (implicitly page 1..totalUnits) —
+  /// [CompletionGoalRepository.statusFor] is the only place that needs to
+  /// know about these; everywhere else just keeps reading [totalUnits].
+  final int? startUnit;
+  final int? endUnit;
+
   CompletionGoal({
     required this.id,
     required this.contentType,
@@ -40,6 +49,8 @@ class CompletionGoal {
     required this.status,
     this.name,
     this.colorIndex,
+    this.startUnit,
+    this.endUnit,
   });
 
   /// For 'personal_book' goals, `bookRef` is the personal_books.id — the
@@ -118,33 +129,43 @@ class CompletionGoalRepository {
     required String targetDate,
     String? name,
     int? colorIndex,
+    int? startUnit,
+    int? endUnit,
   }) async {
     final db = await DatabaseHelper.instance.database;
     final start = todayDate();
     final days = _daysBetween(start, targetDate).clamp(1, 100000);
-    final dailyTarget = totalUnits / days;
+    // §2.3 field 4 — a set range overrides the passed totalUnits (which the
+    // caller, for a ranged goal, computed the same way anyway) so this stays
+    // the one place total_units is derived from a range.
+    final effectiveTotalUnits = (startUnit != null && endUnit != null) ? (endUnit - startUnit + 1) : totalUnits;
+    final dailyTarget = effectiveTotalUnits / days;
     final id = await db.insert('completion_goals', {
       'content_type': contentType,
       'book_ref': bookRef,
-      'total_units': totalUnits,
+      'total_units': effectiveTotalUnits,
       'start_date': start,
       'target_date': targetDate,
       'daily_target': dailyTarget,
       'status': 'active',
       'name': name,
       'color_index': colorIndex,
+      'start_unit': startUnit,
+      'end_unit': endUnit,
     });
     return CompletionGoal(
       id: id,
       contentType: contentType,
       bookRef: bookRef,
-      totalUnits: totalUnits,
+      totalUnits: effectiveTotalUnits,
       startDate: start,
       targetDate: targetDate,
       dailyTarget: dailyTarget,
       status: 'active',
       name: name,
       colorIndex: colorIndex,
+      startUnit: startUnit,
+      endUnit: endUnit,
     );
   }
 
@@ -188,7 +209,18 @@ class CompletionGoalRepository {
   }
 
   Future<CompletionGoalStatus> statusFor(CompletionGoal goal) async {
-    final position = await _currentPosition(goal);
+    final rawPosition = await _currentPosition(goal);
+    // §2.3 field 4 — `_currentPosition` is always an absolute mushaf page
+    // (matches how the reader/`quran_reading_progress` already think, and
+    // how a future "أتممت الورد" write would naturally read the reader's
+    // current page). For a ranged goal that page is normalized here, once,
+    // to "progress within this goal's own total_units" — the only
+    // conversion point, so `CompletionGoalStatus.currentPosition` keeps
+    // meaning exactly what every other reader of it (the card's "X من Y",
+    // its %, the notification KPI) already assumes.
+    final position = goal.startUnit != null
+        ? (rawPosition - goal.startUnit! + 1).clamp(0, goal.totalUnits)
+        : rawPosition;
     final remaining = (goal.totalUnits - position).clamp(0, goal.totalUnits);
     final daysLeft = _daysBetween(todayDate(), goal.targetDate);
     final recalculated = daysLeft > 0 ? remaining / daysLeft : remaining.toDouble();
@@ -300,6 +332,8 @@ class CompletionGoalRepository {
         status: row['status'] as String,
         name: row['name'] as String?,
         colorIndex: row['color_index'] as int?,
+        startUnit: row['start_unit'] as int?,
+        endUnit: row['end_unit'] as int?,
       );
 
   int _daysBetween(String hijriFrom, String hijriTo) {

@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 66,
+      version: 67,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -106,6 +106,7 @@ class DatabaseHelper {
         await _createV64Tables(db);
         await _createV65Tables(db);
         await _createV66Tables(db);
+        await _createV67Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -184,6 +185,7 @@ class DatabaseHelper {
         if (oldVersion < 64) await _createV64Tables(db);
         if (oldVersion < 65) await _createV65Tables(db);
         if (oldVersion < 66) await _createV66Tables(db);
+        if (oldVersion < 67) await _createV67Tables(db);
       },
     );
   }
@@ -2484,6 +2486,19 @@ class DatabaseHelper {
   Future<void> _createV66Tables(Database db) async {
     await db.execute('ALTER TABLE completion_goals ADD COLUMN name TEXT');
     await db.execute('ALTER TABLE completion_goals ADD COLUMN color_index INTEGER');
+  }
+
+  /// §2.3 field 4 grain "partial range" (Ismail 2026-09-16) — an optional
+  /// juz-to-juz range for `quran_reading`/`quran_memorization` goals only.
+  /// Both NULL by default: every pre-existing goal, and every book-type
+  /// goal (no juz concept), keeps reading `total_units` directly exactly as
+  /// before — zero retroactive effect. When a range IS set,
+  /// `CompletionGoalRepository.create()` computes `total_units` from it
+  /// once at creation and stores that alongside, so every other read site
+  /// (status calc, reschedule, notification KPI) needs no change at all.
+  Future<void> _createV67Tables(Database db) async {
+    await db.execute('ALTER TABLE completion_goals ADD COLUMN start_unit INTEGER');
+    await db.execute('ALTER TABLE completion_goals ADD COLUMN end_unit INTEGER');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried
