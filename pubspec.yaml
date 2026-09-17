@@ -67,6 +67,12 @@ dependencies:
   speech_to_text: ^7.0.0
   sherpa_onnx: ^1.13.8
 
+  # docs/audio-reader/TEXT_SOURCE_ADAPTERS.md §7.1 — trying pdfrx (MIT, built
+  # on PDFium) as a PersonalLibraryTextSource candidate: mature (443k
+  # downloads/mo), no archive/image transitive deps (unlike the dart-pdf
+  # family, which conflicted with the existing excel dependency).
+  pdfrx: ^2.4.5
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
