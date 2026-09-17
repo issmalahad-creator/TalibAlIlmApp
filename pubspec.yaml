@@ -65,6 +65,7 @@ dependencies:
   flutter_rotation_sensor: ^0.3.1
   flutter_svg: ^2.0.10+1
   speech_to_text: ^7.0.0
+  sherpa_onnx: ^1.13.8
 
 dev_dependencies:
   flutter_test:
@@ -215,6 +216,11 @@ flutter:
     # served from the separate android/app/src/main/res/raw copy, which
     # Android requires as a native resource rather than a Flutter asset.
     - assets/audio/adhan_beautiful.ogg
+    # القارئ الصوتي العام (docs/audio-reader/) — Piper TTS، صوت ar_JO-kareem-medium
+    # (MIT license، rhasspy/piper-voices). مقعد اختيار القارئ في
+    # TEXT_SOURCE_ADAPTERS.md §5 — voiceId يحدد أي صف من هذه الأصول يُستخدَم.
+    - assets/tts/ar_JO-kareem-medium.onnx
+    - assets/tts/ar_JO-kareem-medium.onnx.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

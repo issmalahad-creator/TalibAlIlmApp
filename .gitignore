@@ -82,4 +82,14 @@ lib/config/app_config.dart
 /nasekh-book-*.json.gz
 /fatwas.json.gz
 /Quran-Data-version-2.0.zip
+
+# القارئ الصوتي العام (docs/audio-reader/TODO.md 1.1): صوت Piper المُعاد
+# تعبئته لـsherpa_onnx (رخصة MIT، rhasspy/piper-voices via
+# csukuangfj/vits-piper-ar_JO-kareem-medium) — ~63 م.ب، بناء-فقط، لا يُلتزَم
+# به. جلبه عبر tool/fetch_tts_voice.sh. pubspec.yaml يفترض وجوده محليًا وقت
+# البناء فقط، مثل سياسة tool/fetch_tajweed_source.sh أعلاه تمامًا.
+/assets/tts/*.onnx
+/assets/tts/*.onnx.json
+/assets/tts/tokens.txt
+/assets/tts/espeak-ng-data/
 /Quran-Data-version-2.0/
