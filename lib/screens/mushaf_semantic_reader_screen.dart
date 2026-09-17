@@ -638,7 +638,12 @@ class _MushafSemanticReaderScreenState
               ),
             ),
             Expanded(
-              child: CompletionGoalListView(key: listKey, contentTypeFilter: 'quran_reading', showStripeAndPercent: true),
+              child: CompletionGoalListView(
+                key: listKey,
+                contentTypeFilter: 'quran_reading',
+                showStripeAndPercent: true,
+                currentPageHint: _current,
+              ),
             ),
           ],
         ),

@@ -356,7 +356,15 @@ class CompletionGoalListView extends StatefulWidget {
   /// plain original card is untouched.
   final bool showStripeAndPercent;
 
-  const CompletionGoalListView({super.key, this.contentTypeFilter, this.showStripeAndPercent = false});
+  /// §2.3 item 4, "متبقي اليوم" — a suggested default for each card's
+  /// "سجّل موضعك" entry field, read once from the mushaf reader's own
+  /// current-page state by the caller (e.g. `_current` in
+  /// `MushafSemanticReaderScreen`) when this list is shown inside the
+  /// reader's own "الختمات" sheet. Null (the full "خطط ختمي" screen, with
+  /// no live reader context) just leaves every card's field blank.
+  final int? currentPageHint;
+
+  const CompletionGoalListView({super.key, this.contentTypeFilter, this.showStripeAndPercent = false, this.currentPageHint});
 
   @override
   State<CompletionGoalListView> createState() => CompletionGoalListViewState();
@@ -419,6 +427,14 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
     }
   }
 
+  /// §2.3 item 4 — "سجّل موضعك" confirm action. Calls the existing
+  /// `recordProgress` (the one write path for a goal's own progress, see
+  /// its own doc comment) with no new write logic of its own.
+  Future<void> _recordProgress(CompletionGoalStatus s, int page) async {
+    await _repo.recordProgress(s.goal.id, page);
+    reload();
+  }
+
   Future<void> _reschedule(CompletionGoalStatus s) async {
     final picked = await showDatePicker(
       context: context,
@@ -471,39 +487,94 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
         ),
       );
     }
-    return ListView.builder(
+    // A plain Column in a SingleChildScrollView, not ListView.builder — this
+    // list is always a handful of goals (never worth lazy-building), and a
+    // Sliver-based list's lazy-child machinery (AutomaticKeepAlive/KeepAlive/
+    // RepaintBoundary) left the sliver's own layout permanently unresolved
+    // the moment a card contained a real TextField (confirmed live: a real
+    // device render-tree dump showed `geometry: null` / "currently live
+    // children: 0 to 0" indefinitely, reproduced identically whether this
+    // list was inside a modal sheet or a plain pushed screen — removing the
+    // TextField alone fixed it, isolating the cause to Sliver+TextField, not
+    // to anything specific to this widget's card layout). A plain Column
+    // sidesteps that machinery entirely.
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-      itemCount: _statuses.length,
-      itemBuilder: (context, i) => _GoalCard(
-        status: _statuses[i],
-        // grain 3.1 — an explicit `color_index` chosen at creation wins;
-        // null (every goal created before this field, or left unset) falls
-        // back to the original cyclic-by-creation-order colour.
-        stripeColor: widget.showStripeAndPercent
-            ? kKhatmTabColors[(_statuses[i].goal.colorIndex ?? i) % kKhatmTabColors.length]
-            : null,
-        onReschedule: () => _reschedule(_statuses[i]),
-        onDelete: () => _confirmAndDelete(_statuses[i]),
+      child: Column(
+        children: [
+          for (var i = 0; i < _statuses.length; i++)
+            _GoalCard(
+              status: _statuses[i],
+              // grain 3.1 — an explicit `color_index` chosen at creation
+              // wins; null (every goal created before this field, or left
+              // unset) falls back to the original cyclic-by-creation-order
+              // colour.
+              stripeColor: widget.showStripeAndPercent
+                  ? kKhatmTabColors[(_statuses[i].goal.colorIndex ?? i) % kKhatmTabColors.length]
+                  : null,
+              currentPageHint: widget.currentPageHint,
+              onReschedule: () => _reschedule(_statuses[i]),
+              onDelete: () => _confirmAndDelete(_statuses[i]),
+              onRecordProgress: (page) => _recordProgress(_statuses[i], page),
+            ),
+        ],
       ),
     );
   }
 }
 
-class _GoalCard extends StatelessWidget {
+class _GoalCard extends StatefulWidget {
   final CompletionGoalStatus status;
   final Color? stripeColor;
+  final int? currentPageHint;
   final VoidCallback onReschedule;
   final VoidCallback onDelete;
-  const _GoalCard({required this.status, required this.stripeColor, required this.onReschedule, required this.onDelete});
+  final ValueChanged<int> onRecordProgress;
+  const _GoalCard({
+    required this.status,
+    required this.stripeColor,
+    required this.currentPageHint,
+    required this.onReschedule,
+    required this.onDelete,
+    required this.onRecordProgress,
+  });
 
-  (Color, String) _badge(String lang) => switch (status.scheduleStatus) {
+  @override
+  State<_GoalCard> createState() => _GoalCardState();
+}
+
+class _GoalCardState extends State<_GoalCard> {
+  late final TextEditingController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = TextEditingController(text: widget.currentPageHint?.toString() ?? '');
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  (Color, String) _badge(String lang) => switch (widget.status.scheduleStatus) {
         ScheduleStatus.ahead => (AppColors.primary, basicText('ahead_of_plan_badge', lang)),
         ScheduleStatus.onTrack => (AppColors.primaryDark, basicText('on_track_badge', lang)),
         ScheduleStatus.behind => (AppColors.textMuted, basicText('behind_plan_badge', lang)),
       };
 
+  void _confirmPosition() {
+    final parsed = int.tryParse(_pageController.text.trim());
+    // An empty/unparsable/negative entry is silently ignored — same
+    // no-crash-on-bad-input treatment as the wizard's duration field.
+    if (parsed != null && parsed >= 0) widget.onRecordProgress(parsed);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final status = widget.status;
+    final stripeColor = widget.stripeColor;
     final lang = LanguagePreferenceService.currentLanguage;
     final (color, label) = _badge(lang);
     final g = status.goal;
@@ -539,13 +610,54 @@ class _GoalCard extends StatelessWidget {
                 : basicText('target_date_passed_message', lang),
             style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
           ),
+          const SizedBox(height: 4),
+          // §2.3 item 4 — "متبقي اليوم": the one quantitative figure shown
+          // (never a separate "تأخر" number), a no-blame reframing of any
+          // catch-up backlog as simply what's due today.
+          Text(
+            status.pagesRemainingToday > 0
+                ? '${basicText('khatm_remaining_today_prefix', lang)} ${status.pagesRemainingToday} ${g.unitLabel}'
+                : basicText('khatm_completed_today_label', lang),
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: status.pagesRemainingToday > 0 ? AppColors.primaryDark : AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          // The save action lives as the field's own suffixIcon, not a
+          // sibling FilledButton.tonal in the Row — a live render-tree dump
+          // isolated FilledButton.tonal (specifically, next to this
+          // TextField in this list) as the one thing that left the sliver's
+          // layout permanently unresolved (`geometry: null`, `size: MISSING`
+          // cascading down from the card); every other piece of this field
+          // (controller, keyboardType, inputFormatters, decoration with a
+          // floating label + OutlineInputBorder) was bisected clean.
+          TextField(
+            controller: _pageController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            style: const TextStyle(fontSize: 13),
+            decoration: InputDecoration(
+              isDense: true,
+              labelText: basicText('khatm_record_position_label', lang),
+              labelStyle: const TextStyle(fontSize: 12),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
+              suffixIcon: IconButton(
+                tooltip: basicText('save_action', lang),
+                icon: const Icon(Icons.check_circle_outline),
+                onPressed: _confirmPosition,
+              ),
+            ),
+          ),
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextButton(onPressed: onReschedule, child: Text(basicText('reschedule_plan_action', lang), style: const TextStyle(fontSize: 12))),
+              TextButton(onPressed: widget.onReschedule, child: Text(basicText('reschedule_plan_action', lang), style: const TextStyle(fontSize: 12))),
               TextButton.icon(
-                onPressed: onDelete,
+                onPressed: widget.onDelete,
                 icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
                 label: Text(basicText('delete_plan_action', lang), style: const TextStyle(fontSize: 12, color: Colors.redAccent)),
               ),
@@ -564,19 +676,25 @@ class _GoalCard extends StatelessWidget {
       );
     }
 
+    // Stack, not IntrinsicHeight+Row — an IntrinsicHeight ancestor forces an
+    // intrinsic-dimension layout pass on every descendant, and TextField's
+    // internal EditableText/Scrollable doesn't support that: with the new
+    // "سجّل موضعك" field inside `content`, IntrinsicHeight left the sliver's
+    // layout permanently unresolved (confirmed via a live render-tree dump —
+    // `geometry: null`, 0 live children — the card built with correct text
+    // but never actually painted). A Stack sizes children with the Card's
+    // own ordinary constraints instead, so the stripe just needs to match
+    // whatever height `content` naturally takes.
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: AppColors.surfaceCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
       clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(width: 6, color: stripe),
-            Expanded(child: content),
-          ],
-        ),
+      child: Stack(
+        children: [
+          content,
+          PositionedDirectional(start: 0, top: 0, bottom: 0, child: Container(width: 6, color: stripe)),
+        ],
       ),
     );
   }

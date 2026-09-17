@@ -3835,6 +3835,24 @@ const Map<String, Map<String, String>> basicTranslations = {
   'khatm_tahzeeb_info_tooltip': {
     'ar': 'عن تحزيب الصحابة', 'en': "About the Companions' division", 'am': 'ስለ ባልደረቦች ክፍፍል', 'fr': 'À propos de cette division', 'sw': 'Kuhusu mgawanyo huu', 'ur': 'اس تقسیم کے بارے میں', 'tr': 'Bu bölüm hakkında', 'id': 'Tentang pembagian ini', 'bn': 'এই বিভাজন সম্পর্কে', 'ha': 'Game da wannan raba', 'so': 'Ku saabsan qaybintan', 'fa': 'درباره این تقسیم', 'ms': 'Tentang pembahagian ini',
   },
+  // §2.3 item 4, "متبقي اليوم" — the goal card's manual page-entry field
+  // label. Auto-filled with the mushaf reader's current page when opened
+  // from its "الختمات" sheet; blank (typed manually) elsewhere.
+  'khatm_record_position_label': {
+    'ar': 'سجّل موضعك', 'en': 'Record your position', 'am': 'ቦታዎን ይመዝግቡ', 'fr': 'Enregistrez votre position', 'sw': 'Rekodi nafasi yako',
+    'ur': 'اپنی پوزیشن درج کریں', 'tr': 'Konumunuzu kaydedin', 'id': 'Catat posisi Anda', 'bn': 'আপনার অবস্থান রেকর্ড করুন', 'ha': 'Rubuta matsayinka',
+    'so': 'Diiwaan geli booskaaga', 'fa': 'موقعیت خود را ثبت کنید', 'ms': 'Rekodkan kedudukan anda',
+  },
+  'khatm_remaining_today_prefix': {
+    'ar': 'متبقي اليوم:', 'en': 'Remaining today:', 'am': 'ዛሬ የቀረው:', 'fr': "Restant aujourd'hui :", 'sw': 'Iliyobaki leo:',
+    'ur': 'آج باقی:', 'tr': 'Bugün kalan:', 'id': 'Sisa hari ini:', 'bn': 'আজ বাকি:', 'ha': 'Ragowar yau:',
+    'so': 'Maanta ku hadhay:', 'fa': 'باقی‌مانده امروز:', 'ms': 'Baki hari ini:',
+  },
+  'khatm_completed_today_label': {
+    'ar': 'أتممت ورد اليوم ✓', 'en': "Today's portion complete ✓", 'am': 'የዛሬው ድርሻ ተጠናቅቋል ✓', 'fr': "Portion du jour terminée ✓", 'sw': 'Sehemu ya leo imekamilika ✓',
+    'ur': 'آج کا حصہ مکمل ✓', 'tr': 'Bugünkü bölüm tamamlandı ✓', 'id': 'Bagian hari ini selesai ✓', 'bn': 'আজকের অংশ সম্পন্ন ✓', 'ha': 'An kammala rabon yau ✓',
+    'so': 'Qaybta maanta way dhammaatay ✓', 'fa': 'سهم امروز کامل شد ✓', 'ms': 'Bahagian hari ini selesai ✓',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',

@@ -107,6 +107,16 @@ class CompletionGoalStatus {
   final int daysLeft;
   final double recalculatedDailyTarget;
   final ScheduleStatus scheduleStatus;
+
+  /// "متبقي اليوم" (Ismail 2026-09-17, closing §2.3 item 4) — a no-blame
+  /// alternative to a "behind by X" figure: the gap, as of today, between
+  /// where the CURRENT recalculated pace says the student should already be
+  /// and where they actually are, in the same normalized position space as
+  /// [currentPosition]/[remaining] (never re-adding `goal.startUnit` — that
+  /// space already accounts for it). Zero or below means today's portion is
+  /// done. See [CompletionGoalRepository.statusFor] for the exact formula.
+  final int pagesRemainingToday;
+
   CompletionGoalStatus({
     required this.goal,
     required this.currentPosition,
@@ -114,6 +124,7 @@ class CompletionGoalStatus {
     required this.daysLeft,
     required this.recalculatedDailyTarget,
     required this.scheduleStatus,
+    required this.pagesRemainingToday,
   });
 }
 
@@ -225,6 +236,15 @@ class CompletionGoalRepository {
     final daysLeft = _daysBetween(todayDate(), goal.targetDate);
     final recalculated = daysLeft > 0 ? remaining / daysLeft : remaining.toDouble();
 
+    // §2.3 item 4, "متبقي اليوم" — cumulative expected position under
+    // TODAY's recalculated pace (not the original fixed dailyTarget),
+    // counting the start day itself as day 1 (same +1 convention already
+    // used for day-numbering elsewhere), minus where the student actually
+    // is. Never below zero: a completed/ahead goal just reads as "done".
+    final daysSinceStart = (_daysBetween(goal.startDate, todayDate()) + 1).clamp(1, 100000);
+    final expectedPositionByRecalculatedPace = recalculated * daysSinceStart;
+    final pagesRemainingToday = (expectedPositionByRecalculatedPace - position).clamp(0, double.infinity).round();
+
     ScheduleStatus schedule;
     if (remaining == 0) {
       schedule = ScheduleStatus.onTrack;
@@ -243,6 +263,7 @@ class CompletionGoalRepository {
       daysLeft: daysLeft,
       recalculatedDailyTarget: recalculated,
       scheduleStatus: schedule,
+      pagesRemainingToday: pagesRemainingToday,
     );
   }
 
