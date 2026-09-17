@@ -32,6 +32,18 @@ const _fixedGoalOptions = [
 
 String _resolveOptionLabel(String label, String lang) => label.startsWith('@') ? basicText(label.substring(1), lang) : label;
 
+/// §2.3 field 3 — the "تحزيب الصحابة" info dialog's body, verbatim per
+/// Ismail's exact instruction ("بلا أي إعادة صياغة"): a hadith citation +
+/// scholarly framing, not chrome — kept Arabic-only regardless of app
+/// language, same treatment as the classical book titles above.
+const _kTahzeebInfoText =
+    'نُقل عن السلف من الصحابة رضي الله عنهم قراءتهم للقرآن في سبعة أيام '
+    'لحديث عبدالله بن عمرو: (... واقرأ في كل سبع ليال مرة ...) [صحيح '
+    'البخاري، 5.052]، وقد عُرف عند العلماء بـ"تحزيب الصحابة"، وهو تقسيم '
+    'القرآن إلى سبعة أوراد تُقرأ في سبعة أيام، اختُصرت بكلمة "فمي بشوق" '
+    'اختصارًا للحروف الأولى للسور التي تبدأ بها الأوراد: الفاتحة، المائدة، '
+    'يونس، بني إسرائيل-الإسراء، الشعراء، والصافات، ثم ق إلى آخر المصحف.';
+
 /// Personal-library books that have a known page count (from having been
 /// opened at least once — `book_bookmarks` is populated by
 /// `BookViewerScreen`'s existing flutter_pdfview callbacks, not built new
@@ -87,6 +99,13 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   // الخطة" time, not on every drag frame (avoids a DB round-trip per pixel).
   RangeValues juzRange = const RangeValues(1, 30);
   bool isQuranRange(String contentType) => contentType == 'quran_reading' || contentType == 'quran_memorization';
+
+  // §2.3 field 3, grain "تحزيب الصحابة" toggle — a one-time convenience
+  // fill (full range + 7-day duration), not a lock: both stay freely
+  // editable afterward, and this grain does NOT compute the seven واجب
+  // boundaries themselves (that's the ورد map, a later grain) — only the
+  // two field fills + the info text.
+  bool tahzeebEnabled = false;
 
   // §2.3 grain 3.1 — the two simplest fields: an explicit colour pick
   // (null until tapped, so the existing cyclic stripe colour still applies
@@ -173,6 +192,44 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                 labels: RangeLabels('${juzRange.start.round()}', '${juzRange.end.round()}'),
                 values: juzRange,
                 onChanged: (v) => setSheetState(() => juzRange = v),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(basicText('khatm_tahzeeb_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+                      value: tahzeebEnabled,
+                      onChanged: (v) => setSheetState(() {
+                        tahzeebEnabled = v;
+                        // A convenience fill, not a lock — both stay
+                        // freely editable afterward (per instruction).
+                        if (v) {
+                          juzRange = const RangeValues(1, 30);
+                          durationDays = 7;
+                          durationController.text = '7';
+                        }
+                      }),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: basicText('khatm_tahzeeb_info_tooltip', lang),
+                    icon: const Icon(Icons.info_outline, size: 20),
+                    onPressed: () => showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: Text(basicText('khatm_tahzeeb_toggle_label', lang)),
+                        // Verbatim hadith citation + scholarly framing —
+                        // kept Arabic-only regardless of app language, same
+                        // as the classical book titles in
+                        // `_fixedGoalOptions`: real quoted/classical
+                        // content, not translatable UI chrome.
+                        content: const SingleChildScrollView(child: Text(_kTahzeebInfoText, style: TextStyle(fontSize: 13, height: 1.6))),
+                        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(basicText('onboarding_close', lang)))],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
             const SizedBox(height: 12),

@@ -3825,6 +3825,16 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'منصوبے کی حد', 'tr': 'Plan aralığı', 'id': 'Rentang rencana', 'bn': 'পরিকল্পনার পরিসীমা', 'ha': 'Iyakar tsari',
     'so': 'Xudduudka qorshaha', 'fa': 'محدوده برنامه', 'ms': 'Julat rancangan',
   },
+  // §2.3 field 3 — the "تحزيب الصحابة" convenience-fill toggle's own label
+  // (the ⓘ dialog body itself stays Arabic-only, see `_kTahzeebInfoText`).
+  'khatm_tahzeeb_toggle_label': {
+    'ar': 'تحزيب الصحابة', 'en': "The Companions' Seven-Day Division", 'am': 'የባልደረቦች ሰባት ቀን ክፍፍል', 'fr': 'Division des Compagnons en sept jours', 'sw': 'Mgawanyo wa Masahaba wa siku saba',
+    'ur': 'صحابہ کی سات روزہ تقسیم', 'tr': 'Sahabenin Yedi Günlük Bölümü', 'id': 'Pembagian Tujuh Hari Sahabat', 'bn': 'সাহাবীদের সাত দিনের বিভাজন', 'ha': 'Rabon Sahabbai na kwanaki bakwai',
+    'so': 'Qaybinta Toddobaadka ee Saxaabada', 'fa': 'تقسیم هفت‌روزه صحابه', 'ms': 'Pembahagian Tujuh Hari Sahabat',
+  },
+  'khatm_tahzeeb_info_tooltip': {
+    'ar': 'عن تحزيب الصحابة', 'en': "About the Companions' division", 'am': 'ስለ ባልደረቦች ክፍፍል', 'fr': 'À propos de cette division', 'sw': 'Kuhusu mgawanyo huu', 'ur': 'اس تقسیم کے بارے میں', 'tr': 'Bu bölüm hakkında', 'id': 'Tentang pembagian ini', 'bn': 'এই বিভাজন সম্পর্কে', 'ha': 'Game da wannan raba', 'so': 'Ku saabsan qaybintan', 'fa': 'درباره این تقسیم', 'ms': 'Tentang pembahagian ini',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',
