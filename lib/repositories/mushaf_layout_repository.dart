@@ -5,6 +5,18 @@ import 'package:sqflite/sqflite.dart';
 import '../db/database_helper.dart';
 import '../models/mushaf_layout.dart';
 
+/// One "ورد" (portion) of a §2.5 "تحزيب الصحابة"-style 7-way split — see
+/// [MushafLayoutRepository.sevenWerdBoundaries].
+typedef WerdBoundary = ({
+  int index,
+  int startPage,
+  int endPage,
+  int startSurah,
+  int startAyah,
+  int endSurah,
+  int endAyah,
+});
+
 /// Read-only access to the Mushaf **Semantic Layer** (`mushaf_*` tables,
 /// migration v51, seeded by `MushafLayoutSync`).
 ///
@@ -142,6 +154,80 @@ class MushafLayoutRepository {
         'SELECT MIN(page) AS a, MAX(page) AS b FROM mushaf_words WHERE surah = ?', [surah]);
     if (rows.isEmpty || rows.first['a'] == null) return null;
     return (first: (rows.first['a'] as num).toInt(), last: (rows.first['b'] as num).toInt());
+  }
+
+  /// The first and last ayah appearing on a page, in true reading order —
+  /// reads `mushaf_pages.surah_first`/`ayah_first`/`surah_last`/`ayah_last`,
+  /// precomputed at seed time (`MushafLayoutSync`) from `mushaf_words` in
+  /// `word_order`. Null if the page isn't seeded.
+  Future<({int firstSurah, int firstAyah, int lastSurah, int lastAyah})?> ayahBoundsForPage(int page) async {
+    final db = await _db;
+    final rows = await db.query('mushaf_pages',
+        columns: ['surah_first', 'ayah_first', 'surah_last', 'ayah_last'],
+        where: 'page = ?', whereArgs: [page], limit: 1);
+    if (rows.isEmpty) return null;
+    final r = rows.first;
+    return (
+      firstSurah: (r['surah_first'] as num).toInt(),
+      firstAyah: (r['ayah_first'] as num).toInt(),
+      lastSurah: (r['surah_last'] as num).toInt(),
+      lastAyah: (r['ayah_last'] as num).toInt(),
+    );
+  }
+
+  /// §2.5 "تحزيب الصحابة" — the 7 real surah numbers the classical division
+  /// starts each werd at ("فمي بشوق"): الفاتحة، المائدة، يونس، الإسراء،
+  /// الشعراء، الصافات، ق.
+  static const kTahzeebSahabaStartSurahs = <int>[1, 5, 10, 17, 26, 37, 50];
+
+  /// Splits an absolute page range `[startPage, endPage]` into 7 "أوراد",
+  /// each described by its start/end page and the surah:ayah it starts/ends
+  /// at. When the range is exactly the whole mushaf (1..604) the boundaries
+  /// are the real classical "تحزيب الصحابة" surah starts
+  /// ([kTahzeebSahabaStartSurahs]) — quoted verbatim in the app's own info
+  /// dialog, not an approximation. Otherwise (a partial-range goal) there is
+  /// no classical division to anchor to, so the range's own pages are split
+  /// into 7 roughly-equal chunks instead — the closest well-defined
+  /// generalization. Returns fewer than 7 entries only if the underlying
+  /// mushaf data for a boundary page is missing (never a half-resolved
+  /// boundary).
+  Future<List<WerdBoundary>> sevenWerdBoundaries(int startPage, int endPage) async {
+    final startPages = <int>[];
+    if (startPage == 1 && endPage == 604) {
+      for (final surah in kTahzeebSahabaStartSurahs) {
+        final p = await pageForReference(surah);
+        if (p == null) return const [];
+        startPages.add(p);
+      }
+    } else {
+      final totalPages = endPage - startPage + 1;
+      final base = totalPages ~/ 7;
+      final extra = totalPages % 7;
+      var p = startPage;
+      for (var i = 0; i < 7; i++) {
+        startPages.add(p);
+        p += base + (i < extra ? 1 : 0);
+      }
+    }
+
+    final boundaries = <WerdBoundary>[];
+    for (var i = 0; i < 7; i++) {
+      final werdStart = startPages[i];
+      final werdEnd = i < 6 ? startPages[i + 1] - 1 : endPage;
+      final first = await ayahBoundsForPage(werdStart);
+      final last = await ayahBoundsForPage(werdEnd);
+      if (first == null || last == null) continue;
+      boundaries.add((
+        index: i + 1,
+        startPage: werdStart,
+        endPage: werdEnd,
+        startSurah: first.firstSurah,
+        startAyah: first.firstAyah,
+        endSurah: last.lastSurah,
+        endAyah: last.lastAyah,
+      ));
+    }
+    return boundaries;
   }
 
   /// Phase G-t2 — sub-word glyph geometry for a page, keyed by

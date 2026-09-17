@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 
+import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
 import '../models/personal_book.dart';
 import '../repositories/book_repository.dart';
@@ -31,6 +32,12 @@ const _fixedGoalOptions = [
 ];
 
 String _resolveOptionLabel(String label, String lang) => label.startsWith('@') ? basicText(label.substring(1), lang) : label;
+
+/// The only two content types with a "juz"/page-range concept at all — used
+/// both by the wizard's range slider and (§2.5) the werd-boundary list.
+bool _isPageBasedGoal(String contentType) => contentType == 'quran_reading' || contentType == 'quran_memorization';
+
+String _surahName(int surahNumber) => quranSurahs[surahNumber - 1].name;
 
 /// §2.3 field 3 — the "تحزيب الصحابة" info dialog's body, verbatim per
 /// Ismail's exact instruction ("بلا أي إعادة صياغة"): a hadith citation +
@@ -546,10 +553,21 @@ class _GoalCard extends StatefulWidget {
 class _GoalCardState extends State<_GoalCard> {
   late final TextEditingController _pageController;
 
+  /// §2.5 — the 7-werd boundary list, computed once per card (a handful of
+  /// cheap indexed `mushaf_pages` lookups) and cached; null for content
+  /// types with no page/juz concept, in which case the section is hidden
+  /// entirely rather than shown empty.
+  late final Future<List<WerdBoundary>>? _werdBoundariesFuture;
+  bool _werdListExpanded = false;
+
   @override
   void initState() {
     super.initState();
     _pageController = TextEditingController(text: widget.currentPageHint?.toString() ?? '');
+    final g = widget.status.goal;
+    _werdBoundariesFuture = _isPageBasedGoal(g.contentType)
+        ? MushafLayoutRepository().sevenWerdBoundaries(g.startUnit ?? 1, g.endUnit ?? g.totalUnits)
+        : null;
   }
 
   @override
@@ -651,6 +669,56 @@ class _GoalCardState extends State<_GoalCard> {
               ),
             ),
           ),
+          if (_werdBoundariesFuture != null) ...[
+            const SizedBox(height: 10),
+            // A manual toggle, not ExpansionTile — ExpansionTile's built-in
+            // expand animation runs its own Ticker, and this exact card has
+            // already broken once from an unrelated widget (FilledButton
+            // .tonal) leaving its list layout permanently unresolved. Every
+            // widget used here (GestureDetector, Icon, Text, FutureBuilder,
+            // CircularProgressIndicator) is one already proven to render
+            // correctly in this same card.
+            GestureDetector(
+              onTap: () => setState(() => _werdListExpanded = !_werdListExpanded),
+              child: Row(
+                children: [
+                  Icon(_werdListExpanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textMuted),
+                  const SizedBox(width: 4),
+                  Text(basicText('khatm_werd_list_title', lang), style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+            if (_werdListExpanded)
+              FutureBuilder<List<WerdBoundary>>(
+                future: _werdBoundariesFuture,
+                builder: (context, snapshot) {
+                  final list = snapshot.data;
+                  if (list == null) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                    );
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final w in list)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 3),
+                            child: Text(
+                              '${basicText('khatm_werd_label', lang)} ${w.index}: ${_surahName(w.startSurah)} ${w.startAyah} '
+                              '${basicText('khatm_werd_range_to_label', lang)} ${_surahName(w.endSurah)} ${w.endAyah}',
+                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+          ],
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

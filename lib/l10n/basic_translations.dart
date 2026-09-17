@@ -3853,6 +3853,22 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'آج کا حصہ مکمل ✓', 'tr': 'Bugünkü bölüm tamamlandı ✓', 'id': 'Bagian hari ini selesai ✓', 'bn': 'আজকের অংশ সম্পন্ন ✓', 'ha': 'An kammala rabon yau ✓',
     'so': 'Qaybta maanta way dhammaatay ✓', 'fa': 'سهم امروز کامل شد ✓', 'ms': 'Bahagian hari ini selesai ✓',
   },
+  // §2.5 — the collapsible 7-werd boundary list's own header/labels.
+  'khatm_werd_list_title': {
+    'ar': 'قائمة الأوراد (٧)', 'en': 'Portions list (7)', 'am': 'የክፍሎች ዝርዝር (፯)', 'fr': 'Liste des portions (7)', 'sw': 'Orodha ya sehemu (7)',
+    'ur': 'اوراد کی فہرست (٧)', 'tr': 'Bölüm listesi (7)', 'id': 'Daftar bagian (7)', 'bn': 'অংশের তালিকা (৭)', 'ha': 'Jerin sassa (7)',
+    'so': 'Liiska qaybaha (7)', 'fa': 'فهرست اوراد (۷)', 'ms': 'Senarai bahagian (7)',
+  },
+  'khatm_werd_label': {
+    'ar': 'الورد', 'en': 'Portion', 'am': 'ክፍል', 'fr': 'Portion', 'sw': 'Sehemu',
+    'ur': 'ورد', 'tr': 'Bölüm', 'id': 'Bagian', 'bn': 'অংশ', 'ha': 'Sashi',
+    'so': 'Qayb', 'fa': 'ورد', 'ms': 'Bahagian',
+  },
+  'khatm_werd_range_to_label': {
+    'ar': 'إلى', 'en': 'to', 'am': 'እስከ', 'fr': 'à', 'sw': 'hadi',
+    'ur': 'تک', 'tr': 'ile', 'id': 'sampai', 'bn': 'পর্যন্ত', 'ha': 'zuwa',
+    'so': 'ilaa', 'fa': 'تا', 'ms': 'hingga',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',
