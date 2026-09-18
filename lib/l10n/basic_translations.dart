@@ -2219,6 +2219,13 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'نظرانداز کریں', 'tr': 'Geç', 'id': 'Lewati', 'bn': 'বাদ দিন', 'ha': 'Tsallake',
     'so': 'Ka Bood', 'fa': 'رد کردن', 'ms': 'Langkau',
   },
+  // KHATM_SYSTEM_AND_STYLE_REFERENCE.md §1.3 — the first-launch language
+  // picker's own title (a new page 0 in the existing onboarding PageView).
+  'onboarding_language_title': {
+    'ar': 'اختر لغتك', 'en': 'Choose your language', 'am': 'ቋንቋዎን ይምረጡ', 'fr': 'Choisissez votre langue', 'sw': 'Chagua lugha yako',
+    'ur': 'اپنی زبان منتخب کریں', 'tr': 'Dilinizi seçin', 'id': 'Pilih bahasa Anda', 'bn': 'আপনার ভাষা বেছে নিন', 'ha': 'Zaɓi harshenka',
+    'so': 'Dooro luqaddaada', 'fa': 'زبان خود را انتخاب کنید', 'ms': 'Pilih bahasa anda',
+  },
   'onboarding_next': {
     'ar': 'التالي', 'en': 'Next', 'am': 'ቀጣይ', 'fr': 'Suivant', 'sw': 'Ifuatayo',
     'ur': 'اگلا', 'tr': 'İleri', 'id': 'Selanjutnya', 'bn': 'পরবর্তী', 'ha': 'Na Gaba',

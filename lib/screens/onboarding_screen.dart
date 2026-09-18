@@ -20,6 +20,15 @@ const _slides = <_OnboardSlide>[
   _OnboardSlide(icon: Icons.today_rounded, titleKey: 'onboarding_slide5_title', bodyKey: 'onboarding_slide5_body'),
 ];
 
+/// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §1.3 — a representative country flag
+/// per offered language (Unicode emoji, no new asset needed), keyed exactly
+/// to `supportedLanguages`' codes.
+const _kLanguageFlags = <String, String>{
+  'ar': '🇸🇦', 'en': '🇬🇧', 'am': '🇪🇹', 'fr': '🇫🇷', 'sw': '🇹🇿',
+  'ur': '🇵🇰', 'tr': '🇹🇷', 'id': '🇮🇩', 'bn': '🇧🇩', 'ha': '🇳🇬',
+  'so': '🇸🇴', 'fa': '🇮🇷', 'ms': '🇲🇾',
+};
+
 /// First-launch tutorial. Shown automatically once (gated by
 /// [OnboardingService]) via [StartupGate], and re-openable any time from the
 /// Home screen's help icon with [reviewMode] = true (in which case it just
@@ -52,9 +61,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  /// §1.3 — the language picker is page 0 of this same PageView (gated by
+  /// the same "first launch only" `OnboardingService` flag, not a separate
+  /// screen/flag), so [_slides] shift one page to the right.
+  static final _pageCount = _slides.length + 1;
+
+  Future<void> _pickLanguage(String code) async {
+    await LanguagePreferenceService.setLanguage(code);
+    if (mounted) _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isLast = _page == _slides.length - 1;
+    final isLast = _page == _pageCount - 1;
     return ValueListenableBuilder<String>(
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
@@ -71,10 +90,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Expanded(
                 child: PageView.builder(
                   controller: _controller,
-                  itemCount: _slides.length,
+                  itemCount: _pageCount,
                   onPageChanged: (i) => setState(() => _page = i),
                   itemBuilder: (context, i) {
-                    final s = _slides[i];
+                    if (i == 0) return _LanguagePickerPage(lang: lang, onPicked: _pickLanguage);
+                    final s = _slides[i - 1];
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
                       child: Column(
@@ -103,7 +123,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  _slides.length,
+                  _pageCount,
                   (i) => AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -132,6 +152,87 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// §1.3 — page 0 of the onboarding `PageView`: a 2-column grid of language
+/// cards (flag + native/English name, straight from the app's own real
+/// `supportedLanguages`, not a fabricated list). Tapping a card sets
+/// [LanguagePreferenceService] immediately and auto-advances — "التالي"
+/// still works untouched (keeps whatever language is already current, 'ar'
+/// by default) for a user who doesn't want to pick explicitly.
+class _LanguagePickerPage extends StatelessWidget {
+  final String lang;
+  final ValueChanged<String> onPicked;
+  const _LanguagePickerPage({required this.lang, required this.onPicked});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          Text('🌐 ${basicText('onboarding_language_title', lang)}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 2.6,
+              children: [
+                for (final entry in supportedLanguages.entries)
+                  _LanguageCard(
+                    flag: _kLanguageFlags[entry.key] ?? '🌐',
+                    label: entry.value,
+                    selected: entry.key == lang,
+                    onTap: () => onPicked(entry.key),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LanguageCard extends StatelessWidget {
+  final String flag;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _LanguageCard({required this.flag, required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryLight : AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: selected ? AppColors.primary : AppColors.divider, width: selected ? 1.5 : 1),
+        ),
+        child: Row(
+          children: [
+            Text(flag, style: const TextStyle(fontSize: 22)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 12.5, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+            ),
+          ],
         ),
       ),
     );
