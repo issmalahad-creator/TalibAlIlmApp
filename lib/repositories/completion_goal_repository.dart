@@ -374,7 +374,9 @@ class CompletionGoalRepository {
   /// today the new start point.
   Future<void> reschedule(int goalId, String newTargetDate) async {
     final db = await DatabaseHelper.instance.database;
-    final goal = (await db.query('completion_goals', where: 'id = ?', whereArgs: [goalId], limit: 1)).first;
+    final rows = await db.query('completion_goals', where: 'id = ?', whereArgs: [goalId], limit: 1);
+    if (rows.isEmpty) return; // goal no longer exists — nothing to reschedule
+    final goal = rows.first;
     final position = await _currentPosition(CompletionGoal(
       id: goalId,
       contentType: goal['content_type'] as String,

@@ -761,7 +761,7 @@ class _SlotFormState extends State<_SlotForm> {
       context: context,
       initialTime: TimeOfDay(hour: cur ~/ 60, minute: cur % 60),
     );
-    if (t == null) return;
+    if (t == null || !mounted) return;
     setState(() {
       final m = t.hour * 60 + t.minute;
       if (start) {
