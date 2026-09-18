@@ -10,7 +10,20 @@ class DatabaseHelper {
   DatabaseHelper._internal();
   static final DatabaseHelper instance = DatabaseHelper._internal();
 
-  Database? _db;
+  /// Memoizes the **Future**, not the resolved `Database` — `_db ??= await
+  /// _init()` (the previous form) has a classic Dart async race: every
+  /// caller that reads `_db == null` before the first `_init()` call
+  /// resolves starts its *own* `_init()`, so `main.dart`'s many unawaited
+  /// startup calls (import/sync/notification-scheduling, all racing at cold
+  /// start) could genuinely open the same path concurrently. Caching the
+  /// in-flight `Future` instead means every caller, no matter how many pile
+  /// up before the first one resolves, awaits the exact same open — and
+  /// crucially, only one migration-recovery loop (see `_init()`) is ever
+  /// active on this path at a time, so its own raw patch-connections never
+  /// collide with a second concurrent attempt closing them mid-use (a real,
+  /// live-reproduced `DatabaseException(database_closed)` this fixed after
+  /// the previous `_db ??=` form let two `_init()` calls run at once).
+  Future<Database>? _dbFuture;
 
   /// Overrides the on-disk database filename. Tests set this (before the
   /// first `database` access) so a DB-heavy suite gets its own file and
@@ -19,15 +32,14 @@ class DatabaseHelper {
   @visibleForTesting
   static String databaseName = 'talib_alilm.db';
 
-  Future<Database> get database async {
-    _db ??= await _init();
-    return _db!;
+  Future<Database> get database {
+    return _dbFuture ??= _init();
   }
 
   Future<Database> _init() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, databaseName);
-    return openDatabase(
+    Future<Database> open() => openDatabase(
       path,
       version: 70,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
@@ -194,6 +206,45 @@ class DatabaseHelper {
         if (oldVersion < 70) await _createV70Tables(db);
       },
     );
+
+    // Real, live-reproduced failure mode (2026-09-18 — an emulator
+    // `adb reboot` while a migration was mid-flight): SQLite's
+    // `PRAGMA user_version` write and a migration step's own ALTER
+    // TABLE/CREATE TABLE statements aren't guaranteed durable together on
+    // an abrupt process kill — the schema lands on disk but the recorded
+    // version stays stale, so the *next* launch replays an already-applied
+    // step and fails with "duplicate column name" / "already exists"
+    // forever: a silent permanent boot-loop (no crash dialog — every
+    // repository's first DB call just hangs the caller, e.g. the home
+    // screen's loading spinner never resolves).
+    //
+    // Deliberately advances `user_version` by exactly **one** per caught
+    // failure, then retries the *whole* cascade from there — never jumps
+    // straight to the target version. A single failed step only proves
+    // that ONE step was already applied; forcing the version straight to
+    // the newest one (an earlier version of this fix did that) would skip
+    // every step in between unproven, and on an install that was
+    // interrupted early in a long upgrade chain that leaves real tables
+    // missing (a `no such table` crash later, strictly worse than this
+    // one). Looping one step at a time means each retry either succeeds
+    // outright (nothing else was pre-applied) or fails again on the very
+    // next already-applied step, which this same catch handles again — so
+    // multiple consecutive pre-applied steps still resolve correctly, one
+    // proven step at a time, never guessing ahead of the evidence.
+    for (var attempt = 0; attempt < 100; attempt++) {
+      try {
+        return await open();
+      } on DatabaseException catch (e) {
+        final msg = e.toString();
+        if (!msg.contains('duplicate column name') && !msg.contains('already exists')) rethrow;
+        final raw = await openDatabase(path);
+        final current = Sqflite.firstIntValue(await raw.rawQuery('PRAGMA user_version')) ?? 0;
+        await raw.execute('PRAGMA user_version = ${current + 1}');
+        await raw.close();
+      }
+    }
+    throw StateError('DatabaseHelper._init: migration recovery did not converge after 100 attempts — '
+        'this is no longer the known stale-version-marker case and needs real investigation, not another silent retry.');
   }
 
   Future<void> _createV1Tables(Database db) async {
