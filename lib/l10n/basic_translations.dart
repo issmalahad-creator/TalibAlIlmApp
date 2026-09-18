@@ -3899,6 +3899,87 @@ const Map<String, Map<String, String>> basicTranslations = {
     'so': 'Wax ka beddel qorshaha', 'fa': 'ویرایش برنامه', 'ms': 'Edit rancangan',
   },
   // §2.3 field 9 — the pre-save confirmation dialog's own strings.
+  // §2.3 field 7أ — the "توزيع الورد على الصلوات" session editor.
+  'khatm_session_distribution_toggle_label': {
+    'ar': 'توزيع الورد على الصلوات', 'en': 'Split across prayer sessions', 'am': 'በጸሎት ክፍለ ጊዜዎች ይከፋፍሉ', 'fr': 'Répartir sur les prières', 'sw': 'Gawanya kwa nyakati za sala',
+    'ur': 'نمازوں کے اوقات پر تقسیم کریں', 'tr': 'Namaz vakitlerine böl', 'id': 'Bagi ke sesi salat', 'bn': 'নামাজের সময় অনুযায়ী ভাগ করুন', 'ha': 'Rarraba a kan lokutan sallah',
+    'so': 'U qaybi salaadaha', 'fa': 'تقسیم بر اساس اوقات نماز', 'ms': 'Bahagikan mengikut waktu solat',
+  },
+  'khatm_new_session_default_label': {
+    'ar': 'جلسة جديدة', 'en': 'New session', 'am': 'አዲስ ክፍለ ጊዜ', 'fr': 'Nouvelle séance', 'sw': 'Kipindi kipya',
+    'ur': 'نیا سیشن', 'tr': 'Yeni oturum', 'id': 'Sesi baru', 'bn': 'নতুন সেশন', 'ha': 'Sabon zama',
+    'so': 'Fadhi cusub', 'fa': 'جلسه جدید', 'ms': 'Sesi baharu',
+  },
+  'khatm_session_pattern_prompt': {
+    'ar': 'اختر نمط توزيع الورد على الصلوات:', 'en': 'Choose a session pattern:', 'am': 'የክፍለ ጊዜ ስርዓት ይምረጡ:', 'fr': 'Choisissez un modèle de répartition :', 'sw': 'Chagua mfumo wa vipindi:',
+    'ur': 'سیشن پیٹرن منتخب کریں:', 'tr': 'Bir oturum düzeni seçin:', 'id': 'Pilih pola sesi:', 'bn': 'সেশন প্যাটার্ন বেছে নিন:', 'ha': 'Zaɓi tsarin zama:',
+    'so': 'Dooro nooca fadhiyada:', 'fa': 'الگوی جلسات را انتخاب کنید:', 'ms': 'Pilih corak sesi:',
+  },
+  'khatm_pattern_equal_title': {
+    'ar': 'متساوٍ تقريبًا', 'en': 'Roughly equal', 'am': 'ግምት ውስጥ እኩል', 'fr': 'Presque égal', 'sw': 'Sawa kiasi',
+    'ur': 'تقریباً برابر', 'tr': 'Yaklaşık eşit', 'id': 'Kira-kira sama', 'bn': 'প্রায় সমান', 'ha': 'Kusan daidai',
+    'so': 'Ku dhawaad siman', 'fa': 'تقریباً برابر', 'ms': 'Lebih kurang sama',
+  },
+  'khatm_pattern_focused_title': {
+    'ar': 'مُركَّز', 'en': 'Focused', 'am': 'ያተኮረ', 'fr': 'Concentré', 'sw': 'Makini',
+    'ur': 'مرکوز', 'tr': 'Odaklı', 'id': 'Terfokus', 'bn': 'কেন্দ্রীভূত', 'ha': 'Mai da hankali',
+    'so': 'Diirad saaran', 'fa': 'متمرکز', 'ms': 'Tertumpu',
+  },
+  'khatm_add_session_action': {
+    'ar': 'أضف جلسة', 'en': 'Add session', 'am': 'ክፍለ ጊዜ ጨምር', 'fr': 'Ajouter une séance', 'sw': 'Ongeza kipindi',
+    'ur': 'سیشن شامل کریں', 'tr': 'Oturum ekle', 'id': 'Tambah sesi', 'bn': 'সেশন যোগ করুন', 'ha': 'Ƙara zama',
+    'so': 'Ku dar fadhi', 'fa': 'افزودن جلسه', 'ms': 'Tambah sesi',
+  },
+  'khatm_reset_sessions_action': {
+    'ar': 'إعادة الضبط الافتراضي', 'en': 'Reset to default', 'am': 'ወደ ነባሪ መልስ', 'fr': 'Réinitialiser', 'sw': 'Rejesha chaguo-msingi',
+    'ur': 'ڈیفالٹ پر بحال کریں', 'tr': 'Varsayılana sıfırla', 'id': 'Kembalikan ke default', 'bn': 'ডিফল্টে পুনরায় সেট করুন', 'ha': 'Mayar da tsoho',
+    'so': 'Dib ugu celi caadiga', 'fa': 'بازنشانی پیش‌فرض', 'ms': 'Set semula lalai',
+  },
+  'khatm_distributed_label': {
+    'ar': 'الموزَّع', 'en': 'Distributed', 'am': 'የተከፋፈለ', 'fr': 'Réparti', 'sw': 'Imegawanywa',
+    'ur': 'تقسیم شدہ', 'tr': 'Dağıtılan', 'id': 'Terdistribusi', 'bn': 'বিতরণ করা হয়েছে', 'ha': 'An rarraba',
+    'so': 'La qaybiyay', 'fa': 'تقسیم‌شده', 'ms': 'Diagihkan',
+  },
+  'khatm_of_label': {
+    'ar': 'من', 'en': 'of', 'am': 'ከ', 'fr': 'sur', 'sw': 'ya',
+    'ur': 'میں سے', 'tr': '/', 'id': 'dari', 'bn': 'এর মধ্যে', 'ha': 'daga',
+    'so': 'ee', 'fa': 'از', 'ms': 'daripada',
+  },
+  'khatm_edit_session_title': {
+    'ar': 'تعديل الجلسة', 'en': 'Edit session', 'am': 'ክፍለ ጊዜ አርትዕ', 'fr': 'Modifier la séance', 'sw': 'Hariri kipindi',
+    'ur': 'سیشن میں ترمیم', 'tr': 'Oturumu düzenle', 'id': 'Edit sesi', 'bn': 'সেশন সম্পাদনা', 'ha': 'Gyara zama',
+    'so': 'Wax ka beddel fadhiga', 'fa': 'ویرایش جلسه', 'ms': 'Edit sesi',
+  },
+  'khatm_session_label_field': {
+    'ar': 'اسم الجلسة', 'en': 'Session name', 'am': 'የክፍለ ጊዜ ስም', 'fr': 'Nom de la séance', 'sw': 'Jina la kipindi',
+    'ur': 'سیشن کا نام', 'tr': 'Oturum adı', 'id': 'Nama sesi', 'bn': 'সেশনের নাম', 'ha': 'Sunan zama',
+    'so': 'Magaca fadhiga', 'fa': 'نام جلسه', 'ms': 'Nama sesi',
+  },
+  'khatm_anchor_prayer_option': {
+    'ar': 'مرتبط بصلاة', 'en': 'Prayer-linked', 'am': 'ከጸሎት ጋር የተያያዘ', 'fr': 'Lié à une prière', 'sw': 'Imeunganishwa na sala',
+    'ur': 'نماز سے منسلک', 'tr': 'Namaza bağlı', 'id': 'Terkait salat', 'bn': 'নামাজের সাথে যুক্ত', 'ha': 'An haɗa da sallah',
+    'so': 'Ku xiran salaadda', 'fa': 'مرتبط با نماز', 'ms': 'Berkaitan solat',
+  },
+  'khatm_anchor_fixed_option': {
+    'ar': 'وقت مخصّص', 'en': 'Fixed time', 'am': 'የተወሰነ ሰዓት', 'fr': 'Heure fixe', 'sw': 'Muda maalum',
+    'ur': 'مخصوص وقت', 'tr': 'Sabit saat', 'id': 'Waktu tetap', 'bn': 'নির্দিষ্ট সময়', 'ha': 'Lokaci na musamman',
+    'so': 'Waqti go\'an', 'fa': 'زمان مشخص', 'ms': 'Masa tetap',
+  },
+  'khatm_offset_label': {
+    'ar': 'الإزاحة', 'en': 'Offset', 'am': 'መፈናቀል', 'fr': 'Décalage', 'sw': 'Mtengano',
+    'ur': 'آفسیٹ', 'tr': 'Kaydırma', 'id': 'Selisih waktu', 'bn': 'অফসেট', 'ha': 'Bambanci',
+    'so': 'Duruf', 'fa': 'انحراف زمانی', 'ms': 'Ofset',
+  },
+  'khatm_session_units_label': {
+    'ar': 'عدد الصفحات', 'en': 'Page count', 'am': 'የገጾች ብዛት', 'fr': 'Nombre de pages', 'sw': 'Idadi ya kurasa',
+    'ur': 'صفحات کی تعداد', 'tr': 'Sayfa sayısı', 'id': 'Jumlah halaman', 'bn': 'পৃষ্ঠার সংখ্যা', 'ha': 'Yawan shafuka',
+    'so': 'Tirada boggagga', 'fa': 'تعداد صفحات', 'ms': 'Bilangan halaman',
+  },
+  'minute_short_label': {
+    'ar': 'د', 'en': 'min', 'am': 'ደቂቃ', 'fr': 'min', 'sw': 'dak',
+    'ur': 'منٹ', 'tr': 'dk', 'id': 'mnt', 'bn': 'মিনিট', 'ha': 'min',
+    'so': 'daq', 'fa': 'دقیقه', 'ms': 'min',
+  },
   'khatm_confirm_dialog_title': {
     'ar': 'تأكيد إنشاء الختمة', 'en': 'Confirm plan', 'am': 'እቅድ ያረጋግጡ', 'fr': 'Confirmer le plan', 'sw': 'Thibitisha mpango',
     'ur': 'منصوبے کی تصدیق کریں', 'tr': 'Planı onayla', 'id': 'Konfirmasi rencana', 'bn': 'পরিকল্পনা নিশ্চিত করুন', 'ha': 'Tabbatar da tsari',

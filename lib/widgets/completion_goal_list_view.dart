@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 
 import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
+import '../models/completion_goal_session.dart';
 import '../models/personal_book.dart';
 import '../repositories/book_repository.dart';
 import '../repositories/completion_goal_repository.dart';
@@ -14,6 +15,7 @@ import '../theme/app_theme.dart';
 import '../utils/date_display.dart';
 import '../utils/hijri_date.dart';
 import 'circular_percent_gauge.dart';
+import 'completion_goal_session_editor.dart';
 import 'loading_view.dart';
 
 /// (content_type, book_ref, label, total_units) — the fixed set of
@@ -125,6 +127,30 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   final nameController = TextEditingController(
     text: '${basicText('khatm_default_name_prefix', lang)} - ${formatDateForDisplay(hijriDateStringForDate(DateTime.now()))}',
   );
+
+  // §2.3 field 7أ — "توزيع الورد على الصلوات": off by default (keeps the
+  // existing single daily-target behaviour unchanged for anyone who
+  // doesn't opt in). `sessions` is only ever non-empty while the toggle is
+  // on and a pattern has been chosen; persisted via `replaceSessions()`
+  // right after `repo.create()` below.
+  bool sessionsEnabled = false;
+  List<CompletionGoalSession> sessions = const [];
+
+  // A live estimate for the session editor's pattern previews — computed
+  // from the juz range as a page-per-juz approximation (604/30), the same
+  // "no DB round-trip while the sheet is open" rule the range slider itself
+  // already follows (see field 4's comment above); the exact daily_target
+  // (via `MushafLayoutRepository.pageForJuz()`) is only ever computed once,
+  // at "إنشاء الخطة" time, same as before.
+  int estimatedDailyTarget() {
+    final (contentType, _, _, totalUnitsOpt) = selected;
+    final days = durationDays < 1 ? 1 : durationDays;
+    if (isQuranRange(contentType)) {
+      final juzCount = (juzRange.end - juzRange.start + 1).round();
+      return ((juzCount * 604 / 30) / days).ceil();
+    }
+    return (totalUnitsOpt / days).ceil();
+  }
 
   // §2.3 field 8 — "وقت التذكير": a toggle + a time picker, per-goal.
   // Defaults (ON, 20:00) match the app's original one-size-fits-all fixed
@@ -299,6 +325,26 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
             const SizedBox(height: 8),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
+              title: Text(basicText('khatm_session_distribution_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+              value: sessionsEnabled,
+              onChanged: (v) => setSheetState(() {
+                sessionsEnabled = v;
+                sessions = const [];
+              }),
+            ),
+            if (sessionsEnabled)
+              CompletionGoalSessionEditor(
+                // A fresh estimate — and a fresh pattern-choice screen —
+                // every time the range/duration changes; see
+                // `estimatedDailyTarget()`'s own doc comment for why a
+                // session list can't silently survive that.
+                key: ValueKey(estimatedDailyTarget()),
+                dailyTarget: estimatedDailyTarget(),
+                onChanged: (next) => sessions = next,
+              ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
               title: Text(basicText('khatm_reminder_toggle_label', lang), style: const TextStyle(fontSize: 13)),
               value: reminderEnabled,
               onChanged: (v) => setSheetState(() => reminderEnabled = v),
@@ -361,6 +407,22 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   name: typedName.isEmpty ? null : typedName,
                 );
                 if (!context.mounted) return;
+                // §2.3.7أ — "لا يُسمَح بالحفظ ما لم يتساويا بالضبط". The
+                // editor's own rebalancing keeps this true by construction
+                // for every ordinary edit; this is only a backstop for the
+                // one edge it can't fully absorb (a session pushed high
+                // enough that the last session's clamp-at-zero can't take
+                // the whole difference back out).
+                if (sessionsEnabled && sessions.isNotEmpty) {
+                  final distributed = sessions.fold<int>(0, (sum, s) => sum + s.units);
+                  final target = estimatedDailyTarget();
+                  if (distributed != target) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${basicText('khatm_distributed_label', lang)}: $distributed ${basicText('khatm_of_label', lang)} $target')),
+                    );
+                    return;
+                  }
+                }
                 final reminderSummary = reminderEnabled ? reminderTime.format(context) : basicText('reminder_off_label', lang);
                 final confirmed = await showDialog<bool>(
                   context: context,
@@ -387,7 +449,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   ),
                 );
                 if (confirmed != true) return;
-                await repo.create(
+                final created = await repo.create(
                   contentType: contentType,
                   bookRef: bookRef,
                   totalUnits: totalUnits,
@@ -400,6 +462,9 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   reminderHour: reminderTime.hour,
                   reminderMinute: reminderTime.minute,
                 );
+                if (sessionsEnabled && sessions.isNotEmpty) {
+                  await repo.replaceSessions(created.id, sessions);
+                }
                 if (context.mounted) Navigator.pop(context);
                 onCreated?.call();
               },

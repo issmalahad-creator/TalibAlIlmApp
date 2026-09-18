@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
 import '../l10n/basic_translations.dart';
+import '../models/completion_goal_session.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 
@@ -236,6 +237,37 @@ class CompletionGoalRepository {
       where: 'id = ?',
       whereArgs: [goalId],
     );
+  }
+
+  /// §2.3 field 7أ — a goal's ordered reading sessions (empty for any goal
+  /// that never opted into the "توزيع على الصلوات" distribution, in which
+  /// case callers fall back to the existing single daily-target behaviour).
+  Future<List<CompletionGoalSession>> sessionsFor(int goalId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query(
+      'completion_goal_sessions',
+      where: 'goal_id = ?',
+      whereArgs: [goalId],
+      orderBy: 'sort_order ASC',
+    );
+    return rows.map(CompletionGoalSession.fromRow).toList();
+  }
+
+  /// Replaces a goal's whole session list atomically (delete-then-insert,
+  /// in one transaction) — used both at creation time and whenever the
+  /// wizard's session editor is re-saved. An empty [sessions] list simply
+  /// clears them, reverting the goal to the plain single-daily-target
+  /// behaviour.
+  Future<void> replaceSessions(int goalId, List<CompletionGoalSession> sessions) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.transaction((txn) async {
+      await txn.delete('completion_goal_sessions', where: 'goal_id = ?', whereArgs: [goalId]);
+      for (final s in sessions) {
+        final row = s.toRow();
+        row['goal_id'] = goalId;
+        await txn.insert('completion_goal_sessions', row);
+      }
+    });
   }
 
   /// Re-anchors the plan from today at the same total_units, keeping the

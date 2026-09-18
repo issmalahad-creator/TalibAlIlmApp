@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 68,
+      version: 69,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -108,6 +108,7 @@ class DatabaseHelper {
         await _createV66Tables(db);
         await _createV67Tables(db);
         await _createV68Tables(db);
+        await _createV69Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -188,6 +189,7 @@ class DatabaseHelper {
         if (oldVersion < 66) await _createV66Tables(db);
         if (oldVersion < 67) await _createV67Tables(db);
         if (oldVersion < 68) await _createV68Tables(db);
+        if (oldVersion < 69) await _createV69Tables(db);
       },
     );
   }
@@ -2515,6 +2517,34 @@ class DatabaseHelper {
     await db.execute('ALTER TABLE completion_goals ADD COLUMN reminder_enabled INTEGER NOT NULL DEFAULT 1');
     await db.execute('ALTER TABLE completion_goals ADD COLUMN reminder_hour INTEGER');
     await db.execute('ALTER TABLE completion_goals ADD COLUMN reminder_minute INTEGER');
+  }
+
+  /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2.3 field 7أ — "توزيع ديناميكي
+  /// للورد على جلسات مرتبطة بالصلاة". A goal opting into this (still purely
+  /// optional — a goal with no rows here just keeps the existing single
+  /// daily-target behaviour) gets N session rows, each either anchored to a
+  /// real prayer (read live every day from the existing prayer-time engine,
+  /// `anchor_prayer` + `offset_minutes`) or a fixed clock time
+  /// (`fixed_hour`/`fixed_minute`, for sessions with no prayer concept, e.g.
+  /// "بعد الاستيقاظ"/"قبل النوم"). `units` across a goal's sessions always
+  /// sums to exactly that goal's daily target — enforced by the wizard UI,
+  /// not the schema.
+  Future<void> _createV69Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS completion_goal_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        goal_id INTEGER NOT NULL,
+        sort_order INTEGER NOT NULL,
+        label TEXT NOT NULL,
+        anchor_type TEXT NOT NULL,
+        anchor_prayer TEXT,
+        offset_minutes INTEGER NOT NULL DEFAULT 0,
+        fixed_hour INTEGER,
+        fixed_minute INTEGER,
+        units INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_completion_goal_sessions_goal ON completion_goal_sessions(goal_id)');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried
