@@ -129,6 +129,7 @@ Knowledge tags used across `docs/quran/`:
 - **Source/licence:** mostly via **spa.qurancomplex.gov.sa / QuranEnc / Tanzil trans** — CC-BY family; the roadmap's "About sources" screen carries attribution. `TafsirMuyassar` is an official KFGQPC edition.
 - **What we use it for:** the ayah-centred tafsir study mode (Phase 72), Understanding pillar.
 - **What we must NOT assume:** these are **translations/tafsir, not the Quran** — never present a translation as the text; never quote tafsir as ruling. (Matches the `quran.ai` MCP grounding rules.)
+- **Not a duplicate of `assets/quran/corpus/{tafsir,translations}/*.json.gz` (§13's Quranpedia dump)** — checked directly 2026-09-18: different format (`.jsonl.gz` line-delimited vs `.json.gz` single object), different ID scheme (fixed slugs like `ibn_kathir` vs Quranpedia numeric edition IDs), different table (`tafsir_entries` via `QuranImportService`, not `QuranBookCache`), different picker UI (`ayah_study_screen.dart`'s Arabic-only source switcher, not `corpus_panels.dart`'s tafsir/translation panels). Both sets stay bundled; no removal needed on either side.
 
 ## 12. quran.ai MCP server  ·  runtime tool (this dev session)
 
