@@ -19,6 +19,7 @@ class TtsVoiceOption {
     required this.espeakDataAssetDir,
     required this.espeakDataFiles,
     required this.source,
+    this.assetVersion = '1',
   });
 
   /// مفتاح فريد، مثال: 'piper:ar_JO-kareem-medium'.
@@ -38,6 +39,12 @@ class TtsVoiceOption {
   final List<String> espeakDataFiles;
 
   final TtsVoiceSource source;
+
+  /// يُرفَع يدويًا كلما تغيّر محتوى الأصول (نموذج مُصحَّح، ملف صوت مضاف،
+  /// إلخ) — يُستخدَم في `TtsEngine._ensureVoiceExtracted` للتحقّق من حاجة
+  /// إعادة الاستخراج بلا تحميل الأصل الكامل (63 م.ب) في الذاكرة فقط
+  /// لمقارنة حجمه. **ارفعه عند أي تعديل على ملفات assets/tts/**.
+  final String assetVersion;
 }
 
 class TtsVoiceRegistry {
@@ -65,6 +72,9 @@ class TtsVoiceRegistry {
       'lang/sem/ar',
     ],
     source: TtsVoiceSource.bundled,
+    // '2': بعد رقعة البيانات الوصفية (sample_rate إلخ) + إضافة lang/sem/ar
+    // (2026-09-18) — كلاهما غيّر محتوى الأصول الفعلي دون تغيير voiceId.
+    assetVersion: '2',
   );
 
   /// اليوم: صف واحد فقط. لا منطق اختيار واجهة بعد (المرحلة 1.3 من

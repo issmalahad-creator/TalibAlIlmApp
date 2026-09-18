@@ -117,19 +117,22 @@ class _AudioReaderViewState extends State<AudioReaderView> {
   }
 
   Widget _buildSpeedRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    // Wrap لا Row — على شاشات أضيق (هواتف حقيقية بعرض أصغر من المحاكي الذي
+    // اختُبِر عليه أولًا)، Row بلا حماية فيضان ينتج شريط "overflowed by N
+    // pixels" الأصفر/الأسود المألوف في وضع التصحيح. Wrap ينقل الشريحة
+    // الزائدة لسطر جديد بدل تجاوز الحدود، بلا حاجة لتمرير أفقي مخفي.
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4,
+      runSpacing: 4,
       children: [
         const Text('السرعة:', style: TextStyle(color: AppColors.textMuted)),
-        const SizedBox(width: 8),
         for (final s in const [0.75, 1.0, 1.25, 1.5])
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ChoiceChip(
-              label: Text('${s}x'),
-              selected: _controller.speed == s,
-              onSelected: (_) => _controller.setSpeed(s),
-            ),
+          ChoiceChip(
+            label: Text('${s}x'),
+            selected: _controller.speed == s,
+            onSelected: (_) => _controller.setSpeed(s),
           ),
       ],
     );
