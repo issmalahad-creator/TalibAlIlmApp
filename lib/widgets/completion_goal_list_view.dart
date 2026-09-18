@@ -342,6 +342,51 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                     endUnit = null;
                   }
                 }
+                // §2.3 field 9 — a pre-save summary, computed with the exact
+                // same math `repo.create` itself uses (`effectiveTotalUnits`/
+                // `dailyTarget`) so the numbers shown here never drift from
+                // what actually gets saved.
+                final days = durationDays < 1 ? 1 : durationDays;
+                final targetDate = hijriDateStringForDate(DateTime.now().add(Duration(days: days)));
+                final effectiveTotalUnits = (startUnit != null && endUnit != null) ? (endUnit - startUnit + 1) : totalUnits;
+                final previewGoal = CompletionGoal(
+                  id: 0,
+                  contentType: contentType,
+                  bookRef: bookRef,
+                  totalUnits: effectiveTotalUnits,
+                  startDate: hijriDateStringForDate(DateTime.now()),
+                  targetDate: targetDate,
+                  dailyTarget: effectiveTotalUnits / days,
+                  status: 'active',
+                  name: typedName.isEmpty ? null : typedName,
+                );
+                if (!context.mounted) return;
+                final reminderSummary = reminderEnabled ? reminderTime.format(context) : basicText('reminder_off_label', lang);
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (dialogContext) => AlertDialog(
+                    title: Text(basicText('khatm_confirm_dialog_title', lang)),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(previewGoal.displayLabelFor(lang), style: const TextStyle(fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 10),
+                        Text('${basicText('khatm_confirm_start_label', lang)}: ${formatDateForDisplay(previewGoal.startDate)}'),
+                        Text('${basicText('khatm_confirm_end_label', lang)}: ${formatDateForDisplay(targetDate)}'),
+                        Text('${basicText('khatm_confirm_daily_label', lang)}: ${previewGoal.dailyTarget.toStringAsFixed(1)} ${previewGoal.unitLabel}'),
+                        Text('${basicText('khatm_reminder_toggle_label', lang)}: $reminderSummary'),
+                        const SizedBox(height: 12),
+                        Text(basicText('khatm_confirm_question', lang)),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(basicText('cancel_action', lang))),
+                      FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(basicText('create_plan_action', lang))),
+                    ],
+                  ),
+                );
+                if (confirmed != true) return;
                 await repo.create(
                   contentType: contentType,
                   bookRef: bookRef,

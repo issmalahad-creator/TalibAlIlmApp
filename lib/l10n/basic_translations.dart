@@ -3894,6 +3894,37 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'منصوبہ میں ترمیم', 'tr': 'Planı düzenle', 'id': 'Edit rencana', 'bn': 'পরিকল্পনা সম্পাদনা', 'ha': 'Gyara tsari',
     'so': 'Wax ka beddel qorshaha', 'fa': 'ویرایش برنامه', 'ms': 'Edit rancangan',
   },
+  // §2.3 field 9 — the pre-save confirmation dialog's own strings.
+  'khatm_confirm_dialog_title': {
+    'ar': 'تأكيد إنشاء الختمة', 'en': 'Confirm plan', 'am': 'እቅድ ያረጋግጡ', 'fr': 'Confirmer le plan', 'sw': 'Thibitisha mpango',
+    'ur': 'منصوبے کی تصدیق کریں', 'tr': 'Planı onayla', 'id': 'Konfirmasi rencana', 'bn': 'পরিকল্পনা নিশ্চিত করুন', 'ha': 'Tabbatar da tsari',
+    'so': 'Xaqiiji qorshaha', 'fa': 'تأیید برنامه', 'ms': 'Sahkan rancangan',
+  },
+  'khatm_confirm_question': {
+    'ar': 'هل أنت متأكد من إنشاء هذه الختمة؟', 'en': 'Create this plan?', 'am': 'ይህ እቅድ ይፈጠር?', 'fr': 'Créer ce plan ?', 'sw': 'Unda mpango huu?',
+    'ur': 'کیا یہ منصوبہ بنایا جائے؟', 'tr': 'Bu plan oluşturulsun mu?', 'id': 'Buat rencana ini?', 'bn': 'এই পরিকল্পনা তৈরি করবেন?', 'ha': 'Ƙirƙiri wannan tsari?',
+    'so': 'Ma abuurtaa qorshahan?', 'fa': 'این برنامه ساخته شود؟', 'ms': 'Cipta rancangan ini?',
+  },
+  'khatm_confirm_start_label': {
+    'ar': 'البداية', 'en': 'Start', 'am': 'መጀመሪያ', 'fr': 'Début', 'sw': 'Mwanzo',
+    'ur': 'آغاز', 'tr': 'Başlangıç', 'id': 'Mulai', 'bn': 'শুরু', 'ha': 'Farawa',
+    'so': 'Bilowga', 'fa': 'شروع', 'ms': 'Mula',
+  },
+  'khatm_confirm_end_label': {
+    'ar': 'النهاية (المتوقَّعة)', 'en': 'End (expected)', 'am': 'መጨረሻ (የሚጠበቅ)', 'fr': 'Fin (prévue)', 'sw': 'Mwisho (unaotarajiwa)',
+    'ur': 'اختتام (متوقع)', 'tr': 'Bitiş (tahmini)', 'id': 'Selesai (perkiraan)', 'bn': 'শেষ (প্রত্যাশিত)', 'ha': 'Ƙarshe (ana tsammani)',
+    'so': 'Dhammaad (la filayo)', 'fa': 'پایان (تخمینی)', 'ms': 'Tamat (dijangka)',
+  },
+  'khatm_confirm_daily_label': {
+    'ar': 'المعدّل اليومي', 'en': 'Daily rate', 'am': 'ዕለታዊ መጠን', 'fr': 'Rythme quotidien', 'sw': 'Kiwango cha kila siku',
+    'ur': 'روزانہ کی شرح', 'tr': 'Günlük oran', 'id': 'Tingkat harian', 'bn': 'দৈনিক হার', 'ha': 'Adadin yau da kullum',
+    'so': 'Heerka maalinlaha ah', 'fa': 'نرخ روزانه', 'ms': 'Kadar harian',
+  },
+  'reminder_off_label': {
+    'ar': 'متوقف', 'en': 'Off', 'am': 'ጠፍቷል', 'fr': 'Désactivé', 'sw': 'Imezimwa',
+    'ur': 'بند', 'tr': 'Kapalı', 'id': 'Nonaktif', 'bn': 'বন্ধ', 'ha': 'A kashe',
+    'so': 'Damban', 'fa': 'خاموش', 'ms': 'Mati',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',
