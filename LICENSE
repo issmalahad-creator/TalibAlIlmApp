@@ -1,0 +1,49 @@
+TalibAlIlmApp (طالب العلم) — Application Source Code License
+================================================================
+
+Copyright (c) Ismail Abdullah
+
+This license applies to the **application source code** in this repository
+(Dart/Flutter code, build scripts, tooling, and original documentation
+written for this project). It does **not** apply to the bundled Quran
+corpus data (translations, tafsir, mushaf layout, tajweed rules, etc.) —
+see NOTICE.md for that data's own, separate per-source licenses.
+
+Origin and intent — نية الصدقة الجارية
+--------------------------------------
+This app was built as ṣadaqah jāriyah — a charitable work done for the
+sake of Allah (لوجه الله), not for profit. It is released freely so it can
+keep benefiting people, in any form, for as long as possible. Anyone
+reusing this code — including for a commercial product — must keep this
+notice intact and visible in their own copy/derivative (e.g. in the
+repository's README or an equivalent "about/credits" location), so the
+original charitable intent behind the code is never erased or hidden.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+  1. The above copyright notice, this permission notice, and the "Origin
+     and intent" section above must be included, unmodified, in all
+     copies or substantial portions of the Software.
+
+  2. Any public-facing copy or derivative (app store listing, website,
+     README, or in-app "about/credits" screen) must retain a visible
+     credit that the original code is a charitable work (ṣadaqah jāriyah)
+     by Ismail Abdullah, released for the sake of Allah.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+Separately, and regardless of the permissions above, the bundled Quran
+corpus data (translations, tafsir, mushaf layout, tajweed rules, etc.)
+carries its own per-source licenses — see NOTICE.md. Those licenses are
+not overridden by this file and remain in force on their own terms.
