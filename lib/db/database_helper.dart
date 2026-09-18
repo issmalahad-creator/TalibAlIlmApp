@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 69,
+      version: 70,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -109,6 +109,7 @@ class DatabaseHelper {
         await _createV67Tables(db);
         await _createV68Tables(db);
         await _createV69Tables(db);
+        await _createV70Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -190,6 +191,7 @@ class DatabaseHelper {
         if (oldVersion < 67) await _createV67Tables(db);
         if (oldVersion < 68) await _createV68Tables(db);
         if (oldVersion < 69) await _createV69Tables(db);
+        if (oldVersion < 70) await _createV70Tables(db);
       },
     );
   }
@@ -2545,6 +2547,23 @@ class DatabaseHelper {
       )
     ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_completion_goal_sessions_goal ON completion_goal_sessions(goal_id)');
+  }
+
+  /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2.5, merged into the §2.3.7أ
+  /// session engine 2026-09-18 (Ismail: "أريده أن يكون ديناميكي متغير
+  /// ويُحسب... استطيع أن أعطيه توقيت وتنبيه، أو أن يكون بلا توقيت أو
+  /// تنبيه") — the "قائمة الأوراد" live-card werd list was hardcoded to
+  /// exactly 7 entries regardless of the plan's real duration, and wasn't
+  /// editable or individually timeable. `list_kind` ('session' | 'werd')
+  /// lets the same table serve both: 'session' rows are §2.3.7أ's intra-day
+  /// prayer-time split (the same portion every day); 'werd' rows are one
+  /// per actual plan day, a roadmap across the whole goal. `reminder_enabled`
+  /// defaults to 1 so every existing v69 session row (which always implied
+  /// a reminder) is unaffected; newly-generated werd rows explicitly set it
+  /// to 0 (no reminder unless the student turns one on for that werd).
+  Future<void> _createV70Tables(Database db) async {
+    await db.execute("ALTER TABLE completion_goal_sessions ADD COLUMN list_kind TEXT NOT NULL DEFAULT 'session'");
+    await db.execute('ALTER TABLE completion_goal_sessions ADD COLUMN reminder_enabled INTEGER NOT NULL DEFAULT 1');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

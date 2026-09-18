@@ -59,4 +59,36 @@ void main() {
       expect(focusedPatternApplicable(7), isTrue);
     });
   });
+
+  group('dailyWerdPattern', () {
+    test('werd count always equals the requested day count, for any duration', () {
+      for (final days in [1, 7, 20, 30, 365]) {
+        final werds = dailyWerdPattern(604, days);
+        expect(werds.length, days);
+      }
+    });
+
+    test('sums to exactly totalUnits — the real bug class this must never regress into', () {
+      // 604 pages over 30 days: base 20, remainder 4 -> first 4 days get 21.
+      final werds = dailyWerdPattern(604, 30);
+      expect(werds.fold<int>(0, (s, w) => s + w.units), 604);
+      expect(werds[0].units, 21);
+      expect(werds[3].units, 21);
+      expect(werds[4].units, 20);
+      expect(werds.last.units, 20);
+    });
+
+    test('no reminder by default, and list_kind is werd (not session)', () {
+      final werds = dailyWerdPattern(100, 10);
+      for (final w in werds) {
+        expect(w.reminderEnabled, isFalse);
+        expect(w.listKind, 'werd');
+      }
+    });
+
+    test('never fewer than 1 day even if days is passed as 0 or negative', () {
+      expect(dailyWerdPattern(50, 0).length, 1);
+      expect(dailyWerdPattern(50, -5).length, 1);
+    });
+  });
 }

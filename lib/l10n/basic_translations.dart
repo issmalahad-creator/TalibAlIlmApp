@@ -3866,9 +3866,12 @@ const Map<String, Map<String, String>> basicTranslations = {
   },
   // §2.5 — the collapsible 7-werd boundary list's own header/labels.
   'khatm_werd_list_title': {
-    'ar': 'قائمة الأوراد (٧)', 'en': 'Portions list (7)', 'am': 'የክፍሎች ዝርዝር (፯)', 'fr': 'Liste des portions (7)', 'sw': 'Orodha ya sehemu (7)',
-    'ur': 'اوراد کی فہرست (٧)', 'tr': 'Bölüm listesi (7)', 'id': 'Daftar bagian (7)', 'bn': 'অংশের তালিকা (৭)', 'ha': 'Jerin sassa (7)',
-    'so': 'Liiska qaybaha (7)', 'fa': 'فهرست اوراد (۷)', 'ms': 'Senarai bahagian (7)',
+    // 2026-09-18: was a static "(٧)" — §2.5 is no longer fixed at 7 werds
+    // (it now equals the plan's real day count), so the count is appended
+    // live in code instead of baked into this string.
+    'ar': 'قائمة الأوراد', 'en': 'Portions list', 'am': 'የክፍሎች ዝርዝር', 'fr': 'Liste des portions', 'sw': 'Orodha ya sehemu',
+    'ur': 'اوراد کی فہرست', 'tr': 'Bölüm listesi', 'id': 'Daftar bagian', 'bn': 'অংশের তালিকা', 'ha': 'Jerin sassa',
+    'so': 'Liiska qaybaha', 'fa': 'فهرست اوراد', 'ms': 'Senarai bahagian',
   },
   'khatm_werd_label': {
     'ar': 'الورد', 'en': 'Portion', 'am': 'ክፍል', 'fr': 'Portion', 'sw': 'Sehemu',
@@ -3930,6 +3933,14 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'سیشن شامل کریں', 'tr': 'Oturum ekle', 'id': 'Tambah sesi', 'bn': 'সেশন যোগ করুন', 'ha': 'Ƙara zama',
     'so': 'Ku dar fadhi', 'fa': 'افزودن جلسه', 'ms': 'Tambah sesi',
   },
+  // §2.5's own "add" label — kept distinct from khatm_add_session_action
+  // (§2.3.7أ) since "جلسة"/session and "ورد"/werd are different concepts
+  // on the same live card and must never read the same in the UI.
+  'khatm_add_werd_action': {
+    'ar': 'أضف وردًا', 'en': 'Add portion', 'am': 'ክፍል ጨምር', 'fr': 'Ajouter une portion', 'sw': 'Ongeza sehemu',
+    'ur': 'حصہ شامل کریں', 'tr': 'Bölüm ekle', 'id': 'Tambah bagian', 'bn': 'অংশ যোগ করুন', 'ha': 'Ƙara sashe',
+    'so': 'Ku dar qayb', 'fa': 'افزودن بخش', 'ms': 'Tambah bahagian',
+  },
   'khatm_reset_sessions_action': {
     'ar': 'إعادة الضبط الافتراضي', 'en': 'Reset to default', 'am': 'ወደ ነባሪ መልስ', 'fr': 'Réinitialiser', 'sw': 'Rejesha chaguo-msingi',
     'ur': 'ڈیفالٹ پر بحال کریں', 'tr': 'Varsayılana sıfırla', 'id': 'Kembalikan ke default', 'bn': 'ডিফল্টে পুনরায় সেট করুন', 'ha': 'Mayar da tsoho',
@@ -3954,6 +3965,19 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ar': 'اسم الجلسة', 'en': 'Session name', 'am': 'የክፍለ ጊዜ ስም', 'fr': 'Nom de la séance', 'sw': 'Jina la kipindi',
     'ur': 'سیشن کا نام', 'tr': 'Oturum adı', 'id': 'Nama sesi', 'bn': 'সেশনের নাম', 'ha': 'Sunan zama',
     'so': 'Magaca fadhiga', 'fa': 'نام جلسه', 'ms': 'Nama sesi',
+  },
+  // §2.5's own edit-sheet title/field-label — kept distinct from the
+  // §2.3.7أ session versions above for the same reason as
+  // khatm_add_werd_action (a "ورد" is not a "جلسة").
+  'khatm_edit_werd_title': {
+    'ar': 'تعديل الورد', 'en': 'Edit portion', 'am': 'ክፍል አርትዕ', 'fr': 'Modifier la portion', 'sw': 'Hariri sehemu',
+    'ur': 'حصے میں ترمیم', 'tr': 'Bölümü düzenle', 'id': 'Edit bagian', 'bn': 'অংশ সম্পাদনা', 'ha': 'Gyara sashe',
+    'so': 'Wax ka beddel qaybta', 'fa': 'ویرایش بخش', 'ms': 'Edit bahagian',
+  },
+  'khatm_werd_label_field': {
+    'ar': 'اسم الورد', 'en': 'Portion name', 'am': 'የክፍል ስም', 'fr': 'Nom de la portion', 'sw': 'Jina la sehemu',
+    'ur': 'حصے کا نام', 'tr': 'Bölüm adı', 'id': 'Nama bagian', 'bn': 'অংশের নাম', 'ha': 'Sunan sashe',
+    'so': 'Magaca qaybta', 'fa': 'نام بخش', 'ms': 'Nama bahagian',
   },
   'khatm_anchor_prayer_option': {
     'ar': 'مرتبط بصلاة', 'en': 'Prayer-linked', 'am': 'ከጸሎት ጋር የተያያዘ', 'fr': 'Lié à une prière', 'sw': 'Imeunganishwa na sala',

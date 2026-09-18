@@ -22,6 +22,20 @@ class CompletionGoalSession {
   final int? fixedMinute; // anchorType == 'fixed' only
   final int units;
 
+  /// 'session' (§2.3.7أ, the wizard's intra-day prayer-time split — the
+  /// same portion every day) or 'werd' (§2.5, one row per actual plan day,
+  /// a roadmap across the whole goal — see [dailyWerdPattern]). Both kinds
+  /// share this one table/model/editor ("نفس محرك الجلسات") but are always
+  /// queried and replaced separately (`list_kind` filter), since a goal can
+  /// have both at once and they answer different questions.
+  final String listKind;
+
+  /// Whether this row has a reminder at all — a werd, unlike a session,
+  /// defaults to none (§2.5: "استطيع أن أعطيه توقيت وتنبيه، أو أن يكون بلا
+  /// توقيت أو تنبيه"). A session (the original §2.3.7أ use) always has one,
+  /// since the whole point of that list is prayer-time anchoring.
+  final bool reminderEnabled;
+
   const CompletionGoalSession({
     this.id,
     required this.goalId,
@@ -33,6 +47,8 @@ class CompletionGoalSession {
     this.fixedHour,
     this.fixedMinute,
     required this.units,
+    this.listKind = 'session',
+    this.reminderEnabled = true,
   });
 
   CompletionGoalSession copyWith({
@@ -44,6 +60,7 @@ class CompletionGoalSession {
     int? fixedMinute,
     int? units,
     int? sortOrder,
+    bool? reminderEnabled,
   }) =>
       CompletionGoalSession(
         id: id,
@@ -56,6 +73,8 @@ class CompletionGoalSession {
         fixedHour: anchorType == 'prayer' ? null : (fixedHour ?? this.fixedHour),
         fixedMinute: anchorType == 'prayer' ? null : (fixedMinute ?? this.fixedMinute),
         units: units ?? this.units,
+        listKind: listKind,
+        reminderEnabled: reminderEnabled ?? this.reminderEnabled,
       );
 
   Map<String, Object?> toRow() => {
@@ -68,6 +87,8 @@ class CompletionGoalSession {
         'fixed_hour': fixedHour,
         'fixed_minute': fixedMinute,
         'units': units,
+        'list_kind': listKind,
+        'reminder_enabled': reminderEnabled ? 1 : 0,
       };
 
   factory CompletionGoalSession.fromRow(Map<String, Object?> row) => CompletionGoalSession(
@@ -81,6 +102,8 @@ class CompletionGoalSession {
         fixedHour: row['fixed_hour'] as int?,
         fixedMinute: row['fixed_minute'] as int?,
         units: row['units'] as int,
+        listKind: row['list_kind'] as String? ?? 'session',
+        reminderEnabled: (row['reminder_enabled'] as int?) != 0,
       );
 }
 
@@ -138,3 +161,31 @@ List<CompletionGoalSession> focusedSessionPattern(int dailyTarget) {
 /// §2.3.7أ's حالة حدّية — "يُخفى تلقائيًا إن كان daily_target < 7 ... لا قيم
 /// سالبة أبدًا".
 bool focusedPatternApplicable(int dailyTarget) => dailyTarget >= 7;
+
+/// §2.5 (merged into this engine 2026-09-18 per Ismail's own words: "أريده
+/// أن يكون ديناميكي متغير ويُحسب") — one werd per actual plan day, not a
+/// fixed 7. Same floor+remainder split as [equalSessionPattern] (no
+/// AI/heuristic — a plain even division with the remainder given to the
+/// first days, in order), generalized from 7 to [days]. No reminder by
+/// default (`reminderEnabled: false` — see [CompletionGoalSession]'s own
+/// doc comment for why a werd's timing is opt-in, unlike a session's).
+/// `dailyWerdPattern.length == days` always, for any `totalUnits >= days`
+/// or not — the split never produces a negative or skips a day.
+List<CompletionGoalSession> dailyWerdPattern(int totalUnits, int days) {
+  final n = days < 1 ? 1 : days;
+  final base = totalUnits ~/ n;
+  final remainder = totalUnits % n;
+  return List.generate(n, (i) {
+    return CompletionGoalSession(
+      goalId: 0,
+      sortOrder: i,
+      label: 'الورد ${i + 1}',
+      anchorType: 'fixed',
+      fixedHour: 20,
+      fixedMinute: 0,
+      units: base + (i < remainder ? 1 : 0),
+      listKind: 'werd',
+      reminderEnabled: false,
+    );
+  });
+}

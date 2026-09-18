@@ -5,6 +5,7 @@ import '../l10n/basic_translations.dart';
 import '../models/completion_goal_session.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
+import 'mushaf_layout_repository.dart';
 
 class CompletionGoal {
   final int id;
@@ -239,35 +240,132 @@ class CompletionGoalRepository {
     );
   }
 
-  /// §2.3 field 7أ — a goal's ordered reading sessions (empty for any goal
-  /// that never opted into the "توزيع على الصلوات" distribution, in which
-  /// case callers fall back to the existing single daily-target behaviour).
+  /// §2.3 field 7أ — a goal's ordered intra-day reading sessions (empty for
+  /// any goal that never opted into the "توزيع على الصلوات" distribution,
+  /// in which case callers fall back to the existing single daily-target
+  /// behaviour). `list_kind = 'session'` only — never a goal's §2.5 werds
+  /// (see [werdsFor]), even though both share this one table.
   Future<List<CompletionGoalSession>> sessionsFor(int goalId) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query(
       'completion_goal_sessions',
-      where: 'goal_id = ?',
+      where: "goal_id = ? AND list_kind = 'session'",
       whereArgs: [goalId],
       orderBy: 'sort_order ASC',
     );
     return rows.map(CompletionGoalSession.fromRow).toList();
   }
 
-  /// Replaces a goal's whole session list atomically (delete-then-insert,
-  /// in one transaction) — used both at creation time and whenever the
-  /// wizard's session editor is re-saved. An empty [sessions] list simply
-  /// clears them, reverting the goal to the plain single-daily-target
-  /// behaviour.
+  /// Replaces a goal's whole intra-day session list atomically (delete-then
+  /// -insert, in one transaction) — used both at creation time and whenever
+  /// the wizard's session editor is re-saved. An empty [sessions] list
+  /// simply clears them, reverting the goal to the plain single-daily
+  /// -target behaviour. Only touches `list_kind = 'session'` rows — a
+  /// goal's werds (§2.5) are untouched by this call.
   Future<void> replaceSessions(int goalId, List<CompletionGoalSession> sessions) async {
     final db = await DatabaseHelper.instance.database;
     await db.transaction((txn) async {
-      await txn.delete('completion_goal_sessions', where: 'goal_id = ?', whereArgs: [goalId]);
+      await txn.delete('completion_goal_sessions', where: "goal_id = ? AND list_kind = 'session'", whereArgs: [goalId]);
       for (final s in sessions) {
         final row = s.toRow();
         row['goal_id'] = goalId;
+        row['list_kind'] = 'session';
         await txn.insert('completion_goal_sessions', row);
       }
     });
+  }
+
+  /// §2.5, merged into this same engine 2026-09-18 — a goal's ordered werd
+  /// roadmap (`list_kind = 'werd'`), one row per actual plan day. Empty for
+  /// a goal that has never had [ensureWerds] run for it yet (e.g. seeded
+  /// from an older app version) — always call [ensureWerds] first, which
+  /// lazily generates and persists the default list exactly once.
+  Future<List<CompletionGoalSession>> werdsFor(int goalId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query(
+      'completion_goal_sessions',
+      where: "goal_id = ? AND list_kind = 'werd'",
+      whereArgs: [goalId],
+      orderBy: 'sort_order ASC',
+    );
+    return rows.map(CompletionGoalSession.fromRow).toList();
+  }
+
+  /// Same delete-then-insert pattern as [replaceSessions], scoped to
+  /// `list_kind = 'werd'` only.
+  Future<void> replaceWerds(int goalId, List<CompletionGoalSession> werds) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.transaction((txn) async {
+      await txn.delete('completion_goal_sessions', where: "goal_id = ? AND list_kind = 'werd'", whereArgs: [goalId]);
+      for (final w in werds) {
+        final row = w.toRow();
+        row['goal_id'] = goalId;
+        row['list_kind'] = 'werd';
+        await txn.insert('completion_goal_sessions', row);
+      }
+    });
+  }
+
+  /// The plan's real total day count (today→target_date), the same
+  /// dynamic day-count Ismail asked the werd list to actually use instead
+  /// of a fixed 7 — a thin public wrapper around the private day-math this
+  /// repository already uses everywhere else (`reschedule`, `statusFor`),
+  /// so this is never computed with a second, potentially-drifting formula.
+  int totalDurationDays(CompletionGoal goal) => _daysBetween(goal.startDate, goal.targetDate).clamp(1, 100000);
+
+  /// §2.5's lazy-generation entry point — the one place a goal's werd list
+  /// is created. Returns the already-persisted list untouched if one
+  /// exists (so a student's own edits are never silently overwritten on a
+  /// later app open); generates and persists a fresh one only the first
+  /// time this is ever called for a goal. The classical تحزيب الصحابة
+  /// division seeds the exact-7-day-whole-mushaf case (real hadith-based
+  /// boundaries, `MushafLayoutRepository.kTahzeebSahabaStartSurahs` — quoted
+  /// verbatim in the app's own info dialog); every other case gets the
+  /// general even-split ([dailyWerdPattern]) — "تحزيب الصحابة" is now one
+  /// special case of this one general engine, not a separate hardcoded
+  /// path, per Ismail's own framing.
+  Future<List<CompletionGoalSession>> ensureWerds(CompletionGoal goal) async {
+    final existing = await werdsFor(goal.id);
+    if (existing.isNotEmpty) return existing;
+
+    final startUnit = goal.startUnit ?? 1;
+    final endUnit = goal.endUnit ?? goal.totalUnits;
+    final days = totalDurationDays(goal);
+
+    List<CompletionGoalSession> generated;
+    if (startUnit == 1 && endUnit == 604 && days == 7) {
+      generated = await _classicalTahzeebWerds(endUnit);
+    } else {
+      generated = dailyWerdPattern(goal.totalUnits, days);
+    }
+    await replaceWerds(goal.id, generated);
+    return generated;
+  }
+
+  Future<List<CompletionGoalSession>> _classicalTahzeebWerds(int endPage) async {
+    final layoutRepo = MushafLayoutRepository();
+    final starts = <int>[];
+    for (final surah in MushafLayoutRepository.kTahzeebSahabaStartSurahs) {
+      final p = await layoutRepo.pageForReference(surah);
+      // Underlying mushaf data missing a boundary page — falls back to the
+      // general even-split rather than a half-resolved classical division.
+      if (p == null) return dailyWerdPattern(endPage, 7);
+      starts.add(p);
+    }
+    return [
+      for (var i = 0; i < 7; i++)
+        CompletionGoalSession(
+          goalId: 0,
+          sortOrder: i,
+          label: 'الورد ${i + 1}',
+          anchorType: 'fixed',
+          fixedHour: 20,
+          fixedMinute: 0,
+          units: (i < 6 ? starts[i + 1] - 1 : endPage) - starts[i] + 1,
+          listKind: 'werd',
+          reminderEnabled: false,
+        ),
+    ];
   }
 
   /// Re-anchors the plan from today at the same total_units, keeping the

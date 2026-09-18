@@ -65,7 +65,7 @@ class _CompletionGoalSessionEditorState extends State<CompletionGoalSessionEdito
     final edited = await showModalBottomSheet<CompletionGoalSession>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _SessionEditSheet(session: s, lang: lang),
+      builder: (context) => CompletionGoalSessionEditSheet(session: s, lang: lang),
     );
     if (edited == null) return;
     final next = [..._sessions];
@@ -229,21 +229,29 @@ class _PatternCard extends StatelessWidget {
   }
 }
 
-class _SessionEditSheet extends StatefulWidget {
+/// The session-list editor's own row-edit sheet (label/anchor/units) — also
+/// reused, unmodified in its default look, by [CompletionGoalWerdList]
+/// (§2.5) via [showReminderToggle]: a werd's timing is opt-in ("استطيع أن
+/// أعطيه توقيت وتنبيه، أو أن يكون بلا توقيت أو تنبيه"), unlike a §2.3.7أ
+/// session which always has one, so only the werd list ever passes `true`
+/// here.
+class CompletionGoalSessionEditSheet extends StatefulWidget {
   final CompletionGoalSession session;
   final String lang;
-  const _SessionEditSheet({required this.session, required this.lang});
+  final bool showReminderToggle;
+  const CompletionGoalSessionEditSheet({super.key, required this.session, required this.lang, this.showReminderToggle = false});
 
   @override
-  State<_SessionEditSheet> createState() => _SessionEditSheetState();
+  State<CompletionGoalSessionEditSheet> createState() => _CompletionGoalSessionEditSheetState();
 }
 
-class _SessionEditSheetState extends State<_SessionEditSheet> {
+class _CompletionGoalSessionEditSheetState extends State<CompletionGoalSessionEditSheet> {
   late String _anchorType;
   late String _prayer;
   late int _offset;
   late TimeOfDay _fixedTime;
   late int _units;
+  late bool _reminderEnabled;
   late final TextEditingController _labelController;
 
   @override
@@ -255,6 +263,7 @@ class _SessionEditSheetState extends State<_SessionEditSheet> {
     _offset = s.offsetMinutes;
     _fixedTime = TimeOfDay(hour: s.fixedHour ?? 12, minute: s.fixedMinute ?? 0);
     _units = s.units;
+    _reminderEnabled = s.reminderEnabled;
     _labelController = TextEditingController(text: s.label);
   }
 
@@ -274,50 +283,62 @@ class _SessionEditSheetState extends State<_SessionEditSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(basicText('khatm_edit_session_title', lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            Text(basicText(widget.showReminderToggle ? 'khatm_edit_werd_title' : 'khatm_edit_session_title', lang),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 16),
-            TextField(controller: _labelController, decoration: InputDecoration(labelText: basicText('khatm_session_label_field', lang))),
+            TextField(
+                controller: _labelController,
+                decoration: InputDecoration(labelText: basicText(widget.showReminderToggle ? 'khatm_werd_label_field' : 'khatm_session_label_field', lang))),
             const SizedBox(height: 16),
-            SegmentedButton<String>(
-              segments: [
-                ButtonSegment(value: 'prayer', label: Text(basicText('khatm_anchor_prayer_option', lang), style: const TextStyle(fontSize: 11))),
-                ButtonSegment(value: 'fixed', label: Text(basicText('khatm_anchor_fixed_option', lang), style: const TextStyle(fontSize: 11))),
-              ],
-              selected: {_anchorType},
-              onSelectionChanged: (v) => setState(() => _anchorType = v.first),
-            ),
-            const SizedBox(height: 12),
-            if (_anchorType == 'prayer') ...[
-              DropdownButton<String>(
-                isExpanded: true,
-                value: _prayer,
-                items: kPrayerAnchorLabels.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
-                onChanged: (v) => setState(() => _prayer = v ?? _prayer),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('${basicText('khatm_offset_label', lang)}: $_offset ${basicText('minute_short_label', lang)}', style: const TextStyle(fontSize: 12.5)),
-                  Row(
-                    children: [
-                      IconButton(icon: const Icon(Icons.remove_circle_outline, size: 20), onPressed: () => setState(() => _offset -= 5)),
-                      IconButton(icon: const Icon(Icons.add_circle_outline, size: 20), onPressed: () => setState(() => _offset += 5)),
-                    ],
-                  ),
-                ],
-              ),
-            ] else
-              ListTile(
+            if (widget.showReminderToggle)
+              SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.access_time, size: 20),
-                title: Text(basicText('khatm_reminder_time_label', lang), style: const TextStyle(fontSize: 13)),
-                trailing: Text(_fixedTime.format(context), style: const TextStyle(fontWeight: FontWeight.w700)),
-                onTap: () async {
-                  final picked = await showTimePicker(context: context, initialTime: _fixedTime);
-                  if (picked != null) setState(() => _fixedTime = picked);
-                },
+                title: Text(basicText('khatm_reminder_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+                value: _reminderEnabled,
+                onChanged: (v) => setState(() => _reminderEnabled = v),
               ),
-            const SizedBox(height: 12),
+            if (!widget.showReminderToggle || _reminderEnabled) ...[
+              SegmentedButton<String>(
+                segments: [
+                  ButtonSegment(value: 'prayer', label: Text(basicText('khatm_anchor_prayer_option', lang), style: const TextStyle(fontSize: 11))),
+                  ButtonSegment(value: 'fixed', label: Text(basicText('khatm_anchor_fixed_option', lang), style: const TextStyle(fontSize: 11))),
+                ],
+                selected: {_anchorType},
+                onSelectionChanged: (v) => setState(() => _anchorType = v.first),
+              ),
+              const SizedBox(height: 12),
+              if (_anchorType == 'prayer') ...[
+                DropdownButton<String>(
+                  isExpanded: true,
+                  value: _prayer,
+                  items: kPrayerAnchorLabels.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
+                  onChanged: (v) => setState(() => _prayer = v ?? _prayer),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${basicText('khatm_offset_label', lang)}: $_offset ${basicText('minute_short_label', lang)}', style: const TextStyle(fontSize: 12.5)),
+                    Row(
+                      children: [
+                        IconButton(icon: const Icon(Icons.remove_circle_outline, size: 20), onPressed: () => setState(() => _offset -= 5)),
+                        IconButton(icon: const Icon(Icons.add_circle_outline, size: 20), onPressed: () => setState(() => _offset += 5)),
+                      ],
+                    ),
+                  ],
+                ),
+              ] else
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.access_time, size: 20),
+                  title: Text(basicText('khatm_reminder_time_label', lang), style: const TextStyle(fontSize: 13)),
+                  trailing: Text(_fixedTime.format(context), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  onTap: () async {
+                    final picked = await showTimePicker(context: context, initialTime: _fixedTime);
+                    if (picked != null) setState(() => _fixedTime = picked);
+                  },
+                ),
+              const SizedBox(height: 12),
+            ],
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -341,6 +362,7 @@ class _SessionEditSheetState extends State<_SessionEditSheet> {
                   fixedHour: _anchorType == 'fixed' ? _fixedTime.hour : null,
                   fixedMinute: _anchorType == 'fixed' ? _fixedTime.minute : null,
                   units: _units,
+                  reminderEnabled: widget.showReminderToggle ? _reminderEnabled : true,
                 );
                 Navigator.pop(context, result);
               },

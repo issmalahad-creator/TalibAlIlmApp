@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 
-import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
 import '../models/completion_goal_session.dart';
 import '../models/personal_book.dart';
@@ -16,6 +15,7 @@ import '../utils/date_display.dart';
 import '../utils/hijri_date.dart';
 import 'circular_percent_gauge.dart';
 import 'completion_goal_session_editor.dart';
+import 'completion_goal_werd_list.dart';
 import 'loading_view.dart';
 
 /// (content_type, book_ref, label, total_units) — the fixed set of
@@ -39,8 +39,6 @@ String _resolveOptionLabel(String label, String lang) => label.startsWith('@') ?
 /// The only two content types with a "juz"/page-range concept at all — used
 /// both by the wizard's range slider and (§2.5) the werd-boundary list.
 bool _isPageBasedGoal(String contentType) => contentType == 'quran_reading' || contentType == 'quran_memorization';
-
-String _surahName(int surahNumber) => quranSurahs[surahNumber - 1].name;
 
 /// §2.3 field 3 — the "تحزيب الصحابة" info dialog's body, verbatim per
 /// Ismail's exact instruction ("بلا أي إعادة صياغة"): a hadith citation +
@@ -802,11 +800,14 @@ class _GoalCard extends StatefulWidget {
 class _GoalCardState extends State<_GoalCard> {
   late final TextEditingController _pageController;
 
-  /// §2.5 — the 7-werd boundary list, computed once per card (a handful of
-  /// cheap indexed `mushaf_pages` lookups) and cached; null for content
-  /// types with no page/juz concept, in which case the section is hidden
-  /// entirely rather than shown empty.
-  late final Future<List<WerdBoundary>>? _werdBoundariesFuture;
+  /// §2.5 — whether this goal even has a werd-list concept at all (a page
+  /// range to divide); `false` for content types with no page/juz concept,
+  /// in which case the section is hidden entirely rather than shown empty.
+  /// The list itself (now dynamic — one werd per actual plan day, not a
+  /// fixed 7 — and editable) lives in [CompletionGoalWerdList], mounted
+  /// only once expanded so its own DB round-trip never runs for a
+  /// collapsed card.
+  late final bool _isWerdListGoal;
   bool _werdListExpanded = false;
 
   @override
@@ -814,9 +815,7 @@ class _GoalCardState extends State<_GoalCard> {
     super.initState();
     _pageController = TextEditingController(text: widget.currentPageHint?.toString() ?? '');
     final g = widget.status.goal;
-    _werdBoundariesFuture = _isPageBasedGoal(g.contentType)
-        ? MushafLayoutRepository().sevenWerdBoundaries(g.startUnit ?? 1, g.endUnit ?? g.totalUnits)
-        : null;
+    _isWerdListGoal = _isPageBasedGoal(g.contentType);
   }
 
   @override
@@ -929,15 +928,14 @@ class _GoalCardState extends State<_GoalCard> {
               ),
             ),
           ),
-          if (_werdBoundariesFuture != null) ...[
+          if (_isWerdListGoal) ...[
             const SizedBox(height: 10),
             // A manual toggle, not ExpansionTile — ExpansionTile's built-in
             // expand animation runs its own Ticker, and this exact card has
             // already broken once from an unrelated widget (FilledButton
             // .tonal) leaving its list layout permanently unresolved. Every
-            // widget used here (GestureDetector, Icon, Text, FutureBuilder,
-            // CircularProgressIndicator) is one already proven to render
-            // correctly in this same card.
+            // widget used here (GestureDetector, Icon, Text) is one already
+            // proven to render correctly in this same card.
             GestureDetector(
               onTap: () => setState(() => _werdListExpanded = !_werdListExpanded),
               child: Row(
@@ -948,36 +946,10 @@ class _GoalCardState extends State<_GoalCard> {
                 ],
               ),
             ),
-            if (_werdListExpanded)
-              FutureBuilder<List<WerdBoundary>>(
-                future: _werdBoundariesFuture,
-                builder: (context, snapshot) {
-                  final list = snapshot.data;
-                  if (list == null) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                    );
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        for (final w in list)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 3),
-                            child: Text(
-                              '${basicText('khatm_werd_label', lang)} ${w.index}: ${_surahName(w.startSurah)} ${w.startAyah} '
-                              '${basicText('khatm_werd_range_to_label', lang)} ${_surahName(w.endSurah)} ${w.endAyah}',
-                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+            // Mounted only while expanded — its own load (ensureWerds, a real
+            // DB round-trip, plus one ayahBoundsForPage lookup per werd) never
+            // runs for a card the student hasn't opened.
+            if (_werdListExpanded) CompletionGoalWerdList(goal: g),
           ],
           const SizedBox(height: 10),
           Row(
