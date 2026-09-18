@@ -30,7 +30,6 @@ import 'services/quran_import_service.dart';
 import 'services/text_scale_preference_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/hijri_date.dart';
-import 'widgets/companion_floating_bubble.dart';
 import 'widgets/restart_widget.dart';
 
 /// Global navigator so a tapped notification's `payload` can open the
@@ -217,11 +216,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
               textDirection: direction,
               child: MediaQuery(
                 data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(textScale)),
-                // Floating companion bubble ("من اي صفحة" — Ismail,
-                // 2026-08-18) lives here, above the Navigator, so it stays
-                // reachable across every pushed screen instead of only the
-                // 4 main-shell tabs.
-                child: Stack(children: [child!, const CompanionFloatingBubble()]),
+                child: child!,
               ),
             ),
             home: const StartupGate(),

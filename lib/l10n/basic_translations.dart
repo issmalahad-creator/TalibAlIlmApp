@@ -2140,6 +2140,15 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'رفیق', 'tr': 'Arkadaş', 'id': 'Sahabat', 'bn': 'সঙ্গী', 'ha': 'Aboki',
     'so': 'Saaxiib', 'fa': 'همراه', 'ms': 'Rakan',
   },
+  'companion_chat_home_tagline': {
+    'ar': 'اسأل رفيقك عن تقدمك', 'en': 'Ask your companion about your progress',
+    'am': 'ስለ እድገትህ ጓደኛህን ጠይቅ', 'fr': 'Demandez à votre compagnon vos progrès',
+    'sw': 'Muulize rafiki yako kuhusu maendeleo yako',
+    'ur': 'اپنے رفیق سے اپنی پیش رفت کے بارے میں پوچھیں', 'tr': 'Arkadaşına ilerlemeni sor',
+    'id': 'Tanyakan progresmu ke sahabatmu', 'bn': 'আপনার সঙ্গীকে আপনার অগ্রগতি সম্পর্কে জিজ্ঞাসা করুন',
+    'ha': 'Tambayi abokinka game da ci gabanka', 'so': 'Weydii saaxiibkaa horumarkaaga',
+    'fa': 'از همراهت درباره پیشرفتت بپرس', 'ms': 'Tanya rakan anda tentang kemajuan anda',
+  },
   'companion_chat_hint': {
     'ar': 'اكتب رسالتك...', 'en': 'Type a message...', 'am': 'መልእክትዎን ይጻፉ...', 'fr': 'Écrivez un message...', 'sw': 'Andika ujumbe...',
     'ur': 'اپنا پیغام لکھیں...', 'tr': 'Mesajınızı yazın...', 'id': 'Ketik pesan...', 'bn': 'আপনার বার্তা লিখুন...', 'ha': 'Rubuta saƙo...',

@@ -24,6 +24,7 @@ import '../widgets/animated_banner.dart';
 import '../widgets/category_pill.dart';
 import '../widgets/companion_card.dart';
 import '../widgets/daily_companion_card.dart';
+import 'companion_chat_screen.dart';
 import '../widgets/daily_journey_card.dart';
 import '../widgets/knowledge_review_entry_card.dart';
 import '../widgets/nav_tile.dart';
@@ -197,6 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   _LifeEngineCard(lang: lang),
                   const SizedBox(height: 12),
                   _AkhlaqCard(lang: lang),
+                  const SizedBox(height: 12),
+                  _CompanionChatCard(lang: lang),
                   const SizedBox(height: 12),
                   _MyMosqueCard(
                       key: ValueKey('my_mosque_$_mosqueRefreshTick'),
@@ -987,6 +990,66 @@ class _LifeEngineCard extends StatelessWidget {
                           color: AppColors.textDark)),
                   const SizedBox(height: 2),
                   Text(basicText('life_engine_tagline', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontSize: 11.5, color: AppColors.textMuted)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "الرفيق" — moved here from a global floating bubble overlaid on every
+/// screen (Ismail, 2026-09-18: it sat above other things and caused
+/// problems). A fixed home card is reachable just as easily without
+/// floating over content elsewhere; opens the same full-page
+/// `CompanionChatScreen` the old bubble's bottom sheet used underneath.
+class _CompanionChatCard extends StatelessWidget {
+  final String lang;
+  const _CompanionChatCard({required this.lang});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const CompanionChatScreen())),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0x33D9A441)),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x1FD9A441),
+                blurRadius: 16,
+                offset: Offset(0, 5)),
+          ],
+        ),
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            const Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primary, size: 26),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(basicText('companion_chat_title', lang),
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: AppColors.textDark)),
+                  const SizedBox(height: 2),
+                  Text(basicText('companion_chat_home_tagline', lang),
                       textDirection: TextDirection.rtl,
                       style: const TextStyle(
                           fontSize: 11.5, color: AppColors.textMuted)),

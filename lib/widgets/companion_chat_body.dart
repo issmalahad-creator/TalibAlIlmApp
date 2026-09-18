@@ -14,10 +14,12 @@ class _ChatBubbleData {
 }
 
 /// The interactive messages-list + input-row, factored out of
-/// `companion_chat_screen.dart` (2026-08-18) so the exact same chat works
-/// both as a full page AND inside the floating-bubble popup
-/// (`companion_floating_bubble.dart`) — one implementation, not two drifting
-/// copies of the same logic.
+/// `companion_chat_screen.dart` (2026-08-18) so the same chat body can be
+/// reused wherever it's opened from — one implementation, not drifting
+/// copies of the same logic. (Originally also opened from a global
+/// floating bubble overlaid on every screen; that bubble was removed
+/// 2026-09-18 in favour of a fixed home-screen card — `CompanionChatScreen`
+/// is now the only consumer.)
 class CompanionChatBody extends StatefulWidget {
   const CompanionChatBody({super.key});
 

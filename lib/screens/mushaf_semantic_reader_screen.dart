@@ -17,7 +17,6 @@ import '../repositories/quran_reading_session_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/quran_audio/quran_audio_provider_registry.dart';
 import '../services/quran_audio_engine.dart';
-import '../widgets/companion_floating_bubble.dart';
 import '../widgets/completion_goal_list_view.dart';
 import '../widgets/mushaf_page_view.dart';
 import '../theme/app_theme.dart';
@@ -107,9 +106,6 @@ class _MushafSemanticReaderScreenState
     super.initState();
     _current = widget.initialPage.clamp(1, _pageCount);
     _controller = PageController(initialPage: _current - 1);
-    // Full-bleed reading surface — keep the floating companion bubble off
-    // the page and its app bar while we're here.
-    CompanionFloatingBubble.suppressed.value++;
     _repo.isReady().then((r) {
       if (mounted) setState(() => _ready = r);
     });
@@ -164,7 +160,6 @@ class _MushafSemanticReaderScreenState
 
   @override
   void dispose() {
-    CompanionFloatingBubble.suppressed.value--;
     _sessionTimer?.cancel();
     _audio.stop();
     _controller.dispose();
