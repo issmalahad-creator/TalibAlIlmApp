@@ -5,6 +5,7 @@ import '../../repositories/quran_book_cache.dart';
 import '../../repositories/quran_corpus_repository.dart';
 import '../../repositories/quran_reading_repository.dart';
 import '../../repositories/quran_search_repository.dart';
+import '../../services/quran_corpus_download_service.dart';
 import '../../theme/app_theme.dart';
 
 /// Phase 80 / QC3 — the **Quran Corpus** surfaced on the mushaf.
@@ -98,6 +99,42 @@ Widget _dots() => const Padding(
             style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
       ),
     );
+
+/// A "loading" placeholder that becomes a real byte-progress bar the moment
+/// [QuranCorpusDownloadService] is actually fetching `(category, id)` from
+/// the network (a "lite"-build edition not yet cached on-device) — falls
+/// back to the quiet [_dots] for a bundled/already-cached load, which is
+/// near-instant and needs no progress UI. Only repaints on genuine byte
+/// events from the download, same "no animation for its own sake" rule
+/// `_dots()` follows.
+Widget _loadingOrProgress(String category, int id, String lang) {
+  return ValueListenableBuilder<(int, int?)?>(
+    valueListenable: QuranCorpusDownloadService.instance.progressOf(category, id),
+    builder: (context, progress, _) {
+      if (progress == null) return _dots();
+      final (received, total) = progress;
+      final fraction = total == null || total <= 0 ? null : received / total;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Column(
+          children: [
+            Text(
+              fraction == null
+                  ? basicText('ql_downloading', lang)
+                  : '${basicText('ql_downloading', lang)} — ${(fraction * 100).round()}٪',
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5),
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(value: fraction, minHeight: 4),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 Widget _sourceLine(String? text) {
   if (text == null || text.trim().isEmpty) return const SizedBox.shrink();
@@ -1062,7 +1099,7 @@ class _AyahTafsirPanelState extends State<AyahTafsirPanel> {
         ),
         const SizedBox(height: 8),
         if (_loadingText)
-          _dots()
+          _loadingOrProgress('tafsir', _bookId, lang)
         else if (_mirror)
           _calmMessage(basicText('ql_tafsir_mirror', lang))
         else if (_text == null || _text!.trim().isEmpty)
@@ -1420,7 +1457,7 @@ class _TranslationBoxState extends State<_TranslationBox> {
                 : Padding(
                     padding: const EdgeInsets.fromLTRB(11, 0, 11, 11),
                     child: _loading
-                        ? _dots()
+                        ? _loadingOrProgress('translations', widget.editionId, widget.lang)
                         : (_text == null || _text!.trim().isEmpty)
                             ? _calmNoData(widget.lang)
                             : Directionality(
@@ -1536,7 +1573,7 @@ class _RiwayaBoxState extends State<_RiwayaBox> {
                 : Padding(
                     padding: const EdgeInsets.fromLTRB(11, 0, 11, 12),
                     child: _loading
-                        ? _dots()
+                        ? _loadingOrProgress('riwaya', widget.riwayaId, widget.lang)
                         : (_text == null || _text!.trim().isEmpty)
                             ? _calmNoData(widget.lang)
                             : Row(
