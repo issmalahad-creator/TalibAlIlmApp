@@ -100,7 +100,7 @@ class PersonalLibraryTextSource implements ReadableTextSource {
       throw PersonalLibraryNoTextLayerException(bookKey: bookKey, pageNumber: unitIndex);
     }
 
-    return text.split('\n').map((line) => line.trim()).where((line) => line.isNotEmpty).toList();
+    return splitIntoPlayableParagraphs(text);
   }
 
   @override

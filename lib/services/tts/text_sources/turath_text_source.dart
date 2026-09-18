@@ -46,16 +46,9 @@ class TurathTextSource implements ReadableTextSource {
     return _repo.saveLastRead(bookId, bookName, unitIndex);
   }
 
-  /// فقرات مفصولة بسطر فارغ فأكثر؛ صفحة بلا فواصل فقرات تُعامَل كفقرة واحدة
-  /// (طبقة التخزين المؤقت في المرحلة 3 هي من ستُقسِّم الفقرات الطويلة جدًا
-  /// عند الحاجة، لا هذه الطبقة).
+  /// فقرات مفصولة بسطر فارغ فأكثر، مع تقسيم إضافي لأي فقرة تتجاوز
+  /// [kMaxParagraphChars] عند حدود الجمل (`splitIntoPlayableParagraphs`).
   static List<String> _splitParagraphs(String rawText) {
-    final normalized = normalizePageText(rawText);
-    if (normalized.isEmpty) return const [];
-    return normalized
-        .split('\n')
-        .map((p) => p.trim())
-        .where((p) => p.isNotEmpty)
-        .toList();
+    return splitIntoPlayableParagraphs(normalizePageText(rawText));
   }
 }

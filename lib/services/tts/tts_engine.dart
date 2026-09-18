@@ -145,7 +145,8 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
       }
 
       final audio = tts.generate(text: message.text, speed: message.speed);
-      final wav = _encodeWav(audio.samples, audio.sampleRate);
+      final trimmed = _trimSilence(audio.samples, sampleRate: audio.sampleRate);
+      final wav = _encodeWav(trimmed, audio.sampleRate);
       message.replyPort.send(wav);
     } catch (e) {
       message.replyPort.send(_SynthesizeError(e.toString()));
@@ -206,6 +207,35 @@ Future<String> _ensureVoiceExtracted(TtsVoiceOption voice) async {
   }
 
   return voiceDir.path;
+}
+
+/// يُشذِّب الصمت الزائد من بداية/نهاية العيّنات فقط (لا وسط الصوت — لا يمسّ
+/// أي وقفة طبيعية داخل الكلام نفسه) مع إبقاء حافة صغيرة (~80 مللي ثانية)
+/// بدل قصّ حاد قد يبتر أول/آخر صوت مسموع. الفائدة: تشغيل متتابع للفقرات
+/// (auto-advance) بلا فجوات صامتة طويلة غير ضرورية بين فقرة وأخرى — النموذج
+/// عادة يُنتِج صمتًا زائدًا في الطرفين، هذا يزيله بلا التأثير على المحتوى
+/// المسموع فعليًا.
+Float32List _trimSilence(Float32List samples, {double threshold = 0.01, int keepMs = 80, int sampleRate = 22050}) {
+  if (samples.isEmpty) return samples;
+
+  var start = 0;
+  while (start < samples.length && samples[start].abs() < threshold) {
+    start++;
+  }
+  var end = samples.length;
+  while (end > start && samples[end - 1].abs() < threshold) {
+    end--;
+  }
+
+  final keepSamples = (keepMs / 1000 * sampleRate).round();
+  final trimmedStart = (start - keepSamples).clamp(0, samples.length);
+  final trimmedEnd = (end + keepSamples).clamp(0, samples.length);
+
+  // الصوت صامت بالكامل (نادر، فقرة فارغة فعليًا بعد التشكيل) — أرجعه كما هو
+  // بدل قائمة فارغة قد تُربِك تشغيل الملف.
+  if (trimmedStart >= trimmedEnd) return samples;
+
+  return Float32List.sublistView(samples, trimmedStart, trimmedEnd);
 }
 
 /// Float32 PCM (نطاق [-1, 1]) → WAV أحادي 16-bit — ترميز بسيط قياسي، لا

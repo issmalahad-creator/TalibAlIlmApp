@@ -1,10 +1,11 @@
 /// ورقة سفلية واحدة للقارئ الصوتي — تقبل أي `ReadableTextSource` (تراث أو
 /// مكتبتي)، لا شاشتان منفصلتان (docs/audio-reader/TODO.md 4.1).
 ///
-/// عناصر ودجت أساسية مُثبَتة فقط (Row/Column/IconButton/Text/Slider) — لا
-/// ExpansionTile أو ودجت متحرِّك جديد، تحاشيًا لنفس فخ التجمّد الذي حدث في
-/// بطاقة الختمة (`FilledButton.tonal` كشقيق TextField في Row) قبل هذه الحبة
-/// مباشرة، حسب تقرير الوكيل.
+/// عناصر ودجت أساسية مُثبَتة فقط (Row/Column/IconButton/Text/Slider/Wrap) —
+/// لا ExpansionTile أو ودجت متحرِّك جديد، تحاشيًا لنفس فخ التجمّد الذي حدث
+/// في بطاقة الختمة (`FilledButton.tonal` كشقيق TextField في Row). صفوف
+/// التحكّم كلها `Wrap` لا `Row` — درس فيضان حقيقي حدث فعليًا على هاتف
+/// إسماعيل الحقيقي (شاشة أضيق من المحاكي الذي اختُبِر عليه أولًا).
 library;
 
 import 'package:flutter/material.dart';
@@ -73,11 +74,14 @@ class _AudioReaderViewState extends State<AudioReaderView> {
                     textAlign: TextAlign.right,
                   ),
                 ),
+                _buildAutoAdvanceButton(),
+                _buildSleepTimerButton(),
                 IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
               ],
             ),
             const SizedBox(height: 12),
             _buildBody(),
+            _buildRemainingTimeLabel(),
             const SizedBox(height: 12),
             _buildSpeedRow(),
             const SizedBox(height: 8),
@@ -90,10 +94,17 @@ class _AudioReaderViewState extends State<AudioReaderView> {
 
   Widget _buildBody() {
     if (_controller.lastError != null) {
-      return Text(
-        _controller.lastError.toString(),
-        style: const TextStyle(color: Colors.red),
-        textAlign: TextAlign.right,
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12)),
+        child: Text(
+          // رسالة صديقة للمستخدم — لا نص استثناء تقني خام (docs/audio-reader/
+          // AUDIO_100_ROADMAP.md §7.1). التفصيل التقني في debugPrint للمطوّر
+          // فقط، لا في واجهة المستخدم.
+          'تعذّر توليد الصوت لهذه الفقرة. تحقّق من المساحة المتاحة على الجهاز وحاول مجددًا.',
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: AppColors.textDark),
+        ),
       );
     }
     if (_controller.state == AudioReaderPlaybackState.loading && _controller.currentParagraphText.isEmpty) {
@@ -113,6 +124,49 @@ class _AudioReaderViewState extends State<AudioReaderView> {
         textAlign: TextAlign.right,
         style: const TextStyle(fontSize: 16, height: 1.6, color: AppColors.textDark),
       ),
+    );
+  }
+
+  /// الوقت المتبقّي التقديري — لا يظهر حتى تُقاس أول فقرة فعليًا (لا تخمين
+  /// مسبق بلا بيانات حقيقية).
+  Widget _buildRemainingTimeLabel() {
+    final remaining = _controller.estimatedTimeRemaining;
+    if (remaining == null || _controller.state == AudioReaderPlaybackState.finished) {
+      return const SizedBox.shrink();
+    }
+    final minutes = (remaining.inSeconds / 60).ceil();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Text(
+        minutes <= 1 ? 'أقل من دقيقة متبقّية تقريبًا' : '~$minutes دقيقة متبقّية',
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+      ),
+    );
+  }
+
+  Widget _buildAutoAdvanceButton() {
+    final on = _controller.autoAdvancePage;
+    return IconButton(
+      icon: Icon(on ? Icons.playlist_play : Icons.playlist_play_outlined, color: on ? AppColors.primary : null),
+      tooltip: on ? 'الانتقال التلقائي للصفحة التالية: مفعَّل' : 'الانتقال التلقائي للصفحة التالية: متوقّف',
+      onPressed: () => _controller.autoAdvancePage = !on,
+    );
+  }
+
+  Widget _buildSleepTimerButton() {
+    final active = _controller.sleepTimerDuration != null;
+    return PopupMenuButton<Duration?>(
+      icon: Icon(active ? Icons.bedtime : Icons.bedtime_outlined, color: active ? AppColors.primary : null),
+      tooltip: 'مؤقّت النوم',
+      onSelected: _controller.setSleepTimer,
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: Duration(minutes: 5), child: Text('5 دقائق')),
+        PopupMenuItem(value: Duration(minutes: 15), child: Text('15 دقيقة')),
+        PopupMenuItem(value: Duration(minutes: 30), child: Text('30 دقيقة')),
+        PopupMenuItem(value: Duration(minutes: 60), child: Text('60 دقيقة')),
+        PopupMenuItem(value: null, child: Text('إيقاف المؤقّت')),
+      ],
     );
   }
 
@@ -140,9 +194,18 @@ class _AudioReaderViewState extends State<AudioReaderView> {
 
   Widget _buildControlsRow() {
     final isPlaying = _controller.state == AudioReaderPlaybackState.playing;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    final hasPrevious = _controller.paragraphIndex > 0;
+    final hasNext = _controller.paragraphIndex < _controller.paragraphCount - 1;
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4,
       children: [
+        IconButton(
+          icon: const Icon(Icons.skip_previous),
+          tooltip: 'الفقرة السابقة',
+          onPressed: hasPrevious ? _controller.previousParagraph : null,
+        ),
         IconButton(
           icon: const Icon(Icons.replay_10),
           onPressed: () => _controller.skip(const Duration(seconds: -10)),
@@ -157,6 +220,11 @@ class _AudioReaderViewState extends State<AudioReaderView> {
         IconButton(
           icon: const Icon(Icons.forward_10),
           onPressed: () => _controller.skip(const Duration(seconds: 10)),
+        ),
+        IconButton(
+          icon: const Icon(Icons.skip_next),
+          tooltip: 'الفقرة التالية',
+          onPressed: hasNext ? _controller.nextParagraph : null,
         ),
       ],
     );

@@ -2,9 +2,15 @@
 /// لا تصميم واجهة هنا (ذاك في الودجت المستهلِك) — `ChangeNotifier` بحت
 /// يُدير: الفقرة الحالية، التشغيل/الإيقاف، السرعة، التخطّي، الاستئناف من
 /// آخر موضع، والاستباق الخلفي عبر `AudioReaderService.prefetch`.
+///
+/// **6 ميزات جديدة (2026-09-18)**: مؤقّت نوم، تقدير الوقت المتبقّي، تخطّي
+/// فقرة كاملة — كلها هنا. تفصيل الاستخراج/الترميز (تقسيم الفقرات الطويلة،
+/// تشذيب الصمت) في `text_sources`/`tts_engine.dart` — كل تحسين حيث ينتمي
+/// معماريًا، لا كل شيء في ملف واحد.
 library;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
@@ -38,6 +44,19 @@ class AudioReaderController extends ChangeNotifier {
   AudioReaderPlaybackState _state = AudioReaderPlaybackState.idle;
   Object? _lastError;
 
+  Timer? _sleepTimer;
+  Duration? _sleepTimerDuration;
+
+  // ميزة 7 — الانتقال التلقائي للصفحة التالية عند انتهاء الحالية، قابل
+  // للتفعيل/الإيقاف (طلب إسماعيل 2026-09-18). مفعَّل افتراضيًا: يناسب روح
+  // "القارئ الصوتي المتواصل" أكثر من التوقّف عند كل حد صفحة.
+  bool _autoAdvancePage = true;
+  int? _totalUnitsCache;
+
+  // متوسط متحرّك بسيط لمدة الفقرة الفعلية — أساس تقدير الوقت المتبقّي
+  // (ميزة 3). لا حاجة لدقة عالية، تقدير تقريبي كافٍ لغرضه.
+  double? _avgParagraphSeconds;
+
   int get unitIndex => _unitIndex;
   int get paragraphIndex => _paragraphIndex;
   int get paragraphCount => _paragraphs.length;
@@ -45,6 +64,22 @@ class AudioReaderController extends ChangeNotifier {
   AudioReaderPlaybackState get state => _state;
   Object? get lastError => _lastError;
   String get currentParagraphText => _paragraphIndex < _paragraphs.length ? _paragraphs[_paragraphIndex] : '';
+  Duration? get sleepTimerDuration => _sleepTimerDuration;
+  bool get autoAdvancePage => _autoAdvancePage;
+
+  set autoAdvancePage(bool value) {
+    _autoAdvancePage = value;
+    notifyListeners();
+  }
+
+  /// تقدير تقريبي للوقت المتبقّي حتى نهاية الوحدة الحالية — null حتى تُقاس
+  /// أول فقرة فعليًا (لا تخمين قبل وجود بيانات حقيقية).
+  Duration? get estimatedTimeRemaining {
+    final avg = _avgParagraphSeconds;
+    if (avg == null) return null;
+    final remainingParagraphs = (_paragraphs.length - _paragraphIndex).clamp(0, _paragraphs.length);
+    return Duration(milliseconds: (avg * remainingParagraphs * 1000 / _speed).round());
+  }
 
   /// يبدأ من آخر موضع استماع مُسجَّل لهذا المصدر (أو الوحدة 1 إن لم يوجد)،
   /// يحمِّل فقرات تلك الوحدة، ويشغِّل الفقرة الحالية فورًا.
@@ -75,19 +110,28 @@ class AudioReaderController extends ChangeNotifier {
       return;
     }
     _state = AudioReaderPlaybackState.loading;
+    _lastError = null;
     notifyListeners();
 
-    final file = await _service.fileForParagraph(
-      source: source,
-      voiceId: voiceId,
-      unitIndex: _unitIndex,
-      paragraphIndex: _paragraphIndex,
-      text: _paragraphs[_paragraphIndex],
-    );
-    await _player.play(DeviceFileSource(file.path));
-    await _player.setPlaybackRate(_speed);
-    _state = AudioReaderPlaybackState.playing;
-    notifyListeners();
+    try {
+      final file = await _service.fileForParagraph(
+        source: source,
+        voiceId: voiceId,
+        unitIndex: _unitIndex,
+        paragraphIndex: _paragraphIndex,
+        text: _paragraphs[_paragraphIndex],
+      );
+      unawaited(_updateAverageDuration(file));
+      await _player.play(DeviceFileSource(file.path));
+      await _player.setPlaybackRate(_speed);
+      _state = AudioReaderPlaybackState.playing;
+      notifyListeners();
+    } catch (e) {
+      _lastError = e;
+      _state = AudioReaderPlaybackState.idle;
+      notifyListeners();
+      return;
+    }
 
     // استباق خلفي — لا ننتظره، لا يحجب التشغيل الحالي.
     unawaited(
@@ -101,15 +145,45 @@ class AudioReaderController extends ChangeNotifier {
     );
   }
 
+  /// يقرأ ترويسة WAV (44 بايت أولى، لا الملف كاملًا) لحساب مدة الفقرة
+  /// الفعلية من حجم بيانات PCM ومعدّل العيّنة — أساس تقدير الوقت المتبقّي.
+  Future<void> _updateAverageDuration(File wavFile) async {
+    try {
+      final raf = await wavFile.open();
+      final header = await raf.read(44);
+      await raf.close();
+      if (header.length < 44) return;
+      final byteData = header.buffer.asByteData();
+      final sampleRate = byteData.getUint32(24, Endian.little);
+      final dataBytes = byteData.getUint32(40, Endian.little);
+      if (sampleRate == 0) return;
+      final seconds = dataBytes / 2 / sampleRate; // 16-bit mono
+      _avgParagraphSeconds = _avgParagraphSeconds == null ? seconds : (_avgParagraphSeconds! * 0.7 + seconds * 0.3);
+    } catch (_) {
+      // تقدير تقريبي غير أساسي — فشل القراءة لا يُوقِف التشغيل.
+    }
+  }
+
   Future<void> _onParagraphComplete() async {
     await source.saveLastListenedUnit(_unitIndex);
     if (_paragraphIndex + 1 < _paragraphs.length) {
       _paragraphIndex++;
       await _playCurrentParagraph();
-    } else {
-      _state = AudioReaderPlaybackState.finished;
-      notifyListeners();
+      return;
     }
+
+    if (_autoAdvancePage) {
+      _totalUnitsCache ??= await source.totalUnits;
+      final total = _totalUnitsCache!;
+      if (total > 0 && _unitIndex < total) {
+        await _loadUnit(_unitIndex + 1, startParagraph: 0);
+        await _playCurrentParagraph();
+        return;
+      }
+    }
+
+    _state = AudioReaderPlaybackState.finished;
+    notifyListeners();
   }
 
   Future<void> pause() async {
@@ -152,9 +226,28 @@ class AudioReaderController extends ChangeNotifier {
     await _playCurrentParagraph();
   }
 
+  /// ميزة 5 — تخطّي فقرة كاملة (لا 10 ثوانٍ فقط)، للأمام أو الخلف.
+  Future<void> previousParagraph() => jumpToParagraph(_paragraphIndex - 1);
+  Future<void> nextParagraph() => jumpToParagraph(_paragraphIndex + 1);
+
+  /// ميزة 2 — مؤقّت نوم. `null` يُلغي المؤقّت الحالي. عند الانتهاء: إيقاف
+  /// مؤقّت للتشغيل (لا إغلاق الورقة السفلية) — المستخدم يقرّر الخطوة التالية.
+  void setSleepTimer(Duration? duration) {
+    _sleepTimer?.cancel();
+    _sleepTimerDuration = duration;
+    if (duration != null) {
+      _sleepTimer = Timer(duration, () {
+        _sleepTimerDuration = null;
+        pause();
+      });
+    }
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _completeSub.cancel();
+    _sleepTimer?.cancel();
     _player.dispose();
     super.dispose();
   }
