@@ -148,12 +148,17 @@ class MemorizationRepository {
         return;
 
       case ReviewQuality.good:
-        final station = currentStation ?? _stationDays.length; // established units re-anchor at the top station
+        // An already-established unit (currentStation == null) stays on the
+        // fixed established-rotation interval, not the top station's day
+        // count — otherwise it drifts to a different interval than an
+        // "excellent" review of the same unit would give it.
+        final nextReviewDays =
+            currentStation == null ? _establishedRotationDays : _stationDays[currentStation - 1];
         await db.update(
           'memorization_progress',
           {
             'last_review_date': today,
-            'next_review_date': _addDays(today, _stationDays[station - 1]),
+            'next_review_date': _addDays(today, nextReviewDays),
             'consecutive_good_count': currentGoodCount + 1,
           },
           where: 'unit_id = ?',
