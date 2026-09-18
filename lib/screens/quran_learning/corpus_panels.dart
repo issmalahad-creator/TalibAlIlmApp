@@ -442,6 +442,14 @@ class _WordCorpusPanelState extends State<WordCorpusPanel> {
       ));
     }
 
+    // KHATM_SYSTEM_AND_STYLE_REFERENCE.md §3 — "المعنى": QAC's own per-word
+    // `translation` field covers 100% of words (verified directly against
+    // the bundled corpus, unlike the gharib gloss below which only covers
+    // rare/unusual words) — shown first and as a real labelled row, not the
+    // muted transliteration footnote it used to be buried in, so every
+    // tapped word has a visible meaning, not just the ones with a gharib
+    // entry.
+    kv(basicText('ql_word_meaning', lang), w['translation']);
     if (stem != null) {
       kv(basicText('ql_word_type', lang), stem['pos']);
       kv(basicText('ql_sign', lang), stem['inflection']);
@@ -451,14 +459,11 @@ class _WordCorpusPanelState extends State<WordCorpusPanel> {
       kv(basicText('ql_lemma', lang), stem['lemma']);
       kv(basicText('ql_pattern', lang), stem['pattern']);
     }
-    final translit = [
-      if ('${w['phonetic'] ?? ''}'.isNotEmpty) '${w['phonetic']}',
-      if ('${w['translation'] ?? ''}'.isNotEmpty) '${w['translation']}',
-    ].join('  ·  ');
-    if (translit.isNotEmpty) {
+    final phonetic = '${w['phonetic'] ?? ''}'.trim();
+    if (phonetic.isNotEmpty) {
       rows.add(Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Text(translit,
+        child: Text(phonetic,
             style:
                 const TextStyle(fontSize: 11, color: AppColors.textMuted)),
       ));
