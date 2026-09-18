@@ -35,21 +35,31 @@ class TtsEngine {
     final modelFile = File(p.join(voiceDir.path, 'model.onnx'));
     final tokensFile = File(p.join(voiceDir.path, 'tokens.txt'));
 
-    // اكتمال سابق؟ لا إعادة استخراج (النموذج 63 ميجابايت، تكلفة نسخ حقيقية).
-    if (await modelFile.exists() && await tokensFile.exists() && await espeakDir.exists()) {
-      return voiceDir.path;
-    }
-
-    await voiceDir.create(recursive: true);
-    await espeakDir.create(recursive: true);
-
     Future<void> extract(String assetPath, File dest) async {
       final data = await rootBundle.load(assetPath);
+      await dest.parent.create(recursive: true);
       await dest.writeAsBytes(
         data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
         flush: true,
       );
     }
+
+    // اكتمال سابق **ومطابق فعليًا لحجم الأصل الحالي**؟ لا إعادة استخراج
+    // (النموذج 63 ميجابايت، تكلفة نسخ حقيقية). فحص الحجم فقط — لا الوجود
+    // وحده — ضروري: تحديث `voiceId` لنفس الملف (تصحيح نموذج، إلخ) بعد
+    // تثبيت سابق يترك نسخة قديمة على القرص بلا هذا الفحص، وهذا بالضبط ما
+    // سبَّب عطلًا حقيقيًا هنا (نموذج مُصحَّح جديد يُبنى في الحزمة، لكن
+    // النسخة القديمة المُستخرَجة سابقًا على الجهاز تبقى مُستخدَمة صامتًا).
+    if (await modelFile.exists() && await tokensFile.exists() && await espeakDir.exists()) {
+      final bundled = await rootBundle.load(voice.modelAssetPath);
+      final extracted = await modelFile.length();
+      if (extracted == bundled.lengthInBytes) {
+        return voiceDir.path;
+      }
+    }
+
+    await voiceDir.create(recursive: true);
+    await espeakDir.create(recursive: true);
 
     await extract(voice.modelAssetPath, modelFile);
     await extract(voice.tokensAssetPath, tokensFile);

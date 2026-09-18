@@ -227,6 +227,14 @@ flutter:
     # TEXT_SOURCE_ADAPTERS.md §5 — voiceId يحدد أي صف من هذه الأصول يُستخدَم.
     - assets/tts/ar_JO-kareem-medium.onnx
     - assets/tts/ar_JO-kareem-medium.onnx.json
+    - assets/tts/tokens.txt
+    - assets/tts/espeak-ng-data/ar_dict
+    - assets/tts/espeak-ng-data/intonations
+    - assets/tts/espeak-ng-data/phondata
+    - assets/tts/espeak-ng-data/phondata-manifest
+    - assets/tts/espeak-ng-data/phonindex
+    - assets/tts/espeak-ng-data/phontab
+    - assets/tts/espeak-ng-data/lang/sem/ar
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

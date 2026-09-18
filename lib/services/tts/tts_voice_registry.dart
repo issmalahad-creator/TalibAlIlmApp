@@ -59,6 +59,10 @@ class TtsVoiceRegistry {
       'phondata-manifest',
       'phonindex',
       'phontab',
+      // تعريف صوت "ar" الفعلي (اسم + رمز اللغة + قواعد النبر) — بلا هذا
+      // الملف يفشل espeak-ng بصمت في "تعيين" الصوت رغم وجود القاموس
+      // الصوتي، اكتُشِف فقط بالتحقّق الفعلي على جهاز حقيقي (2026-09-18).
+      'lang/sem/ar',
     ],
     source: TtsVoiceSource.bundled,
   );

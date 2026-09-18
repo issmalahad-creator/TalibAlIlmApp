@@ -57,4 +57,23 @@ for f in ar_dict intonations phondata phondata-manifest phonindex phontab; do
   fetch "espeak-ng-data/$f" 100
 done
 
+# تعريف صوت "ar" الفعلي (اسم + رمز اللغة + قواعد النبر) — بدونه يفشل
+# espeak-ng بصمت في "تعيين" الصوت رغم وجود القاموس الصوتي (ar_dict) نفسه.
+# اكتُشِف فقط بتشغيل فعلي على جهاز حقيقي (2026-09-18)، ليس بديهيًا من توثيق
+# espeak-ng نفسه.
+mkdir -p "$DEST/espeak-ng-data/lang/sem"
+fetch "espeak-ng-data/lang/sem/ar" 20
+
+# النموذج المُنزَّل من HF لا يحمل بيانات وصفية (metadata_props) داخل ملف
+# ONNX نفسه — sherpa_onnx يحتاجها (sample_rate تحديدًا) ويفشل التشغيل
+# بصمت (exit code 255) بدونها. رقعة تُضيفها بعد كل تنزيل جديد.
+if [ "$FORCE" -eq 1 ] || ! py -c "
+import onnx
+m = onnx.load('$DEST/ar_JO-kareem-medium.onnx')
+assert any(p.key == 'sample_rate' for p in m.metadata_props)
+" 2>/dev/null; then
+  echo "patching ONNX metadata (sample_rate, etc.) — see tool/patch_tts_model_metadata.py"
+  py tool/patch_tts_model_metadata.py
+fi
+
 echo "done: $DEST"
