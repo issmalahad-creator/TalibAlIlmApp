@@ -8,9 +8,12 @@ import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
+import '../services/tts/text_sources/turath_text_source.dart';
+import '../services/tts/tts_voice_registry.dart';
 import '../theme/app_theme.dart';
 import '../utils/study_annotation_anchor.dart';
 import '../widgets/annotated_page_text.dart';
+import '../widgets/audio_reader_view.dart';
 import 'turath_book_search_screen.dart';
 
 /// The real reader (Phase 79.6/79.7) — RTL, real page text, page
@@ -655,6 +658,15 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
             ),
             IconButton(icon: Icon(_nightMode ? Icons.wb_sunny : Icons.wb_sunny_outlined), onPressed: () => setState(() => _nightMode = !_nightMode)),
             IconButton(icon: const Icon(Icons.text_fields_rounded), onPressed: _pickFontSize),
+            IconButton(
+              tooltip: 'استماع',
+              icon: const Icon(Icons.headphones_outlined),
+              onPressed: () => AudioReaderView.open(
+                context,
+                source: TurathTextSource(widget.bookId, widget.bookName, repository: _repo),
+                voiceId: TtsVoiceRegistry.defaultVoice.voiceId,
+              ),
+            ),
           ],
         ),
         body: _buildBody(lang),

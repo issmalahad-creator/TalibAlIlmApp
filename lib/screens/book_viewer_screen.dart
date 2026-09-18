@@ -4,8 +4,11 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import '../models/reading_record.dart';
 import '../repositories/book_repository.dart';
 import '../services/notification_service.dart';
+import '../services/tts/text_sources/personal_library_text_source.dart';
+import '../services/tts/tts_voice_registry.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
+import '../widgets/audio_reader_view.dart';
 import '../widgets/loading_view.dart';
 
 const _reflectionPrompts = [
@@ -108,6 +111,20 @@ class _BookViewerScreenState extends State<BookViewerScreen> {
             icon: const Icon(Icons.menu_book_outlined),
             tooltip: 'دفتر الفوائد وسجل التطبيق',
             onPressed: _openNotebook,
+          ),
+          IconButton(
+            icon: const Icon(Icons.headphones_outlined),
+            tooltip: 'استماع',
+            onPressed: () => AudioReaderView.open(
+              context,
+              source: PersonalLibraryTextSource(
+                widget.bookKey,
+                widget.title,
+                localFilePath: widget.filePath,
+                repository: _bookRepo,
+              ),
+              voiceId: TtsVoiceRegistry.defaultVoice.voiceId,
+            ),
           ),
           if (_totalPages > 0)
             Padding(

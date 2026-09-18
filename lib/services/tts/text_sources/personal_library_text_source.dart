@@ -32,12 +32,22 @@ class PersonalLibraryNoTextLayerException implements Exception {
 }
 
 class PersonalLibraryTextSource implements ReadableTextSource {
-  PersonalLibraryTextSource(this.bookKey, this.bookTitle, this.pdfUrl, {BookRepository? repository})
-      : _repo = repository ?? BookRepository();
+  /// [pdfUrl] يُنزَّل عند أول استخدام إن لم يُمرَّر [localFilePath] — مصادر
+  /// مثل `book_viewer_screen.dart` تملك ملفًا محليًا بالفعل (نزَّله `PDFView`
+  /// نفسه)، فتُمرِّره مباشرة لتفادي تنزيل مزدوج لنفس الملف.
+  PersonalLibraryTextSource(
+    this.bookKey,
+    this.bookTitle, {
+    this.pdfUrl,
+    this.localFilePath,
+    BookRepository? repository,
+  }) : assert(pdfUrl != null || localFilePath != null, 'يجب تمرير pdfUrl أو localFilePath'),
+       _repo = repository ?? BookRepository();
 
   final String bookKey;
   final String bookTitle;
-  final String pdfUrl;
+  final String? pdfUrl;
+  final String? localFilePath;
   final BookRepository _repo;
 
   PdfDocument? _document;
@@ -50,13 +60,17 @@ class PersonalLibraryTextSource implements ReadableTextSource {
 
   /// يُنزَّل الملف مرة واحدة لكل كتاب ويُخزَّن على القرص — إعادة تنزيله في
   /// كل استدعاء يهدر بيانات المستخدم بلا داعٍ لملف لا يتغيّر بعد نشره.
+  /// إن وُجد [localFilePath] (الشاشة نزَّلته أصلًا لعرضه) يُستخدَم مباشرة.
   Future<File> _ensureDownloaded() async {
+    final localPath = localFilePath;
+    if (localPath != null) return File(localPath);
+
     final supportDir = await getApplicationSupportDirectory();
     final file = File(p.join(supportDir.path, 'library_pdfs', '${_sanitize(bookKey)}.pdf'));
     if (await file.exists() && await file.length() > 0) return file;
 
     await file.parent.create(recursive: true);
-    final response = await http.get(Uri.parse(pdfUrl));
+    final response = await http.get(Uri.parse(pdfUrl!));
     if (response.statusCode != 200) {
       throw StateError('تعذّر تنزيل "$bookTitle" (HTTP ${response.statusCode})');
     }
