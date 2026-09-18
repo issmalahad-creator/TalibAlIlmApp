@@ -13,6 +13,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_display.dart';
 import '../utils/hijri_date.dart';
+import 'circular_percent_gauge.dart';
 import 'loading_view.dart';
 
 /// (content_type, book_ref, label, total_units) — the fixed set of
@@ -608,7 +609,7 @@ class _GoalCardState extends State<_GoalCard> {
             children: [
               Expanded(child: _GoalTitle(goal: g)),
               if (stripe != null) ...[
-                Text('$percent%', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                CircularPercentGauge(percent: percent, size: 36, strokeWidth: 4),
                 const SizedBox(width: 8),
               ],
               Container(
