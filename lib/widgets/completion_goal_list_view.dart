@@ -126,6 +126,13 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
     text: '${basicText('khatm_default_name_prefix', lang)} - ${formatDateForDisplay(hijriDateStringForDate(DateTime.now()))}',
   );
 
+  // §2.3 field 8 — "وقت التذكير": a toggle + a time picker, per-goal.
+  // Defaults (ON, 20:00) match the app's original one-size-fits-all fixed
+  // reminder hour exactly, so a user who never touches this field gets
+  // identical behaviour to every goal created before this field existed.
+  bool reminderEnabled = true;
+  TimeOfDay reminderTime = const TimeOfDay(hour: 20, minute: 0);
+
   if (!context.mounted) return;
   await showModalBottomSheet(
     context: context,
@@ -138,7 +145,12 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
           top: 20,
           bottom: MediaQuery.of(context).viewInsets.bottom + 20,
         ),
-        child: Column(
+        // §2.3 field 8 pushed the wizard's total height (color+name+range+
+        // tahzeeb+duration+reminder+create button) past the screen when the
+        // keyboard is up for a text field near the bottom (confirmed live —
+        // a real, if small, RenderFlex overflow) — SingleChildScrollView,
+        // not a taller sheet: the fields don't need to shrink, only scroll.
+        child: SingleChildScrollView(child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -284,6 +296,24 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(basicText('khatm_reminder_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+              value: reminderEnabled,
+              onChanged: (v) => setSheetState(() => reminderEnabled = v),
+            ),
+            if (reminderEnabled)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.access_time, size: 20),
+                title: Text(basicText('khatm_reminder_time_label', lang), style: const TextStyle(fontSize: 13)),
+                trailing: Text(reminderTime.format(context), style: const TextStyle(fontWeight: FontWeight.w700)),
+                onTap: () async {
+                  final picked = await showTimePicker(context: context, initialTime: reminderTime);
+                  if (picked != null) setSheetState(() => reminderTime = picked);
+                },
+              ),
             const SizedBox(height: 20),
             FilledButton(
               onPressed: () async {
@@ -321,6 +351,9 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                   colorIndex: selectedColorIndex,
                   startUnit: startUnit,
                   endUnit: endUnit,
+                  reminderEnabled: reminderEnabled,
+                  reminderHour: reminderTime.hour,
+                  reminderMinute: reminderTime.minute,
                 );
                 if (context.mounted) Navigator.pop(context);
                 onCreated?.call();
@@ -328,7 +361,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
               child: Text(basicText('create_plan_action', lang)),
             ),
           ],
-        ),
+        )),
       ),
     ),
   );
@@ -415,14 +448,17 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
 
   /// Keeps each active goal's daily reminder in sync with real progress:
   /// cancels it the moment today's target is already met (or the goal is
-  /// fully done), otherwise (re)schedules it with the current KPI so the
-  /// wording never goes stale after a reschedule. Safe to call on every
-  /// load — scheduling is idempotent (cancel-then-schedule under the same id).
+  /// fully done, or the goal's own §2.3 field 8 toggle is off), otherwise
+  /// (re)schedules it at the goal's own per-goal time — falling back to the
+  /// app's original fixed hour for any goal created before that field
+  /// existed — with the current KPI so the wording never goes stale after a
+  /// reschedule. Safe to call on every load — scheduling is idempotent
+  /// (cancel-then-schedule under the same id).
   Future<void> _syncReminders(List<CompletionGoalStatus> statuses) async {
     final lang = LanguagePreferenceService.currentLanguage;
     for (final s in statuses) {
       final doneToday = s.remaining == 0 || await _repo.hasProgressedToday(s.goal);
-      if (doneToday) {
+      if (doneToday || !s.goal.reminderEnabled) {
         await _notificationService.cancelGoalReminder(s.goal.id);
       } else {
         final target = s.recalculatedDailyTarget.ceil().clamp(1, 1 << 30);
@@ -430,6 +466,8 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
           goalId: s.goal.id,
           goalTitle: s.goal.displayLabelFor(lang),
           dailyTargetLabel: '$target ${s.goal.unitLabel} ${basicText('today_label', lang)}',
+          hour: s.goal.reminderHour,
+          minute: s.goal.reminderMinute,
         );
       }
     }

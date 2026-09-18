@@ -29,7 +29,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     return openDatabase(
       path,
-      version: 67,
+      version: 68,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -107,6 +107,7 @@ class DatabaseHelper {
         await _createV65Tables(db);
         await _createV66Tables(db);
         await _createV67Tables(db);
+        await _createV68Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -186,6 +187,7 @@ class DatabaseHelper {
         if (oldVersion < 65) await _createV65Tables(db);
         if (oldVersion < 66) await _createV66Tables(db);
         if (oldVersion < 67) await _createV67Tables(db);
+        if (oldVersion < 68) await _createV68Tables(db);
       },
     );
   }
@@ -2499,6 +2501,20 @@ class DatabaseHelper {
   Future<void> _createV67Tables(Database db) async {
     await db.execute('ALTER TABLE completion_goals ADD COLUMN start_unit INTEGER');
     await db.execute('ALTER TABLE completion_goals ADD COLUMN end_unit INTEGER');
+  }
+
+  /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2.3 field 8 — "وقت التذكير": a
+  /// per-goal reminder toggle + time, replacing the app-wide fixed
+  /// `NotificationService._goalReminderHour` (20:00) every goal was
+  /// silently stuck with before. `reminder_enabled` defaults to 1 so every
+  /// goal created before this column existed keeps its current
+  /// always-remind behaviour unchanged; `reminder_hour`/`reminder_minute`
+  /// stay null for those same goals, meaning "use the old fixed 20:00" —
+  /// only a goal created (or edited) after this migration ever sets them.
+  Future<void> _createV68Tables(Database db) async {
+    await db.execute('ALTER TABLE completion_goals ADD COLUMN reminder_enabled INTEGER NOT NULL DEFAULT 1');
+    await db.execute('ALTER TABLE completion_goals ADD COLUMN reminder_hour INTEGER');
+    await db.execute('ALTER TABLE completion_goals ADD COLUMN reminder_minute INTEGER');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

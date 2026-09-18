@@ -38,6 +38,16 @@ class CompletionGoal {
   final int? startUnit;
   final int? endUnit;
 
+  /// §2.3 field 8 — a per-goal reminder toggle + time, replacing the app's
+  /// original one-size-fits-all fixed hour. [reminderEnabled] defaults to
+  /// true (every goal created before this field existed keeps getting
+  /// reminded, unchanged). [reminderHour]/[reminderMinute] null means "use
+  /// `NotificationService`'s original fixed hour" — only a goal created (or
+  /// later edited) after this field existed ever sets its own.
+  final bool reminderEnabled;
+  final int? reminderHour;
+  final int? reminderMinute;
+
   CompletionGoal({
     required this.id,
     required this.contentType,
@@ -51,6 +61,9 @@ class CompletionGoal {
     this.colorIndex,
     this.startUnit,
     this.endUnit,
+    this.reminderEnabled = true,
+    this.reminderHour,
+    this.reminderMinute,
   });
 
   /// For 'personal_book' goals, `bookRef` is the personal_books.id — the
@@ -142,6 +155,9 @@ class CompletionGoalRepository {
     int? colorIndex,
     int? startUnit,
     int? endUnit,
+    bool reminderEnabled = true,
+    int? reminderHour,
+    int? reminderMinute,
   }) async {
     final db = await DatabaseHelper.instance.database;
     final start = todayDate();
@@ -163,6 +179,9 @@ class CompletionGoalRepository {
       'color_index': colorIndex,
       'start_unit': startUnit,
       'end_unit': endUnit,
+      'reminder_enabled': reminderEnabled ? 1 : 0,
+      'reminder_hour': reminderHour,
+      'reminder_minute': reminderMinute,
     });
     return CompletionGoal(
       id: id,
@@ -177,6 +196,9 @@ class CompletionGoalRepository {
       colorIndex: colorIndex,
       startUnit: startUnit,
       endUnit: endUnit,
+      reminderEnabled: reminderEnabled,
+      reminderHour: reminderHour,
+      reminderMinute: reminderMinute,
     );
   }
 
@@ -355,6 +377,9 @@ class CompletionGoalRepository {
         colorIndex: row['color_index'] as int?,
         startUnit: row['start_unit'] as int?,
         endUnit: row['end_unit'] as int?,
+        reminderEnabled: (row['reminder_enabled'] as int?) != 0,
+        reminderHour: row['reminder_hour'] as int?,
+        reminderMinute: row['reminder_minute'] as int?,
       );
 
   int _daysBetween(String hijriFrom, String hijriTo) {

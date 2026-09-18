@@ -358,8 +358,10 @@ class NotificationService {
 
   /// Schedules today's reminder for one "خطة ختم" goal, showing its
   /// per-page/per-unit KPI (`dailyTargetLabel`, e.g. "15 صفحة اليوم") — fires
-  /// at [_goalReminderHour] today if that time hasn't passed yet, else
-  /// tomorrow. Callers (`CompletionGoalsScreen`) should call this once per
+  /// at [hour]:[minute] today if that time hasn't passed yet, else tomorrow
+  /// (§2.3 field 8 — a per-goal time, defaulting to the app's original
+  /// fixed [_goalReminderHour] for any goal that never set its own).
+  /// Callers (`CompletionGoalsScreen`) should call this once per
   /// active goal on load/refresh, and [cancelGoalReminder] the moment
   /// `hasProgressedToday` becomes true or the goal completes, so a student
   /// who already read today never gets nagged.
@@ -367,13 +369,15 @@ class NotificationService {
     required int goalId,
     required String goalTitle,
     required String dailyTargetLabel,
+    int? hour,
+    int? minute,
   }) async {
     await _ensureInitialized();
     if (!_ready) return;
     final id = _goalReminderNotificationIdBase + goalId;
     await _plugin.cancel(id: id);
 
-    var fireAt = DateTime.now().copyWith(hour: _goalReminderHour, minute: 0, second: 0, millisecond: 0);
+    var fireAt = DateTime.now().copyWith(hour: hour ?? _goalReminderHour, minute: minute ?? 0, second: 0, millisecond: 0);
     if (fireAt.isBefore(DateTime.now())) fireAt = fireAt.add(const Duration(days: 1));
 
     await _plugin.zonedSchedule(

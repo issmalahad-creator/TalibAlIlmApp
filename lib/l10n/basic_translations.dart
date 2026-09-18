@@ -3869,6 +3869,17 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'تک', 'tr': 'ile', 'id': 'sampai', 'bn': 'পর্যন্ত', 'ha': 'zuwa',
     'so': 'ilaa', 'fa': 'تا', 'ms': 'hingga',
   },
+  // §2.3 field 8 — the wizard's own reminder toggle + time-picker labels.
+  'khatm_reminder_toggle_label': {
+    'ar': 'وقت التذكير', 'en': 'Reminder time', 'am': 'የማስታወሻ ሰዓት', 'fr': 'Heure du rappel', 'sw': 'Muda wa kikumbusho',
+    'ur': 'یاد دہانی کا وقت', 'tr': 'Hatırlatma saati', 'id': 'Waktu pengingat', 'bn': 'রিমাইন্ডার সময়', 'ha': 'Lokacin tunatarwa',
+    'so': 'Waqtiga xasuusinta', 'fa': 'زمان یادآوری', 'ms': 'Masa peringatan',
+  },
+  'khatm_reminder_time_label': {
+    'ar': 'الوقت', 'en': 'Time', 'am': 'ሰዓት', 'fr': 'Heure', 'sw': 'Muda',
+    'ur': 'وقت', 'tr': 'Saat', 'id': 'Waktu', 'bn': 'সময়', 'ha': 'Lokaci',
+    'so': 'Waqtiga', 'fa': 'زمان', 'ms': 'Masa',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',
