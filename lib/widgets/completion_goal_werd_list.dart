@@ -143,68 +143,117 @@ class _CompletionGoalWerdListState extends State<CompletionGoalWerdList> {
   Widget build(BuildContext context) {
     final lang = LanguagePreferenceService.currentLanguage;
     final werds = _werds;
-    if (werds == null) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 8),
-        child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-    final total = werds.fold<int>(0, (sum, w) => sum + w.units);
-    final balanced = total == widget.goal.totalUnits;
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var i = 0; i < werds.length; i++)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 3),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      _bounds.length > i && _bounds[i] != null
-                          ? '${basicText('khatm_werd_label', lang)} ${i + 1}: ${_surahName(_bounds[i]!.firstSurah)} ${_bounds[i]!.firstAyah} '
-                              '${basicText('khatm_werd_range_to_label', lang)} ${_surahName(_bounds[i]!.lastSurah)} ${_bounds[i]!.lastAyah}'
-                          : '${basicText('khatm_werd_label', lang)} ${i + 1}',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+    // A full, independent page (own Scaffold + AppBar + virtualized
+    // ListView.builder) rather than an inline Column expanded in place
+    // inside the goal card — that card already lives inside a scrollable
+    // list, inside a DraggableScrollableSheet, over the always-on mushaf
+    // reader, and has broken once before from an unrelated widget leaving
+    // that stack's layout unresolved. A khatm plan can have 30+ werd rows;
+    // rendering them unvirtualized in that nested context risked jank/hangs
+    // on longer plans. A pushed page keeps the heavy reader off-screen
+    // entirely and gives the list normal, full-height ListView.builder
+    // virtualization.
+    return Scaffold(
+      appBar: AppBar(title: Text(basicText('khatm_werd_list_title', lang))),
+      body: werds == null
+          ? const Center(child: CircularProgressIndicator())
+          : _WerdListBody(
+              werds: werds,
+              bounds: _bounds,
+              goal: widget.goal,
+              onEdit: _editWerd,
+              onDelete: _deleteWerd,
+            ),
+      bottomNavigationBar: werds == null
+          ? null
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (werds.fold<int>(0, (sum, w) => sum + w.units) != widget.goal.totalUnits)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '${basicText('khatm_distributed_label', lang)}: '
+                          '${werds.fold<int>(0, (sum, w) => sum + w.units)} '
+                          '${basicText('khatm_of_label', lang)} ${widget.goal.totalUnits}',
+                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.redAccent),
+                        ),
+                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton.icon(
+                          onPressed: _addWerd,
+                          icon: const Icon(Icons.add, size: 16),
+                          label: Text(basicText('khatm_add_werd_action', lang)),
+                        ),
+                        TextButton(
+                          onPressed: _resetToDefault,
+                          child: Text(basicText('khatm_reset_sessions_action', lang)),
+                        ),
+                      ],
                     ),
-                  ),
-                  Text('${werds[i].units}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 15),
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => _editWerd(i),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline, size: 15, color: Colors.redAccent),
-                    visualDensity: VisualDensity.compact,
-                    onPressed: werds.length > 1 ? () => _deleteWerd(i) : null,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
+  }
+}
+
+class _WerdListBody extends StatelessWidget {
+  final List<CompletionGoalSession> werds;
+  final List<_AyahBounds?> bounds;
+  final CompletionGoal goal;
+  final ValueChanged<int> onEdit;
+  final ValueChanged<int> onDelete;
+  const _WerdListBody({
+    required this.werds,
+    required this.bounds,
+    required this.goal,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = LanguagePreferenceService.currentLanguage;
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      itemCount: werds.length,
+      itemBuilder: (context, i) {
+        final b = bounds.length > i ? bounds[i] : null;
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
             children: [
-              TextButton.icon(
-                onPressed: _addWerd,
-                icon: const Icon(Icons.add, size: 15),
-                label: Text(basicText('khatm_add_werd_action', lang), style: const TextStyle(fontSize: 11.5)),
+              Expanded(
+                child: Text(
+                  b != null
+                      ? '${basicText('khatm_werd_label', lang)} ${i + 1}: ${_surahName(b.firstSurah)} ${b.firstAyah} '
+                          '${basicText('khatm_werd_range_to_label', lang)} ${_surahName(b.lastSurah)} ${b.lastAyah}'
+                      : '${basicText('khatm_werd_label', lang)} ${i + 1}',
+                  style: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                ),
               ),
-              TextButton(
-                onPressed: _resetToDefault,
-                child: Text(basicText('khatm_reset_sessions_action', lang), style: const TextStyle(fontSize: 11.5)),
+              Text('${werds[i].units}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 17),
+                visualDensity: VisualDensity.compact,
+                onPressed: () => onEdit(i),
+              ),
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline, size: 17, color: Colors.redAccent),
+                visualDensity: VisualDensity.compact,
+                onPressed: werds.length > 1 ? () => onDelete(i) : null,
               ),
             ],
           ),
-          if (!balanced)
-            Text(
-              '${basicText('khatm_distributed_label', lang)}: $total ${basicText('khatm_of_label', lang)} ${widget.goal.totalUnits}',
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.redAccent),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

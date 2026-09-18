@@ -804,11 +804,9 @@ class _GoalCardState extends State<_GoalCard> {
   /// range to divide); `false` for content types with no page/juz concept,
   /// in which case the section is hidden entirely rather than shown empty.
   /// The list itself (now dynamic — one werd per actual plan day, not a
-  /// fixed 7 — and editable) lives in [CompletionGoalWerdList], mounted
-  /// only once expanded so its own DB round-trip never runs for a
-  /// collapsed card.
+  /// fixed 7 — and editable) lives in [CompletionGoalWerdList], now its own
+  /// pushed page (see the GestureDetector below) rather than mounted inline.
   late final bool _isWerdListGoal;
-  bool _werdListExpanded = false;
 
   @override
   void initState() {
@@ -930,26 +928,26 @@ class _GoalCardState extends State<_GoalCard> {
           ),
           if (_isWerdListGoal) ...[
             const SizedBox(height: 10),
-            // A manual toggle, not ExpansionTile — ExpansionTile's built-in
-            // expand animation runs its own Ticker, and this exact card has
-            // already broken once from an unrelated widget (FilledButton
-            // .tonal) leaving its list layout permanently unresolved. Every
-            // widget used here (GestureDetector, Icon, Text) is one already
-            // proven to render correctly in this same card.
+            // Pushed as its own full page (Navigator.push), not expanded
+            // inline — this card already lives inside a scrollable list,
+            // inside a DraggableScrollableSheet, over the always-on mushaf
+            // reader, and a khatm plan can have 30+ werd rows. Keeping that
+            // list off the nested-sheet-over-reader stack avoids the jank/
+            // hang risk that stack has already shown once before with an
+            // unrelated widget, and gives the list a normal full-height
+            // page to scroll in.
             GestureDetector(
-              onTap: () => setState(() => _werdListExpanded = !_werdListExpanded),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => CompletionGoalWerdList(goal: g)),
+              ),
               child: Row(
                 children: [
-                  Icon(_werdListExpanded ? Icons.expand_less : Icons.expand_more, size: 18, color: AppColors.textMuted),
+                  const Icon(Icons.chevron_left_rounded, size: 18, color: AppColors.textMuted),
                   const SizedBox(width: 4),
                   Text(basicText('khatm_werd_list_title', lang), style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
                 ],
               ),
             ),
-            // Mounted only while expanded — its own load (ensureWerds, a real
-            // DB round-trip, plus one ayahBoundsForPage lookup per werd) never
-            // runs for a card the student hasn't opened.
-            if (_werdListExpanded) CompletionGoalWerdList(goal: g),
           ],
           const SizedBox(height: 10),
           Row(
