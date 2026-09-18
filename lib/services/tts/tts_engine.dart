@@ -17,6 +17,7 @@ library;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' show RootIsolateToken;
 
@@ -323,17 +324,41 @@ Future<String> _ensureVoiceExtracted(TtsVoiceOption voice) async {
 /// (auto-advance) بلا فجوات صامتة طويلة غير ضرورية بين فقرة وأخرى — النموذج
 /// عادة يُنتِج صمتًا زائدًا في الطرفين، هذا يزيله بلا التأثير على المحتوى
 /// المسموع فعليًا.
+///
+/// **تحسين حقيقي (2026-09-18)، مبني على بحث فعلي**: الإصدار السابق كان
+/// يفحص **عيّنة واحدة مفردة** لتحديد بداية/نهاية الصمت — هذا يخاطر بقصّ
+/// داخل بداية حرف ساكن هادئ فعليًا (كـ"ه"، "ح") إن صادف أن عيّنته الأولى
+/// وحدها تحت الحد، رغم أن الحرف نفسه بدأ فعلًا. الممارسة الموثَّقة (مصدر:
+/// `AudioProcessor` في مكتبة Coqui TTS، ونتائج بحث مستقلّة عن قصّ صمت TTS)
+/// هي استخدام **متوسط طاقة RMS على نافذة قصيرة (20-30ms)** بدل عيّنة مفردة
+/// — يميّز الصمت الحقيقي عن بداية صوت هادئ لكنه فعلي بثبات أكبر.
 Float32List _trimSilence(Float32List samples, {double threshold = 0.01, int keepMs = 80, int sampleRate = 22050}) {
   if (samples.isEmpty) return samples;
 
+  const windowMs = 20;
+  final windowSize = (windowMs / 1000 * sampleRate).round().clamp(1, samples.length);
+
+  double windowRms(int windowStart) {
+    final windowEnd = (windowStart + windowSize).clamp(0, samples.length);
+    if (windowEnd <= windowStart) return 0;
+    var sumSquares = 0.0;
+    for (var i = windowStart; i < windowEnd; i++) {
+      sumSquares += samples[i] * samples[i];
+    }
+    return math.sqrt(sumSquares / (windowEnd - windowStart));
+  }
+
   var start = 0;
-  while (start < samples.length && samples[start].abs() < threshold) {
-    start++;
+  while (start < samples.length && windowRms(start) < threshold) {
+    start += windowSize;
   }
+  start = start.clamp(0, samples.length);
+
   var end = samples.length;
-  while (end > start && samples[end - 1].abs() < threshold) {
-    end--;
+  while (end > start && windowRms((end - windowSize).clamp(0, samples.length)) < threshold) {
+    end -= windowSize;
   }
+  end = end.clamp(start, samples.length);
 
   final keepSamples = (keepMs / 1000 * sampleRate).round();
   final trimmedStart = (start - keepSamples).clamp(0, samples.length);

@@ -42,12 +42,30 @@ List<String> splitIntoPlayableParagraphs(String normalizedText) {
   final result = <String>[];
   for (final line in lines) {
     if (line.length <= kMaxParagraphChars) {
-      result.add(line);
+      result.add(_ensureTrailingPause(line));
       continue;
     }
     result.addAll(_splitLongLine(line));
   }
   return result;
+}
+
+/// علامات ترقيم يعتمد عليها Piper/VITS فعليًا لتوليد وقفة طبيعية في نهاية
+/// المقطع — بحث حقيقي (GitHub rhasspy/piper #349: نص بلا نقطة نهاية يُقرأ
+/// كجملة واحدة متصلة بلا وقفة). أي مقطع يُرسَل للتوليد بلا إحداها ينتهي
+/// صوتيًا بشكل مفاجئ/مبتور، قد يُسمَع كـ"ابتلاع" آخر كلمة رغم أن النموذج
+/// نطقها كاملة فعليًا — المشكلة في غياب الوقفة بعدها لا في النطق نفسه.
+const _terminalPunctuation = ['.', '،', '؛', '!', '؟', ':', ')', '"', '”', '»'];
+
+/// يضيف فاصلة عربية "،" لأي مقطع لا ينتهي أصلًا بعلامة ترقيم معروفة —
+/// يحدث هذا حين يُقطَع مقطع في منتصف جملة أطول (المسار الاحتياطي في
+/// [_splitLongLine]، أو حتى فقرة مصدر لا تنتهي بترقيم أصلًا). فاصلة لا نقطة
+/// لأن المقطع فعليًا "يستمر" (ليس نهاية جملة حقيقية) — إشارة صوتية ونصية
+/// صحيحة دلاليًا، لا مجرد حيلة تقنية.
+String _ensureTrailingPause(String text) {
+  if (text.isEmpty) return text;
+  if (_terminalPunctuation.contains(text[text.length - 1])) return text;
+  return '$text،';
 }
 
 /// يُقسِّم سطرًا طويلًا عند أول علامة نهاية جملة بعد تجاوز الحد، لا عند حد
@@ -59,7 +77,7 @@ List<String> _splitLongLine(String line) {
 
   while (start < line.length) {
     if (line.length - start <= kMaxParagraphChars) {
-      chunks.add(line.substring(start).trim());
+      chunks.add(_ensureTrailingPause(line.substring(start).trim()));
       break;
     }
 
@@ -82,7 +100,7 @@ List<String> _splitLongLine(String line) {
       cut = (lastSpace > start) ? lastSpace : limit;
     }
 
-    chunks.add(line.substring(start, cut).trim());
+    chunks.add(_ensureTrailingPause(line.substring(start, cut).trim()));
     start = cut;
   }
 
