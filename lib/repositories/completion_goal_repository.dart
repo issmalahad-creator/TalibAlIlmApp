@@ -213,6 +213,31 @@ class CompletionGoalRepository {
     await db.update('completion_goals', {'status': 'abandoned'}, where: 'id = ?', whereArgs: [goalId]);
   }
 
+  /// §2.6 — the goal-identity edit (✎) mini-dialog: colour + name + reminder
+  /// only, never range/duration (those are fixed at creation per the spec).
+  Future<void> updateSettings(
+    int goalId, {
+    required String? name,
+    required int? colorIndex,
+    required bool reminderEnabled,
+    required int? reminderHour,
+    required int? reminderMinute,
+  }) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.update(
+      'completion_goals',
+      {
+        'name': name,
+        'color_index': colorIndex,
+        'reminder_enabled': reminderEnabled ? 1 : 0,
+        'reminder_hour': reminderHour,
+        'reminder_minute': reminderMinute,
+      },
+      where: 'id = ?',
+      whereArgs: [goalId],
+    );
+  }
+
   /// Re-anchors the plan from today at the same total_units, keeping the
   /// same target_date if still in the future, or extending it — used by
   /// the "أعِد جدولة الخطة" option. No punishment framing: this just makes

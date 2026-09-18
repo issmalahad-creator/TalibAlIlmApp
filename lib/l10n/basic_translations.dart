@@ -3880,6 +3880,13 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'وقت', 'tr': 'Saat', 'id': 'Waktu', 'bn': 'সময়', 'ha': 'Lokaci',
     'so': 'Waqtiga', 'fa': 'زمان', 'ms': 'Masa',
   },
+  // §2.6 — the goal-identity edit (✎) mini-dialog's title (colour + name +
+  // reminder only; range/duration are fixed after creation per the spec).
+  'khatm_edit_plan_title': {
+    'ar': 'تعديل الختمة', 'en': 'Edit plan', 'am': 'እቅድ አርትዕ', 'fr': 'Modifier le plan', 'sw': 'Hariri mpango',
+    'ur': 'منصوبہ میں ترمیم', 'tr': 'Planı düzenle', 'id': 'Edit rencana', 'bn': 'পরিকল্পনা সম্পাদনা', 'ha': 'Gyara tsari',
+    'so': 'Wax ka beddel qorshaha', 'fa': 'ویرایش برنامه', 'ms': 'Edit rancangan',
+  },
   'delete_plan_title': {
     'ar': 'مسح الخطة؟', 'en': 'Delete this plan?', 'am': 'እቅዱን ይሰርዙ?', 'fr': 'Supprimer ce plan ?', 'sw': 'Futa mpango huu?',
     'ur': 'کیا یہ منصوبہ حذف کریں؟', 'tr': 'Bu plan silinsin mi?', 'id': 'Hapus rencana ini?', 'bn': 'এই পরিকল্পনা মুছবেন?', 'ha': 'Share wannan tsari?',

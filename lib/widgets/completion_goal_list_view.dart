@@ -367,6 +367,103 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   );
 }
 
+/// §2.6 — the goal-identity edit (✎) mini-dialog: colour + name + reminder
+/// only, pre-filled from [goal]. Deliberately reuses the exact same colour-
+/// swatch/name-field/reminder-toggle widgets as the creation wizard above
+/// (same look, same behaviour) rather than a new set of controls — range and
+/// duration are NOT editable here, per the spec (§2.6: "لا نطاق ولا مدة،
+/// تلك ثابتة بعد الإنشاء").
+Future<void> openEditGoalSheet(BuildContext context, CompletionGoal goal, {VoidCallback? onSaved}) async {
+  final lang = LanguagePreferenceService.currentLanguage;
+  final repo = CompletionGoalRepository();
+  int? selectedColorIndex = goal.colorIndex;
+  final nameController = TextEditingController(text: goal.name ?? '');
+  bool reminderEnabled = goal.reminderEnabled;
+  TimeOfDay reminderTime = TimeOfDay(hour: goal.reminderHour ?? 20, minute: goal.reminderMinute ?? 0);
+
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setSheetState) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        ),
+        child: SingleChildScrollView(child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(basicText('khatm_edit_plan_title', lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 0; i < kKhatmTabColors.length; i++)
+                  GestureDetector(
+                    onTap: () => setSheetState(() => selectedColorIndex = i),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(radius: 14, backgroundColor: kKhatmTabColors[i]),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: 20,
+                          height: 2,
+                          color: selectedColorIndex == i ? AppColors.primary : Colors.transparent,
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(basicText('khatm_name_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+            const SizedBox(height: 4),
+            TextField(controller: nameController),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(basicText('khatm_reminder_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+              value: reminderEnabled,
+              onChanged: (v) => setSheetState(() => reminderEnabled = v),
+            ),
+            if (reminderEnabled)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.access_time, size: 20),
+                title: Text(basicText('khatm_reminder_time_label', lang), style: const TextStyle(fontSize: 13)),
+                trailing: Text(reminderTime.format(context), style: const TextStyle(fontWeight: FontWeight.w700)),
+                onTap: () async {
+                  final picked = await showTimePicker(context: context, initialTime: reminderTime);
+                  if (picked != null) setSheetState(() => reminderTime = picked);
+                },
+              ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () async {
+                await repo.updateSettings(
+                  goal.id,
+                  name: nameController.text.trim().isEmpty ? null : nameController.text.trim(),
+                  colorIndex: selectedColorIndex,
+                  reminderEnabled: reminderEnabled,
+                  reminderHour: reminderTime.hour,
+                  reminderMinute: reminderTime.minute,
+                );
+                if (context.mounted) Navigator.pop(context);
+                onSaved?.call();
+              },
+              child: Text(basicText('save_action', lang)),
+            ),
+          ],
+        )),
+      ),
+    ),
+  );
+}
+
 /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2.2 — "5 ألوان ثابتة" for the
 /// goal-card side stripe. Purely categorical/decorative (cycled by
 /// creation order — `id % 5` — since manual per-goal colour choice is
@@ -561,6 +658,7 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
               currentPageHint: widget.currentPageHint,
               onReschedule: () => _reschedule(_statuses[i]),
               onDelete: () => _confirmAndDelete(_statuses[i]),
+              onEdit: () => openEditGoalSheet(context, _statuses[i].goal, onSaved: reload),
               onRecordProgress: (page) => _recordProgress(_statuses[i], page),
             ),
         ],
@@ -575,6 +673,7 @@ class _GoalCard extends StatefulWidget {
   final int? currentPageHint;
   final VoidCallback onReschedule;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
   final ValueChanged<int> onRecordProgress;
   const _GoalCard({
     required this.status,
@@ -582,6 +681,7 @@ class _GoalCard extends StatefulWidget {
     required this.currentPageHint,
     required this.onReschedule,
     required this.onDelete,
+    required this.onEdit,
     required this.onRecordProgress,
   });
 
@@ -646,6 +746,17 @@ class _GoalCardState extends State<_GoalCard> {
           Row(
             children: [
               Expanded(child: _GoalTitle(goal: g)),
+              // §2.4/§2.6 — the goal-identity edit (✎) icon, right next to
+              // the title (colour + name + reminder only; see
+              // `openEditGoalSheet`'s own doc comment for why range/duration
+              // aren't here).
+              IconButton(
+                onPressed: widget.onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 16),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+              ),
               if (stripe != null) ...[
                 CircularPercentGauge(percent: percent, size: 36, strokeWidth: 4),
                 const SizedBox(width: 8),
