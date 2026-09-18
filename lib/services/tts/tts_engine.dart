@@ -168,6 +168,18 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
 
   var bindingsInitialized = false;
   final loadedVoices = <String, sherpa.OfflineTts>{};
+  final generationsSinceLoad = <String, int>{};
+  // **خلل حقيقي وُجِد على جهاز حقيقي (2026-09-18)**: العملية كاملة انهارت
+  // بتعطّل أصلي (SIGSEGV، لا استثناء Dart قابل للالتقاط) بعد سلسلة طويلة من
+  // استدعاءات generate() المتتالية الناجحة على نفس جلسة OfflineTts الأصلية
+  // — لا تسريب مؤكَّد من ناحية Dart (كل مخزَّن مؤقَّت أصلي يُحرَّر فور كل
+  // استدعاء عبر tts.dart نفسها)، لكن مخزَّن ONNX Runtime الأصلي (arena)
+  // معروف بأنه ينمو عبر الاستدعاءات المتتالية ولا يتقلَّص بينها ضمن نفس
+  // الجلسة. لا يوجد tombstone يؤكّد السبب الدقيق (النظام نفسه كان
+  // مُحمَّلًا وقتها). إجراء احترازي معقول: إعادة إنشاء جلسة OfflineTts من
+  // الصفر دوريًا بدل تركها تتراكم للأبد — يحدّ من أسوأ احتمال نمو ذاكرة
+  // أصلية غير محدود خلال جلسة استماع طويلة.
+  const kMaxGenerationsPerSession = 25;
 
   await for (final message in commandPort) {
     if (message is! _SynthesizeRequest) continue;
@@ -205,6 +217,7 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
         tts = sherpa.OfflineTts(config);
         debugPrint('[TTS] OfflineTts جاهز');
         loadedVoices[message.voiceId] = tts;
+        generationsSinceLoad[message.voiceId] = 0;
       }
 
       debugPrint('[TTS] استدعاء generate()...');
@@ -214,6 +227,16 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
       final wav = _encodeWav(trimmed, audio.sampleRate);
       message.replyPort.send(wav);
       debugPrint('[TTS] نجح، أُرسِلت ${wav.length} بايت');
+
+      final count = (generationsSinceLoad[message.voiceId] ?? 0) + 1;
+      if (count >= kMaxGenerationsPerSession) {
+        debugPrint('[TTS] إعادة تدوير جلسة ${message.voiceId} وقائيًا بعد $count توليدة');
+        tts.free();
+        loadedVoices.remove(message.voiceId);
+        generationsSinceLoad.remove(message.voiceId);
+      } else {
+        generationsSinceLoad[message.voiceId] = count;
+      }
     } catch (e, st) {
       debugPrint('[TTS] فشل فعلي: $e\n$st');
       message.replyPort.send(_SynthesizeError(e.toString()));

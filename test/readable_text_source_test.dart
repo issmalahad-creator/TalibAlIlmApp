@@ -41,6 +41,21 @@ void main() {
       }
     });
 
+    test('long line with words but no punctuation splits at word boundaries — no word is cut in half', () {
+      // خلل حقيقي أبلغ عنه إسماعيل على جهازه الحقيقي (2026-09-18): "الصوت
+      // يبلع بعض الأحرف" — سببه قصّ حرفي صارم كان يقع أحيانًا في منتصف
+      // كلمة، وكل قطعة تُولَّد كاستدعاء TTS مستقلّ فتخرج مبتورة الصوت.
+      final words = List.generate(100, (i) => 'كلمة$i');
+      final longLine = words.join(' ');
+      expect(longLine.length, greaterThan(kMaxParagraphChars));
+
+      final result = splitIntoPlayableParagraphs(longLine);
+
+      expect(result.length, greaterThan(1));
+      final reconstructedWords = result.expand((chunk) => chunk.split(' ')).toList();
+      expect(reconstructedWords, words);
+    });
+
     test('short chunks are not dropped by trimming', () {
       final result = splitIntoPlayableParagraphs('- أ -');
       expect(result, ['- أ -']);
