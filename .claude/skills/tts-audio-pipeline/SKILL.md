@@ -8,10 +8,12 @@ description: >-
   extraction + ChangeNotifier playback controller). Covers real, hard-won
   bugs found only by testing on Ismail's physical phone: rootBundle failing
   silently inside a spawned Isolate, ChangeNotifier used-after-dispose races,
-  a `??=` pattern that permanently caches a failed Future, and text chunking
-  that swallows letters by cutting mid-word. Also covers the debugging
-  discipline that actually found these (real logging > guessing) and Windows
-  Git-Bash/adb pitfalls hit along the way.
+  a `??=` pattern that permanently caches a failed Future, text chunking
+  that swallows letters by cutting mid-word, and a native SIGSEGV caused by
+  ONNX Runtime's internal multi-threading (numThreads > 1) racing against
+  Dart's own worker threads inside the same Isolate. Also covers the
+  debugging discipline that actually found these (real logging > guessing)
+  and Windows Git-Bash/adb pitfalls hit along the way.
 ---
 
 # محرّك الصوت المحلي (TTS) — دروس حقيقية من جهاز حقيقي
@@ -59,6 +61,18 @@ return await (_workerStarting ??= _startWorker());
 **الحل**: المسار الاحتياطي الآن يقصّ عند آخر مسافة (`lastIndexOf(' ', limit)`) قبل الحد، لا عند الحد نفسه — لا كلمة تنقسم أبدًا إلا في حالة نادرة جدًا (كلمة واحدة أطول من `kMaxParagraphChars` بأكمله). اختبار `test/readable_text_source_test.dart` "no word is cut in half" يتحقّق من هذا عبر إعادة تجميع الكلمات ومقارنتها بالأصل — أي تعديل مستقبلي على التقسيم يجب أن يبقي هذا الاختبار ناجحًا.
 
 **قاعدة عامة لأي محرّك TTS محلي مستقبلي**: نقاط قصّ النص يجب أن تكون دائمًا عند حدود كلمة على الأقل (والأفضل حدود جملة) — لا فهرس حرفي مطلق أبدًا، حتى كـ"حالة نادرة احتياطية".
+
+## 5.5 `numThreads > 1` في إعداد النموذج قد يُسبِّب تعطّلًا أصليًا حقيقيًا (SIGSEGV)
+
+**العرض**: تعطّل أصلي متكرّر (`Fatal signal 11 (SIGSEGV)`) — أحيانًا فور أول `generate()`، أحيانًا بعد عشرات النداءات الناجحة. عدم انتظام التوقيت هذا (لا نمط ثابت) هو **الدليل المميِّز لسباق تزامن (race condition)**، لا لخلل حتمي (لو كان حتميًا لفشل بنفس النقطة كل مرة). تقرير التعطّل (حين أمكن التقاطه) أظهر الفشل في خيط Dart داخلي اسمه `DartWorker`، بعنوان ذاكرة صغير جدًا قريب من الصفر (`fault addr 0x381`) — توقيع نموذجي لمؤشّر فارغ تقريبًا، غالبًا ناتج عن تلف ذاكرة تسبَّبه كتابة من خيط آخر.
+
+**السبب المُرجَّح**: `OfflineTtsVitsModelConfig(numThreads: 2, ...)` يجعل ONNX Runtime ينشئ خيوطه الأصلية الخاصة للاستدلال المتوازي — هذه الخيوط تعمل خارج نموذج عزلات Dart بالكامل، وقد تتسابق مع خيوط Dart الداخلية (GC، خيوط العمل) على ذاكرة مشتركة غير متزامنة بشكل صحيح بينهما.
+
+**الحل**: `numThreads: 1` — يُزيل هذا النوع من السباق بالكامل (لا خيوط ORT داخلية موازية على الإطلاق). التكلفة: توليد أبطأ نسبيًا (لاحِظ التأثير التالٍ). **تحقّق فعلي**: 50+ استدعاء `generate()` متتالٍ ناجح بلا أي تعطّل بعد هذا التغيير، مقابل تعطّل خلال أول 1-2 استدعاء بثبات نسبي مع `numThreads: 2`.
+
+**أثر جانبي يجب معالجته**: توليد أبطأ = هامش الاستباق (`prefetch lookahead`) القديم (فقرتان) قد لا يكفي لفقرات طويلة (~230 حرفًا يستغرق توليدها ~14 ثانية بخيط واحد، صوتها ~20 ثانية) — يُسبِّب توقّفًا مسموعًا قصيرًا بين الفقرات (ليس عطلًا، يتعافى من تلقاء نفسه). رُفِع الهامش إلى 4 فقرات في `audio_reader_service.dart` لامتصاص هذا التباطؤ.
+
+**قاعدة عامة**: أي مكتبة FFI أصلية تُستدعى من عزلة Dart وتقبل إعداد عدد خيوط داخلي (`numThreads`/`numWorkers`/مشابه) — ابدأ بخيط واحد كخط أساس آمن، وارفعه فقط بعد تحقّق حقيقي طويل المدى (عشرات/مئات الاستدعاءات المتتالية على جهاز حقيقي) أنه مستقرّ، لا بناءً على افتراض أن "أكثر خيوطًا = أسرع وآمن دائمًا".
 
 ## 6. مساحة الجهاز الممتلئة تُنتِج أعراضًا تبدو كأخطاء كود
 
