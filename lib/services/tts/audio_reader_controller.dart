@@ -11,9 +11,10 @@ library;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data' show Endian;
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
 
 import 'audio_reader_service.dart';
 import 'text_sources/readable_text_source.dart';
@@ -36,6 +37,8 @@ class AudioReaderController extends ChangeNotifier {
   final AudioReaderService _service;
   final AudioPlayer _player;
   late final StreamSubscription<void> _completeSub;
+
+  bool _disposed = false;
 
   int _unitIndex = 1;
   List<String> _paragraphs = const [];
@@ -72,6 +75,16 @@ class AudioReaderController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// حارس ضد "استُخدِم بعد dispose()" — `start()`/`_playCurrentParagraph()`
+  /// غير متزامنتين، فقد يُغلَق المستخدم الورقة السفلية (يُشغِّل dispose())
+  /// أثناء انتظار توليد أول فقرة (2026-09-18، خطأ حقيقي وُجِد على جهاز
+  /// حقيقي: "A AudioReaderController was used after being disposed").
+  /// `notifyListeners()` العادي يرمي استثناءً إن استُدعِي بعد dispose — هذا
+  /// يتجاهله بصمت بدل ذلك (لا فائدة من تحديث واجهة لم تعد موجودة).
+  void _safeNotify() {
+    if (!_disposed) notifyListeners();
+  }
+
   /// تقدير تقريبي للوقت المتبقّي حتى نهاية الوحدة الحالية — null حتى تُقاس
   /// أول فقرة فعليًا (لا تخمين قبل وجود بيانات حقيقية).
   Duration? get estimatedTimeRemaining {
@@ -90,10 +103,11 @@ class AudioReaderController extends ChangeNotifier {
       _unitIndex = await source.lastReadUnit ?? 1;
       await _loadUnit(_unitIndex, startParagraph: 0);
       await _playCurrentParagraph();
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[AudioReader] فشل start(): $e\n$st');
       _lastError = e;
       _state = AudioReaderPlaybackState.idle;
-      notifyListeners();
+      _safeNotify();
     }
   }
 
@@ -104,14 +118,15 @@ class AudioReaderController extends ChangeNotifier {
   }
 
   Future<void> _playCurrentParagraph() async {
+    if (_disposed) return;
     if (_paragraphs.isEmpty) {
       _state = AudioReaderPlaybackState.finished;
-      notifyListeners();
+      _safeNotify();
       return;
     }
     _state = AudioReaderPlaybackState.loading;
     _lastError = null;
-    notifyListeners();
+    _safeNotify();
 
     try {
       final file = await _service.fileForParagraph(
@@ -125,11 +140,16 @@ class AudioReaderController extends ChangeNotifier {
       await _player.play(DeviceFileSource(file.path));
       await _player.setPlaybackRate(_speed);
       _state = AudioReaderPlaybackState.playing;
-      notifyListeners();
-    } catch (e) {
+      _safeNotify();
+    } catch (e, st) {
+      // كان هذا الخطأ يُبلَع صامتًا (لا طباعة إطلاقًا) رغم تعليق سابق يدّعي
+      // أن التفصيل التقني "يذهب لـ debugPrint" — لم يكن يذهب لأي مكان فعليًا،
+      // هذا هو سبب عدم ظهور أي أثر عبر 5 محاولات التقاط logcat سابقة
+      // (2026-09-18).
+      debugPrint('[AudioReader] فشل _playCurrentParagraph() فقرة=$_paragraphIndex وحدة=$_unitIndex: $e\n$st');
       _lastError = e;
       _state = AudioReaderPlaybackState.idle;
-      notifyListeners();
+      _safeNotify();
       return;
     }
 
@@ -183,26 +203,35 @@ class AudioReaderController extends ChangeNotifier {
     }
 
     _state = AudioReaderPlaybackState.finished;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> pause() async {
     await _player.pause();
     _state = AudioReaderPlaybackState.paused;
-    notifyListeners();
+    _safeNotify();
   }
 
+  /// **لا يُستدعى بعد فشل** — `_player.resume()` يستأنف مشغِّلًا قد لا يحمل
+  /// أي مصدر صالح إطلاقًا إن كان آخر توليد قد فشل قبل الوصول لـ`_player.play()`
+  /// أصلًا، فيُنتِج حالة "يُشغِّل" ظاهريًا بلا صوت فعلي ورسالة الخطأ لا تزال
+  /// معروضة — خلل حقيقي وُجِد فعليًا (2026-09-18). استخدم [retry] بدلًا منه
+  /// حين `lastError != null`.
   Future<void> resume() async {
     await _player.resume();
     _state = AudioReaderPlaybackState.playing;
-    notifyListeners();
+    _safeNotify();
   }
+
+  /// إعادة محاولة توليد/تشغيل الفقرة الحالية نفسها بعد فشل — المسار
+  /// الصحيح للتعافي، لا [resume].
+  Future<void> retry() => _playCurrentParagraph();
 
   Future<void> replayParagraph() async {
     await _player.seek(Duration.zero);
     await _player.resume();
     _state = AudioReaderPlaybackState.playing;
-    notifyListeners();
+    _safeNotify();
   }
 
   Future<void> skip(Duration delta) async {
@@ -216,7 +245,7 @@ class AudioReaderController extends ChangeNotifier {
   Future<void> setSpeed(double speed) async {
     _speed = speed.clamp(0.75, 1.5);
     await _player.setPlaybackRate(_speed);
-    notifyListeners();
+    _safeNotify();
   }
 
   /// القراءة من موضع لمسه المستخدم يدويًا (4.4) — يقفز لفقرة محدَّدة مباشرة.
@@ -237,15 +266,17 @@ class AudioReaderController extends ChangeNotifier {
     _sleepTimerDuration = duration;
     if (duration != null) {
       _sleepTimer = Timer(duration, () {
+        if (_disposed) return;
         _sleepTimerDuration = null;
         pause();
       });
     }
-    notifyListeners();
+    _safeNotify();
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _completeSub.cancel();
     _sleepTimer?.cancel();
     _player.dispose();

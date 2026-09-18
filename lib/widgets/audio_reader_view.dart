@@ -193,6 +193,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
   }
 
   Widget _buildControlsRow() {
+    final hasError = _controller.lastError != null;
     final isPlaying = _controller.state == AudioReaderPlaybackState.playing;
     final hasPrevious = _controller.paragraphIndex > 0;
     final hasNext = _controller.paragraphIndex < _controller.paragraphCount - 1;
@@ -211,11 +212,19 @@ class _AudioReaderViewState extends State<AudioReaderView> {
           onPressed: () => _controller.skip(const Duration(seconds: -10)),
         ),
         IconButton(icon: const Icon(Icons.refresh), onPressed: _controller.replayParagraph),
+        // بعد فشل: زر "إعادة المحاولة" الفعلي (يُولِّد من جديد) لا
+        // "استئناف" (لا يوجد مصدر صالح ليستأنفه — كان يُظهِر حالة تشغيل
+        // مزيَّفة بلا صوت فعلي، خلل حقيقي وُجِد اليوم على جهاز حقيقي).
         IconButton(
           iconSize: 48,
           color: AppColors.primary,
-          icon: Icon(isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled),
-          onPressed: isPlaying ? _controller.pause : _controller.resume,
+          icon: Icon(
+            hasError
+                ? Icons.refresh_rounded
+                : (isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled),
+          ),
+          tooltip: hasError ? 'إعادة المحاولة' : null,
+          onPressed: hasError ? _controller.retry : (isPlaying ? _controller.pause : _controller.resume),
         ),
         IconButton(
           icon: const Icon(Icons.forward_10),
