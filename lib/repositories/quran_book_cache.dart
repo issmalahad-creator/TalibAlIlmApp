@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart'
     show compute, debugPrint, visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../services/quran_corpus_download_service.dart';
+
 /// Phase 80 / QC2 — on-demand loader for the **bulky per-book Quran text**:
 /// the 122 bundled tafsīrs, 138 translations, 12 riwāyāt under
 /// `assets/quran/corpus/{tafsir,translations,riwaya}/<id>.json.gz`.
@@ -86,14 +88,24 @@ class QuranBookCache {
   }
 
   Future<_Book?> _load(String key) async {
+    Uint8List? bytes;
     try {
       final data = await rootBundle.load('assets/quran/corpus/$key.json.gz');
-      final map = await compute(_decode, data.buffer.asUint8List());
-      return map == null ? null : _Book(map);
+      bytes = data.buffer.asUint8List();
     } catch (e) {
-      debugPrint('QuranBookCache: no asset for $key ($e).');
-      return null;
+      debugPrint('QuranBookCache: no bundled asset for $key ($e) — trying download.');
+      final parts = key.split('/');
+      final category = parts[0];
+      final id = int.tryParse(parts[1]);
+      if (id != null) {
+        final downloaded =
+            await QuranCorpusDownloadService.instance.ensureCached(category, id);
+        if (downloaded != null) bytes = Uint8List.fromList(downloaded);
+      }
     }
+    if (bytes == null) return null;
+    final map = await compute(_decode, bytes);
+    return map == null ? null : _Book(map);
   }
 
   void _touch(String key) {
