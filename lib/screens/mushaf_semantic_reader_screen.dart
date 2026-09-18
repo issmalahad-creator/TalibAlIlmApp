@@ -101,6 +101,14 @@ class _MushafSemanticReaderScreenState
   Timer? _sessionTimer;
   int _sessionRemaining = 0;
 
+  /// Immersive reading — Ismail 2026-09-18: tapping the page (a background
+  /// tap, not a word) hides the app bar and bottom bars so the muṣḥaf fills
+  /// the whole screen; tapping again brings the chrome back. Resets to
+  /// visible on every screen open (not persisted — this is "get the chrome
+  /// out of my way right now for this reading", not a saved preference).
+  bool _chromeVisible = true;
+  void _toggleChrome() => setState(() => _chromeVisible = !_chromeVisible);
+
   @override
   void initState() {
     super.initState();
@@ -995,6 +1003,16 @@ class _MushafSemanticReaderScreenState
     return '$n';
   }
 
+  /// The current page's juzʼ + first surah — replaces the old static
+  /// "المصحف الدلالي / ص X من 604" title (Ismail 2026-09-18: remove that
+  /// label and its details, show the juzʼ/surah where the icons are).
+  Future<({int? juz, int surah})?> _headerInfo(int page) async {
+    final juz = await _repo.juzForPage(page);
+    final bounds = await _repo.ayahBoundsForPage(page);
+    if (bounds == null) return null;
+    return (juz: juz, surah: bounds.firstSurah);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bg = _night ? AppColors.backgroundNight : const Color(0xFFFBF6EE);
@@ -1003,86 +1021,158 @@ class _MushafSemanticReaderScreenState
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
         backgroundColor: bg,
-        appBar: AppBar(
-          backgroundColor: bg,
-          foregroundColor: onBg,
-          titleSpacing: 0,
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(basicText('mushaf_semantic_title', lang),
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: onBg)),
-              Text('${basicText('turath_page_short', lang)} $_current / $_pageCount',
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.textMuted)),
-            ],
-          ),
-          actions: [
-            if (_sessionTimer != null)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    '${_sessionRemaining ~/ 60}:${(_sessionRemaining % 60).toString().padLeft(2, '0')}',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary),
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: [
+            // The muṣḥaf always renders at full screen size — the toolbar
+            // below floats OVER it as an overlay and never resizes/reflows
+            // the page (Ismail 2026-09-18: "القرآن كبير بما فيه أن يصل حتى
+            // خلف الـheader" — the page reaches even behind the header).
+            Positioned.fill(
+              child: _ready == false
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32),
+                        child: Text(basicText('mushaf_not_ready', lang),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: AppColors.textMuted)),
+                      ),
+                    )
+                  : _readerPageView(lang),
+            ),
+            if (_chromeVisible)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: Container(
+                    color: bg,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: onBg),
+                          onPressed: () => Navigator.of(context).maybePop(),
+                        ),
+                        Expanded(
+                          child: FutureBuilder<({int? juz, int surah})?>(
+                            key: ValueKey(_current),
+                            future: _headerInfo(_current),
+                            builder: (context, snap) {
+                              final info = snap.data;
+                              if (info == null) return const SizedBox.shrink();
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (info.juz != null)
+                                    Text('${basicText('juz_label', lang)} ${info.juz}',
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: onBg)),
+                                  Text(quranSurahs[info.surah - 1].name,
+                                      style: const TextStyle(
+                                          fontSize: 11, color: AppColors.textMuted)),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        if (_sessionTimer != null)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Text(
+                                '${_sessionRemaining ~/ 60}:${(_sessionRemaining % 60).toString().padLeft(2, '0')}',
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary),
+                              ),
+                            ),
+                          ),
+                        IconButton(
+                          tooltip: basicText('reading_session_prompt', lang),
+                          icon: Icon(_sessionTimer != null ? Icons.timer_rounded : Icons.timer_outlined, color: onBg),
+                          onPressed: () => _openSessionSheet(lang),
+                        ),
+                        IconButton(
+                          tooltip: basicText('listen_ayah_action', lang),
+                          icon: Icon(_audioBar ? Icons.headphones_rounded : Icons.headphones_outlined, color: onBg),
+                          onPressed: _toggleAudioBar,
+                        ),
+                        IconButton(
+                          tooltip: basicText('night_mode', lang),
+                          icon: Icon(_night ? Icons.wb_sunny_rounded : Icons.nightlight_outlined, color: onBg),
+                          onPressed: () => _setNight(!_night),
+                        ),
+                        IconButton(
+                          tooltip: basicText('khatm_reading_plans_short', lang),
+                          icon: Icon(Icons.flag_circle_outlined, color: onBg),
+                          onPressed: () => _openKhatmSheet(lang),
+                        ),
+                        IconButton(
+                          tooltip: basicText('mushaf_index_surahs', lang),
+                          icon: Icon(Icons.menu_rounded, color: onBg),
+                          onPressed: () => _openMenu(lang),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            IconButton(
-              tooltip: basicText('reading_session_prompt', lang),
-              icon: Icon(_sessionTimer != null
-                  ? Icons.timer_rounded
-                  : Icons.timer_outlined),
-              onPressed: () => _openSessionSheet(lang),
-            ),
-            IconButton(
-              tooltip: basicText('listen_ayah_action', lang),
-              icon: Icon(_audioBar
-                  ? Icons.headphones_rounded
-                  : Icons.headphones_outlined),
-              onPressed: _toggleAudioBar,
-            ),
-            IconButton(
-              tooltip: basicText('night_mode', lang),
-              icon: Icon(_night
-                  ? Icons.wb_sunny_rounded
-                  : Icons.nightlight_outlined),
-              onPressed: () => _setNight(!_night),
-            ),
-            IconButton(
-              tooltip: basicText('khatm_reading_plans_short', lang),
-              icon: const Icon(Icons.flag_circle_outlined),
-              onPressed: () => _openKhatmSheet(lang),
-            ),
-            IconButton(
-              tooltip: basicText('mushaf_index_surahs', lang),
-              icon: const Icon(Icons.menu_rounded),
-              onPressed: () => _openMenu(lang),
+            if (_chromeVisible && (_tajweedMode || _audioBar))
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  top: false,
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    if (_tajweedMode) _tajweedLegendPill(lang),
+                    if (_audioBar) _buildAudioBar(lang),
+                  ]),
+                ),
+              ),
+            // A second, always-available way to toggle the chrome — tapping
+            // the empty page background does it too, but a tap can land on
+            // a word and open its iʿrāb caption instead (Ismail 2026-09-19:
+            // "قد يضغط على حرف... نحتاج إلى أيقونة تظهر وتخفي"). Fixed in a
+            // corner so it's never lost regardless of chrome state.
+            Positioned(
+              bottom: 16,
+              left: 16,
+              child: SafeArea(
+                child: Material(
+                  color: bg.withValues(alpha: 0.85),
+                  shape: const CircleBorder(),
+                  elevation: 2,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _toggleChrome,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Icon(
+                        _chromeVisible ? Icons.unfold_less_rounded : Icons.unfold_more_rounded,
+                        size: 20,
+                        color: onBg,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
-        bottomNavigationBar: (_tajweedMode || _audioBar)
-            ? Column(mainAxisSize: MainAxisSize.min, children: [
-                if (_tajweedMode) _tajweedLegendPill(lang),
-                if (_audioBar) _buildAudioBar(lang),
-              ])
-            : null,
-        body: _ready == false
-            ? Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Text(basicText('mushaf_not_ready', lang),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textMuted)),
-                ),
-              )
-            : PageView.builder(
+      ),
+    );
+  }
+
+  Widget _readerPageView(String lang) {
+    return PageView.builder(
                 controller: _controller,
                 // Page-turn direction (Ismail 2026-09-03): swipe left→right
                 // advances to the next page, like turning the leaf of a
@@ -1114,20 +1204,15 @@ class _MushafSemanticReaderScreenState
                         );
                       }
                       final onThisPage = page == _current;
-                      return Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: _night
-                                ? AppColors.surfaceNight
-                                : AppColors.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: _night
-                                    ? AppColors.dividerNight
-                                    : AppColors.divider),
-                          ),
-                          clipBehavior: Clip.antiAlias,
+                      // Edge-to-edge, top to bottom (Ismail 2026-09-18: "لا
+                      // أريد مساحة بيضاء") — no card padding/border/radius
+                      // around the page; the muṣḥaf fills the whole
+                      // available body, chrome (app bar/bottom bars) is the
+                      // only thing that shows/hides.
+                      return Container(
+                          color: _night
+                              ? AppColors.surfaceNight
+                              : AppColors.surface,
                           child: MushafPageView(
                             layout: layout,
                             selectedWord: onThisPage ? _selWord : null,
@@ -1149,14 +1234,12 @@ class _MushafSemanticReaderScreenState
                             onWordLongPress: (w) => _openAyahNotebook(
                                 w.surah, w.ayah,
                                 openAdd: true),
+                            onBackgroundTap: _toggleChrome,
                           ),
-                        ),
                       );
                     },
                   );
                 },
-              ),
-      ),
     );
   }
 }

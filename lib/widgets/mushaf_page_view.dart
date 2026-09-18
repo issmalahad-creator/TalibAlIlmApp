@@ -72,6 +72,21 @@ class MushafPageView extends StatelessWidget {
   /// False = ordinary reading, byte-identical to before.
   final bool tajweed;
 
+  /// A tap that hit neither a word nor an ayah medallion (the margin /
+  /// inter-line gaps) — purely additive to the existing single hit-test
+  /// pass, no geometry or rendering change. Used by the reader screen for
+  /// the immersive "tap the page to toggle chrome" gesture.
+  final VoidCallback? onBackgroundTap;
+
+  /// `true` fills the whole available area (may evenly crop the page's own
+  /// outer margin on whichever axis has excess — see [ScreenTransform.fit]).
+  /// `false` (default) fits the whole page, may letterbox. Opt-in per
+  /// consumer, not a default change — the immersive reader (its chrome is
+  /// now an overlay, not a layout slot, so the page owns the full screen)
+  /// wants `true`; any future thumbnail/preview consumer should keep the
+  /// safe `false` default.
+  final bool coverFit;
+
   const MushafPageView({
     super.key,
     required this.layout,
@@ -83,6 +98,8 @@ class MushafPageView extends StatelessWidget {
     this.artInk,
     this.wordCaption,
     this.tajweed = false,
+    this.onBackgroundTap,
+    this.coverFit = false,
   });
 
   @override
@@ -122,6 +139,7 @@ class MushafPageView extends StatelessWidget {
           fitWidth: fit.width,
           fitHeight: fit.height,
           available: Size(maxW, maxH),
+          cover: coverFit,
         );
         final scale = t.scale;
         final dx = t.offset.dx;
@@ -130,7 +148,7 @@ class MushafPageView extends StatelessWidget {
         Offset toLocalViewBox(Offset widgetLocal) => t.toViewBox(widgetLocal);
 
         void handleTap(Offset widgetLocal) {
-          if (onWordTap == null && onAyaMarkTap == null) return;
+          if (onWordTap == null && onAyaMarkTap == null && onBackgroundTap == null) return;
           final p = toLocalViewBox(widgetLocal);
           // Medallion first — the only ayah entry. Then the word body.
           final mark = layout.ayaMarkAtPoint(p.dx, p.dy);
@@ -139,7 +157,11 @@ class MushafPageView extends StatelessWidget {
             return;
           }
           final w = layout.wordAtPoint(p.dx, p.dy);
-          if (w != null) onWordTap?.call(w);
+          if (w != null) {
+            onWordTap?.call(w);
+          } else {
+            onBackgroundTap?.call();
+          }
         }
 
         void handleLongPress(Offset widgetLocal) {

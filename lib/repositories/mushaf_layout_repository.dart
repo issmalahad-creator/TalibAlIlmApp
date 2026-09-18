@@ -104,6 +104,24 @@ class MushafLayoutRepository {
     return w.isEmpty ? null : (w.first['page'] as num).toInt();
   }
 
+  /// The juzʼ a page belongs to, from its first word's ayah — the reverse of
+  /// [pageForJuz]. A page can span two juzʼ boundaries; this reports the
+  /// juzʼ its opening ayah is in, matching how a printed muṣḥaf's "الجزء"
+  /// label reads for that page.
+  Future<int?> juzForPage(int page) async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT qa.juz_number AS j
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE mw.page = ?
+      ORDER BY mw.word_order ASC
+      LIMIT 1
+    ''', [page]);
+    final j = rows.isEmpty ? null : rows.first['j'];
+    return j == null ? null : (j as num).toInt();
+  }
+
   /// The MushafDatabase page a juzʼ starts on — joined through `quran_ayat`
   /// (which carries `juz_number`) so it is the real V1.01 page, not a Tanzil
   /// page number.

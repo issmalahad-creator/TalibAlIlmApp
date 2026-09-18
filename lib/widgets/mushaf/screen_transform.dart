@@ -24,13 +24,21 @@ class ScreenTransform {
   const ScreenTransform({required this.scale, required this.offset});
 
   /// Scale the viewBox-unit rectangle `(fitLeft, fitTop, fitWidth, fitHeight)`
-  /// to sit fully inside [available] pixels, centred, aspect ratio kept.
+  /// to sit inside [available] pixels, centred, aspect ratio kept (one
+  /// scalar — never stretched).
   ///
-  /// Takes raw doubles (not a [Rect]) so the arithmetic is exactly the pre-M2
-  /// inline formula — no `right - left` round-trip:
+  /// [cover] (Ismail 2026-09-19: "لا أريد مساحة بيضاء" — the reader screen's
+  /// own chrome is now an overlay, not a layout slot, so the page has the
+  /// full screen and a phone's aspect ratio doesn't match a mushaf page's;
+  /// containing would leave empty top/bottom bands). `false` (default) fits
+  /// the whole page inside [available] (may letterbox); `true` fills
+  /// [available] completely (may crop the page's own outer margin evenly on
+  /// the excess axis — the caller must clip, `MushafPageView`'s `Clip
+  /// .hardEdge` already does). Still one scalar either way: glyph shapes are
+  /// identical, cover just picks the larger of the two candidate scales.
   ///
   /// ```
-  /// scale = min(available.w / fitWidth, available.h / fitHeight)
+  /// scale = (cover ? max : min)(available.w / fitWidth, available.h / fitHeight)
   /// dx    = (available.w - fitWidth  * scale) / 2 - fitLeft * scale
   /// dy    = (available.h - fitHeight * scale) / 2 - fitTop  * scale
   /// ```
@@ -40,10 +48,11 @@ class ScreenTransform {
     required double fitWidth,
     required double fitHeight,
     required Size available,
+    bool cover = false,
   }) {
     final sx = available.width / fitWidth;
     final sy = available.height / fitHeight;
-    final scale = math.min(sx, sy);
+    final scale = cover ? math.max(sx, sy) : math.min(sx, sy);
     final dx = (available.width - fitWidth * scale) / 2 - fitLeft * scale;
     final dy = (available.height - fitHeight * scale) / 2 - fitTop * scale;
     return ScreenTransform(scale: scale, offset: Offset(dx, dy));
