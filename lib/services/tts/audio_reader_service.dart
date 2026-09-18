@@ -53,7 +53,13 @@ class AudioReaderService {
     required int unitIndex,
     required List<String> paragraphs,
     required int fromParagraphIndex,
-    int lookahead = 2,
+    // كان 2 — رُفِع بعد إصلاح تعطّل حقيقي (SIGSEGV) بجعل الاستدلال بخيط
+    // واحد فقط (`numThreads: 1` في tts_engine.dart)، وهذا أبطأ من خيطين.
+    // لفقرة طويلة (~230 حرفًا، صوت ~20 ثانية) صار التوليد يستغرق نحو 14
+    // ثانية — هامش الاستباق بفقرتين فقط أصبح غير كافٍ أحيانًا، فيتوقّف
+    // التشغيل لحظات بانتظار الفقرة التالية (أبلغ عنه إسماعيل فعليًا على
+    // جهازه 2026-09-18). 4 يمنح هامشًا أكبر يمتصّ هذا التباطؤ.
+    int lookahead = 4,
   }) async {
     if (paragraphs.isEmpty) return;
     final end = (fromParagraphIndex + lookahead).clamp(0, paragraphs.length - 1);
@@ -68,4 +74,11 @@ class AudioReaderService {
     }
     await _cache.evictExceptRecentBooks(voiceId: voiceId);
   }
+
+  /// حجم كامل الكاش الصوتي بالبايت — لعرضه في زر "مسح ذاكرة الصوت المؤقتة".
+  Future<int> cacheSizeBytes() => _cache.totalSizeBytes();
+
+  /// مسح كامل الكاش الصوتي يدويًا (طلب إسماعيل — "زر حذف التراكم"،
+  /// 2026-09-18) — إجراء المستخدم الصريح، منفصل عن سياسة الإخلاء التلقائية.
+  Future<void> clearCache() => _cache.clearAll();
 }

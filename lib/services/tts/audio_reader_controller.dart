@@ -15,9 +15,14 @@ import 'dart:typed_data' show Endian;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'audio_reader_service.dart';
 import 'text_sources/readable_text_source.dart';
+
+/// مفتاح تفضيل السرعة المحفوظ — عام عبر كل الكتب/الأصوات عمدًا (طلب ضمني:
+/// المستخدم يضبط سرعة مريحة له مرة، لا يريد إعادة ضبطها لكل كتاب يفتحه).
+const _kSpeedPrefKey = 'audio_reader_speed';
 
 enum AudioReaderPlaybackState { idle, loading, playing, paused, finished }
 
@@ -100,6 +105,13 @@ class AudioReaderController extends ChangeNotifier {
     _state = AudioReaderPlaybackState.loading;
     notifyListeners();
     try {
+      // تفضيل السرعة المحفوظ (طلب إسماعيل 2026-09-18) — لا يعيد ضبط 1.0×
+      // في كل كتاب جديد إن كان قد اختار سرعة أخرى سابقًا.
+      final prefs = await SharedPreferences.getInstance();
+      final savedSpeed = prefs.getDouble(_kSpeedPrefKey);
+      if (savedSpeed != null) _speed = savedSpeed.clamp(0.75, 1.5);
+      if (_disposed) return;
+
       _unitIndex = await source.lastReadUnit ?? 1;
       await _loadUnit(_unitIndex, startParagraph: 0);
       await _playCurrentParagraph();
@@ -117,7 +129,7 @@ class AudioReaderController extends ChangeNotifier {
     _paragraphIndex = startParagraph.clamp(0, _paragraphs.isEmpty ? 0 : _paragraphs.length - 1);
   }
 
-  Future<void> _playCurrentParagraph() async {
+  Future<void> _playCurrentParagraph({bool isSilentRetry = false}) async {
     if (_disposed) return;
     if (_paragraphs.isEmpty) {
       _state = AudioReaderPlaybackState.finished;
@@ -147,6 +159,18 @@ class AudioReaderController extends ChangeNotifier {
       // هذا هو سبب عدم ظهور أي أثر عبر 5 محاولات التقاط logcat سابقة
       // (2026-09-18).
       debugPrint('[AudioReader] فشل _playCurrentParagraph() فقرة=$_paragraphIndex وحدة=$_unitIndex: $e\n$st');
+
+      // محاولة صامتة واحدة قبل إظهار خطأ للمستخدم (ميزة طلبها إسماعيل
+      // 2026-09-18) — كثير من فشل التوليد عابر (هزّة عزلة خلفية لحظية، إلخ)
+      // ويعمل من المحاولة الثانية مباشرة؛ لا داعي لإزعاج المستخدم برسالة
+      // خطأ لخلل تعافى منه النظام نفسه خلال ثانية. محاولة واحدة إضافية فقط
+      // (isSilentRetry يمنع حلقة لا نهائية)، وليس إن كانت العزلة قد أُغلِقت.
+      if (!isSilentRetry && !_disposed) {
+        debugPrint('[AudioReader] محاولة صامتة تلقائية واحدة قبل إظهار الخطأ...');
+        await _playCurrentParagraph(isSilentRetry: true);
+        return;
+      }
+
       _lastError = e;
       _state = AudioReaderPlaybackState.idle;
       _safeNotify();
@@ -244,6 +268,7 @@ class AudioReaderController extends ChangeNotifier {
   /// (docs/audio-reader/TODO.md 4.2).
   Future<void> setSpeed(double speed) async {
     _speed = speed.clamp(0.75, 1.5);
+    unawaited(SharedPreferences.getInstance().then((p) => p.setDouble(_kSpeedPrefKey, _speed)));
     await _player.setPlaybackRate(_speed);
     _safeNotify();
   }
@@ -258,6 +283,13 @@ class AudioReaderController extends ChangeNotifier {
   /// ميزة 5 — تخطّي فقرة كاملة (لا 10 ثوانٍ فقط)، للأمام أو الخلف.
   Future<void> previousParagraph() => jumpToParagraph(_paragraphIndex - 1);
   Future<void> nextParagraph() => jumpToParagraph(_paragraphIndex + 1);
+
+  /// حجم الكاش الصوتي الكلي بالبايت — لزر "مسح ذاكرة الصوت المؤقتة" (طلب
+  /// إسماعيل 2026-09-18).
+  Future<int> cacheSizeBytes() => _service.cacheSizeBytes();
+
+  /// مسح كامل الكاش الصوتي يدويًا — إجراء المستخدم الصريح فقط.
+  Future<void> clearCache() => _service.clearCache();
 
   /// ميزة 2 — مؤقّت نوم. `null` يُلغي المؤقّت الحالي. عند الانتهاء: إيقاف
   /// مؤقّت للتشغيل (لا إغلاق الورقة السفلية) — المستخدم يقرّر الخطوة التالية.

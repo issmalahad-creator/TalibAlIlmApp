@@ -86,5 +86,28 @@ class AudioReaderCache {
     }
   }
 
+  /// حجم كامل مجلد الكاش الصوتي بالبايت — لعرضه للمستخدم قبل مسحه (طلب
+  /// إسماعيل 2026-09-18: "زر حذف التراكم"). يعبر كل الأصوات/الكتب، لا صوت
+  /// واحد فقط.
+  Future<int> totalSizeBytes() async {
+    final root = await _rootDir();
+    if (!await root.exists()) return 0;
+    var total = 0;
+    await for (final entity in root.list(recursive: true)) {
+      if (entity is File) total += await entity.length();
+    }
+    return total;
+  }
+
+  /// يمسح كامل الكاش الصوتي (كل الأصوات/الكتب) — إجراء المستخدم اليدوي
+  /// الصريح، لا سياسة إخلاء تلقائية. الصوت المُستخرَج نفسه (tts_voices) لا
+  /// يُمسّ، فقط ملفات WAV المولَّدة القابلة لإعادة التوليد.
+  Future<void> clearAll() async {
+    final root = await _rootDir();
+    if (await root.exists()) {
+      await root.delete(recursive: true);
+    }
+  }
+
   static String _sanitize(String key) => key.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
 }

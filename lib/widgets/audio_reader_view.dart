@@ -76,6 +76,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
                 ),
                 _buildAutoAdvanceButton(),
                 _buildSleepTimerButton(),
+                _buildClearCacheButton(),
                 IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
               ],
             ),
@@ -168,6 +169,48 @@ class _AudioReaderViewState extends State<AudioReaderView> {
         PopupMenuItem(value: null, child: Text('إيقاف المؤقّت')),
       ],
     );
+  }
+
+  /// زر "حذف التراكم" (طلب إسماعيل 2026-09-18) — يعرض حجم الكاش الصوتي
+  /// الكلي (كل الأصوات/الكتب المولَّدة سابقًا) قبل المسح، ويطلب تأكيدًا
+  /// صريحًا (مسح فعلي غير قابل للتراجع، وإن كان قابلًا لإعادة التوليد لاحقًا).
+  Widget _buildClearCacheButton() {
+    return IconButton(
+      icon: const Icon(Icons.cleaning_services_outlined),
+      tooltip: 'مسح ذاكرة الصوت المؤقتة',
+      onPressed: _showClearCacheDialog,
+    );
+  }
+
+  Future<void> _showClearCacheDialog() async {
+    final sizeBytes = await _controller.cacheSizeBytes();
+    if (!mounted) return;
+    final sizeMb = sizeBytes / (1024 * 1024);
+    final sizeLabel = sizeMb < 0.1 ? 'أقل من 0.1' : sizeMb.toStringAsFixed(1);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('مسح ذاكرة الصوت المؤقتة'),
+        content: Text(
+          sizeBytes == 0
+              ? 'لا يوجد صوت مخزَّن مؤقّتًا حاليًا.'
+              : 'الحجم الحالي: $sizeLabel م.ب.\n'
+                  'سيُعاد توليد أي فقرة تُستمَع إليها لاحقًا من جديد (لا فقدان دائم — فقط وقت انتظار إضافي عند أول استماع تالٍ).',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('إلغاء')),
+          if (sizeBytes > 0)
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('مسح')),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _controller.clearCache();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم مسح ذاكرة الصوت المؤقتة.')));
+    }
   }
 
   Widget _buildSpeedRow() {
