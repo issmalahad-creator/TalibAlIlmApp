@@ -21,12 +21,13 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' show RootIsolateToken;
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show FlutterError, debugPrint;
 import 'package:flutter/services.dart' show BackgroundIsolateBinaryMessenger, rootBundle;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 
+import 'tts_voice_download_service.dart';
 import 'tts_voice_registry.dart';
 
 class TtsEngine {
@@ -352,18 +353,32 @@ Future<String> _ensureVoiceExtracted(TtsVoiceOption voice) async {
   await espeakDir.create(recursive: true);
   await versionFile.writeAsString(voice.assetVersion, flush: true);
 
-  debugPrint('[TTS] استخراج model.onnx من ${voice.modelAssetPath}...');
-  await extract(voice.modelAssetPath, modelFile);
-  debugPrint('[TTS] استخراج tokens.txt من ${voice.tokensAssetPath}...');
-  await extract(voice.tokensAssetPath, tokensFile);
-  for (final fileName in voice.espeakDataFiles) {
-    debugPrint('[TTS] استخراج $fileName...');
-    await extract(
-      '${voice.espeakDataAssetDir}/$fileName',
-      File(p.join(espeakDir.path, fileName)),
-    );
+  try {
+    debugPrint('[TTS] استخراج model.onnx من ${voice.modelAssetPath}...');
+    await extract(voice.modelAssetPath, modelFile);
+    debugPrint('[TTS] استخراج tokens.txt من ${voice.tokensAssetPath}...');
+    await extract(voice.tokensAssetPath, tokensFile);
+    for (final fileName in voice.espeakDataFiles) {
+      debugPrint('[TTS] استخراج $fileName...');
+      await extract(
+        '${voice.espeakDataAssetDir}/$fileName',
+        File(p.join(espeakDir.path, fileName)),
+      );
+    }
+    debugPrint('[TTS] استخراج مكتمل: ${voiceDir.path}');
+  } on FlutterError catch (e) {
+    // البناء "الخفيف" (lite) لا يُضمِّن أصول الصوت في pubspec.yaml —
+    // rootBundle.load() يفشل بـFlutterError لكل ملف غير موجود. أي ملف
+    // نجح استخراجه قبل الفشل (نادرًا يحدث، الأصول تُضاف/تُستبعَد ككتلة
+    // واحدة) يبقى على القرص — ensureVoiceDownloaded يتخطّى ما هو موجود
+    // فعليًا ويكمل الباقي فقط، لا إعادة تنزيل كاملة.
+    debugPrint('[TTS] الصوت غير مضمَّن في هذا الإصدار (بناء خفيف؟): $e — محاولة تنزيله...');
+    final ok = await TtsVoiceDownloadService.instance.ensureVoiceDownloaded(voice, voiceDir);
+    if (!ok) {
+      throw StateError('تعذّر تجهيز صوت القارئ (${voice.voiceId}): غير مضمَّن في هذا الإصدار وفشل تنزيله — تحقّق من الاتصال بالإنترنت.');
+    }
+    debugPrint('[TTS] اكتمل تنزيل الصوت: ${voiceDir.path}');
   }
-  debugPrint('[TTS] استخراج مكتمل: ${voiceDir.path}');
 
   return voiceDir.path;
 }
