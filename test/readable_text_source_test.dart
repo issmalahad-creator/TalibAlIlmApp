@@ -68,6 +68,23 @@ void main() {
       expect(result, ['نص،', 'نص آخر،']);
     });
 
+    test('replaces "/" with a space even between digits, never leaves it as-is', () {
+      // خلل حقيقي تاسع حدث على الجهاز (2026-09-19)، أرقام لاتينية معزولة
+      // بمسافات ("2 / 645 647", مرجع حاشية) — عنوان عطل صغير 0x30، أثبت
+      // بتسجيل النص الفعلي المُرسَل للتوليد.
+      final result = splitIntoPlayableParagraphs('السنة لابن أبي عاصم 2 / 645 647');
+      expect(result, ['السنة لابن أبي عاصم 2 645 647،']);
+    });
+
+    test('replaces "/" glued directly to Arabic-Indic digits (no spaces at all)', () {
+      // خلل حقيقي عاشر مختلف تمامًا (2026-09-19)، أرقام هندية عربية ملاصقة
+      // مباشرة لـ"/" بلا أي مسافة ("٢/٦٤٥") — عنوان عطل عشوائي ضخم، نفس
+      // فئة خلل الرموز التوافقية `ﷺ` لا فئة القاموس الصغيرة. أثبت بتسجيل
+      // النص الفعلي المُرسَل للتوليد، لا تخمينًا.
+      final result = splitIntoPlayableParagraphs('كتاب السنة لابن أبي عاصم ٢/٦٤٥ ٦٤٧');
+      expect(result, ['كتاب السنة لابن أبي عاصم ٢ ٦٤٥ ٦٤٧،']);
+    });
+
     test('empty input returns empty list', () {
       expect(splitIntoPlayableParagraphs(''), isEmpty);
     });

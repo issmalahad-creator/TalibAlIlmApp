@@ -53,7 +53,7 @@ const int kMaxParagraphChars = 280;
 List<String> splitIntoPlayableParagraphs(String normalizedText) {
   if (normalizedText.isEmpty) return const [];
 
-  final sanitized = _stripTtsUnsafeMarks(_stripIsolatedAsciiPunctuationTokens(_expandHonorificLigatures(normalizedText)));
+  final sanitized = _stripTtsUnsafeMarks(_stripIsolatedAsciiPunctuationTokens(_replaceForwardSlash(_expandHonorificLigatures(normalizedText))));
   final lines = sanitized.split('\n').map((p) => p.trim()).where((p) => p.isNotEmpty && _hasSpeakableContent(p));
 
   final result = <String>[];
@@ -100,8 +100,12 @@ const _ttsUnsafeMarks = ['"', '“', '”', '«', '»', '[', ']'];
 /// `\p{L}`/`\p{N}`) على أي من الجانبين، بغضّ النظر عمّا يجاوره تحديدًا.
 /// Lookaround بحرف واحد ثابت الطول على كل جانب لا خطر تراجع
 /// (backtracking) منه حتى على صفحات OCR طويلة.
+///
+/// لا '/' هنا — انظر [_replaceForwardSlash]: أُخرِجَت من هذه المجموعة
+/// لأن "العزلة" وحدها ثبت أنها معيار غير كافٍ لها تحديدًا (دليل مباشر:
+/// انظر تعليق تلك الدالة).
 final RegExp _isolatedAsciiPunctuationPattern = RegExp(
-  r'(?<![\p{L}\p{N}])[,.;:!?(){}<>=*/\\|~^+](?![\p{L}\p{N}])',
+  r'(?<![\p{L}\p{N}])[,.;:!?(){}<>=*\\|~^+](?![\p{L}\p{N}])',
   unicode: true,
 );
 final RegExp _repeatedSpaces = RegExp(' {2,}');
@@ -109,6 +113,27 @@ final RegExp _repeatedSpaces = RegExp(' {2,}');
 String _stripIsolatedAsciiPunctuationTokens(String text) {
   if (!_isolatedAsciiPunctuationPattern.hasMatch(text)) return text;
   return text.replaceAll(_isolatedAsciiPunctuationPattern, '').replaceAll(_repeatedSpaces, ' ');
+}
+
+/// الشرطة المائلة "/" — شائعة كفاصل في مراجع الحواشي (رقم الجزء/الصفحة،
+/// مثل "٢/٦٤٥") — تُستبدَل دائمًا بمسافة، **بصرف النظر عن عزلتها**، خلافًا
+/// لبقية [_isolatedAsciiPunctuationPattern]. دليلان حقيقيان مختلفان تمامًا
+/// (2026-09-19)، كلاهما عبر تسجيل النص الفعلي المُرسَل فعلًا: (١) "2 / 645
+/// 647" (أرقام لاتينية معزولة **بمسافات** — كان يجب أن يُسقِطها فحص العزلة
+/// أعلاه، ومع ذلك أسقطت كراشًا بعنوان عطل صغير 0x30؛ الأرجح تلوّث حالة
+/// espeak-ng الداخلية من رمز آخر أسبق في نفس الفقرة، لا فشل في هذا الفحص
+/// نفسه). (٢) "٢/٦٤٥" (أرقام **هندية عربية** ملاصقة لها مباشرة بلا مسافات
+/// — عنوان عطل عشوائي ضخم، **نفس فئة خلل الرموز التوافقية `ﷺ`** تمامًا لا
+/// فئة القاموس الصغيرة؛ الأرجح أن معالجة الأرقام الداخلية في هذا الإصدار
+/// من espeak-ng تفترض مدى ASCII الرقمي ولا تتعرّف على الأرقام الهندية
+/// العربية بجانب "/"). الدليلان معًا يثبتان أن "/" غير آمنة إطلاقًا في هذا
+/// النص المرجعي الكثيف بالحواشي، بصرف النظر عن نوع الأرقام حولها أو وجود
+/// مسافات — ولا قيمة مسموعة حقيقية لها لمستمع أصلًا (فاصل حاشية مرجعية،
+/// لا معنى نحويًا). استبدال بمسافة، لا حذف صرف، لتفادي التصاق رقمين في
+/// رقم واحد مضلِّل (مثل "٢٦٤٥" بدل "٢" و"٦٤٥" منفصلين).
+String _replaceForwardSlash(String text) {
+  if (!text.contains('/')) return text;
+  return text.replaceAll('/', ' ').replaceAll(_repeatedSpaces, ' ');
 }
 
 /// رموز تشكيلية (ligatures) بحرف واحد لألقاب/عبارات دينية شائعة — لا علاقة
