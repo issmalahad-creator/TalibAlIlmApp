@@ -103,6 +103,16 @@ void main() {
       expect(result, ['تلفاكس: 5778145 والرقم 3.5 صحيح،']);
     });
 
+    test('strips an isolated en dash / em dash (typographic, not the ASCII hyphen)', () {
+      // خلل حقيقي ثالث عشر (2026-09-19)، أثبت عبر طباعة espeak نفسها:
+      // شرطة إنجليزية طويلة "–" (EN DASH، U+2013) معزولة بمسافات، مستخدَمة
+      // كفاصلة اعتراضية أسلوبية لا كعنونة عربية — عنوان عطل صغير (فئة
+      // القاموس). لا علاقة لها بالشرطة العادية '-' المستثناة عمدًا (تلك
+      // لاستخدام عنونة عربي مشروع، انظر اختبار "- أ -" أدناه).
+      final result = splitIntoPlayableParagraphs('وكان – كما يقول الشهرستاني – صحيحًا');
+      expect(result, ['وكان كما يقول الشهرستاني صحيحًا،']);
+    });
+
     test('empty input returns empty list', () {
       expect(splitIntoPlayableParagraphs(''), isEmpty);
     });
