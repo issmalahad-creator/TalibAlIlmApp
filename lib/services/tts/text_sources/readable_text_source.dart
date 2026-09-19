@@ -54,7 +54,9 @@ List<String> splitIntoPlayableParagraphs(String normalizedText) {
   if (normalizedText.isEmpty) return const [];
 
   final sanitized = _stripTtsUnsafeMarks(
-    _stripIsolatedAsciiPunctuationTokens(_replaceForwardSlash(_expandHonorificLigatures(_stripBidiFormatChars(normalizedText)))),
+    _stripIsolatedAsciiPunctuationTokens(
+      _neutralizeLeadingDecimalPoint(_replaceForwardSlash(_expandHonorificLigatures(_stripBidiFormatChars(normalizedText)))),
+    ),
   );
   final lines = sanitized.split('\n').map((p) => p.trim()).where((p) => p.isNotEmpty && _hasSpeakableContent(p));
 
@@ -134,6 +136,23 @@ final RegExp _repeatedSpaces = RegExp(' {2,}');
 String _stripIsolatedAsciiPunctuationTokens(String text) {
   if (!_isolatedAsciiPunctuationPattern.hasMatch(text)) return text;
   return text.replaceAll(_isolatedAsciiPunctuationPattern, '').replaceAll(_repeatedSpaces, ' ');
+}
+
+/// نقطة عشرية "تفتتح" رقمًا بلا جزء صحيح قبلها (مثل ".5778145") — نمط
+/// شائع في نصوص OCR لصفحات معلومات الناشر (أرقام هواتف/فاكس مقطوعة
+/// الصياغة). **ثاني عشر كراش حقيقي** (2026-09-19)، أثبت عبر طباعة espeak
+/// نفسها (`word_start=[.5778145 ]`) — النقطة تبدأ "كلمة" كاملة من منظور
+/// espeak بلا أي رقم قبلها إطلاقًا، خلافًا لعشرية حقيقية مثل "3.5" (رقم
+/// على الجانبين، آمنة ومحفوظة). عنوان عطل عشوائي ضخم — نفس فئة خلل "/"
+/// مع الأرقام وخلل رموز الاتجاه، لا فئة القاموس الصغيرة. لا مساس بنقطة
+/// نهاية جملة عادية (حرف قبلها، لا شيء بعدها) — تلك آمنة تمامًا وشائعة
+/// جدًا؛ فقط حين تكون النقطة بلا رقم قبلها ويليها رقم مباشرة تُستبدَل
+/// بمسافة.
+final RegExp _leadingDecimalPointPattern = RegExp(r'(?<![\p{N}])\.(?=[\p{N}])', unicode: true);
+
+String _neutralizeLeadingDecimalPoint(String text) {
+  if (!text.contains('.')) return text;
+  return text.replaceAll(_leadingDecimalPointPattern, ' ').replaceAll(_repeatedSpaces, ' ');
 }
 
 /// الشرطة المائلة "/" — شائعة كفاصل في مراجع الحواشي (رقم الجزء/الصفحة،

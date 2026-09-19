@@ -95,6 +95,14 @@ void main() {
       expect(result, ['العنوان: البداية والنهاية ١١١١،']);
     });
 
+    test('neutralizes a leading decimal point (no digit before it) but keeps real decimals like 3.5', () {
+      // خلل حقيقي ثاني عشر (2026-09-19)، أثبت عبر طباعة espeak نفسها
+      // (word_start=[.5778145 ]): رقم فاكس مقطوع OCR بدأ بنقطة بلا رقم
+      // قبلها إطلاقًا — عنوان عطل عشوائي ضخم.
+      final result = splitIntoPlayableParagraphs('تلفاكس: .5778145 والرقم 3.5 صحيح');
+      expect(result, ['تلفاكس: 5778145 والرقم 3.5 صحيح،']);
+    });
+
     test('empty input returns empty list', () {
       expect(splitIntoPlayableParagraphs(''), isEmpty);
     });
