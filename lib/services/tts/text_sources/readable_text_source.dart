@@ -53,7 +53,9 @@ const int kMaxParagraphChars = 280;
 List<String> splitIntoPlayableParagraphs(String normalizedText) {
   if (normalizedText.isEmpty) return const [];
 
-  final sanitized = _stripTtsUnsafeMarks(_stripIsolatedAsciiPunctuationTokens(_replaceForwardSlash(_expandHonorificLigatures(normalizedText))));
+  final sanitized = _stripTtsUnsafeMarks(
+    _stripIsolatedAsciiPunctuationTokens(_replaceForwardSlash(_expandHonorificLigatures(_stripBidiFormatChars(normalizedText)))),
+  );
   final lines = sanitized.split('\n').map((p) => p.trim()).where((p) => p.isNotEmpty && _hasSpeakableContent(p));
 
   final result = <String>[];
@@ -65,6 +67,25 @@ List<String> splitIntoPlayableParagraphs(String normalizedText) {
     result.addAll(_splitLongLine(line));
   }
   return result;
+}
+
+/// رموز تحكّم اتجاه ثنائي (bidi) غير مرئية إطلاقًا — مثل LRM (U+200E) وRLM
+/// (U+200F) — شائعة في نصوص PDF/عناوين كتب مؤلَّفة بأدوات تُدرِجها تلقائيًا
+/// لضبط اتجاه العرض بين عربي ولاتيني. **حادي عشر كراش حقيقي** (2026-09-19)،
+/// أثبت بتسجيل النص الفعلي المُرسَل للتوليد، لا تخمينًا: "العنوان: البداية
+/// والنهاية ‎١١١١‏،" (عنوان كتاب من صفحة بيانات كتاب مصوَّر جديد) — أرقام
+/// هندية عربية محاطة بعلامتَي LRM/RLM غير مرئيتين — عنوان عطل عشوائي ضخم
+/// (نفس فئة خلل "/" مع الأرقام الهندية العربية وخلل الرموز التوافقية `ﷺ`،
+/// لا فئة القاموس الصغيرة). تُحذَف هذه الرموز **أولًا قبل أي معالجة أخرى**
+/// في الأنبوب — لا قيمة صوتية لها (غير مرئية أصلًا)، ووجودها بين حرفين/
+/// رقمين قد يُخفي "عزلة" فعلية عن كل الفحوص اللاحقة في هذا الملف لو بقيت
+/// (كما حدث هنا تمامًا: الأرقام لم تُعتبَر "معزولة" لأن حرفًا حقيقيًا
+/// يسبقها ظاهريًا، بينما LRM/RLM بينهما وبين الحرف فعليًا).
+final RegExp _bidiFormatCharsPattern = RegExp(r'\p{Cf}', unicode: true);
+
+String _stripBidiFormatChars(String text) {
+  if (!_bidiFormatCharsPattern.hasMatch(text)) return text;
+  return text.replaceAll(_bidiFormatCharsPattern, '');
 }
 
 /// علامات اقتباس/قوسين زخرفية لا قيمة صوتية لها — TTS لا يحتاج نطقها أصلًا.

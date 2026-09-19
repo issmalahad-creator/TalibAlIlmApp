@@ -85,6 +85,16 @@ void main() {
       expect(result, ['كتاب السنة لابن أبي عاصم ٢ ٦٤٥ ٦٤٧،']);
     });
 
+    test('strips invisible bidi format marks (LRM/RLM) around digits', () {
+      // خلل حقيقي حادي عشر (2026-09-19)، أثبت بتسجيل النص الفعلي: عنوان
+      // كتاب من صفحة بيانات كتاب مصوَّر جديد "العنوان: البداية والنهاية
+      // ‎١١١١‏" — أرقام هندية عربية محاطة بعلامتَي LRM (U+200E) وRLM
+      // (U+200F) غير مرئيتين. عنوان عطل عشوائي ضخم، نفس فئة خلل "/" مع
+      // الأرقام الهندية العربية.
+      final result = splitIntoPlayableParagraphs('العنوان: البداية والنهاية ‎١١١١‏');
+      expect(result, ['العنوان: البداية والنهاية ١١١١،']);
+    });
+
     test('empty input returns empty list', () {
       expect(splitIntoPlayableParagraphs(''), isEmpty);
     });
