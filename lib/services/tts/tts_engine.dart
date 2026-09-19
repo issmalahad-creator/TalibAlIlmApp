@@ -230,6 +230,13 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
     // التقاط سابقة). الآن: كل مرحلة مطبوعة صراحة عبر debugPrint (وسم
     // "flutter" في logcat).
     debugPrint('[TTS] طلب: voiceId=${message.voiceId} طول النص=${message.text.length}');
+    // تشخيص دائم (2026-09-19): تعطّلات متكررة أثبت كل واحد منها أن التخمين
+    // من طباعة espeak المبتورة (`%.80s`، تعرض المتبقّي من مخزنها الداخلي
+    // بعد معالجتها الخاصة، لا النص الأصلي كما هو) غير كافٍ — النص الفعلي
+    // المُرسَل من Dart هو الدليل الوحيد الموثوق. تكلفة سطر واحد لكل توليد
+    // مقبولة (نفس معدّل السطر أعلاه أصلًا)، وتُغني عن إعادة بناء/تثبيت كل
+    // مرة يظهر فيها كراش جديد غير متوقَّع.
+    debugPrint('[TTS] نص=[${message.text}]');
     try {
       if (!bindingsInitialized) {
         sherpa.initBindings();
