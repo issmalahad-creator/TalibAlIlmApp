@@ -24,6 +24,22 @@ abstract class ReadableTextSource {
   Future<void> saveLastListenedUnit(int unitIndex);
 }
 
+final RegExp _speakableContentPattern = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
+/// سطر بلا أي حرف أو رقم إطلاقًا — فراغ تعبئة شائع في كتب التمارين/الأسئلة
+/// (مثال: "_________" مكان إجابة متروكة) لا معنى لقراءته صوتيًا، بل هو
+/// خطر فعليًا: **ثامن كراش حقيقي وُجِد** (2026-09-19) عبر طباعة النص
+/// الفعلي المُرسَل للتوليد (لا تخمين): الفقرة "_________،" (تسع شرطات
+/// سفلية ثم فاصلة الوقفة التلقائية أدناه) أسقطت التطبيق — الشرطة السفلية
+/// مستثناة عمدًا من [_isolatedAsciiPunctuationPattern] (استخدام عنونة
+/// عربي مشروع)، فتبقى فاصلة الوقفة "،" **الكلمة الوحيدة فعليًا** في
+/// الفقرة من منظور espeak-ng (كل ما حولها رموز لا حروف)، فتُسقِط نفس خلل
+/// `TranslateWord` (عنوان عطل صغير `0x92`) رغم أنها عربية لا لاتينية. لا
+/// إصلاح ممكن على مستوى الرمز المعزول نفسه هنا (فاصلة الوقفة ضرورية لكل
+/// فقرة أخرى) — الإصلاح الجذري إسقاط الفقرة كاملةً قبل إضافة الوقفة، بما
+/// أنه لا يوجد فيها أي شيء فعلي لنطقه أصلًا.
+bool _hasSpeakableContent(String line) => _speakableContentPattern.hasMatch(line);
+
 /// حد أقصى تقريبي لطول الفقرة الواحدة المُرسَلة للتوليد — فقرة أطول تُقسَّم
 /// عند حدود الجمل (§4 من AUDIO_100_ROADMAP.md: فقرات أقصر = زمن انتظار أول
 /// صوت أقلّ، ومدة أقصر لاستدعاء `generate()` المتزامن داخل العزلة الخلفية).
@@ -38,7 +54,7 @@ List<String> splitIntoPlayableParagraphs(String normalizedText) {
   if (normalizedText.isEmpty) return const [];
 
   final sanitized = _stripTtsUnsafeMarks(_stripIsolatedAsciiPunctuationTokens(_expandHonorificLigatures(normalizedText)));
-  final lines = sanitized.split('\n').map((p) => p.trim()).where((p) => p.isNotEmpty);
+  final lines = sanitized.split('\n').map((p) => p.trim()).where((p) => p.isNotEmpty && _hasSpeakableContent(p));
 
   final result = <String>[];
   for (final line in lines) {

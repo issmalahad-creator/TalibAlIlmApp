@@ -51,6 +51,23 @@ void main() {
       expect(result, ['كلمة أولى، كلمة ثانية،']);
     });
 
+    test('drops a fill-in-the-blank line (underscores only) instead of sending it to TTS', () {
+      // خلل حقيقي ثامن حدث على الجهاز (2026-09-19)، أُثبِت بطباعة النص
+      // الفعلي المُرسَل للتوليد (لا تخمين): فقرة "_________" (فراغ تعبئة
+      // في كتاب تمارين) أسقطت كراشًا — الشرطة السفلية مستثناة عمدًا من
+      // إسقاط الترقيم المعزول (استخدام عنونة مشروع)، فتبقى فاصلة الوقفة
+      // التلقائية المضافة لاحقًا "الكلمة" الوحيدة الفعلية في الفقرة من
+      // منظور espeak-ng، فتُسقِط نفس خلل TranslateWord. الإصلاح: أي سطر
+      // بلا حرف أو رقم إطلاقًا يُسقَط قبل إضافة وقفة، لا معنى لقراءته.
+      final result = splitIntoPlayableParagraphs('كلمة قبلها\n_________\nكلمة بعدها');
+      expect(result, ['كلمة قبلها،', 'كلمة بعدها،']);
+    });
+
+    test('a line of pure punctuation/dashes with no letters or digits is dropped', () {
+      final result = splitIntoPlayableParagraphs('نص\n----\n***\nنص آخر');
+      expect(result, ['نص،', 'نص آخر،']);
+    });
+
     test('empty input returns empty list', () {
       expect(splitIntoPlayableParagraphs(''), isEmpty);
     });
