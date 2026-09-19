@@ -12,16 +12,14 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 MODE="${1:---release}"
+# The Piper TTS voice model + espeak-ng data (assets/tts, ~62 MB,
+# audio-reader / سماع الكتب) is deliberately NOT in this list — Ismail
+# 2026-09-19: "62mb قليل ادمجه في البرنامج" (62MB is little, bundle it in
+# the app). Book listening must work fully offline, identically, in both
+# flavors — only the Quran corpus text (~330 MB) is lite-excluded.
 STRIP_DIRS=(
   "assets/quran/corpus/translations"
   "assets/quran/corpus/tafsir"
-  # Piper TTS voice model + espeak-ng phoneme data (~62 MB, audio-reader /
-  # سماع الكتب feature) — present only once that branch is merged; the `if
-  # -d` guards below make this a no-op until then. Ismail: audio listening
-  # must still work in the lite build, via on-demand download of this same
-  # directory the first time it's needed (same pattern as the Quran corpus
-  # text) — not simply omitted from the feature set.
-  "assets/tts"
 )
 BACKUP_DIR=".lite_build_backup"
 
