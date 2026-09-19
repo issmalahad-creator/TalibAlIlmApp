@@ -65,6 +65,13 @@ dependencies:
   flutter_rotation_sensor: ^0.3.1
   flutter_svg: ^2.0.10+1
   speech_to_text: ^7.0.0
+  sherpa_onnx: ^1.13.8
+
+  # docs/audio-reader/TEXT_SOURCE_ADAPTERS.md §7.1 — trying pdfrx (MIT, built
+  # on PDFium) as a PersonalLibraryTextSource candidate: mature (443k
+  # downloads/mo), no archive/image transitive deps (unlike the dart-pdf
+  # family, which conflicted with the existing excel dependency).
+  pdfrx: ^2.4.5
 
 dev_dependencies:
   flutter_test:
@@ -160,6 +167,9 @@ flutter:
     - assets/fiqh_seerah/zad_almaad_vol1.json
     - assets/aqeedah/madarij_part1.json
     - assets/adhkar/hisn_almuslim.json
+    # Tesseract OCR (tessdata_fast، tesseract-ocr/tessdata_fast) — كتب
+    # "مكتبتي" المصوَّرة بلا طبقة نص، انظر lib/services/ocr/tesseract_ocr.dart.
+    - assets/tessdata/ara.traineddata
     # turath.io's own complete catalog manifest (files.turath.io/data-v3.json,
     # snapshot 2026-02-03) — 40 categories with exact book-id membership,
     # 8593 books, 3188 authors. Seeds the local canonical membership index so
@@ -215,6 +225,19 @@ flutter:
     # served from the separate android/app/src/main/res/raw copy, which
     # Android requires as a native resource rather than a Flutter asset.
     - assets/audio/adhan_beautiful.ogg
+    # القارئ الصوتي العام (docs/audio-reader/) — Piper TTS، صوت ar_JO-kareem-medium
+    # (MIT license، rhasspy/piper-voices). مقعد اختيار القارئ في
+    # TEXT_SOURCE_ADAPTERS.md §5 — voiceId يحدد أي صف من هذه الأصول يُستخدَم.
+    - assets/tts/ar_JO-kareem-medium.onnx
+    - assets/tts/ar_JO-kareem-medium.onnx.json
+    - assets/tts/tokens.txt
+    - assets/tts/espeak-ng-data/ar_dict
+    - assets/tts/espeak-ng-data/intonations
+    - assets/tts/espeak-ng-data/phondata
+    - assets/tts/espeak-ng-data/phondata-manifest
+    - assets/tts/espeak-ng-data/phonindex
+    - assets/tts/espeak-ng-data/phontab
+    - assets/tts/espeak-ng-data/lang/sem/ar
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -107,4 +107,10 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+
+    // Tesseract4Android — OCR على الجهاز لكتب "مكتبتي" المصوَّرة بلا طبقة نص.
+    // قناة MethodChannel كتبناها بأنفسنا (MainActivity.kt) بعد أن فشلت فعليًا
+    // حزمتا Flutter الجاهزتين (flutter_tesseract_ocr، tesseract_ocr) في
+    // البناء على AGP 9 (وحدة Gradle قديمة لا تُطبِّق com.android.library).
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
 }

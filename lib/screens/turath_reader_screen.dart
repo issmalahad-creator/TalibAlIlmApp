@@ -8,9 +8,12 @@ import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
+import '../services/tts/text_sources/turath_text_source.dart';
+import '../services/tts/tts_voice_registry.dart';
 import '../theme/app_theme.dart';
 import '../utils/study_annotation_anchor.dart';
 import '../widgets/annotated_page_text.dart';
+import '../widgets/audio_reader_view.dart';
 import 'turath_book_search_screen.dart';
 
 /// The real reader (Phase 79.6/79.7) — RTL, real page text, page
@@ -634,27 +637,74 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
         appBar: AppBar(
           title: Text(widget.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 15)),
           actions: [
-            if (_status == _PageStatus.success)
-              IconButton(
-                tooltip: basicText('turath_page_note_action', lang),
-                icon: Badge(
-                  isLabelVisible: _pageNotes.isNotEmpty,
-                  label: Text('${_pageNotes.length}'),
-                  child: const Icon(Icons.note_add_outlined),
-                ),
-                onPressed: () => _openPageNoteSheet(lang),
-              ),
+            // **خلل حقيقي وُجِد على جهاز إسماعيل الحقيقي (2026-09-18)**: 6
+            // أيقونات مباشرة في actions تفيض عن عرض AppBar على شاشة هاتف حقيقي
+            // أضيق من المحاكي — آخر أيقونة (استماع) كانت تُقصّ/تختفي بصمت (لا
+            // تحذير overflow ظاهر لأن AppBar يضغط/يقصّ بدل رمي خطأ). نفس فئة
+            // خلل Row-بلا-حماية-فيضان المُصلَحة سابقًا في audio_reader_view.dart
+            // لكن في ملف مختلف لم يُشمَل بذاك الإصلاح.
+            // الحل: الإبقاء على أهم 3 أيقونات مباشرة فقط (بحث، إشارة مرجعية،
+            // استماع — الميزة الرئيسية لهذه الجلسة، لا يجوز أن تكون معرَّضة
+            // للقصّ)، ونقل الباقي (ملاحظة، وضع ليلي، حجم الخط) لقائمة "⋮"
+            // فرعية بعرض ثابت صغير لا يفيض أبدًا.
+            IconButton(
+              icon: const Icon(Icons.search_rounded),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathBookSearchScreen(bookId: widget.bookId, bookName: widget.bookName))),
+            ),
             if (_status == _PageStatus.success)
               IconButton(
                 icon: Icon(_isFavoritePage ? Icons.bookmark : Icons.bookmark_outline),
                 onPressed: _toggleFavoritePage,
               ),
             IconButton(
-              icon: const Icon(Icons.search_rounded),
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathBookSearchScreen(bookId: widget.bookId, bookName: widget.bookName))),
+              tooltip: 'استماع',
+              icon: const Icon(Icons.headphones_outlined),
+              onPressed: () => AudioReaderView.open(
+                context,
+                source: TurathTextSource(widget.bookId, widget.bookName, repository: _repo),
+                voiceId: TtsVoiceRegistry.defaultVoice.voiceId,
+              ),
             ),
-            IconButton(icon: Icon(_nightMode ? Icons.wb_sunny : Icons.wb_sunny_outlined), onPressed: () => setState(() => _nightMode = !_nightMode)),
-            IconButton(icon: const Icon(Icons.text_fields_rounded), onPressed: _pickFontSize),
+            PopupMenuButton<void>(
+              icon: const Icon(Icons.more_vert),
+              itemBuilder: (context) => [
+                if (_status == _PageStatus.success)
+                  PopupMenuItem(
+                    onTap: () => _openPageNoteSheet(lang),
+                    child: Row(
+                      children: [
+                        Badge(
+                          isLabelVisible: _pageNotes.isNotEmpty,
+                          label: Text('${_pageNotes.length}'),
+                          child: const Icon(Icons.note_add_outlined),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(basicText('turath_page_note_action', lang)),
+                      ],
+                    ),
+                  ),
+                PopupMenuItem(
+                  onTap: () => setState(() => _nightMode = !_nightMode),
+                  child: Row(
+                    children: [
+                      Icon(_nightMode ? Icons.wb_sunny : Icons.wb_sunny_outlined),
+                      const SizedBox(width: 12),
+                      Text(_nightMode ? 'وضع نهاري' : 'وضع ليلي'),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  onTap: _pickFontSize,
+                  child: const Row(
+                    children: [
+                      Icon(Icons.text_fields_rounded),
+                      SizedBox(width: 12),
+                      Text('حجم الخط'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         body: _buildBody(lang),

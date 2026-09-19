@@ -31,6 +31,24 @@ void main() {
       expect(normalizePageText(once), once, reason: 'must be idempotent');
     });
 
+    test('decodes HTML entities, including space-broken ones from OCR pages', () {
+      // Real crash: this exact fragment reached espeak-ng's dictionary
+      // lookup as bogus "words" (&amp;, quot, ;) and SIGSEGV'd — found via
+      // .claude/skills/native-crash-diagnosis. &amp; must decode first,
+      // exposing the & quot ; underneath (double-encoded in the source).
+      // Only the first "&amp; quot ;" is well-formed (closing `;` present)
+      // and decodes to `"`; the trailing "&amp; quot ]" has no closing `;`
+      // so only its `&amp;` decodes to `&` — the important part: the crash
+      // token "&amp;" never survives as its own literal word either way.
+      const raw = 'والإحكام &amp; quot ; 1 &amp; quot ]';
+      expect(normalizePageText(raw), 'والإحكام " 1 & quot ]');
+    });
+
+    test('decodes well-formed entities without touching plain ampersands', () {
+      const raw = 'a &amp; b &lt;x&gt; &quot;y&quot; &#65; &#x41; بكر &amp; عمر';
+      expect(normalizePageText(raw), 'a & b <x> "y" A A بكر & عمر');
+    });
+
     test('stays fast on pathological whitespace / markup (no O(n^2) regex)', () {
       // A `<[^>]*>` strip and a ` *\n *` collapse both backtrack O(n^2) on
       // these; the reader ran this synchronously and froze for seconds.
