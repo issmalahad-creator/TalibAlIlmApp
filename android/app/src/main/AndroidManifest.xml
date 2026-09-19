@@ -24,7 +24,7 @@
          never uploaded anywhere, processed on-device only. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
-        android:label="طالب العلم"
+        android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

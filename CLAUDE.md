@@ -43,10 +43,12 @@ export ANDROID_SDK_ROOT="C:\Users\ismail\AppData\Local\Android\Sdk"
 cd /f/TalibAlIlmApp
 flutter pub get
 flutter analyze
-flutter build apk --debug --split-per-abi
+flutter build apk --debug --split-per-abi --flavor full
 ```
 
 This project already has the cross-drive Kotlin/Gradle fixes DawahReportApp needed (`compileSdk = 36` in `android/app/build.gradle.kts`, `kotlin.incremental=false` in `android/gradle.properties`, `file_picker: ^10.0.0`) — confirmed present as of 2026-08-15, don't reintroduce the old broken versions.
+
+**Two real, separately-installable build flavors** (2026-09-19, `android/app/build.gradle.kts`): `full` (applicationId `com.sunnahinstitute.talib_alilm`, unchanged — everything bundled, today's default) and `lite` (applicationId suffix `.lite`, own label "طالب العلم (خفيف)" — Quran corpus text stripped from the asset bundle, downloaded on demand from the `corpus-v1` GitHub Release the first time it's needed). Any `flutter build`/`flutter run` now needs an explicit `--flavor full` or `--flavor lite` — a bare command without one will fail. Build the lite flavor with `tool/build_lite_apk.sh` (not `flutter build ... --flavor lite` directly) — it physically strips `assets/quran/corpus/{translations,tafsir}` (and `assets/tts` once the audio-reader branch merges) before the Gradle build and restores them via a trap on exit; the plain `--flavor lite` build alone does NOT strip assets (Gradle flavors don't control the Flutter asset bundle). `tool/build_full_apk.sh` is the flavor-explicit equivalent for `full` (no stripping). `lib/repositories/quran_book_cache.dart` already falls back to `lib/services/quran_corpus_download_service.dart` whenever a bundled asset is absent — the same Dart code serves both flavors unmodified.
 
 ## Architecture
 

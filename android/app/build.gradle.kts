@@ -35,6 +35,12 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    // AGP disables resValues by default since 7.x — needed for the
+    // per-flavor `resValue("string", "app_name", ...)` calls below.
+    buildFeatures {
+        resValues = true
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.sunnahinstitute.talib_alilm"
@@ -44,6 +50,31 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    // Two real, separately-installable apps (Ismail 2026-09-19: "تطبيقان
+    // منفصلان") — "full" (everything bundled, today's existing behaviour
+    // and applicationId, so current installs/store listing are untouched)
+    // and "lite" (own applicationId, own label, so both can be installed
+    // side by side on one device / listed separately on the store). The
+    // Quran corpus text (~330 MB) is stripped from the lite build's Flutter
+    // asset bundle by `tool/build_lite_apk.sh` BEFORE this Gradle build
+    // runs — Gradle flavors alone don't control the Flutter asset bundle,
+    // so this only handles applicationId/label; see that script for the
+    // asset side. `lib/repositories/quran_book_cache.dart` already falls
+    // back to `QuranCorpusDownloadService` whenever a bundled asset is
+    // absent, so the SAME Dart code serves both flavors unmodified.
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("full") {
+            dimension = "distribution"
+            resValue("string", "app_name", "طالب العلم")
+        }
+        create("lite") {
+            dimension = "distribution"
+            applicationIdSuffix = ".lite"
+            resValue("string", "app_name", "طالب العلم (خفيف)")
+        }
     }
 
     signingConfigs {
