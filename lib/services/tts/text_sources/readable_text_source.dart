@@ -64,39 +64,35 @@ List<String> splitIntoPlayableParagraphs(String normalizedText) {
 const _ttsUnsafeMarks = ['"', '“', '”', '«', '»', '[', ']'];
 
 /// علامات ترقيم لاتينية (ASCII) — على الأرجح آثار OCR/تحويل نص — تُسقِط
-/// نفس خلل espeak-ng حين تظهر **معزولة بمسافات** كـ"كلمة" مستقلة (مثال
-/// حقيقي: فاصلة لاتينية `,` معزولة أسقطت التطبيق 2026-09-19، عنوان عطل
-/// صغير `0x2f` يطابق تمامًا نمط علامات الاقتباس المعزولة السابق — الخلل
-/// إذن أعمّ من الاقتباس فقط: أي رمز ترقيم لاتيني معزول). خلافًا لعلامات
+/// نفس خلل espeak-ng حين تظهر **معزولة** كـ"كلمة" مستقلة. خلافًا لعلامات
 /// الاقتباس/الأقواس في [_ttsUnsafeMarks] — هذه لا تُحذَف أينما وُجِدت، بل
-/// فقط حين تكون **كلمة مستقلة بذاتها بمسافات على الجانبين**، لأن بعضها له
-/// معنى حقيقي متّصل بكلمة أو رقم (مثل "3.5" أو "well-known") لا يجب المساس به.
+/// فقط حين تكون معزولة، لأن بعضها له معنى حقيقي متّصل بكلمة أو رقم (مثل
+/// "3.5" أو "well-known") لا يجب المساس به.
+///
 // لا '-'/'_' هنا عمدًا: شرطة معزولة نمط عنونة/تعداد عربي مشروع وحقيقي
-// (مثال: "- أ -" كعنوان فرعي مرقَّم بحرف) — لا دليل تعطّل عليها، خلافًا
-// للفاصلة اللاتينية أدناه (دليل تعطّل فعلي مباشر).
-const _isolatedAsciiPunctuation = {
-  ',', '.', ';', ':', '!', '?', '(', ')', '{', '}', '<', '>', '=', '*', '/', '\\', '|', '~', '^', '+',
-};
+// (مثال: "- أ -" كعنوان فرعي مرقَّم بحرف) — لا دليل تعطّل عليها.
+///
+/// **تصحيح جذري (2026-09-19)، محاولتان حقيقيتان**: (١) فاصلة لاتينية `,`
+/// معزولة **بمسافات ASCII** أسقطت التطبيق أول مرة (عنوان عطل `0x2f`) —
+/// أُصلِحت بتقسيم كل سطر على المسافة وإسقاط أي "كلمة" تتكوّن بالكامل من
+/// هذه الرموز. (٢) نفس الخلل تكرّر (عنوان عطل `0x93`) رغم ذلك الإصلاح:
+/// الفاصلة هذه المرة لم تكن محاطة بمسافة ASCII، بل ملاصقة لرمز ترقيم آخر
+/// (عربي على الأرجح) — فتخطّاها التقسيم بالمسافة بالكامل رغم كونها
+/// "معزولة" فعليًا من منظور espeak-ng، الذي يعتبر أي رمز غير حرفي (عربيًا
+/// كان أم لاتينيًا) حدًّا لكلمة، لا المسافة ASCII تحديدًا. التعريف
+/// الصحيح إذن: أي رمز من هذه المجموعة غير ملاصق لحرف/رقم (بأي لغة، عبر
+/// `\p{L}`/`\p{N}`) على أي من الجانبين، بغضّ النظر عمّا يجاوره تحديدًا.
+/// Lookaround بحرف واحد ثابت الطول على كل جانب لا خطر تراجع
+/// (backtracking) منه حتى على صفحات OCR طويلة.
+final RegExp _isolatedAsciiPunctuationPattern = RegExp(
+  r'(?<![\p{L}\p{N}])[,.;:!?(){}<>=*/\\|~^+](?![\p{L}\p{N}])',
+  unicode: true,
+);
+final RegExp _repeatedSpaces = RegExp(' {2,}');
 
-bool _isPunctuationOnlyToken(String token) {
-  if (token.isEmpty) return false;
-  for (final unit in token.codeUnits) {
-    if (!_isolatedAsciiPunctuation.contains(String.fromCharCode(unit))) return false;
-  }
-  return true;
-}
-
-/// يُقسِّم كل سطر عند مسافات فردية (لا regex — نفس نهج بقية هذا الملف
-/// لتفادي أي خطر تراجع (backtracking) على صفحات OCR طويلة)، ويُسقِط أي
-/// "كلمة" تتكوّن بالكامل من رموز [_isolatedAsciiPunctuation].
 String _stripIsolatedAsciiPunctuationTokens(String text) {
-  if (!text.contains(' ')) return _isPunctuationOnlyToken(text) ? '' : text;
-  final lines = text.split('\n');
-  for (var i = 0; i < lines.length; i++) {
-    final tokens = lines[i].split(' ');
-    lines[i] = tokens.where((t) => !_isPunctuationOnlyToken(t)).join(' ');
-  }
-  return lines.join('\n');
+  if (!_isolatedAsciiPunctuationPattern.hasMatch(text)) return text;
+  return text.replaceAll(_isolatedAsciiPunctuationPattern, '').replaceAll(_repeatedSpaces, ' ');
 }
 
 /// رموز تشكيلية (ligatures) بحرف واحد لألقاب/عبارات دينية شائعة — لا علاقة

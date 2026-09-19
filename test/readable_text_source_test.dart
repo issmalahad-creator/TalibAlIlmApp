@@ -40,6 +40,17 @@ void main() {
       expect(result, ['كلمة أولى كلمة ثانية والرقم 3.5 صحيح،']);
     });
 
+    test('strips a Latin punctuation mark glued to Arabic punctuation (no ASCII space between them)', () {
+      // خلل حقيقي رابع حدث على الجهاز (2026-09-19)، بعد إصلاح الفاصلة
+      // المعزولة **بمسافات**: نفس عنوان العطل الصغير (0x93) تكرّر رغم ذلك
+      // الإصلاح — الفاصلة هذه المرة كانت ملاصقة لفاصلة عربية (لا مسافة
+      // ASCII بينهما)، فتخطّاها التقسيم بالمسافة القديم بالكامل. الإصلاح
+      // الجذري: الاعتماد على عدم مجاورة حرف/رقم (`\p{L}`/`\p{N}`) بدل
+      // مسافة ASCII كتعريف لـ"معزول".
+      final result = splitIntoPlayableParagraphs('كلمة أولى،, كلمة ثانية');
+      expect(result, ['كلمة أولى، كلمة ثانية،']);
+    });
+
     test('empty input returns empty list', () {
       expect(splitIntoPlayableParagraphs(''), isEmpty);
     });
