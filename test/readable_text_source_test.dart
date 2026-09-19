@@ -11,6 +11,35 @@ void main() {
       expect(result, ['بسم الله الرحمن الرحيم،', 'المقدمة،']);
     });
 
+    test('strips isolated quote/bracket marks that crash espeak-ng as bogus words', () {
+      // خلل حقيقي حدث على الجهاز (2026-09-19): علامة اقتباس معزولة بمسافات
+      // (نمط شائع في التراث حول مصطلح مُقتبَس) أسقطت التطبيق بتعطّل أصلي في
+      // محرك قاموس espeak-ng (`LookupDict2`، عنوان عطل ثابت 0x87) — وُجِد
+      // بالتشخيص الفعلي (.claude/skills/native-crash-diagnosis)، غير مرتبط
+      // بترميز HTML كما ظُنَّ أولًا.
+      final result = splitIntoPlayableParagraphs('أطلق السلف على العقيدة اسم " السنة "');
+      expect(result, ['أطلق السلف على العقيدة اسم السنة،']);
+    });
+
+    test('expands the ﷺ honorific ligature instead of dropping it', () {
+      // خلل حقيقي ثانٍ حدث على الجهاز (2026-09-19) بعد إصلاح علامات
+      // الاقتباس: رمز واحد "ﷺ" (U+FDFA) أسقط التطبيق بتعطّل من نمط مختلف
+      // تمامًا (عنوان عشوائي ضخم لا صغيرًا كالمرات السابقة) — على الأرجح
+      // لا يملك espeak-ng إدخالًا له في جدول الأصوات إطلاقًا. يُستبدَل
+      // بالعبارة المنطوقة الكاملة، لا يُحذَف (حذفه يُسقِط معنى الصلاة).
+      final result = splitIntoPlayableParagraphs('محمد بن عبد الله ﷺ والذي ما ترك خيرًا');
+      expect(result, ['محمد بن عبد الله صلى الله عليه وسلم والذي ما ترك خيرًا،']);
+    });
+
+    test('strips isolated ASCII punctuation tokens but keeps embedded ones', () {
+      // خلل حقيقي ثالث حدث على الجهاز (2026-09-19): فاصلة لاتينية `,`
+      // معزولة بمسافات أسقطت التطبيق (عنوان عطل 0x2f، نفس نمط علامات
+      // الاقتباس المعزولة). "3.5" يجب ألا يتأثر — النقطة متّصلة بالرقم لا
+      // معزولة.
+      final result = splitIntoPlayableParagraphs('كلمة أولى , كلمة ثانية والرقم 3.5 صحيح');
+      expect(result, ['كلمة أولى كلمة ثانية والرقم 3.5 صحيح،']);
+    });
+
     test('empty input returns empty list', () {
       expect(splitIntoPlayableParagraphs(''), isEmpty);
     });

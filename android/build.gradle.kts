@@ -2,6 +2,10 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // Tesseract4Android (OCR لكتب "مكتبتي" المصوَّرة بلا طبقة نص) يُنشَر
+        // عبر JitPack فقط — راجع native-crash-diagnosis/OCR notes في
+        // TEXT_SOURCE_ADAPTERS.md §7.1 لسبب استبعاد حزم Flutter الجاهزة.
+        maven { url = uri("https://jitpack.io") }
     }
 }
 

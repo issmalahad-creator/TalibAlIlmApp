@@ -1,13 +1,17 @@
 /// منفِّذ `ReadableTextSource` لكتب "مكتبتي" — يقرأ/يكتب `BookBookmark`
 /// الموجودة أصلًا (لا جدول تتبّع جديد). `docs/audio-reader/TEXT_SOURCE_ADAPTERS.md` §7/§7.1.
 ///
-/// يستخرج طبقة نص PDF **الموجودة أصلًا** عبر `pdfrx` (MIT، PDFium). لا OCR —
-/// صفحة بلا طبقة نص (كتاب مصوَّر ممسوح ضوئيًا بلا نص حقيقي) تُبلَّغ صراحةً
-/// عبر [PersonalLibraryNoTextLayerException] بدل إرجاع نص فارغ صامت.
+/// يستخرج طبقة نص PDF **الموجودة أصلًا** عبر `pdfrx` (MIT، PDFium) أولًا،
+/// وإن لم توجد (كتاب مصوَّر ضوئيًا بلا نص حقيقي) يُرسِم الصفحة صورة عبر
+/// `PdfPage.render` ثم يُمرِّرها إلى OCR محلي (Tesseract4Android، قناة
+/// أصلية مكتوبة يدويًا — انظر `lib/services/ocr/tesseract_ocr.dart`).
+/// النتيجة تُخزَّن على القرص (OCR بطيء، ثوانٍ للصفحة) فلا تتكرّر المعالجة.
 library;
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -17,18 +21,20 @@ import 'package:pdfrx/pdfrx.dart';
 import '../../../models/reading_record.dart';
 import '../../../repositories/book_repository.dart';
 import '../../../utils/month.dart';
+import '../../ocr/tesseract_ocr.dart';
 import 'readable_text_source.dart';
 
-/// صفحة PDF بلا طبقة نص قابلة للاستخراج (على الأرجح كتاب مصوَّر ضوئيًا
-/// بلا OCR) — فجوة معمارية حقيقية موثَّقة في TEXT_SOURCE_ADAPTERS.md §7.1،
-/// ليست خطأ في هذا المنفِّذ.
-class PersonalLibraryNoTextLayerException implements Exception {
-  const PersonalLibraryNoTextLayerException({required this.bookKey, required this.pageNumber});
+/// صفحة مصوَّرة رُسِمت وأُرسِلت لـOCR لكنه لم يستخرج أي نص قابل للاستخدام
+/// (صفحة فارغة فعلًا، أو جودة مسح رديئة جدًا) — حالة نادرة حقيقية، لا فجوة
+/// معمارية (على خلاف [PersonalLibraryNoTextLayerException] سابقًا، التي
+/// كانت تُرمى لكل صفحة مصوَّرة قبل بناء OCR).
+class PersonalLibraryOcrEmptyException implements Exception {
+  const PersonalLibraryOcrEmptyException({required this.bookKey, required this.pageNumber});
   final String bookKey;
   final int pageNumber;
 
   @override
-  String toString() => 'لا نص مستخرَج للصفحة $pageNumber من "$bookKey" — على الأرجح صفحة مصوَّرة بلا طبقة نص (يحتاج OCR، غير مبني بعد).';
+  String toString() => 'OCR لم يستخرج نصًا من الصفحة $pageNumber من "$bookKey" — على الأرجح صفحة فارغة أو جودة مسح رديئة جدًا.';
 }
 
 class PersonalLibraryTextSource implements ReadableTextSource {
@@ -95,12 +101,75 @@ class PersonalLibraryTextSource implements ReadableTextSource {
 
     final page = doc.pages[unitIndex - 1];
     final raw = await page.loadText();
-    final text = raw?.fullText.trim() ?? '';
+    var text = raw?.fullText.trim() ?? '';
     if (text.isEmpty) {
-      throw PersonalLibraryNoTextLayerException(bookKey: bookKey, pageNumber: unitIndex);
+      text = await _ocrPage(page, unitIndex);
     }
 
     return splitIntoPlayableParagraphs(text);
+  }
+
+  /// كتاب مصوَّر ضوئيًا بلا طبقة نص — يُرسَم إلى صورة (≈300dpi، كافٍ لدقّة
+  /// OCR معقولة بلا تضخيم زمن المعالجة) ثم يُمرَّر لـTesseract العربية.
+  /// النتيجة تُخزَّن على القرص فور نجاحها فلا يُعاد OCR لنفس الصفحة مطلقًا.
+  Future<String> _ocrPage(PdfPage page, int unitIndex) async {
+    final cacheFile = await _ocrCacheFile(unitIndex);
+    if (await cacheFile.exists()) {
+      final cached = await cacheFile.readAsString();
+      if (cached.isNotEmpty) return cached;
+    }
+
+    const dpi = 300.0;
+    final scale = dpi / 72.0;
+    final fullWidth = page.width * scale;
+    final fullHeight = page.height * scale;
+    final image = await page.render(fullWidth: fullWidth, fullHeight: fullHeight);
+    if (image == null) {
+      throw PersonalLibraryOcrEmptyException(bookKey: bookKey, pageNumber: unitIndex);
+    }
+
+    String text;
+    File? tempImageFile;
+    try {
+      final pngBytes = await _encodePng(image);
+      final tempDir = await getTemporaryDirectory();
+      tempImageFile = File(p.join(tempDir.path, 'ocr_${_sanitize(bookKey)}_$unitIndex.png'));
+      await tempImageFile.writeAsBytes(pngBytes, flush: true);
+      text = (await TesseractOcr.instance.extractText(tempImageFile)).trim();
+    } finally {
+      image.dispose();
+      if (tempImageFile != null && await tempImageFile.exists()) {
+        await tempImageFile.delete();
+      }
+    }
+
+    if (text.isEmpty) {
+      throw PersonalLibraryOcrEmptyException(bookKey: bookKey, pageNumber: unitIndex);
+    }
+
+    await cacheFile.parent.create(recursive: true);
+    await cacheFile.writeAsString(text, flush: true);
+    return text;
+  }
+
+  Future<File> _ocrCacheFile(int unitIndex) async {
+    final supportDir = await getApplicationSupportDirectory();
+    return File(p.join(supportDir.path, 'ocr_cache', _sanitize(bookKey), '$unitIndex.txt'));
+  }
+
+  /// `PdfImage.pixels` بكسلات BGRA8888 خام — `dart:ui` يفكّها ويُرمِّزها PNG
+  /// مباشرة، بلا حاجة لحزمة `image` (وما تجرّه من تعارضات إصدارات حقيقية،
+  /// راجع TEXT_SOURCE_ADAPTERS.md §7.1 نقطة `dart-pdf`/`archive`).
+  Future<Uint8List> _encodePng(PdfImage image) async {
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(image.pixels, image.width, image.height, ui.PixelFormat.bgra8888, completer.complete);
+    final uiImage = await completer.future;
+    try {
+      final byteData = await uiImage.toByteData(format: ui.ImageByteFormat.png);
+      return byteData!.buffer.asUint8List();
+    } finally {
+      uiImage.dispose();
+    }
   }
 
   @override

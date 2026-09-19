@@ -13,7 +13,7 @@ import 'arabic_normalize.dart';
 /// Bump whenever [normalizePageText] changes. Stored per annotation
 /// (`norm_version`) so a resolver can tell a stale-normalisation offset from
 /// a genuinely moved one.
-const int kNormVersion = 2;
+const int kNormVersion = 3;
 
 const int _contextLen = 48; // prefix/suffix window
 const int _headTailLen = 64; // head/tail locator window
@@ -31,6 +31,7 @@ String normalizePageText(String raw) {
   // seconds of frozen UI. Literal replaceAll is linear; the while loops
   // converge in O(log run-length) passes.
   var s = _stripTags(raw);
+  s = _decodeHtmlEntities(s);
   s = s.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
   s = s.replaceAll('\t', ' ').replaceAll('\u00A0', ' ');
   while (s.contains('  ')) {
@@ -69,6 +70,52 @@ String _stripTags(String s) {
     }
   }
   return b.toString();
+}
+
+/// `\s{0,3}` (bounded, not `*`) so this can never backtrack catastrophically
+/// on the same kind of long OCR'd runs `_stripTags` above guards against.
+final RegExp _htmlEntityPattern = RegExp(
+  r'&\s{0,3}(amp|quot|apos|lt|gt|nbsp)\s{0,3};'
+  r'|&\s{0,3}#\s{0,3}(\d{1,7})\s{0,3};'
+  r'|&\s{0,3}#\s{0,3}[xX]\s{0,3}([0-9a-fA-F]{1,6})\s{0,3};',
+);
+
+const Map<String, String> _namedHtmlEntities = {
+  'amp': '&',
+  'quot': '"',
+  'apos': "'",
+  'lt': '<',
+  'gt': '>',
+  'nbsp': ' ',
+};
+
+/// Real OCR'd/scraped turath pages carry malformed HTML-entity remnants —
+/// sometimes well-formed (`&amp;`), sometimes broken up by stray whitespace
+/// left over from an earlier, unrelated extraction step (`&amp; quot ; 1
+/// &amp; quot ]`). Left undecoded, fragments like a bare "quot" reach the
+/// TTS phonemizer as a fake "word" and crash espeak-ng's dictionary lookup
+/// (found via `.claude/skills/native-crash-diagnosis`). Two passes: decoding
+/// `&amp;` can itself expose a previously-escaped entity underneath.
+String _decodeHtmlEntities(String s) {
+  if (!s.contains('&')) return s;
+  for (var pass = 0; pass < 2 && s.contains('&'); pass++) {
+    s = s.replaceAllMapped(_htmlEntityPattern, (m) {
+      final name = m.group(1);
+      if (name != null) return _namedHtmlEntities[name]!;
+      final dec = m.group(2);
+      if (dec != null) {
+        final code = int.parse(dec);
+        return code <= 0x10FFFF ? String.fromCharCode(code) : m.group(0)!;
+      }
+      final hex = m.group(3);
+      if (hex != null) {
+        final code = int.parse(hex, radix: 16);
+        return code <= 0x10FFFF ? String.fromCharCode(code) : m.group(0)!;
+      }
+      return m.group(0)!;
+    });
+  }
+  return s;
 }
 
 /// Dependency-free 64-bit FNV-1a, hex. Enough to detect "the page text

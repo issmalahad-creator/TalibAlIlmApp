@@ -37,6 +37,33 @@ class TtsEngine {
   SendPort? _workerPort;
   Future<SendPort>? _workerStarting;
 
+  // **خلل جذري حقيقي وُجِد بسجلّ crash مُرمَّز فعليًا (2026-09-19)**: طلب
+  // `_playCurrentParagraph` وطلب `AudioReaderService.prefetch` المنفصل يمكن
+  // أن يستدعيا `synthesize` في آنٍ واحد (backlog حقيقي شُوهِد: طلبان تجاوزا
+  // مهلة 45 ثانية معًا). حين يتراكم الطلبان خلف بعضهما على نفس العزلة، كل
+  // استدعاء ينتظر دوره فينتهي بمهلة زمنية، وكان معالج المهلة القديم **يُصفِّر
+  // مراجع Dart للعزلة (`_worker = null`) بلا قتلها فعليًا** — العزلة
+  // "اليتيمة" تبقى حيّة وتُكمِل `generate()` الأصلي في الخلفية، بينما طلب
+  // جديد يبني عزلة **ثانية** كاملة. عزلتا Dart تتشاركان نفس مكتبات C++ الأصلية
+  // المحمَّلة في العملية (espeak-ng معروف بحالة عامة غير آمنة عبر استدعاءات
+  // متزامنة — راجع تعليق `_startWorker` القديم) — نداءان أصليّان متزامنان من
+  // عزلتين مختلفتين إلى نفس الحالة العامة == سباق بيانات حقيقي. سجلّ التعطّل
+  // أثبت هذا مباشرة: قيم سجلّات مجاورة للعنوان الفاسد (`0x8080808080808080`،
+  // `0xfefefefefefefeff`، `0x7f7f7f7f7f7f7f7f`) هي أنماط "تسميم" الذاكرة
+  // المُحرَّرة القياسية لمُخصِّص أندرويد (Scudo) — توقيع use-after-free واضح،
+  // لا توقيع "مؤشر غير مهيَّأ" الذي شُوهِد سابقًا في خلل قاموس espeak-ng.
+  // الحل: (1) قتل العزلة فعليًا عند المهلة قبل تصفير المراجع — لا عزلة يتيمة
+  // تعمل أبدًا. (2) تسلسل الطلبات على مستوى Dart (طابور بسيط) بحيث لا يُرسَل
+  // طلب جديد للعزلة قبل انتهاء السابق فعليًا — يمنع التراكم الذي يُسبِّب
+  // المهلة أصلًا، لا فقط يُصلِح نتيجتها.
+  Future<void> _queue = Future.value();
+
+  Future<T> _serialized<T>(Future<T> Function() operation) {
+    final result = _queue.then((_) => operation());
+    _queue = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+
   Future<SendPort> _ensureWorkerStarted() async {
     final existing = _workerPort;
     if (existing != null) return existing;
@@ -77,6 +104,14 @@ class TtsEngine {
     String text, {
     required String voiceId,
     double speed = 1.0,
+  }) {
+    return _serialized(() => _synthesizeOnce(text, voiceId: voiceId, speed: speed));
+  }
+
+  Future<Uint8List> _synthesizeOnce(
+    String text, {
+    required String voiceId,
+    double speed = 1.0,
   }) async {
     // **خلل جذري حقيقي وُجِد بالسجلّ الفعلي على الجهاز (2026-09-18)**: كل
     // محاولة كانت تفشل بالضبط عند `rootBundle.load()` داخل العزلة الخلفية
@@ -105,8 +140,11 @@ class TtsEngine {
       result = await replyPort.first.timeout(const Duration(seconds: 45));
     } catch (e) {
       replyPort.close();
-      // العزلة قد تكون ماتت فعليًا — أعِد تعيين الحالة كي تُبنى عزلة جديدة
-      // في المحاولة التالية بدل البقاء عالقة على منفذ لعزلة ميتة للأبد.
+      // **يجب قتل العزلة فعليًا هنا، لا فقط تصفير المراجع** — راجع التعليق
+      // الطويل أعلى الكلاس (2026-09-19): تصفير المراجع بلا قتل يترك عزلة
+      // "يتيمة" تُكمِل العمل في الخلفية، فتتشارك حالة espeak-ng العامة مع
+      // العزلة الجديدة القادمة == سباق بيانات أثبته سجلّ تعطّل حقيقي.
+      _worker?.kill(priority: Isolate.immediate);
       _workerStarting = null;
       _worker = null;
       _workerPort = null;
@@ -170,16 +208,18 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
   var bindingsInitialized = false;
   final loadedVoices = <String, sherpa.OfflineTts>{};
   final generationsSinceLoad = <String, int>{};
-  // **خلل حقيقي وُجِد على جهاز حقيقي (2026-09-18)**: العملية كاملة انهارت
-  // بتعطّل أصلي (SIGSEGV، لا استثناء Dart قابل للالتقاط) بعد سلسلة طويلة من
-  // استدعاءات generate() المتتالية الناجحة على نفس جلسة OfflineTts الأصلية
-  // — لا تسريب مؤكَّد من ناحية Dart (كل مخزَّن مؤقَّت أصلي يُحرَّر فور كل
-  // استدعاء عبر tts.dart نفسها)، لكن مخزَّن ONNX Runtime الأصلي (arena)
-  // معروف بأنه ينمو عبر الاستدعاءات المتتالية ولا يتقلَّص بينها ضمن نفس
-  // الجلسة. لا يوجد tombstone يؤكّد السبب الدقيق (النظام نفسه كان
-  // مُحمَّلًا وقتها). إجراء احترازي معقول: إعادة إنشاء جلسة OfflineTts من
-  // الصفر دوريًا بدل تركها تتراكم للأبد — يحدّ من أسوأ احتمال نمو ذاكرة
-  // أصلية غير محدود خلال جلسة استماع طويلة.
+  // **السبب الجذري الحقيقي وُجِد فعليًا (2026-09-18)، لا تخمين بعد الآن**:
+  // بحث مباشر في GitHub (k2-fsa/sherpa-onnx #943، #1081) يؤكّد أن استدعاء
+  // `generate()` أكثر من مرة على نفس كائن OfflineTts يتعطّل فعليًا بسبب خلل
+  // موثَّق في onnxruntime 1.18 (عملية ScatterND الداخلية تستقبل أشكال
+  // Tensor غير متطابقة) — onnxruntime 1.17.x لا يحوي هذا الخلل. **السبب
+  // الجذري الفعلي للتعطّل المتكرر (2026-09-19)**: وُجِد عبر رمز تصحيح كامل
+  // (.claude/skills/native-crash-diagnosis) أنه ليس في sherpa_onnx/onnxruntime
+  // إطلاقًا، بل في نصوص تراث تحمل رموز HTML غير مُفكَّكة (`&amp; quot ;`)
+  // تصل TranslateWord في espeak-ng كـ"كلمات" زائفة فتُسقِط LookupDict2 —
+  // أُصلِح من الجذر في `normalizePageText` (study_annotation_anchor.dart).
+  // إعادة تدوير الكائن الدورية هنا أُبقيت باحتراس إضافي رخيص (لا تجديد
+  // لكل توليدة بعد الآن).
   const kMaxGenerationsPerSession = 25;
 
   await for (final message in commandPort) {
@@ -238,6 +278,16 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
       final wav = _encodeWav(trimmed, audio.sampleRate);
       message.replyPort.send(wav);
       debugPrint('[TTS] نجح، أُرسِلت ${wav.length} بايت');
+
+      // **إجراء احترازي إضافي (2026-09-18)**: تعطّل SIGSEGV حقيقي وُجِد
+      // فعليًا على الجهاز — سجلّ logcat أظهر التعطّل يقع فور بدء استدعاء
+      // generate() تالٍ، بعد أقل من 100ms فقط من انتهاء الاستدعاء السابق
+      // (طلب استباقي متلاحق من `AudioReaderService.prefetch`). `numThreads:
+      // 1` وحده لم يمنع هذا (لا يزال يحدث بعده). مهلة قصيرة هنا قبل معالجة
+      // الطلب التالي تمنح وقت تعافٍ فعليًا لبيئة التشغيل الأصلية (ONNX
+      // Runtime/GC) بين استدعاءات FFI متلاحقة — تخفيف عملي مباشر مبني على
+      // النمط الزمني المُلاحَظ فعليًا، لا تخمين نظري.
+      await Future.delayed(const Duration(milliseconds: 100));
 
       final count = (generationsSinceLoad[message.voiceId] ?? 0) + 1;
       if (count >= kMaxGenerationsPerSession) {

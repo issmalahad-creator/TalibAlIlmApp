@@ -48,6 +48,17 @@ class AudioReaderController extends ChangeNotifier {
   int _unitIndex = 1;
   List<String> _paragraphs = const [];
   int _paragraphIndex = 0;
+
+  // **خلل جذري حقيقي وُجِد عبر تسجيل تشخيصي فعلي (2026-09-19)**: `prefetch()`
+  // كانت تُستدعى من جديد عند كل `_playCurrentParagraph()` بـ
+  // `fromParagraphIndex: _paragraphIndex` (الفقرة الحالية نفسها، لا التالية)
+  // وتمسح نافذة lookahead كاملة (5 فقرات) في كل مرة — فقرات كثيرة كانت
+  // تُطلَب من جديد 3-5 مرات متتالية رغم أنها وُلِّدت فعلًا، تُزاحم طابور
+  // TTS المتسلسل (بعد إصلاح سباق العزلة اليوم) وتُؤخِّر التشغيل الحقيقي
+  // ثوانٍ طويلة — هذا ما شعر به إسماعيل كـ"توقّف/تكرار" رغم أن
+  // `_paragraphIndex` كان يتقدّم بشكل صحيح فعليًا (أثبته السجلّ). الحل:
+  // تتبّع أعلى فهرس طُلِب استباقه فعلًا، فلا يُعاد طلب نفس الفقرة أبدًا.
+  int _prefetchedUpTo = -1;
   double _speed = 1.0;
   AudioReaderPlaybackState _state = AudioReaderPlaybackState.idle;
   Object? _lastError;
@@ -127,9 +138,11 @@ class AudioReaderController extends ChangeNotifier {
     _unitIndex = unitIndex;
     _paragraphs = await source.paragraphsForUnit(unitIndex);
     _paragraphIndex = startParagraph.clamp(0, _paragraphs.isEmpty ? 0 : _paragraphs.length - 1);
+    _prefetchedUpTo = _paragraphIndex - 1; // وحدة جديدة — لا شيء استُبق منها بعد.
   }
 
   Future<void> _playCurrentParagraph({bool isSilentRetry = false}) async {
+    debugPrint('[AudioReader] _playCurrentParagraph: فقرة=$_paragraphIndex/${_paragraphs.length} وحدة=$_unitIndex isSilentRetry=$isSilentRetry');
     if (_disposed) return;
     if (_paragraphs.isEmpty) {
       _state = AudioReaderPlaybackState.finished;
@@ -177,16 +190,25 @@ class AudioReaderController extends ChangeNotifier {
       return;
     }
 
-    // استباق خلفي — لا ننتظره، لا يحجب التشغيل الحالي.
-    unawaited(
-      _service.prefetch(
-        source: source,
-        voiceId: voiceId,
-        unitIndex: _unitIndex,
-        paragraphs: _paragraphs,
-        fromParagraphIndex: _paragraphIndex,
-      ),
-    );
+    // استباق خلفي — لا ننتظره، لا يحجب التشغيل الحالي. يُطلَب فقط الجزء
+    // الجديد من نافذة الاستباق (بعد _prefetchedUpTo) — لا إعادة مسح النافذة
+    // كاملة في كل استدعاء (راجع تعليق _prefetchedUpTo أعلاه لسبب هذا).
+    const lookahead = 4;
+    final windowEnd = (_paragraphIndex + lookahead).clamp(0, _paragraphs.length - 1);
+    if (windowEnd > _prefetchedUpTo) {
+      final windowStart = (_prefetchedUpTo + 1).clamp(0, _paragraphs.length - 1);
+      _prefetchedUpTo = windowEnd;
+      unawaited(
+        _service.prefetch(
+          source: source,
+          voiceId: voiceId,
+          unitIndex: _unitIndex,
+          paragraphs: _paragraphs,
+          fromParagraphIndex: windowStart,
+          lookahead: windowEnd - windowStart,
+        ),
+      );
+    }
   }
 
   /// يقرأ ترويسة WAV (44 بايت أولى، لا الملف كاملًا) لحساب مدة الفقرة

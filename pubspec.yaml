@@ -167,6 +167,9 @@ flutter:
     - assets/fiqh_seerah/zad_almaad_vol1.json
     - assets/aqeedah/madarij_part1.json
     - assets/adhkar/hisn_almuslim.json
+    # Tesseract OCR (tessdata_fast، tesseract-ocr/tessdata_fast) — كتب
+    # "مكتبتي" المصوَّرة بلا طبقة نص، انظر lib/services/ocr/tesseract_ocr.dart.
+    - assets/tessdata/ara.traineddata
     # turath.io's own complete catalog manifest (files.turath.io/data-v3.json,
     # snapshot 2026-02-03) — 40 categories with exact book-id membership,
     # 8593 books, 3188 authors. Seeds the local canonical membership index so

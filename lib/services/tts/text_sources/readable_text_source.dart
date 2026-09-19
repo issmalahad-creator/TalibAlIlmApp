@@ -37,7 +37,8 @@ const int kMaxParagraphChars = 280;
 List<String> splitIntoPlayableParagraphs(String normalizedText) {
   if (normalizedText.isEmpty) return const [];
 
-  final lines = normalizedText.split('\n').map((p) => p.trim()).where((p) => p.isNotEmpty);
+  final sanitized = _stripTtsUnsafeMarks(_stripIsolatedAsciiPunctuationTokens(_expandHonorificLigatures(normalizedText)));
+  final lines = sanitized.split('\n').map((p) => p.trim()).where((p) => p.isNotEmpty);
 
   final result = <String>[];
   for (final line in lines) {
@@ -50,12 +51,117 @@ List<String> splitIntoPlayableParagraphs(String normalizedText) {
   return result;
 }
 
+/// علامات اقتباس/قوسين زخرفية لا قيمة صوتية لها — TTS لا يحتاج نطقها أصلًا.
+/// حين تصبح "كلمة" معزولة بمسافات على الجانبين (نمط شائع جدًا في كتب
+/// التراث حول مصطلح مُقتبَس، مثل اسم "السنة") تُسقِط خلل حقيقي في محرك
+/// قاموس espeak-ng (`LookupDict2`) — عنوان عطل ثابت `0x87` تكرّر عبر عدة
+/// نصوص حقيقية مختلفة تمامًا، وُجِد بالتشخيص الفعلي
+/// (`.claude/skills/native-crash-diagnosis`)، وليس مرتبطًا بترميز HTML كما
+/// ظُنَّ أولًا (ذاك كان يُنتِج نفس النمط: علامة اقتباس معزولة). تُحذَف
+/// كليًا (لا تُستبدَل بمسافة) — النص المعروض للقارئ في الشاشة لا يتأثر،
+/// هذا التنظيف مخصَّص لمسار TTS فقط (`normalizePageText` المُستخدَم للعرض
+/// منفصل تمامًا).
+const _ttsUnsafeMarks = ['"', '“', '”', '«', '»', '[', ']'];
+
+/// علامات ترقيم لاتينية (ASCII) — على الأرجح آثار OCR/تحويل نص — تُسقِط
+/// نفس خلل espeak-ng حين تظهر **معزولة بمسافات** كـ"كلمة" مستقلة (مثال
+/// حقيقي: فاصلة لاتينية `,` معزولة أسقطت التطبيق 2026-09-19، عنوان عطل
+/// صغير `0x2f` يطابق تمامًا نمط علامات الاقتباس المعزولة السابق — الخلل
+/// إذن أعمّ من الاقتباس فقط: أي رمز ترقيم لاتيني معزول). خلافًا لعلامات
+/// الاقتباس/الأقواس في [_ttsUnsafeMarks] — هذه لا تُحذَف أينما وُجِدت، بل
+/// فقط حين تكون **كلمة مستقلة بذاتها بمسافات على الجانبين**، لأن بعضها له
+/// معنى حقيقي متّصل بكلمة أو رقم (مثل "3.5" أو "well-known") لا يجب المساس به.
+// لا '-'/'_' هنا عمدًا: شرطة معزولة نمط عنونة/تعداد عربي مشروع وحقيقي
+// (مثال: "- أ -" كعنوان فرعي مرقَّم بحرف) — لا دليل تعطّل عليها، خلافًا
+// للفاصلة اللاتينية أدناه (دليل تعطّل فعلي مباشر).
+const _isolatedAsciiPunctuation = {
+  ',', '.', ';', ':', '!', '?', '(', ')', '{', '}', '<', '>', '=', '*', '/', '\\', '|', '~', '^', '+',
+};
+
+bool _isPunctuationOnlyToken(String token) {
+  if (token.isEmpty) return false;
+  for (final unit in token.codeUnits) {
+    if (!_isolatedAsciiPunctuation.contains(String.fromCharCode(unit))) return false;
+  }
+  return true;
+}
+
+/// يُقسِّم كل سطر عند مسافات فردية (لا regex — نفس نهج بقية هذا الملف
+/// لتفادي أي خطر تراجع (backtracking) على صفحات OCR طويلة)، ويُسقِط أي
+/// "كلمة" تتكوّن بالكامل من رموز [_isolatedAsciiPunctuation].
+String _stripIsolatedAsciiPunctuationTokens(String text) {
+  if (!text.contains(' ')) return _isPunctuationOnlyToken(text) ? '' : text;
+  final lines = text.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    final tokens = lines[i].split(' ');
+    lines[i] = tokens.where((t) => !_isPunctuationOnlyToken(t)).join(' ');
+  }
+  return lines.join('\n');
+}
+
+/// رموز تشكيلية (ligatures) بحرف واحد لألقاب/عبارات دينية شائعة — لا علاقة
+/// لها بخلل قاموس espeak-ng السابق (نمط عطل مختلف تمامًا: عنوان عشوائي ضخم
+/// لا `0x87` الصغير المتكرر). حالتان حقيقيتان مختلفتان وُجِدتا 2026-09-19
+/// بنفس الآلية بالضبط: «ﷺ» بعد اسم النبي ﷺ، ثم «﵀» بعد اسم الشيخ ابن باز
+/// رحمه الله في ترجمة مؤلف — على الأرجح لا يملك جدول تحويل الأصوات في
+/// espeak-ng إدخالًا لكتلة Unicode "Arabic Presentation Forms-A" التوافقية
+/// هذه إطلاقًا. بما أن هذا نمط متكرر (تراجم علماء تحوي أدعية مشابهة كثيرة)
+/// أُضيفت المجموعة الشائعة كاملة استباقًا لا فقط الحالتين المُكتشَفتين.
+/// تُستبدَل بالعبارة الكاملة المنطوقة، لا تُحذَف — حذفها يُسقِط معنًى
+/// مقصودًا (الصلاة على النبي، الترحّم، إلخ)، لا مجرد زخرفة كعلامات الاقتباس.
+const _honorificLigatures = {
+  'ﷺ': ' صلى الله عليه وسلم ', // U+FDFA
+  'ﷻ': ' عز وجل ', // U+FDFB
+  '﷽': ' بسم الله الرحمن الرحيم ', // U+FDFD
+  'ﷲ': ' الله ', // U+FDF2
+  'ﷳ': ' أكبر ', // U+FDF3 (أكبر)
+  'ﷴ': ' محمد ', // U+FDF4
+  'ﷵ': ' صلعم ', // U+FDF5 (اختصار الصلاة والسلام)
+  'ﷶ': ' رسول ', // U+FDF6
+  'ﷷ': ' عليه ', // U+FDF7
+  'ﷸ': ' وسلم ', // U+FDF8
+  'ﷹ': ' صلى ', // U+FDF9
+  '﵀': ' رحمه الله ', // U+FD40 — الحالة الحقيقية الثانية (ابن باز)
+  '﵁': ' رحمها الله ', // U+FD41
+  '﵂': ' رحمهم الله ', // U+FD42
+  '﵃': ' رضي الله عنه ', // U+FD43
+  '﵄': ' رضي الله عنها ', // U+FD44
+  '﵅': ' رضي الله عنهم ', // U+FD45
+  '﵆': ' رضي الله عنهما ', // U+FD46
+  '﵇': ' رحمهما الله ', // U+FD47
+  '﵈': ' جل جلاله ', // U+FD48
+  '﵉': ' جل جلاله ', // U+FD49
+  '﵊': ' رحمه الله ', // U+FD4A
+};
+
+String _expandHonorificLigatures(String text) {
+  if (!_honorificLigatures.keys.any(text.contains)) return text;
+  var s = text;
+  _honorificLigatures.forEach((ligature, expansion) {
+    s = s.replaceAll(ligature, expansion);
+  });
+  return s;
+}
+
+String _stripTtsUnsafeMarks(String text) {
+  var s = text;
+  for (final mark in _ttsUnsafeMarks) {
+    s = s.replaceAll(mark, '');
+  }
+  while (s.contains('  ')) {
+    s = s.replaceAll('  ', ' ');
+  }
+  return s;
+}
+
 /// علامات ترقيم يعتمد عليها Piper/VITS فعليًا لتوليد وقفة طبيعية في نهاية
 /// المقطع — بحث حقيقي (GitHub rhasspy/piper #349: نص بلا نقطة نهاية يُقرأ
 /// كجملة واحدة متصلة بلا وقفة). أي مقطع يُرسَل للتوليد بلا إحداها ينتهي
 /// صوتيًا بشكل مفاجئ/مبتور، قد يُسمَع كـ"ابتلاع" آخر كلمة رغم أن النموذج
 /// نطقها كاملة فعليًا — المشكلة في غياب الوقفة بعدها لا في النطق نفسه.
-const _terminalPunctuation = ['.', '،', '؛', '!', '؟', ':', ')', '"', '”', '»'];
+// لا '"'/'"'/'»' هنا — [_stripTtsUnsafeMarks] يحذفها قبل وصول أي سطر إلى
+// هذا الفحص، فلن تكون آخر حرف في نص وصل إلى هنا أبدًا.
+const _terminalPunctuation = ['.', '،', '؛', '!', '؟', ':', ')'];
 
 /// يضيف فاصلة عربية "،" لأي مقطع لا ينتهي أصلًا بعلامة ترقيم معروفة —
 /// يحدث هذا حين يُقطَع مقطع في منتصف جملة أطول (المسار الاحتياطي في
