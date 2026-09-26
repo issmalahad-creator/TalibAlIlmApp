@@ -101,3 +101,6 @@ lib/config/app_config.dart
 # Local reference media / books (analysis inputs, not app assets)
 /*.mp4
 /كتب/
+
+# Temporary home of stripped corpus dirs during a lite build (tool/build_apk.py)
+/.lite_build_backup/

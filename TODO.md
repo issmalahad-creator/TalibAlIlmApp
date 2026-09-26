@@ -29,7 +29,7 @@ Phase 77 بُنيت فعليًا تحت اسم **Life Engine** (`docs/LIFE_ENGIN
 الـSkill الإلزامي: [`.claude/skills/app-performance-optimization/SKILL.md`](.claude/skills/app-performance-optimization/SKILL.md)
 
 - [x] **SIZE-0 — نقطة رجوع وbaseline:** tag `size-baseline-before-optimization-2026-09-20`، وقياس release حقيقي مع split-per-abi. النتائج: `full release` = 626.6-648.3 MB حسب ABI، و`lite release` = 459.2 MB؛ أكبر الأصول: `assets/quran` = 484 MB، `assets/mushaf` = 84.7 MB، `assets/tts` = 61.4 MB. لا حذف دائم ولا نقل بقي بعد القياس. ملاحظة: أمر Bash الخاص بـlite لديه مشكلة CRLF على Windows؛ تم القياس عبر PowerShell مع استعادة corpus والتحقق من رجوعه.
-- [ ] **SIZE-1 — بناء release مضبوط:** سكربت واضح لـ`full/lite` و`split-per-abi` مع checksum ومسار APK معروف.
+- [ ] **SIZE-1 — بناء release مضبوط:** ✅ مبني (2026-09-26): `python tool/build_apk.py --flavor lite|full [--mode debug] [--abi arm64-v8a]` → `dist/talib-<flavor>-<mode>-<abi>.apk` + `.sha256` + تقرير حجم لكل ABI، استعادة تلقائية لمجلدات corpus حتى بعد بناء مقطوع، فحص تسرّب المفتاح وتسرّب corpus في lite. lite release: arm64 = 326.4 MB (كان 459 universal). **يُعلَّم [x] بعد تثبيت arm64 على هاتف إسماعيل.**
 - [ ] **SIZE-2 — جرد الأصول:** ربط كل asset بمستهلكه وتصنيفه `offline-essential`/`optional`/`downloadable`/`build-only` مع مراجعة الترخيص.
 - [ ] **SIZE-3 — تخفيف startup:** فصل الضروري عن import/sync الثقيل، مع progress وفشل قابل لإعادة المحاولة.
 - [ ] **SIZE-4 — تحميل المصحف عند الطلب:** صفحة حالية + cache محدود، وعدم تحميل 604 صفحة أو glyph data كاملة في الذاكرة.
