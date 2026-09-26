@@ -93,3 +93,11 @@ lib/config/app_config.dart
 /assets/tts/tokens.txt
 /assets/tts/espeak-ng-data/
 /Quran-Data-version-2.0/
+
+# Private-build secret + built APK copies (tool/build_all_apks.sh)
+/.anthropic_key.local
+/dist/
+
+# Local reference media / books (analysis inputs, not app assets)
+/*.mp4
+/كتب/

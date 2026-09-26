@@ -9,4 +9,4 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 MODE="${1:---release}"
-flutter build apk "$MODE" --flavor full
+flutter build apk "$MODE" --flavor full "${@:2}"

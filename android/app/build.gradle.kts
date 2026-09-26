@@ -73,7 +73,7 @@ android {
         create("lite") {
             dimension = "distribution"
             applicationIdSuffix = ".lite"
-            resValue("string", "app_name", "طالب العلم (خفيف)")
+            resValue("string", "app_name", "طالب العلم")
         }
     }
 

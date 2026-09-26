@@ -43,6 +43,6 @@ for d in "${STRIP_DIRS[@]}"; do
 done
 
 echo "Building lite APK ($MODE) — corpus text excluded, downloaded on demand..."
-flutter build apk "$MODE" --flavor lite
+flutter build apk "$MODE" --flavor lite "${@:2}"
 
 echo "Done. Corpus assets restored (trap on exit)."

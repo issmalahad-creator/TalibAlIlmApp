@@ -30,4 +30,14 @@ class AppConfig {
   // empty to run mosque-offline (seeded demo mosque).
   static const supabaseUrl = '';
   static const supabaseAnonKey = 'REPLACE_WITH_SUPABASE_PUBLISHABLE_ANON_KEY';
+
+  /// Anthropic API key — dev/private builds only. NEVER hardcode a real key
+  /// here or anywhere in source: it is injected at build time with
+  /// `--dart-define=ANTHROPIC_API_KEY=...` by `tool/build_all_apks.sh` from
+  /// the gitignored local file `/.anthropic_key.local`. Public builds get
+  /// the placeholder, so `ClaudeChatService.isConfigured` is false.
+  static const anthropicApiKey = String.fromEnvironment(
+    'ANTHROPIC_API_KEY',
+    defaultValue: 'REPLACE_WITH_NEW_ANTHROPIC_API_KEY',
+  );
 }
