@@ -76,6 +76,7 @@ description: >-
 | `docs/QURAN_LEARNING_ROADMAP.md` | خارطة طريق طبقة التعلّم | ملحق |
 | `docs/QURAN_DATA_VALIDATION.md` | قواعد تحقّق بيانات التعلّم | ملحق |
 | `docs/quran/QURAN_DATA_VERIFICATION_TASKS.md` | نتائج فحص التراخيص | تقرير |
+| `docs/quran/USUL_TAFSIR_TREE.md` | شجرة أصول التفسير للآية (التمهير): عقد = `knowledge_concepts`، أجوبة الآية = `knowledge_facts`، الجديد فقط `knowledge_relations`؛ يصحّح `docs/ISLAMIC_KNOWLEDGE_GRAPH_PLAN.md` | تصميم مُعتمَد المبدأ (2026-09-26)، لم يُبنَ |
 | `docs/quran/KNOWLEDGE.md` | خريطة متطلَّب→نموذج→مصدر حقيقة لكل نوع ميزة (R-1..R-17) | مرجعيّة أساسية |
 
 ### الأخلاق والآداب (AKHLAQ) — نظام تدريب كامل
