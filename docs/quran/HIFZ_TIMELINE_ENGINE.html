@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محرك خطط الحفظ الزمنية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FBF9F3;
+    --bg-raised:#FFFFFF;
+    --bg-sunken:#F1EEE3;
+    --ink:#20261F;
+    --ink-soft:#525B4E;
+    --line:#DDD8C7;
+    --accent:#0F6E5C;
+    --accent-soft:#E4EFEA;
+    --gold:#A6791F;
+    --gold-soft:#F3E9D2;
+    --warn:#9A4B23;
+    --warn-soft:#F6E6DA;
+    --font-display:'Amiri', 'Traditional Arabic', serif;
+    --font-body:'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131810F;
+      --bg:#141915;
+      --bg-raised:#1B221C;
+      --bg-sunken:#0F1310;
+      --ink:#E9E7DC;
+      --ink-soft:#A9B0A2;
+      --line:#333A30;
+      --accent:#3FBFA0;
+      --accent-soft:#1D3630;
+      --gold:#D9AE55;
+      --gold-soft:#3A2F16;
+      --warn:#E08A57;
+      --warn-soft:#3B2418;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141915;
+    --bg-raised:#1B221C;
+    --bg-sunken:#0F1310;
+    --ink:#E9E7DC;
+    --ink-soft:#A9B0A2;
+    --line:#333A30;
+    --accent:#3FBFA0;
+    --accent-soft:#1D3630;
+    --gold:#D9AE55;
+    --gold-soft:#3A2F16;
+    --warn:#E08A57;
+    --warn-soft:#3B2418;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.75;
+    font-size:16px;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px 96px;}
+  header.hero{
+    padding:56px 24px 40px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,var(--accent-soft),transparent);
+  }
+  header.hero .inner{max-width:920px;margin:0 auto;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    letter-spacing:.06em;
+    color:var(--accent);
+    text-transform:uppercase;
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(30px,4.4vw,44px);
+    margin:0 0 14px;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .lede{color:var(--ink-soft);font-size:17px;max-width:64ch;margin:0;}
+  nav.toc{
+    display:flex;flex-wrap:wrap;gap:8px 10px;
+    margin-top:28px;
+  }
+  nav.toc a{
+    font-size:13.5px;color:var(--ink-soft);text-decoration:none;
+    border:1px solid var(--line);border-radius:100px;padding:6px 14px;
+    background:var(--bg-raised);
+  }
+  nav.toc a:hover{border-color:var(--accent);color:var(--accent);}
+  main{padding-top:8px;}
+  section{padding:44px 0;border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  h2{
+    font-family:var(--font-display);
+    font-size:26px;font-weight:700;
+    margin:0 0 6px;color:var(--ink);
+  }
+  .section-num{
+    font-family:var(--font-mono);font-size:12.5px;color:var(--gold);
+    letter-spacing:.05em;margin:0 0 8px;
+  }
+  h3{font-size:18px;font-weight:600;margin:28px 0 10px;color:var(--ink);}
+  p{margin:0 0 14px;max-width:70ch;}
+  p.tight{margin-bottom:8px;}
+  strong{color:var(--ink);font-weight:600;}
+  .callout{
+    background:var(--gold-soft);border:1px solid color-mix(in srgb, var(--gold) 35%, var(--line));
+    border-radius:10px;padding:16px 18px;margin:18px 0;font-size:14.5px;color:var(--ink);
+  }
+  .callout b{color:var(--gold);}
+  .warn-box{
+    background:var(--warn-soft);border:1px solid color-mix(in srgb, var(--warn) 35%, var(--line));
+    border-radius:10px;padding:16px 18px;margin:18px 0;font-size:14.5px;
+  }
+  .warn-box b{color:var(--warn);}
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px;}
+  .table-scroll{overflow-x:auto;}
+  th,td{
+    text-align:right;padding:10px 12px;border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  th{
+    font-family:var(--font-mono);font-weight:500;font-size:12px;
+    letter-spacing:.03em;color:var(--ink-soft);text-transform:uppercase;
+    background:var(--bg-sunken);
+  }
+  tr:last-child td{border-bottom:none;}
+  td.num,th.num{font-variant-numeric:tabular-nums;font-family:var(--font-mono);}
+  code, .code{
+    font-family:var(--font-mono);font-size:13.5px;
+    background:var(--bg-sunken);border-radius:6px;padding:2px 6px;
+    direction:ltr;unicode-bidi:isolate;display:inline-block;
+  }
+  pre{
+    font-family:var(--font-mono);font-size:13px;background:var(--bg-sunken);
+    border:1px solid var(--line);border-radius:10px;padding:16px 18px;
+    overflow-x:auto;direction:ltr;text-align:left;color:var(--ink);
+  }
+  .grid-cards{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:16px;margin:20px 0;
+  }
+  .card{
+    background:var(--bg-raised);border:1px solid var(--line);border-radius:14px;
+    padding:20px;display:flex;flex-direction:column;gap:10px;
+  }
+  .card .plan-name{font-family:var(--font-display);font-size:19px;font-weight:700;}
+  .card .duration{font-size:13px;color:var(--ink-soft);}
+  .tier{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;font-weight:600;border-radius:100px;padding:4px 10px;width:fit-content;
+  }
+  .tier.easy{background:var(--accent-soft);color:var(--accent);}
+  .tier.mid{background:var(--gold-soft);color:var(--gold);}
+  .tier.hard{background:var(--warn-soft);color:var(--warn);}
+  .stat-row{display:flex;justify-content:space-between;font-size:13.5px;border-top:1px solid var(--line);padding-top:10px;}
+  .stat-row span:first-child{color:var(--ink-soft);}
+  .stat-row b{font-variant-numeric:tabular-nums;font-family:var(--font-mono);color:var(--ink);}
+  .phase-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:6px 0;}
+  .phase-bar div{height:100%;}
+  .phase-legend{display:flex;gap:14px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap;}
+  .phase-legend .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-inline-end:4px;}
+  ol,ul{padding-inline-start:22px;margin:0 0 14px;}
+  li{margin-bottom:6px;max-width:66ch;}
+  footer{padding:32px 24px 60px;color:var(--ink-soft);font-size:12.5px;max-width:920px;margin:0 auto;}
+  a{color:var(--accent);}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;margin:14px 0;}
+  .flow .step{background:var(--bg-sunken);border:1px solid var(--line);border-radius:8px;padding:8px 12px;}
+  .flow .arrow{color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <p class="eyebrow">TalibAlIlmApp · docs/quran · هندسة الحفظ</p>
+    <h1>محرك خطط الحفظ الزمنية</h1>
+    <p class="lede">امتداد علمي وهندسي لمنهجية سبق–سبقي–منزل المعتمدة فعلًا في التطبيق (Phase 28 وPhase 56)، مع خمس وتيرات زمنية قياسية جاهزة لختم القرآن، مبنية فوق <code>JourneyPlanRepository</code> الموجود — لا محرك جديد من الصفر.</p>
+    <nav class="toc">
+      <a href="#sci">الطبقة العلمية</a>
+      <a href="#gaps">إكمال الحبات القادمة</a>
+      <a href="#order">البقرة أم الناس؟</a>
+      <a href="#plans">الخطط الخمس</a>
+      <a href="#arch">التكامل المعماري</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="sci">
+    <p class="section-num">01 / العلم</p>
+    <h2>ما وراء إبنجهاوس: طبقة علمية جديدة</h2>
+    <p>التطبيق يوثّق أصلًا منحنى إبنجهاوس للنسيان ونظام سبق/سبقي/منزل (مصادر: suffahquran.com، islamictuition.us، ومشروع MonthlyQuran مفتوح المصدر). هذه خمسة مبادئ إضافية من علم النفس المعرفي، لم تكن موثّقة بعد في مستندات المشروع، تُطبَّق هنا كطبقة فوق ما هو قائم:</p>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>المبدأ</th><th>الفكرة</th><th>التطبيق العملي</th></tr></thead>
+      <tbody>
+        <tr><td><b>سعة الذاكرة العاملة</b><br><span style="color:var(--ink-soft);font-size:12.5px">Miller / Cowan</span></td><td>لا يعالج الدماغ أكثر من ~4 وحدات معنى دفعة واحدة</td><td>تقسيم كل سبق إلى مقاطع صغيرة (آية قصيرة أو 3-4 كلمات) بدل حفظ الصفحة كتلة واحدة</td></tr>
+        <tr><td><b>أثر الاختبار</b><br><span style="color:var(--ink-soft);font-size:12.5px">Roediger &amp; Karpicke</span></td><td>الاسترجاع الفعّال من الذاكرة يثبّت أكثر من إعادة القراءة</td><td>لكل مقطع: قراءة جهرية ×٣ ثم تسميع بلا نظر ×٥ — لا إعادة قراءة فقط</td></tr>
+        <tr><td><b>الترميز المزدوج</b><br><span style="color:var(--ink-soft);font-size:12.5px">Paivio</span></td><td>ربط النص بمعناه يخلق مسارين مستقلين للاسترجاع</td><td>جملة معنى واحدة من التفسير المختصر (بيانات موجودة أصلًا) قبل حفظ كل صفحة</td></tr>
+        <tr><td><b>التدريب المتداخل</b><br><span style="color:var(--ink-soft);font-size:12.5px">Interleaving</span></td><td>ترتيب مراجعة غير تسلسلي يميّز العناصر المتشابهة</td><td>جلسة شهرية مخصصة لمقارنة الآيات المتشابهة (متشابهات القرآن) — فجوة بيانات موثّقة، لم تُبنَ بعد</td></tr>
+        <tr><td><b>توحيد النوم</b><br><span style="color:var(--ink-soft);font-size:12.5px">Sleep consolidation</span></td><td>المراجعة قبل النوم مباشرة تُرسَّخ أثناءه</td><td>توصية توقيت لإشعار "مراجعة السبقي الأخيرة قبل النوم"</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="warn-box"><b>عن تطبيق Play Store المذكور:</b> محاولة الوصول لصفحة <code>com.quran_memorization.schedule</code> فشلت فعليًا (صفحة جافاسكربت لا تُقرأ آليًا) — لم يُستخرَج منها أي فكرة، ولا شيء هنا منسوخ عنها. البناء كان على المصادر الموثّقة أصلًا في هذا المشروع + هذه الطبقة العلمية الإضافية.</div>
+  </section>
+
+  <section id="gaps">
+    <p class="section-num">02 / الاستكمال</p>
+    <h2>إكمال "الحبات القادمة" المؤجَّلة في §4.31</h2>
+    <p>ثلاثة عناصر ذُكرت صراحة في الخارطة كـ"غير مبنية بعد، بانتظار الاستمرار" — هذا حلّها الرياضي جاهزًا للتنفيذ:</p>
+
+    <h3>أ. دورة منزل الأسبوعية الحقيقية</h3>
+    <p class="tight">بدل الدوران الثابت كل 30 يومًا، تُقسَّم كل الصفحات الراسخة إلى 7 "دِلاء" حسب ترتيب الحفظ (لا التاريخ)، فتُراجَع كل صفحة دائمًا في نفس يوم الأسبوع، وحجم كل دلو يكبر تلقائيًا مع نمو المحفوظ:</p>
+    <pre>weekday_bucket(page) = memorization_order_index(page) mod 7
+manzil_daily_portion  = established_pages ÷ 7   (تُحسَب حيًا، لا تُخزَّن)</pre>
+    <p class="tight">إضافي بالكامل (عمود جديد خلف <code>feature_flag: manzil_v2</code>) — لا يمسّ جدول الاستحقاق الحالي لبيانات الحفظ الحقيقية.</p>
+
+    <h3>ب. بوابة الإتقان الأدائية</h3>
+    <p class="tight">التصنيف الحالي (<code>hifzCategory()</code>) يعتمد على عمر الصفحة فقط. الإضافة: صفحة لا "تتخرّج" من سبقي إلى منزل إلا إذا تحقق الشرطان معًا:</p>
+    <pre>manzil_eligible = (age_since_memorized ≥ 15 يوم)
+                   AND (آخر تقييمين ذاتيين ≠ "صعبة")</pre>
+    <p class="tight">توصية عرض فقط (شارة "تحتاج تثبيتًا إضافيًا") — لا تغيّر الجدولة الفعلية، تستخدم بيانات تقييم موجودة أصلًا.</p>
+
+    <h3>ج. ربط الوتيرة الواقعية بـ"تكليف اليوم" فعليًا</h3>
+    <p class="tight">الأسقف موجودة أصلًا (مبتدئ ١٫٠ / متوسط ١٫٥ / متفرغ ٢٫٠ صفحة/يوم). الإضافة: اقتراح <em>حجم</em> السبق التالي بناءً على مستوى الطالب، لا فقط تحذير عند تجاوز السقف.</p>
+  </section>
+
+  <section id="order">
+    <p class="section-num">03 / الترتيب</p>
+    <h2>من البقرة أم من الناس؟</h2>
+    <p>سؤال مباشر يستحق إجابة صريحة قبل بناء أي معالج:</p>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>الترتيب</th><th>الأثر</th><th>الأنسب لـ</th></tr></thead>
+      <tbody>
+        <tr><td><b>مصحفي</b><br>البقرة ← الناس</td><td>يحافظ على الترابط الموضوعي والسياقي بين السور</td><td>من يريد فهمًا مترابطًا مبكرًا</td></tr>
+        <tr><td><b>معكوس</b><br>الناس ← البقرة</td><td>سور قصيرة مألوفة من الصلاة → مكاسب سريعة وثقة مبكرة</td><td>مبتدئ يحتاج بناء طلاقة أولًا</td></tr>
+        <tr><td><b>هجين (الافتراضي المقترح)</b></td><td>جزء ٣٠ ثم ٢٩ (طلاقة سريعة)، ثم مصحفي من جزء ١ إلى ٢٨</td><td>عموم المستخدمين، ما لم يُختر غيره</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>تنفيذ مقترح: حقل <code>memorization_order_mode</code> في معالج "رحلتي" — حتمي دائمًا (لا عشوائية)، يطابق فلسفة <code>nextRecommendedUnit()</code> الحالية.</p>
+  </section>
+
+  <section id="plans">
+    <p class="section-num">04 / الخطط</p>
+    <h2>خمس وتيرات قياسية لختم القرآن</h2>
+    <p>604 صفحة، 3 مراحل لكل خطة: <b>تأسيس</b> (وتيرة مخفّضة، بناء عادة) → <b>اكتساب</b> (السبق اليومي الثابت) → <b>ختم وتثبيت</b> (بلا سبق جديد، دورات ختمة متسارعة 30←20←15 يومًا، تطبيقًا لمبدأ التعلّم الزائد overlearning). 6 أيام عمل/أسبوع، الجمعة مراجعة خفيفة فقط.</p>
+
+    <div class="grid-cards">
+
+      <div class="card">
+        <div><span class="plan-name">27 شهرًا</span><div class="duration">819 يومًا · الأخف</div></div>
+        <span class="tier easy">مريحة — تحت سقف المبتدئ</span>
+        <div class="phase-bar"><div style="width:12%;background:var(--gold)"></div><div style="width:73%;background:var(--accent)"></div><div style="width:15%;background:var(--ink-soft)"></div></div>
+        <div class="stat-row"><span>وتيرة يومية</span><b>≈0.97 صفحة</b></div>
+        <div class="stat-row"><span>وتيرة أسبوعية</span><b>≈5.8 صفحة</b></div>
+        <div class="stat-row"><span>مرحلة الختم</span><b>3 أشهر</b></div>
+      </div>
+
+      <div class="card">
+        <div><span class="plan-name">سنتان (24 شهرًا)</span><div class="duration">728 يومًا · الافتراضي</div></div>
+        <span class="tier easy">مريحة — تحت سقف المتوسط</span>
+        <div class="phase-bar"><div style="width:11%;background:var(--gold)"></div><div style="width:75%;background:var(--accent)"></div><div style="width:14%;background:var(--ink-soft)"></div></div>
+        <div class="stat-row"><span>وتيرة يومية</span><b>≈1.08 صفحة</b></div>
+        <div class="stat-row"><span>وتيرة أسبوعية</span><b>≈6.4 صفحة</b></div>
+        <div class="stat-row"><span>مرحلة الختم</span><b>2.5 شهر</b></div>
+      </div>
+
+      <div class="card">
+        <div><span class="plan-name">19 شهرًا</span><div class="duration">574 يومًا · متوسطة</div></div>
+        <span class="tier mid">تحتاج التزامًا يوميًا صارمًا</span>
+        <div class="phase-bar"><div style="width:9%;background:var(--gold)"></div><div style="width:77%;background:var(--accent)"></div><div style="width:14%;background:var(--ink-soft)"></div></div>
+        <div class="stat-row"><span>وتيرة يومية</span><b>≈1.37 صفحة</b></div>
+        <div class="stat-row"><span>وتيرة أسبوعية</span><b>≈8.2 صفحة</b></div>
+        <div class="stat-row"><span>مرحلة الختم</span><b>2 أشهر</b></div>
+      </div>
+
+      <div class="card">
+        <div><span class="plan-name">10 أشهر</span><div class="duration">301 يومًا · مكثفة</div></div>
+        <span class="tier hard">تتجاوز سقف "المتفرغ" الموثّق</span>
+        <div class="phase-bar"><div style="width:7%;background:var(--gold)"></div><div style="width:76%;background:var(--accent)"></div><div style="width:17%;background:var(--ink-soft)"></div></div>
+        <div class="stat-row"><span>وتيرة يومية</span><b>≈2.65 صفحة</b></div>
+        <div class="stat-row"><span>وتيرة أسبوعية</span><b>≈15.9 صفحة</b></div>
+        <div class="stat-row"><span>مرحلة الختم</span><b>5 أسابيع</b></div>
+      </div>
+
+      <div class="card" style="grid-column:1/-1;max-width:420px;">
+        <div><span class="plan-name">6 أشهر</span><div class="duration">182 يومًا · قصوى</div></div>
+        <span class="tier hard">دورة تحفيظ نظامية بمعلّم فقط</span>
+        <div class="phase-bar"><div style="width:5%;background:var(--gold)"></div><div style="width:75%;background:var(--accent)"></div><div style="width:20%;background:var(--ink-soft)"></div></div>
+        <div class="stat-row"><span>وتيرة يومية</span><b>≈4.4 صفحة</b></div>
+        <div class="stat-row"><span>وتيرة أسبوعية</span><b>≈26.5 صفحة</b></div>
+        <div class="stat-row"><span>مرحلة الختم</span><b>3 أسابيع</b></div>
+      </div>
+
+    </div>
+    <div class="phase-legend">
+      <span><i class="dot" style="background:var(--gold)"></i>تأسيس</span>
+      <span><i class="dot" style="background:var(--accent)"></i>اكتساب (السبق اليومي)</span>
+      <span><i class="dot" style="background:var(--ink-soft)"></i>ختم وتثبيت</span>
+    </div>
+
+    <div class="callout"><b>لماذا الخطتان الأخيرتان مختلفتان بصريًا:</b> وتيرتاهما تتجاوزان الأسقف الواقعية الموثّقة فعلًا في التطبيق (مبتدئ ١٫٠ / متوسط ١٫٥ / متفرغ كليًا ٢٫٠ صفحة/يوم). لا تُخفيان — مبدأ التطبيق "رفيق لا مدير" — لكنهما تُعرَضان بتحذير صريح، وتُنصَحان فقط لطالب متفرغ تمامًا مع معلّم تصحيح مباشر، أو لديه أصلًا حفظ جزئي سابق يقلّل الصفحات المتبقية.</div>
+
+    <h3>ترتيب المصحف داخل كل خطة</h3>
+    <div class="flow">
+      <span class="step">جزء 30</span><span class="arrow">←</span>
+      <span class="step">جزء 29</span><span class="arrow">←</span>
+      <span class="step">جزء 1 → 28 (بالترتيب المصحفي)</span>
+    </div>
+    <p>المعالم الشهرية (كم جزءًا يجب إنجازه بنهاية كل شهر) تُحسَب حيًا من نفس معادلة <code>CompletionGoalRepository</code> الموجودة — لا تُخزَّن كجدول ثابت قابل للانحراف عن الواقع.</p>
+  </section>
+
+  <section id="arch">
+    <p class="section-num">05 / التكامل</p>
+    <h2>ملخص للوكيل المنفِّذ</h2>
+    <div class="table-scroll">
+    <table>
+      <thead><tr><th>المكوّن الجديد</th><th>يُبنى فوق</th><th>نوع التغيير</th></tr></thead>
+      <tbody>
+        <tr><td><code>manzil_bucket</code></td><td><code>memorization_order_index</code></td><td>إضافي، خلف <code>feature_flag</code></td></tr>
+        <tr><td>شرط <code>manzil_eligible</code></td><td>تقييمات الجلسة الموجودة</td><td>عرض فقط، لا يمسّ الجدولة</td></tr>
+        <tr><td><code>memorization_order_mode</code></td><td>معالج "رحلتي"</td><td>حقل اختياري، الافتراضي = السلوك الحالي</td></tr>
+        <tr><td>القوالب الخمسة</td><td><code>JourneyPlanRepository</code></td><td>طبقة اختيار سريع، بلا رياضيات جديدة</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p><b>الأولوية المقترحة</b>: القوالب الخمسة أولًا (قيمة مباشرة، مخاطرة صفر) ← ربط الوتيرة بتكليف اليوم ← منزل الأسبوعي وبوابة الإتقان (تحتاج <code>feature_flag</code> واختبارًا قبل أي تفعيل على بيانات إسماعيل الحقيقية — <b>لا تُمس القرآن إطلاقًا</b>).</p>
+    <p>التفاصيل الكاملة والصيغ في <code>HIFZ_TIMELINE_ENGINE.md</code> بجانب هذا الملف.</p>
+  </section>
+
+</main>
+
+<footer>
+  محرك خطط الحفظ الزمنية · جزء من TalibAlIlmApp · يكمل Phase 28 / Phase 56 / §4.31 دون تعديل أي جدولة قائمة
+</footer>
+
+</body>
+</html>

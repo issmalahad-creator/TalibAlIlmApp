@@ -1,6 +1,58 @@
 # TODO.md — live phase tracker
 
-Last updated: 2026-08-25. **Work top to bottom, one unchecked item at a time.** Don't skip ahead — see `CLAUDE.md`'s "one rule that prevents scatter". Full detail for every item lives in `QURAN_COMPANION_ROADMAP.md`; this file only tracks status.
+Last updated: 2026-09-26. **Work top to bottom, one unchecked item at a time.** Don't skip ahead — see `CLAUDE.md`'s "one rule that prevents scatter". Full detail for every item lives in `QURAN_COMPANION_ROADMAP.md`; this file only tracks status.
+
+### مصدر الحقيقة الوحيد لـ«ما التالي؟» (2026-09-26)
+
+هذا الملف هو المرجع الوحيد لترتيب العمل. ملفات المسارات الفرعية (`docs/quran/MASTER_EXECUTION_QUEUE.md`، `docs/memorization/TODO.md`، `docs/audio-reader/TODO.md`، `docs/APP_PERFORMANCE_AND_SIZE_ROADMAP.md`) تحمل **تفاصيل** كل مسار فقط — عند التعارض في الأولوية يُعتمَد هذا الملف. **الأولوية الحالية: المسار 1 أدناه (SIZE-1).**
+
+### حالة Phase 77 / مُحرّك الحياة (مُتحقَّق من git، 2026-09-26)
+
+Phase 77 بُنيت فعليًا تحت اسم **Life Engine** (`docs/LIFE_ENGINE.md`) — قسم Phase 77 أدناه بعنوان "PLANNED, not started" قديم، يُقرأ كتاريخ تصميم فقط.
+
+- [x] **L1–L5**: نموذج البيانات + شاشة «اليوم» + «التقدّم» + الإشعارات + المراجعة الأسبوعية/ملاحظة اليوم/دورة 90 يومًا (`897ca3e`، `fa9df6d`، `19f47cb`، …).
+- [x] **L6-DYN #1** محرّر الخطة (`d004625`) · **#3** المهام و«أهمّ 3» (`094a6f3`) · **#4** الإنجاز الجزئي والكمّي (`10df74d`) · تعديل/إضافة الخانات مباشرة من «اليوم» (`d83b8db`).
+- [ ] **L6-DYN #2** قوالب اليوم — مُصمَّم فقط (`2800a16`)، لم يُبنَ.
+- [ ] الربط مع Google Sheet (77.11b/c) وبوت تليجرام/n8n (77.12) — مفتوحة، لا تُعتبَر منجزة قبل اختبار تدفّق حقيقي.
+
+## قضايا معروفة (منفصلة عن أي مرحلة أعلاه)
+
+- **2026-09-16 — `flutter test` الكامل يتعلّق (hang حقيقي، لا بطء)**: عند تشغيل المجموعة **كاملة** فقط، `test/akhlaq_screens_test.dart`'s `tearDownAll` يتجمّد (CPU يتوقف فعليًا عن التقدّم) — على الأرجح تسرّب مورد (Timer/isolate/اشتراك) من ملف سابق في الترتيب (لوحظ يحدث مباشرة بعد `test/ayah_notebook_screen_test.dart`)، لا خلل في `akhlaq_screens_test.dart` نفسه (يمرّ بنجاح في ~6 ثوانٍ عند تشغيله منفردًا: `flutter test test/akhlaq_screens_test.dart`). تحقّقتُ بدقة (`git stash` + إعادة التشغيل): نفس التعليق بالضبط بوجود أي تعديل حديث وبدونه — عطل بنية اختبارات موجود مسبقًا، غير مرتبط بأي تغيير معيّن. لم يُصلَح بعد — مهمة منفصلة تحتاج عزل الملف/الملفات المسبِّبة للتسرّب. إلى حين إصلاحه: استخدم `flutter test <ملف محدد>` بدل التشغيل الكامل، أو تحقّق عبر `flutter analyze` + تشغيل معزول للملفات ذات الصلة بالتغيير.
+
+## أولوية التنفيذ الجديدة — الحجم أولًا ثم صوت إسماعيل (2026-09-20)
+
+**قرار إسماعيل:** لا نبدأ مسار الصوت داخل التطبيق قبل إنهاء تخفيف الحجم والأداء واعتماد نسخة قابلة للاختبار. نعمل حبة واحدة في كل مرة، وننتظر اختبار إسماعيل قبل الانتقال للحبة التالية.
+
+### المسار 1 — تخفيف حجم التطبيق وتسريعه (ابدأ هنا)
+
+الوثيقة التفصيلية: [`docs/APP_PERFORMANCE_AND_SIZE_ROADMAP.md`](docs/APP_PERFORMANCE_AND_SIZE_ROADMAP.md)
+الـSkill الإلزامي: [`.claude/skills/app-performance-optimization/SKILL.md`](.claude/skills/app-performance-optimization/SKILL.md)
+
+- [x] **SIZE-0 — نقطة رجوع وbaseline:** tag `size-baseline-before-optimization-2026-09-20`، وقياس release حقيقي مع split-per-abi. النتائج: `full release` = 626.6-648.3 MB حسب ABI، و`lite release` = 459.2 MB؛ أكبر الأصول: `assets/quran` = 484 MB، `assets/mushaf` = 84.7 MB، `assets/tts` = 61.4 MB. لا حذف دائم ولا نقل بقي بعد القياس. ملاحظة: أمر Bash الخاص بـlite لديه مشكلة CRLF على Windows؛ تم القياس عبر PowerShell مع استعادة corpus والتحقق من رجوعه.
+- [ ] **SIZE-1 — بناء release مضبوط:** سكربت واضح لـ`full/lite` و`split-per-abi` مع checksum ومسار APK معروف.
+- [ ] **SIZE-2 — جرد الأصول:** ربط كل asset بمستهلكه وتصنيفه `offline-essential`/`optional`/`downloadable`/`build-only` مع مراجعة الترخيص.
+- [ ] **SIZE-3 — تخفيف startup:** فصل الضروري عن import/sync الثقيل، مع progress وفشل قابل لإعادة المحاولة.
+- [ ] **SIZE-4 — تحميل المصحف عند الطلب:** صفحة حالية + cache محدود، وعدم تحميل 604 صفحة أو glyph data كاملة في الذاكرة.
+- [ ] **SIZE-5 — Lite packages:** جعل corpus والتفاسير واللغات حزمًا قابلة للتنزيل مع manifest وchecksum وoffline fallback.
+- [ ] **SIZE-6 — قرار TTS داخل Lite:** دراسة إبقاء TTS أو تنزيله عند الطلب، مع اختبار offline حقيقي قبل أي حذف من APK.
+- [ ] **SIZE-7 — native/dependency audit:** تقليل الاعتماديات وتفعيل shrinking فقط بعد قياس واختبار plugins.
+- [ ] **SIZE-8 — اعتماد الهاتف:** full/lite release، `flutter analyze`، اختبارات المرحلة، واختبار الجهاز الحقيقي؛ لا ننتقل للصوت قبل نجاحه.
+
+### المسار 2 — تسجيل وتدريب صوت إسماعيل (بعد SIZE-8 فقط)
+
+الخطة الصوتية الحالية: `docs/audio-reader/TODO.md` + `D:\_wt\piper-recording-studio\build_religious_prompts.py`
+الـSkill الإلزامي: [`.claude/skills/tts-audio-pipeline/SKILL.md`](.claude/skills/tts-audio-pipeline/SKILL.md)
+
+- [ ] **VOICE-0 — فحص التسجيلات:** مطابقة الصوت والنص، كشف الصمت/clipping/الملفات الناقصة، وتقرير quality report دون حذف أصلي.
+- [ ] **VOICE-1 — Dataset:** تحويل `webm` إلى WAV، توحيد الصوت، train/validation split، وفصل القرآن عن الكلام الديني الطبيعي.
+- [ ] **VOICE-2 — أول تدريب:** fine-tune على `ar_JO-kareem-medium` مع checkpoints واستكمال التدريب، لا تدريب من الصفر.
+- [ ] **VOICE-3 — فحص وتصدير:** توليد عينات، تصدير ONNX، تصحيح metadata، واختبار 50-100 توليد متتالٍ.
+- [ ] **VOICE-4 — حزمة صوت:** `model.onnx` وconfig وtokens وespeak data مع manifest وSHA-256، خارج APK.
+- [ ] **VOICE-5 — ربط التطبيق:** `TtsVoiceRegistry` يدعم remote voice، تنزيل ذري مع progress/retry/cache، ثم تشغيله عبر `TtsEngine`.
+- [ ] **VOICE-6 — اختبار الهاتف:** تنزيل الصوت، تشغيل كتاب حقيقي، انقطاع الإنترنت، إعادة تشغيل التطبيق، واختبار الذاكرة/crash.
+- [ ] **VOICE-7 — اعتماد `ismail-v1`:** نشر النسخة بعد تحقق الجودة فقط، ثم تحديث `docs/audio-reader/TODO.md` و`TODO.md` بأرقام فعلية.
+
+**قاعدة التوقف:** لا نعلّم أي بند `[x]` ولا نبدأ البند التالي بناءً على نجاح compile فقط؛ يلزم اختبار البند المحدد ودليل واضح. بعد كل بند أتوقف وأطلب من إسماعيل الاختبار قبل المتابعة.
 
 ## جدول العمل — الأهم فالأهم (2026-08-26)
 

@@ -28,6 +28,8 @@ writing code; update the KB when you learn something durable.
 | `docs/quran/QURAN_INTERACTION.md` | hit-testing, the coordinate transform, word-range selection, anchoring to the notebook, recitation/tajweed overlays. |
 | `docs/quran/QURAN_TERMINOLOGY.md` | glossary (rasm, dabt, imlaei, riwaya, waqf types, juz/hizb/rub, sajda, …) defined for their code impact. |
 | `docs/quran/ERRATA.md` | mistakes already made + the durable rule each produced. Check before repeating a pattern. |
+| `docs/quran/READING_SCREEN_REFERENCE_2026.md` | reading-screen control layout/UX reference from a real reviewed app ("معًا نتعلّم"): the 5-icon persistent bottom bar, the ayah-picker sheet, an embedded mini recitation player, download-by-surah-range, auto-scroll, index-row redesign — read before touching the reading screen's control layer (never the mushaf renderer itself) |
+| `docs/quran/KHATM_SYSTEM_AND_STYLE_REFERENCE.md` | multi-completion-goal ("الختمات") full spec from a real reviewed app ("وَحْي") — field-by-field creation wizard, the authentic "تحزيب الصحابة" 7-day preset (real Bukhari hadith, quote verbatim), the live plan dashboard, the ornamental surah-header style, the first-launch language picker, the 4-tab word panel — built confirmed-live via emulator inspection against what this app already has (`CompletionGoalRepository`, QAC data, 12 riwayat) vs what's genuinely missing. Read before touching خطة الختم/رحلتي screens or the word-tap panel. |
 
 ## Knowledge classification — tag everything you add
 
