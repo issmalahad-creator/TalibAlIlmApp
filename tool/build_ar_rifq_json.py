@@ -494,9 +494,24 @@ SUB_AM = {
  "rifq_nush": "በምክር ውስጥ ገርነት፦ ምክር እንጂ ውርደት አይደለም",
  "rifq_mukarrir": "ስህተትን ከደጋገመ ሰው ጋር ገርነት፦ ትዕግስትና ደረጃ በደረጃ መሄድ ያለ እየጨመረ የሚሄድ ጭካኔ",
 }
+SUB_FR = {
+ "rifq_ibara": "Choisir la formulation la plus douce et suffisante pour signaler une erreur",
+ "rifq_nabra": "Maîtriser le ton de la voix et le langage corporel lors de la réprobation",
+ "rifq_tawqit": "Choisir le moment et le lieu appropriés pour corriger (en privé si possible)",
+ "rifq_taysir": "Commencer par ce qui rapproche avant de signaler l'erreur (faciliter, non repousser)",
+ "rifq_fahs": "Un examen préalable : suis-je savant ? mon jugement est-il juste ? ma méthode est-elle douce ?",
+ "rifq_jahil": "La douceur envers l'ignorant et le questionneur : corriger sans rudoyer ni brusquer",
+ "rifq_la_taqta3": "Ne pas interrompre brutalement une situation quand cela aggrave le mal ; réparer ensuite",
+ "rifq_istifzaz": "Choisir délibérément la douceur face à la provocation (la douceur est un choix, non une incapacité)",
+ "rifq_hazm": "Allier la fermeté sur le fond et la douceur dans la forme",
+ "rifq_naqd_qawl": "Séparer la critique du propos du dénigrement de la personne, tout en gardant les bonnes manières de la réprobation",
+ "rifq_nush": "La douceur dans le conseil : conseiller, non exposer publiquement",
+ "rifq_mukarrir": "La douceur envers celui qui répète l'erreur : patience et progressivité, sans durcissement croissant",
+}
 for sid, ar in SUBSKILLS:
     tr("subskill", sid, "title", "en", "pedagogical", SUB_EN[sid])
     tr("subskill", sid, "title", "am", "pedagogical", SUB_AM[sid])
+    tr("subskill", sid, "title", "fr", "pedagogical", SUB_FR[sid])
 
 # scenario stems + feedback in EN (proves a non-Arab user can train)
 SC_EN_STEM = {

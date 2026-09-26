@@ -26,8 +26,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
   Future<void> _submit() async {
     if (_answers.any((a) => a == null)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('يرجى الإجابة على جميع الأسئلة')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى الإجابة على جميع الأسئلة')),
+      );
       return;
     }
     var correct = 0;
@@ -38,11 +39,13 @@ class _QuizScreenState extends State<QuizScreen> {
     // widget.book.month actually holds the book's unique id here (see
     // BookScreen._asBookOfMonth) — quiz results are keyed per-book now that
     // multiple books can coexist, not per-calendar-month.
-    await _bookRepo.saveQuizResult(QuizResult(
-      month: widget.book.month,
-      scorePercent: score,
-      takenAt: DateTime.now().toIso8601String(),
-    ));
+    await _bookRepo.saveQuizResult(
+      QuizResult(
+        month: widget.book.month,
+        scorePercent: score,
+        takenAt: DateTime.now().toIso8601String(),
+      ),
+    );
     setState(() {
       _submitted = true;
       _scorePercent = score;
@@ -64,9 +67,15 @@ class _QuizScreenState extends State<QuizScreen> {
                 color: _scorePercent >= 60 ? Colors.green : Colors.orange,
               ),
               const SizedBox(height: 16),
-              Text('نتيجتك: $_scorePercent%', style: Theme.of(context).textTheme.headlineSmall),
+              Text(
+                'نتيجتك: $_scorePercent%',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
               const SizedBox(height: 24),
-              FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('عودة')),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('عودة'),
+              ),
             ],
           ),
         ),
@@ -87,15 +96,22 @@ class _QuizScreenState extends State<QuizScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('${qi + 1}. ${q.question}', style: Theme.of(context).textTheme.titleMedium),
-                  ...List.generate(
-                    q.options.length,
-                    (oi) => RadioListTile<int>(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(q.options[oi]),
-                      value: oi,
-                      groupValue: _answers[qi],
-                      onChanged: (v) => setState(() => _answers[qi] = v),
+                  Text(
+                    '${qi + 1}. ${q.question}',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  RadioGroup<int>(
+                    groupValue: _answers[qi],
+                    onChanged: (v) => setState(() => _answers[qi] = v),
+                    child: Column(
+                      children: List.generate(
+                        q.options.length,
+                        (oi) => RadioListTile<int>(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(q.options[oi]),
+                          value: oi,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -107,7 +123,10 @@ class _QuizScreenState extends State<QuizScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: FilledButton(onPressed: _submit, child: const Text('إرسال الإجابات')),
+          child: FilledButton(
+            onPressed: _submit,
+            child: const Text('إرسال الإجابات'),
+          ),
         ),
       ),
     );
