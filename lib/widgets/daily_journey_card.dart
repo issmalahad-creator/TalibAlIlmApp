@@ -46,7 +46,7 @@ class _DailyJourneyCardState extends State<DailyJourneyCard> {
   Future<void> _load() async {
     final now = DateTime.now();
     var suggestion = journeySuggestionFor(now);
-    final coords = await _locationService.currentLocation();
+    final coords = await _locationService.currentLocation(mayAskPermission: false);
     if (coords != null) {
       try {
         final times = await _prayerRepo.prayerTimesFor(coords);

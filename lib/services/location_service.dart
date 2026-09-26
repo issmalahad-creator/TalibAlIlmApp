@@ -30,8 +30,14 @@ class LocationService {
   /// Returns a usable location, or null if neither GPS nor a manual/cached
   /// location is available yet — callers must handle that (prompt for
   /// manual entry), never silently guess a coordinate.
-  Future<AppCoordinates?> currentLocation() async {
-    final gps = await _tryGps();
+  ///
+  /// [mayAskPermission] is false for background work (startup notification
+  /// scheduling): it uses GPS only if permission was already granted, else
+  /// the manual/cached location — the system dialog is only ever shown from
+  /// a screen the user opened (prayer times, qibla), never out of nowhere
+  /// over Home (docs/architecture/ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md ZW-4).
+  Future<AppCoordinates?> currentLocation({bool mayAskPermission = true}) async {
+    final gps = await _tryGps(mayAskPermission: mayAskPermission);
     if (gps != null) {
       await _cacheLocation(gps.latitude, gps.longitude);
       return gps;
@@ -53,13 +59,13 @@ class LocationService {
     return null;
   }
 
-  Future<AppCoordinates?> _tryGps() async {
+  Future<AppCoordinates?> _tryGps({required bool mayAskPermission}) async {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return null;
 
       var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
+      if (permission == LocationPermission.denied && mayAskPermission) {
         permission = await Geolocator.requestPermission();
       }
       if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {

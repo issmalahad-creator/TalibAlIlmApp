@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#0A0A0A</color>
+    <!-- Brand splash ivory = AppColors.background (lib/theme/app_theme.dart) -->
+    <color name="brand_ivory">#FFFBF2D9</color>
 </resources>

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../services/boot/boot_scheduler.dart';
 import '../services/onboarding_service.dart';
 import 'main_shell.dart';
 import 'onboarding_screen.dart';
-import '../widgets/loading_view.dart';
 
 /// Decides, once at app start, whether to show the first-launch tutorial or
 /// go straight to [MainShell]. Kept as its own tiny widget so `main.dart`'s
@@ -23,13 +23,15 @@ class _StartupGateState extends State<StartupGate> {
     super.initState();
     OnboardingService().hasSeenOnboarding().then((seen) {
       if (mounted) setState(() => _showOnboarding = !seen);
+      if (!seen) BootScheduler.instance.markOnboardingShown();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     if (_showOnboarding == null) {
-      return const Scaffold(body: AppLoadingView(icon: Icons.auto_stories_outlined, message: 'جاري تحضير تطبيقك...'));
+      // Covered by BrandSplashGate; a plain page, never a second spinner.
+      return const Scaffold(body: SizedBox.shrink());
     }
     if (_showOnboarding == true) {
       return OnboardingScreen(

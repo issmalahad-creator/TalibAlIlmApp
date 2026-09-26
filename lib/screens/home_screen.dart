@@ -15,6 +15,7 @@ import '../repositories/mosque_repository.dart';
 import '../l10n/basic_translations.dart';
 import '../repositories/profile_repository.dart';
 import '../services/book_content_service.dart';
+import '../services/boot/boot_scheduler.dart';
 import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
@@ -107,6 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _reviewDueCount = reviewDue.length;
       _loading = false;
     });
+    // Home has real content on screen — let deferred startup work begin.
+    BootScheduler.instance.markHomeReady();
     // Best-effort, non-blocking: the banner is a nice-to-have and must never
     // delay/hide the rest of the home screen if the network is unavailable.
     _bookContentService.fetch().then((feed) {

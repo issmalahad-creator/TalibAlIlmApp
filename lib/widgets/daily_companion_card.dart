@@ -64,7 +64,7 @@ class _DailyCompanionCardState extends State<DailyCompanionCard> {
   }
 
   Future<void> _load() async {
-    final coords = await _locationService.currentLocation();
+    final coords = await _locationService.currentLocation(mayAskPermission: false);
     if (coords == null) {
       if (!mounted) return;
       setState(() {

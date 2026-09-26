@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show debugPrint, visibleForTesting;
+import 'package:flutter/foundation.dart' show compute, debugPrint, visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:sqflite/sqflite.dart';
@@ -131,8 +131,7 @@ class TurathCatalogSync {
   Future<CatalogSyncResult> _seedFromAsset(Database db) async {
     try {
       final byteData = await rootBundle.load(_assetPath);
-      final jsonText = utf8.decode(gzip.decode(byteData.buffer.asUint8List()));
-      final json = jsonDecode(jsonText) as Map<String, dynamic>;
+      final json = await compute(_decodeGzJson, byteData.buffer.asUint8List());
       final v = validate(json);
       if (!v.ok) {
         debugPrint('TurathCatalogSync: bundled asset failed validation, keeping static fallback. $v');
@@ -401,3 +400,7 @@ class TurathCatalogSync {
 
   void dispose() => _http.close();
 }
+
+/// Off the UI isolate: the bundled catalog is thousands of books.
+Map<String, dynamic> _decodeGzJson(List<int> gz) =>
+    jsonDecode(utf8.decode(gzip.decode(gz))) as Map<String, dynamic>;

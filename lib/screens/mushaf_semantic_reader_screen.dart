@@ -11,6 +11,7 @@ import '../models/quran_selection.dart';
 import '../models/tajweed_span.dart';
 import '../repositories/mushaf_layout_repository.dart';
 import '../repositories/quran_corpus_repository.dart';
+import '../services/boot/boot_scheduler.dart';
 import '../services/mushaf/tajweed_svg.dart';
 import '../repositories/quran_reading_repository.dart';
 import '../repositories/quran_reading_session_repository.dart';
@@ -114,7 +115,12 @@ class _MushafSemanticReaderScreenState
     super.initState();
     _current = widget.initialPage.clamp(1, _pageCount);
     _controller = PageController(initialPage: _current - 1);
-    _repo.isReady().then((r) {
+    // The layout may still be seeding on a first launch — jump it to the
+    // front of the boot queue instead of reporting "not ready".
+    BootScheduler.instance
+        .ensure(BootTasks.mushafLayout)
+        .then((_) => _repo.isReady())
+        .then((r) {
       if (mounted) setState(() => _ready = r);
     });
     // The tajwīd renderer asks this for a page's path→hue map; we memoise.

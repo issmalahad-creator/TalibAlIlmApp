@@ -427,7 +427,7 @@ class NotificationService {
 
     int? fajrHour, asrHour, ishaHour;
     try {
-      final coords = await LocationService().currentLocation();
+      final coords = await LocationService().currentLocation(mayAskPermission: false);
       if (coords != null) {
         final times = await PrayerTimesRepository().prayerTimesFor(coords);
         fajrHour = times.fajr.toLocal().hour;
@@ -531,7 +531,7 @@ class NotificationService {
     final sound = useAdhanSound ? const RawResourceAndroidNotificationSound(_adhanSoundResource) : null;
 
     try {
-      final coords = await LocationService().currentLocation();
+      final coords = await LocationService().currentLocation(mayAskPermission: false);
       if (coords == null) return;
       final times = await PrayerTimesRepository().prayerTimesFor(coords);
 

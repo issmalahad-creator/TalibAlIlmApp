@@ -109,6 +109,7 @@ flutter:
   # Book-of-the-month content itself is still fetched live from Telegram, no
   # asset needed for that. See CLAUDE.md "Book content feed".
   assets:
+    - assets/brand/quill_ink.webp
     - assets/quran/mushaf_borders/
     - assets/quran/quran-uthmani.txt
     - assets/quran/quran-data.js

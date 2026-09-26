@@ -46,7 +46,9 @@ void main() {
     expect(results, isNotEmpty);
     final normalizedText = normalizeArabicForSearch(results.first.textUthmani);
     expect(normalizedText, contains(normalizeArabicForSearch('الظالمون')));
-  });
+    // importIfNeeded seeds all 49 bundled tafsir editions (isolate-parsed);
+    // under CPU contention that can exceed the default 30 s.
+  }, timeout: const Timeout(Duration(minutes: 3)));
 
   test('sync seeded every corpus dataset (meta rows present)', () async {
     final db = await DatabaseHelper.instance.database;

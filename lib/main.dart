@@ -19,6 +19,7 @@ import 'screens/personal_library_screen.dart';
 import 'screens/prayer_times_screen.dart';
 import 'screens/quran_browse_screen.dart';
 import 'screens/startup_gate.dart';
+import 'services/boot/boot_scheduler.dart';
 import 'services/book_content_service.dart';
 import 'services/calendar_preference_service.dart';
 import 'services/companion_context_service.dart';
@@ -31,6 +32,7 @@ import 'services/quran_import_service.dart';
 import 'services/text_scale_preference_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/hijri_date.dart';
+import 'widgets/brand_splash.dart';
 import 'widgets/corpus_download_prompt.dart';
 import 'widgets/restart_widget.dart';
 
@@ -94,6 +96,7 @@ void _installErrorWidgetBuilder() {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  BootScheduler.instance; // starts the boot stopwatch as early as possible
   _installErrorWidgetBuilder();
   initHijriLocale();
   await CalendarPreferenceService.load();
@@ -102,6 +105,9 @@ Future<void> main() async {
   // preference silently never took effect on relaunch. See
   // `LanguagePreferenceService`'s doc comment for the full bug list.
   await LanguagePreferenceService.load();
+  // Android keeps its splash (same mark) up until the Flutter mark is decoded
+  // (≤1.2 s) — no blank frame at the hand-off.
+  holdFirstFrameUntilBrandMarkReady();
   QuranCorpusDownloadService.instance.confirmDownload = (c, id, bytes) async {
     final ctx = navigatorKey.currentContext;
     return ctx == null ? false : askCorpusDownload(ctx, bytes);
@@ -130,29 +136,57 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   @override
   void initState() {
     super.initState();
-    _quranImportService.importIfNeeded();
-    _turathCatalogSync.syncCatalog();
-    _mushafLayoutSync.sync();
-    _quranCorpusSync.sync();
-    _quranLearningSync.sync();
-    _milestoneRepository.seedIfNeeded();
-    _notificationService.scheduleAdhkarReminders();
-    _notificationService.scheduleTimeLogReminder();
-    _notificationService.schedulePrayerTimeNotifications();
-    _notificationService.scheduleLifePlanReminders();
-    _scheduleCustomAdhkarReminders();
-    _scheduleCompanionCheckIn();
-    _checkBookContent();
-    _connSub = Connectivity().onConnectivityChanged.listen((results) {
-      if (results.any((r) => r != ConnectivityResult.none)) {
-        _checkBookContent();
-      }
-    });
+    // Zero-wait startup: none of this is needed for Home to appear, so it is
+    // registered here and run sequentially once Home has painted (or after a
+    // safety timeout). Screens that need a task first call `ensure(id)`.
+    // docs/architecture/ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §4.
+    BootScheduler.instance
+      ..register(BootTasks.quranImport, () => _quranImportService.importIfNeeded(includeLegacyTafsir: false), priority: 10)
+      ..register(BootTasks.mushafLayout, _mushafLayoutSync.sync, priority: 20)
+      ..register(BootTasks.quranCorpus, _quranCorpusSync.sync, priority: 30)
+      ..register(BootTasks.quranLearning, _quranLearningSync.sync, priority: 40)
+      ..register(BootTasks.milestones, _milestoneRepository.seedIfNeeded, priority: 50)
+      ..register(BootTasks.turathCatalog, _turathCatalogSync.syncCatalog, priority: 60)
+      ..register(BootTasks.notifications, _scheduleAllNotifications, priority: 70, afterHome: true)
+      ..register(BootTasks.bookContent, () async {
+        await _checkBookContent();
+        _connSub = Connectivity().onConnectivityChanged.listen((results) {
+          if (results.any((r) => r != ConnectivityResult.none)) {
+            _checkBookContent();
+          }
+        });
+      }, priority: 80)
+      // Heaviest and least urgent: 49 bundled tafsir editions (~190 s cold).
+      ..register(BootTasks.legacyTafsir, _quranImportService.importLegacyTafsirIfNeeded, priority: 90)
+      ..armSafetyTimer();
+    // Light and needed now: routing a notification tap that launched the app.
     NotificationService.onNotificationTap = _routeForPayload;
     _notificationService.init().then((_) async {
       final launchPayload = await _notificationService.getLaunchPayload();
       if (launchPayload != null) _routeForPayload(launchPayload);
     });
+  }
+
+  /// Every startup (re)schedule, as one deferred boot task. Runs only after
+  /// Home has appeared: prayer-time scheduling may ask for the location
+  /// permission, which used to pop up in English over the first-launch
+  /// language picker.
+  Future<void> _scheduleAllNotifications() async {
+    // Independent: one failing schedule must not skip the others.
+    for (final schedule in <Future<void> Function()>[
+      _notificationService.scheduleAdhkarReminders,
+      _notificationService.scheduleTimeLogReminder,
+      _notificationService.schedulePrayerTimeNotifications,
+      _notificationService.scheduleLifePlanReminders,
+      _scheduleCustomAdhkarReminders,
+      _scheduleCompanionCheckIn,
+    ]) {
+      try {
+        await schedule();
+      } catch (e) {
+        debugPrint('startup notification scheduling failed: $e');
+      }
+    }
   }
 
   /// "رفيق طالب العلم" push check-in (2026-08-17) — gathers the same
@@ -225,7 +259,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
                 child: child!,
               ),
             ),
-            home: const StartupGate(),
+            home: const BrandSplashGate(child: StartupGate()),
           );
         },
       ),

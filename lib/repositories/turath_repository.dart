@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import '../data/turath_categories.dart';
 import '../db/database_helper.dart';
 import '../models/turath_models.dart';
+import '../services/boot/boot_scheduler.dart';
 import '../services/turath_api_client.dart';
 import '../utils/month.dart';
 import '../utils/study_annotation_anchor.dart';
@@ -34,8 +35,16 @@ class TurathRepository {
   // `turathCategories` snapshot so the UI still renders the 40 categories.
 
   /// True once the local catalog has been populated at least once.
+  /// Catalog tables are seeded by a deferred boot task; on a first launch the
+  /// library may be opened before it ran — run it now instead of showing an
+  /// empty catalog (docs/architecture/ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §5).
+  Future<Database> _catalogDb() async {
+    await BootScheduler.instance.ensure(BootTasks.turathCatalog);
+    return DatabaseHelper.instance.database;
+  }
+
   Future<bool> hasCatalog() async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final n = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM turath_catalog_categories')) ?? 0;
     return n > 0;
   }
@@ -44,7 +53,7 @@ class TurathRepository {
   /// `total_books`. Falls back to the static snapshot if the catalog is
   /// empty.
   Future<List<TurathCategory>> categories() async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final rows = await db.query('turath_catalog_categories', orderBy: 'sort_order ASC');
     if (rows.isEmpty) {
       return turathCategories
@@ -65,7 +74,7 @@ class TurathRepository {
   /// matter how far the user has scrolled, what they've searched, or
   /// whether the PDF filter is on.
   Future<int> categoryBookCount(int catId) async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final stored = Sqflite.firstIntValue(await db.rawQuery(
       'SELECT total_books FROM turath_catalog_categories WHERE cat_id = ?',
       [catId],
@@ -79,7 +88,7 @@ class TurathRepository {
   /// view's "N / total" label. Deliberately separate from
   /// [categoryBookCount], which is the canonical, filter-independent count.
   Future<int> categoryPdfBookCount(int catId) async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     return Sqflite.firstIntValue(await db.rawQuery('''
       SELECT COUNT(*)
       FROM turath_catalog_category_books cb
@@ -101,7 +110,7 @@ class TurathRepository {
     int offset = 0,
     bool pdfOnly = false,
   }) async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final rows = await db.rawQuery('''
       SELECT b.book_id, b.name, b.author_id, b.cat_id, b.has_pdf, b.page_count,
              COALESCE(a.name, '') AS author_name
@@ -117,7 +126,7 @@ class TurathRepository {
 
   /// The set of book ids that belong to a category (the raw membership).
   Future<Set<int>> categoryMemberIds(int catId) async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final rows = await db.query(
       'turath_catalog_category_books',
       columns: ['book_id'],
@@ -144,7 +153,7 @@ class TurathRepository {
   /// infix name match. `bookCount` is the number of their books in the
   /// library (from the real books table, not a stored guess).
   Future<List<TurathCatalogAuthor>> catalogAuthors({int limit = 40, int offset = 0, String? query}) async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final q = (query ?? '').trim();
     final where = q.isEmpty ? '' : 'WHERE a.name LIKE ?';
     final args = <Object?>[if (q.isNotEmpty) '%$q%', limit, offset];
@@ -168,7 +177,7 @@ class TurathRepository {
 
   /// Every book by one author, from the catalog.
   Future<List<TurathCatalogBook>> booksByAuthor(int authorId) async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final rows = await db.rawQuery('''
       SELECT b.book_id, b.name, b.author_id, b.cat_id, b.has_pdf, b.page_count,
              COALESCE(a.name, '') AS author_name
@@ -182,7 +191,7 @@ class TurathRepository {
 
   /// Catalog metadata a book detail screen can show without a network call.
   Future<TurathCatalogBook?> catalogBook(int bookId) async {
-    final db = await DatabaseHelper.instance.database;
+    final db = await _catalogDb();
     final rows = await db.rawQuery('''
       SELECT b.book_id, b.name, b.author_id, b.cat_id, b.has_pdf, b.page_count,
              COALESCE(a.name, '') AS author_name

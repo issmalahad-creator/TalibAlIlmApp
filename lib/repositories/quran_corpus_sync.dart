@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io' show gzip;
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show compute, debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
@@ -62,8 +62,8 @@ class QuranCorpusSync {
 
   Future<Map<String, dynamic>> _load(String name) async {
     final bytes = await rootBundle.load('$_dir/$name.json.gz');
-    final text = utf8.decode(gzip.decode(bytes.buffer.asUint8List()));
-    return jsonDecode(text) as Map<String, dynamic>;
+    // Off the UI isolate — `sayings` alone is ~15 MB gzipped.
+    return compute(_decodeGzJson, bytes.buffer.asUint8List());
   }
 
   Future<void> _seedOne(
@@ -247,3 +247,6 @@ class QuranCorpusSync {
     return rows.isEmpty ? null : rows.first['sha256'] as String?;
   }
 }
+
+Map<String, dynamic> _decodeGzJson(List<int> gz) =>
+    jsonDecode(utf8.decode(gzip.decode(gz))) as Map<String, dynamic>;

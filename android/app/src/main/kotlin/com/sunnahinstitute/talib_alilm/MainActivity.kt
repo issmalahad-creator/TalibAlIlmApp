@@ -16,6 +16,18 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterActivity() {
     private val channelName = "talib_alilm/tesseract_ocr"
 
+    /**
+     * رجوع من الشاشة الجذرية ← التطبيق إلى الخلفية بدل إنهاء النشاط وفصل
+     * محرّك Flutter. إنهاؤه أثناء تجهيز أول تشغيل (استيراد ضخم في SQLite)
+     * أبقى الرئيسية عالقة >17 دقيقة عند العودة (قياس 2026-09-26،
+     * docs/architecture/ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §3)، وتجعل
+     * العودة تشغيلًا دافئًا فوريًا — سلوك Android 12+ الافتراضي لتطبيقات الجذر.
+     */
+    override fun popSystemNavigator(): Boolean {
+        moveTaskToBack(true)
+        return true
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)

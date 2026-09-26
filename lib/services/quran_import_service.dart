@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
@@ -15,7 +17,12 @@ import '../utils/arabic_normalize.dart';
 /// duplicated here. Safe to call on every app start — a no-op once the
 /// table already has rows.
 class QuranImportService {
-  Future<void> importIfNeeded() async {
+  /// [includeLegacyTafsir] false skips the 49 bundled `tafsir-*.jsonl.gz`
+  /// editions (≈190 s on a first launch in the emulator) — the app's boot
+  /// runs them as their own last-priority task via [importLegacyTafsirIfNeeded]
+  /// so the Quran text + core books are ready quickly
+  /// (docs/architecture/ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §13).
+  Future<void> importIfNeeded({bool includeLegacyTafsir = true}) async {
     final db = await DatabaseHelper.instance.database;
 
     final existingAyat = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM quran_ayat'));
@@ -69,35 +76,7 @@ class QuranImportService {
       await _regenerateMemorizationUnitsFromAyat(db);
     }
 
-    // 2026-08-18: targeted one-time repair for `ibn_ashur` — installs that
-    // ran the earlier (broken, 156-empty-ayah) version of this edition
-    // already have those bad rows, and the self-heal loop below only
-    // imports when a source has ZERO rows, so it would otherwise never
-    // pick up the corrected data. Only deletes+re-triggers when an actual
-    // empty row is found (the old-version marker) — a no-op on fresh
-    // installs or installs that already have the corrected data, so this
-    // doesn't cost anything on every normal launch.
-    final hasBrokenIbnAshurRow = Sqflite.firstIntValue(
-      await db.rawQuery("SELECT COUNT(*) FROM tafsir_entries WHERE source = 'ibn_ashur' AND text = ''"),
-    );
-    if (hasBrokenIbnAshurRow != null && hasBrokenIbnAshurRow > 0) {
-      await db.delete('tafsir_entries', where: 'source = ?', whereArgs: ['ibn_ashur']);
-    }
-
-    // Per-edition self-heal (not a single all-or-nothing gate): a fresh
-    // install imports every edition; an existing install that already has
-    // the 4 original Arabic editions but not yet the newer English/Amharic
-    // ones (added after those installs' first run) picks up just the
-    // missing ones, same "self-heal" spirit as `memorization_units` above.
-    for (final edition in _tafsirEditions) {
-      final (_, sourceKey, _) = edition;
-      final existingForSource = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries WHERE source = ?', [sourceKey]),
-      );
-      if (existingForSource == null || existingForSource == 0) {
-        await _importTafsirEdition(db, edition);
-      }
-    }
+    if (includeLegacyTafsir) await importLegacyTafsirIfNeeded();
 
     final existingLessons = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM practical_lessons'));
     if (existingLessons == null || existingLessons == 0) {
@@ -137,6 +116,41 @@ class QuranImportService {
     final existingAdhkar = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM adhkar_categories'));
     if (existingAdhkar == null || existingAdhkar == 0) {
       await _importAdhkar(db);
+    }
+  }
+
+  /// The per-edition self-healing import of the legacy `tafsir_entries`
+  /// editions (split out of [importIfNeeded] so boot can defer it).
+  Future<void> importLegacyTafsirIfNeeded() async {
+    final db = await DatabaseHelper.instance.database;
+    // 2026-08-18: targeted one-time repair for `ibn_ashur` — installs that
+    // ran the earlier (broken, 156-empty-ayah) version of this edition
+    // already have those bad rows, and the self-heal loop below only
+    // imports when a source has ZERO rows, so it would otherwise never
+    // pick up the corrected data. Only deletes+re-triggers when an actual
+    // empty row is found (the old-version marker) — a no-op on fresh
+    // installs or installs that already have the corrected data, so this
+    // doesn't cost anything on every normal launch.
+    final hasBrokenIbnAshurRow = Sqflite.firstIntValue(
+      await db.rawQuery("SELECT COUNT(*) FROM tafsir_entries WHERE source = 'ibn_ashur' AND text = ''"),
+    );
+    if (hasBrokenIbnAshurRow != null && hasBrokenIbnAshurRow > 0) {
+      await db.delete('tafsir_entries', where: 'source = ?', whereArgs: ['ibn_ashur']);
+    }
+
+    // Per-edition self-heal (not a single all-or-nothing gate): a fresh
+    // install imports every edition; an existing install that already has
+    // the 4 original Arabic editions but not yet the newer English/Amharic
+    // ones (added after those installs' first run) picks up just the
+    // missing ones, same "self-heal" spirit as `memorization_units` above.
+    for (final edition in _tafsirEditions) {
+      final (_, sourceKey, _) = edition;
+      final existingForSource = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries WHERE source = ?', [sourceKey]),
+      );
+      if (existingForSource == null || existingForSource == 0) {
+        await _importTafsirEdition(db, edition);
+      }
     }
   }
 
@@ -347,27 +361,25 @@ class QuranImportService {
   Future<void> _importTafsirEdition(Database db, (String, String, String) edition) async {
     final (assetPath, sourceKey, language) = edition;
     final byteData = await rootBundle.load(assetPath);
-    final compressed = byteData.buffer.asUint8List();
-    final decompressed = gzip.decode(compressed);
-    final jsonlText = utf8.decode(decompressed);
+    // gunzip + utf8 + jsonDecode of up to ~30 MB of text used to run on the
+    // UI isolate, one edition after another, freezing the event loop so even
+    // Home's tiny queries could not complete (ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §3).
+    final rows = await compute(_parseTafsirJsonl, byteData.buffer.asUint8List());
 
     final batch = db.batch();
-    for (final line in const LineSplitter().convert(jsonlText)) {
-      if (line.trim().isEmpty) continue;
-      final obj = jsonDecode(line) as Map<String, dynamic>;
-      // `footnote` is only present in assets regenerated by
-      // tool/fetch_quranenc_footnotes.py (docs/quran/
-      // TAFSIR_UNIFIED_ARCHITECTURE.md §5); older bundled jsonl simply
-      // lacks the key, so this stays null rather than an empty-string lie.
-      final footnote = obj['footnote'] as String?;
+    for (final r in rows) {
       batch.insert('tafsir_entries', {
-        'surah': obj['surah'] as int,
-        'ayah_from': obj['ayah'] as int,
-        'ayah_to': obj['ayah'] as int,
+        'surah': r.surah,
+        'ayah_from': r.ayah,
+        'ayah_to': r.ayah,
         'source': sourceKey,
-        'text': obj['text'] as String,
+        'text': r.text,
         'language': language,
-        'footnote': (footnote == null || footnote.isEmpty) ? null : footnote,
+        // `footnote` is only present in assets regenerated by
+        // tool/fetch_quranenc_footnotes.py (docs/quran/
+        // TAFSIR_UNIFIED_ARCHITECTURE.md §5); older bundled jsonl simply
+        // lacks the key, so this stays null rather than an empty-string lie.
+        'footnote': r.footnote,
         // Not extracted for any edition yet — deliberately left null rather
         // than guessed via an unvalidated text-search heuristic.
         'asbab_nuzul_excerpt': null,
@@ -494,4 +506,22 @@ class _Boundaries {
   final List<(int, int)> page;
   final List<(int, int)> hizbQuarter;
   _Boundaries(this.juz, this.page, this.hizbQuarter);
+}
+
+/// Background-isolate parse of one bundled `tafsir-*.jsonl.gz` edition.
+List<({int surah, int ayah, String text, String? footnote})> _parseTafsirJsonl(Uint8List compressed) {
+  final jsonlText = utf8.decode(gzip.decode(compressed));
+  final out = <({int surah, int ayah, String text, String? footnote})>[];
+  for (final line in const LineSplitter().convert(jsonlText)) {
+    if (line.trim().isEmpty) continue;
+    final obj = jsonDecode(line) as Map<String, dynamic>;
+    final footnote = obj['footnote'] as String?;
+    out.add((
+      surah: obj['surah'] as int,
+      ayah: obj['ayah'] as int,
+      text: obj['text'] as String,
+      footnote: (footnote == null || footnote.isEmpty) ? null : footnote,
+    ));
+  }
+  return out;
 }
