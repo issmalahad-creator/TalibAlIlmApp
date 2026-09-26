@@ -7,6 +7,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/repositories/quran_corpus_repository.dart';
 import 'package:talib_alilm_app/repositories/quran_corpus_sync.dart';
+import 'package:talib_alilm_app/repositories/quran_search_repository.dart';
+import 'package:talib_alilm_app/services/quran_import_service.dart';
+import 'package:talib_alilm_app/utils/arabic_normalize.dart';
 
 /// Phase 80 / QC2 — the Quran Corpus seeds from the real bundled assets and
 /// every per-ayah lookup resolves via the canonical `(surah, ayah)` spine.
@@ -19,8 +22,14 @@ void main() {
 
   setUpAll(() async {
     DatabaseHelper.databaseName = 'talib_quran_corpus_test.db';
-    final f = File(p.join('.dart_tool', 'sqflite_common_ffi', 'databases',
-        DatabaseHelper.databaseName));
+    final f = File(
+      p.join(
+        '.dart_tool',
+        'sqflite_common_ffi',
+        'databases',
+        DatabaseHelper.databaseName,
+      ),
+    );
     if (f.existsSync()) {
       try {
         f.deleteSync();
@@ -28,6 +37,15 @@ void main() {
     }
     await QuranCorpusSync().sync();
     repo = QuranCorpusRepository();
+  });
+
+  test('search finds common Arabic words like الظالمون', () async {
+    await QuranImportService().importIfNeeded();
+    final results = await QuranSearchRepository().search('الظالمون');
+
+    expect(results, isNotEmpty);
+    final normalizedText = normalizeArabicForSearch(results.first.textUthmani);
+    expect(normalizedText, contains(normalizeArabicForSearch('الظالمون')));
   });
 
   test('sync seeded every corpus dataset (meta rows present)', () async {
@@ -39,10 +57,23 @@ void main() {
     expect(
       names,
       containsAll(<String>{
-        'morphology', 'syntax', 'meanings', 'notes', 'qiraat', 'similar',
-        'sayings', 'nasekh', 'irab_books', 'asbab_books', 'topics',
-        'tafsir_index', 'translations_index', 'riwaya_index', 'reciters',
-        'book_catalog', 'surah_info',
+        'morphology',
+        'syntax',
+        'meanings',
+        'notes',
+        'qiraat',
+        'similar',
+        'sayings',
+        'nasekh',
+        'irab_books',
+        'asbab_books',
+        'topics',
+        'tafsir_index',
+        'translations_index',
+        'riwaya_index',
+        'reciters',
+        'book_catalog',
+        'surah_info',
       }),
     );
   });
@@ -51,12 +82,14 @@ void main() {
     final db = await DatabaseHelper.instance.database;
     expect(
       Sqflite.firstIntValue(
-          await db.rawQuery('SELECT COUNT(*) FROM quran_morphology')),
+        await db.rawQuery('SELECT COUNT(*) FROM quran_morphology'),
+      ),
       6236,
     );
     expect(
       Sqflite.firstIntValue(
-          await db.rawQuery('SELECT COUNT(*) FROM quran_syntax')),
+        await db.rawQuery('SELECT COUNT(*) FROM quran_syntax'),
+      ),
       6236,
     );
   });
@@ -93,16 +126,45 @@ void main() {
     expect((await repo.booksByType('tafsir', limit: 10)).length, 10);
   });
 
+  test('cross-source tafsir search keeps source attribution', () async {
+    final db = await DatabaseHelper.instance.database;
+    await db.insert('quran_ayat', {
+      'surah': 1,
+      'ayah': 1,
+      'text_uthmani': 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
+      'text_normalized': 'بسم الله الرحمن الرحيم',
+      'page_number': 1,
+      'juz_number': 1,
+      // An earlier test in this file may already have seeded 1:1.
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    await db.insert('tafsir_entries', {
+      'surah': 1,
+      'ayah_from': 1,
+      'ayah_to': 1,
+      'source': 'test_source',
+      'language': 'ar',
+      'text': 'بسم الله الرحمن الرحيم',
+    });
+
+    final results = await QuranSearchRepository().searchAllTafsirText('الله');
+    expect(results, isNotEmpty);
+    final result = results.firstWhere((item) => item.source == 'test_source');
+    expect(result.tafsir, 'بسم الله الرحمن الرحيم');
+    expect(result.language, 'ar');
+  });
+
   test('topics → ayah and ayah → topics both resolve', () async {
     final db = await DatabaseHelper.instance.database;
     expect(
       Sqflite.firstIntValue(
-          await db.rawQuery('SELECT COUNT(*) FROM quran_topic')),
+        await db.rawQuery('SELECT COUNT(*) FROM quran_topic'),
+      ),
       6100,
     );
     expect(
       Sqflite.firstIntValue(
-              await db.rawQuery('SELECT COUNT(*) FROM quran_topic_ayah')),
+        await db.rawQuery('SELECT COUNT(*) FROM quran_topic_ayah'),
+      ),
       greaterThan(15000),
     );
     // 7:26 (اللباس/الريش) had a topic in the raw dump
@@ -116,7 +178,8 @@ void main() {
     final db = await DatabaseHelper.instance.database;
     // pick any ayah that has irab prose
     final row = await db.rawQuery(
-        'SELECT surah, ayah FROM quran_irab_prose LIMIT 1');
+      'SELECT surah, ayah FROM quran_irab_prose LIMIT 1',
+    );
     final s = row.first['surah'] as int, a = row.first['ayah'] as int;
     final prose = await repo.irabProse(s, a);
     expect(prose, isNotEmpty);
@@ -129,7 +192,8 @@ void main() {
     // near-full coverage: ~6196/6236 clean, the rest still get a partial map
     expect(
       Sqflite.firstIntValue(
-          await db.rawQuery('SELECT COUNT(*) FROM quran_align')),
+        await db.rawQuery('SELECT COUNT(*) FROM quran_align'),
+      ),
       6236,
     );
     // al-Ikhlāṣ 112:1 — 4 words, 1:1 with QAC
@@ -147,38 +211,50 @@ void main() {
       final entries = await repo.corpusEntriesForAyah(1, 1);
       final asbab = entries.where((e) => e.domain == 'asbab').toList();
       expect(asbab.length, 1);
-      expect(asbab.single.text.length, greaterThan(200),
-          reason: 'never excerpted — the whole point of this method');
+      expect(
+        asbab.single.text.length,
+        greaterThan(200),
+        reason: 'never excerpted — the whole point of this method',
+      );
       expect(asbab.single.text, isNot(contains('…')));
     });
 
-    test('112:1 — two asbāb books each become their own entry, never merged',
-        () async {
-      final entries = await repo.corpusEntriesForAyah(112, 1);
-      final asbab = entries.where((e) => e.domain == 'asbab').toList();
-      expect(asbab.length, 2);
-      expect(asbab.map((e) => e.label).toSet().length, 2,
-          reason: 'two distinct, attributed books — not a silent pick');
-    });
+    test(
+      '112:1 — two asbāb books each become their own entry, never merged',
+      () async {
+        final entries = await repo.corpusEntriesForAyah(112, 1);
+        final asbab = entries.where((e) => e.domain == 'asbab').toList();
+        expect(asbab.length, 2);
+        expect(
+          asbab.map((e) => e.label).toSet().length,
+          2,
+          reason: 'two distinct, attributed books — not a silent pick',
+        );
+      },
+    );
 
-    test('an ayah with nothing in any domain returns an empty list, never throws',
-        () async {
-      // A late Meccan āyah unlikely to have corpus prose in every domain;
-      // whatever domains ARE empty for it must simply be absent, not a
-      // placeholder/guessed entry.
-      expect(() => repo.corpusEntriesForAyah(114, 1), returnsNormally);
-    });
+    test(
+      'an ayah with nothing in any domain returns an empty list, never throws',
+      () async {
+        // A late Meccan āyah unlikely to have corpus prose in every domain;
+        // whatever domains ARE empty for it must simply be absent, not a
+        // placeholder/guessed entry.
+        expect(() => repo.corpusEntriesForAyah(114, 1), returnsNormally);
+      },
+    );
   });
 
   group('asbabCoverageForSurah — verse-vs-surah, no invented claims', () {
-    test('2:255 has no asbāb row of its own, but the surah has 86 others',
-        () async {
-      final entries = await repo.corpusEntriesForAyah(2, 255);
-      expect(entries.any((e) => e.domain == 'asbab'), isFalse);
-      final coverage = await repo.asbabCoverageForSurah(2);
-      expect(coverage, isNotEmpty);
-      expect(coverage.containsKey(255), isFalse);
-    });
+    test(
+      '2:255 has no asbāb row of its own, but the surah has 86 others',
+      () async {
+        final entries = await repo.corpusEntriesForAyah(2, 255);
+        expect(entries.any((e) => e.domain == 'asbab'), isFalse);
+        final coverage = await repo.asbabCoverageForSurah(2);
+        expect(coverage, isNotEmpty);
+        expect(coverage.containsKey(255), isFalse);
+      },
+    );
 
     test('surah 26 has zero asbāb coverage anywhere in it', () async {
       final coverage = await repo.asbabCoverageForSurah(26);
@@ -193,17 +269,19 @@ void main() {
 
   test('re-running sync is a no-op when sha is unchanged', () async {
     final db = await DatabaseHelper.instance.database;
-    final before = (await db.query('quran_corpus_meta',
-            columns: ['seeded_at_ms'],
-            where: 'dataset = ?',
-            whereArgs: ['morphology']))
-        .first['seeded_at_ms'];
+    final before = (await db.query(
+      'quran_corpus_meta',
+      columns: ['seeded_at_ms'],
+      where: 'dataset = ?',
+      whereArgs: ['morphology'],
+    )).first['seeded_at_ms'];
     await QuranCorpusSync().sync();
-    final after = (await db.query('quran_corpus_meta',
-            columns: ['seeded_at_ms'],
-            where: 'dataset = ?',
-            whereArgs: ['morphology']))
-        .first['seeded_at_ms'];
+    final after = (await db.query(
+      'quran_corpus_meta',
+      columns: ['seeded_at_ms'],
+      where: 'dataset = ?',
+      whereArgs: ['morphology'],
+    )).first['seeded_at_ms'];
     expect(after, before, reason: 'unchanged sha → not re-seeded');
   });
 }

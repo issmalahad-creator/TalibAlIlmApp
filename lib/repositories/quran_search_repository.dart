@@ -11,6 +11,8 @@ class QuranSearchResult {
   final int? pageNumber;
   final int? juzNumber;
   final String? tafsir;
+  final String? source;
+  final String? language;
   QuranSearchResult({
     required this.surah,
     required this.ayah,
@@ -19,6 +21,8 @@ class QuranSearchResult {
     this.pageNumber,
     this.juzNumber,
     this.tafsir,
+    this.source,
+    this.language,
   });
 }
 
@@ -156,7 +160,10 @@ class QuranSearchRepository {
   /// Also accepts a direct `"سورة آية"` / `"سورة:آية"` reference (e.g.
   /// "البقرة 255") and resolves it to that single ayah instead of a text
   /// search, when the query matches a known surah name followed by a number.
-  Future<List<QuranSearchResult>> search(String query, {String tafsirSource = defaultTafsirSource}) async {
+  Future<List<QuranSearchResult>> search(
+    String query, {
+    String tafsirSource = defaultTafsirSource,
+  }) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
 
@@ -164,7 +171,9 @@ class QuranSearchRepository {
     if (refMatch != null) {
       final surahQuery = normalizeArabicForSearch(refMatch.group(1)!.trim());
       final ayahNum = int.tryParse(refMatch.group(2)!);
-      final surahEntry = quranSurahs.where((s) => normalizeArabicForSearch(s.name) == surahQuery).toList();
+      final surahEntry = quranSurahs
+          .where((s) => normalizeArabicForSearch(s.name) == surahQuery)
+          .toList();
       if (surahEntry.isNotEmpty && ayahNum != null) {
         return _byReference(surahEntry.first.number, ayahNum, tafsirSource);
       }
@@ -194,7 +203,10 @@ class QuranSearchRepository {
   /// translation text directly, not the Arabic Quran text. `source` must be
   /// a non-Arabic entry from `tafsirSources` (e.g. 'english_rwwad',
   /// 'french_rashid').
-  Future<List<QuranSearchResult>> searchTranslationText(String query, String source) async {
+  Future<List<QuranSearchResult>> searchTranslationText(
+    String query,
+    String source,
+  ) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
     final db = await DatabaseHelper.instance.database;
@@ -205,14 +217,46 @@ class QuranSearchRepository {
     return rows.map(_toResult).toList();
   }
 
+  /// Searches the actual text of every bundled tafsir/translation source.
+  /// Each matching source remains a separate result so the UI can attribute
+  /// the text instead of silently merging scholarly editions.
+  Future<List<QuranSearchResult>> searchAllTafsirText(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      '''
+      SELECT q.surah, q.ayah, q.text_uthmani, q.page_number, q.juz_number,
+             t.text AS tafsir, t.source AS tafsir_source, t.language
+      FROM tafsir_entries t
+      JOIN quran_ayat q
+        ON q.surah = t.surah
+       AND q.ayah BETWEEN t.ayah_from AND t.ayah_to
+      WHERE t.text LIKE ?
+      ORDER BY q.surah, q.ayah, t.source
+      LIMIT 300
+    ''',
+      ['%$trimmed%'],
+    );
+    return rows.map(_toResult).toList();
+  }
+
   /// Same "closest real thing, not nothing" fallback as `closestMatch()`,
   /// applied to a translation-text source instead of the Arabic Quran text
   /// — identical algorithm (word-overlap + Damerau-Levenshtein fuzzy
   /// matching via `fuzzy.isFuzzyMatch`), just a different content column,
   /// which is exactly why the matching logic lives in a shared,
   /// script-agnostic utility rather than being duplicated per language.
-  Future<QuranSearchResult?> closestTranslationMatch(String query, String source) async {
-    final queryWords = query.toLowerCase().split(RegExp(r'\s+')).where((w) => w.length >= 2).toList();
+  Future<QuranSearchResult?> closestTranslationMatch(
+    String query,
+    String source,
+  ) async {
+    final queryWords = query
+        .toLowerCase()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.length >= 2)
+        .toList();
     if (queryWords.isEmpty) return null;
 
     final db = await DatabaseHelper.instance.database;
@@ -233,8 +277,20 @@ class QuranSearchRepository {
     Map<String, Object?>? best;
     var bestScore = 0.0;
     for (final row in candidates) {
-      final textWords = (row['tafsir'] as String).toLowerCase().split(RegExp(r'\s+')).toSet();
-      final matchedCount = queryWords.where((qw) => textWords.any((tw) => tw.contains(qw) || qw.contains(tw) || fuzzy.isFuzzyMatch(tw, qw))).length;
+      final textWords = (row['tafsir'] as String)
+          .toLowerCase()
+          .split(RegExp(r'\s+'))
+          .toSet();
+      final matchedCount = queryWords
+          .where(
+            (qw) => textWords.any(
+              (tw) =>
+                  tw.contains(qw) ||
+                  qw.contains(tw) ||
+                  fuzzy.isFuzzyMatch(tw, qw),
+            ),
+          )
+          .length;
       final score = matchedCount / queryWords.length;
       if (score > bestScore) {
         bestScore = score;
@@ -245,7 +301,11 @@ class QuranSearchRepository {
     return _toResult(best);
   }
 
-  Future<List<QuranSearchResult>> _byReference(int surah, int ayah, String tafsirSource) async {
+  Future<List<QuranSearchResult>> _byReference(
+    int surah,
+    int ayah,
+    String tafsirSource,
+  ) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.rawQuery(
       '$_selectWithTafsir WHERE q.surah = ? AND q.ayah = ? LIMIT 1',
@@ -254,7 +314,10 @@ class QuranSearchRepository {
     return rows.map(_toResult).toList();
   }
 
-  Future<List<QuranSearchResult>> _byText(String query, String tafsirSource) async {
+  Future<List<QuranSearchResult>> _byText(
+    String query,
+    String tafsirSource,
+  ) async {
     final normalized = normalizeArabicForSearch(query);
     final db = await DatabaseHelper.instance.database;
     final rows = await db.rawQuery(
@@ -278,9 +341,15 @@ class QuranSearchRepository {
   /// the same on any script — but only ever searches this table's Arabic
   /// Quran text, so a query in another script simply won't have matching
   /// words to score against.
-  Future<QuranSearchResult?> closestMatch(String query, {String tafsirSource = defaultTafsirSource}) async {
+  Future<QuranSearchResult?> closestMatch(
+    String query, {
+    String tafsirSource = defaultTafsirSource,
+  }) async {
     final normalizedQuery = normalizeArabicForSearch(query);
-    final queryWords = normalizedQuery.split(RegExp(r'\s+')).where((w) => w.length >= 2).toList();
+    final queryWords = normalizedQuery
+        .split(RegExp(r'\s+'))
+        .where((w) => w.length >= 2)
+        .toList();
     if (queryWords.isEmpty) return null;
 
     final db = await DatabaseHelper.instance.database;
@@ -301,8 +370,19 @@ class QuranSearchRepository {
     Map<String, Object?>? best;
     var bestScore = 0.0;
     for (final row in candidates) {
-      final ayahWords = normalizeArabicForSearch(row['text_uthmani'] as String).split(RegExp(r'\s+')).toSet();
-      final matchedCount = queryWords.where((qw) => ayahWords.any((aw) => aw.contains(qw) || qw.contains(aw) || fuzzy.isFuzzyMatch(aw, qw))).length;
+      final ayahWords = normalizeArabicForSearch(
+        row['text_uthmani'] as String,
+      ).split(RegExp(r'\s+')).toSet();
+      final matchedCount = queryWords
+          .where(
+            (qw) => ayahWords.any(
+              (aw) =>
+                  aw.contains(qw) ||
+                  qw.contains(aw) ||
+                  fuzzy.isFuzzyMatch(aw, qw),
+            ),
+          )
+          .length;
       final score = matchedCount / queryWords.length;
       if (score > bestScore) {
         bestScore = score;
@@ -323,6 +403,8 @@ class QuranSearchRepository {
       pageNumber: row['page_number'] as int?,
       juzNumber: row['juz_number'] as int?,
       tafsir: row['tafsir'] as String?,
+      source: row['tafsir_source'] as String?,
+      language: row['language'] as String?,
     );
   }
 }
