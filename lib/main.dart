@@ -26,10 +26,12 @@ import 'services/companion_engine.dart';
 import 'services/content_badge_service.dart';
 import 'services/language_preference_service.dart';
 import 'services/notification_service.dart';
+import 'services/quran_corpus_download_service.dart';
 import 'services/quran_import_service.dart';
 import 'services/text_scale_preference_service.dart';
 import 'theme/app_theme.dart';
 import 'utils/hijri_date.dart';
+import 'widgets/corpus_download_prompt.dart';
 import 'widgets/restart_widget.dart';
 
 /// Global navigator so a tapped notification's `payload` can open the
@@ -100,6 +102,10 @@ Future<void> main() async {
   // preference silently never took effect on relaunch. See
   // `LanguagePreferenceService`'s doc comment for the full bug list.
   await LanguagePreferenceService.load();
+  QuranCorpusDownloadService.instance.confirmDownload = (c, id, bytes) async {
+    final ctx = navigatorKey.currentContext;
+    return ctx == null ? false : askCorpusDownload(ctx, bytes);
+  };
   runApp(const RestartWidget(child: TalibAlIlmApp()));
 }
 

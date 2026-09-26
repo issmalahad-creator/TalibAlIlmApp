@@ -35,6 +35,50 @@ class QuranCorpusDownloadService {
 
   String _key(String category, int id) => '$category/$id';
 
+  /// Asks the user before any network fetch — wired once from `main.dart`
+  /// (needs the navigator). Receives the download size in bytes (null when
+  /// unknown). No callback set (tests) → downloads proceed unasked.
+  Future<bool> Function(String category, int id, int? bytes)? confirmDownload;
+
+  final Map<String, Future<bool>> _asking = {};
+  final Map<String, DateTime> _declined = {};
+  static const _declineMemory = Duration(minutes: 2);
+
+  /// `(available, bytes)` — only a definite 404/410 (e.g. an edition
+  /// excluded from the release for licensing) means "unavailable". A slow or
+  /// failed probe (weak network) is NOT proof the book is missing, so the
+  /// user is still asked, just without a size.
+  Future<(bool, int?)> _probe(Uri uri) async {
+    try {
+      final r = await http.head(uri).timeout(const Duration(seconds: 6));
+      if (r.statusCode == 404 || r.statusCode == 410) return (false, null);
+      return (true, int.tryParse(r.headers['content-length'] ?? ''));
+    } catch (_) {
+      return (true, null);
+    }
+  }
+
+  Future<bool> _approved(String category, int id, Uri uri) {
+    final ask = confirmDownload;
+    if (ask == null) return Future.value(true);
+    final k = _key(category, id);
+    final d = _declined[k];
+    if (d != null && DateTime.now().difference(d) < _declineMemory) {
+      return Future.value(false);
+    }
+    return _asking.putIfAbsent(k, () async {
+      try {
+        final (available, bytes) = await _probe(uri);
+        if (!available) return false;
+        final ok = await ask(category, id, bytes);
+        if (!ok) _declined[k] = DateTime.now();
+        return ok;
+      } finally {
+        _asking.remove(k);
+      }
+    });
+  }
+
   /// The live progress notifier for `(category, id)` — `null` value means
   /// "not currently downloading" (either not started, cached already, or
   /// just finished/failed). UI disposes nothing here; these notifiers are
@@ -69,6 +113,7 @@ class QuranCorpusDownloadService {
 
     final notifier = progressOf(category, id);
     final uri = Uri.parse('$_releaseBase/$id.json.gz');
+    if (!await _approved(category, id, uri)) return null;
     final client = http.Client();
     try {
       final req = http.Request('GET', uri);
