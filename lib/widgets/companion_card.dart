@@ -39,7 +39,7 @@ class _CompanionCardState extends State<CompanionCard> {
 
   Future<void> _load() async {
     final context = await buildCompanionContext();
-    final message = companionMessageFor(context);
+    final message = companionMessageFor(context, lang: LanguagePreferenceService.currentLanguage);
     if (!mounted) return;
     setState(() {
       _message = message;

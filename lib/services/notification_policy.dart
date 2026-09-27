@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../l10n/basic_translations.dart';
 
 import 'quiet_hours_prefs.dart';
 
@@ -37,6 +40,15 @@ DateTime? planEncouragement({
     at = DateTime(at.year, at.month, at.day + 1, at.hour, at.minute);
   }
   return null;
+}
+
+/// Index of the wording to use next out of [count], never one of the
+/// [recent] ones while an unused one exists (recency penalty — the same
+/// sentence every day is what teaches people to swipe reminders away).
+int pickVariant(int count, List<int> recent, Random rng) {
+  final fresh = [for (var i = 0; i < count; i++) if (!recent.contains(i)) i];
+  final pool = fresh.isEmpty ? [for (var i = 0; i < count; i++) i] : fresh;
+  return pool[rng.nextInt(pool.length)];
 }
 
 DateTime _outOfQuiet(DateTime t, bool enabled, int start, int end) {
@@ -115,6 +127,18 @@ class NotificationPolicy {
     if (at != null) ledger[kind.name] = daily ? 'daily' : at.toIso8601String();
     await _writeLedger(prefs, ledger);
     return at;
+  }
+
+  /// A translated wording `'${base}_1'..'${base}_$count'` that differs from
+  /// the last `count - 2` used for [base].
+  Future<String> variant(String base, int count, String lang, {Random? rng}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'notif_variant_recent_$base';
+    final recent = (prefs.getStringList(key) ?? const []).map(int.parse).toList();
+    final i = pickVariant(count, recent, rng ?? Random());
+    final keep = count - 2;
+    await prefs.setStringList(key, [...recent, i].skip(max(0, recent.length + 1 - keep)).map((e) => '$e').toList());
+    return basicText('${base}_${i + 1}', lang);
   }
 
   /// Forget [kind]'s booking (its reminder was cancelled).

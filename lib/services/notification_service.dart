@@ -35,13 +35,13 @@ class NotificationService {
   static const _taskNotificationIdBase = 2000;
 
   static const _taskChannelId = 'task_reminders';
-  static const _taskChannelName = 'تذكيرات المهام اليومية';
+  static String get _taskChannelName => _t('nch_task');
 
   // Reading-inactivity reminder — a single fixed id, offset clear of both
   // ranges above (1001, 2000+taskId).
   static const _readingReminderNotificationId = 3000;
   static const _readingChannelId = 'reading_reminders';
-  static const _readingChannelName = 'تذكير بالقراءة';
+  static String get _readingChannelName => _t('nch_reading');
   static const _readingReminderInactiveDays = 3;
 
   // Immediate (non-scheduled) notification fired when new admin content
@@ -49,13 +49,13 @@ class NotificationService {
   // fresh call always overwrites/replaces rather than stacking duplicates.
   static const _contentNotificationId = 4000;
   static const _contentChannelId = 'content_updates';
-  static const _contentChannelName = 'محتوى جديد من المشرف';
+  static String get _contentChannelName => _t('nch_content');
 
   // Hifz (Quran memorization) daily check-in reminder — same
   // reschedule-on-every-checkin pattern as the reading reminder.
   static const _hifzReminderNotificationId = 5000;
   static const _hifzChannelId = 'hifz_reminders';
-  static const _hifzChannelName = 'تذكير حفظ القرآن';
+  static String get _hifzChannelName => _t('nch_hifz');
   static const _hifzReminderInactiveDays = 1;
 
   // "خطة الختم" per-goal daily reminders — one id per goal, offset clear of
@@ -65,7 +65,7 @@ class NotificationService {
   // when today's target genuinely wasn't touched.
   static const _goalReminderNotificationIdBase = 6000;
   static const _goalChannelId = 'goal_reminders';
-  static const _goalChannelName = 'تذكير خطط الختم';
+  static String get _goalChannelName => _t('nch_goal');
   static const _goalReminderHour = 20;
 
   // Adhkar morning/evening/sleep reminders — 2026-08-17: now anchored to
@@ -79,7 +79,7 @@ class NotificationService {
   static const _adhkarEveningNotificationId = 7001;
   static const _adhkarSleepNotificationId = 10000;
   static const _adhkarChannelId = 'adhkar_reminders';
-  static const _adhkarChannelName = 'تذكير أذكار الصباح والمساء والنوم';
+  static String get _adhkarChannelName => _t('nch_adhkar');
   static const _adhkarMorningHour = 6;
   static const _adhkarEveningHour = 17;
   static const _adhkarSleepHour = 21;
@@ -90,7 +90,7 @@ class NotificationService {
   // leaves a wide, collision-free window.
   static const _customAdhkarReminderIdBase = 11000;
   static const _customAdhkarChannelId = 'custom_adhkar_reminders';
-  static const _customAdhkarChannelName = 'تذكيرات أذكار مخصّصة';
+  static String get _customAdhkarChannelName => _t('nch_custom_adhkar');
 
   // 5 daily prayer-time notifications — the range this file's own comments
   // reserved back when it was still just a plan (roadmap §4.25). One fixed
@@ -102,7 +102,7 @@ class NotificationService {
   static const _maghribNotificationId = 8004;
   static const _ishaNotificationId = 8005;
   static const _prayerChannelId = 'prayer_time_notifications';
-  static const _prayerChannelName = 'تنبيه أوقات الصلاة';
+  static String get _prayerChannelName => _t('nch_prayer');
 
   // Adhan sound (2026-08-17) — `assets/audio/adhan_beautiful.ogg` /
   // `android/app/src/main/res/raw/adhan_beautiful.ogg`, CC0 (Wikimedia
@@ -115,7 +115,7 @@ class NotificationService {
   // as before; enabling the toggle routes to this second channel instead,
   // created for the first time with the real audio baked in.
   static const _prayerChannelIdAdhan = 'prayer_time_notifications_adhan';
-  static const _prayerChannelNameAdhan = 'تنبيه أوقات الصلاة (بصوت الأذان)';
+  static String get _prayerChannelNameAdhan => _t('nch_prayer_adhan');
   static const _adhanSoundResource = 'adhan_beautiful';
 
   // "محاسبة الوقت" daily log reminder — fixed evening time, same
@@ -127,7 +127,7 @@ class NotificationService {
   // notification range planned at 8000+ (roadmap §4.25).
   static const _timeLogReminderNotificationId = 9000;
   static const _timeLogChannelId = 'time_log_reminders';
-  static const _timeLogChannelName = 'تذكير محاسبة الوقت';
+  static String get _timeLogChannelName => _t('nch_timelog');
   static const _timeLogReminderHour = 21;
 
   // "رفيق طالب العلم" as a real push (2026-08-17), not just the in-app
@@ -135,7 +135,7 @@ class NotificationService {
   // adhkar-sleep reminder (10000).
   static const _companionNotificationId = 10001;
   static const _companionChannelId = 'companion_checkin';
-  static const _companionChannelName = 'رفيق طالب العلم';
+  static String get _companionChannelName => _t('nch_companion');
   static const _companionCheckInHour = 20;
 
   // «مُحرّك الحياة» (Life Engine, docs/LIFE_ENGINE.md L4) — a per-block
@@ -146,7 +146,7 @@ class NotificationService {
   // except the morning brief; `LifePlanScreen` reschedules on every
   // load / resume / midnight so completed and past blocks drop out.
   static const _lifeChannelId = 'life_slots';
-  static const _lifeChannelName = 'مُحرّك الحياة';
+  static String get _lifeChannelName => _t('nch_life');
 
   final _plugin = FlutterLocalNotificationsPlugin();
 
@@ -173,6 +173,53 @@ class NotificationService {
   /// would keep `_ready == false` forever once `main.dart`'s instance had
   /// already run init — and all its scheduling calls would silently no-op.
   static bool _ready = false;
+
+  /// Notification copy + channel names follow the app language (N3). Read
+  /// at scheduling time; every launch reschedules, so a language change
+  /// reaches pending reminders on the next start.
+  static String get _lang => LanguagePreferenceService.currentLanguage;
+  static String _t(String key) => basicText(key, _lang);
+
+  /// Renames the channels Android already holds to the current language.
+  /// The plugin only names a channel when it first posts on it, so without
+  /// this the system settings would keep the first language forever. Only
+  /// existing channels are touched: for those Android changes just the
+  /// name/description and ignores sound/importance, so the adhan channel's
+  /// sound is safe. Missing ones get the right name when they first post.
+  Future<void> syncChannelNames() async {
+    await _ensureInitialized();
+    if (!_ready) return;
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return;
+    final existing = await android.getNotificationChannels() ?? const [];
+    final names = <String, (String, String)>{
+      _taskChannelId: (_taskChannelName, _t('ncd_task')),
+      _readingChannelId: (_readingChannelName, _t('ncd_reading')),
+      _contentChannelId: (_contentChannelName, _t('ncd_content')),
+      _hifzChannelId: (_hifzChannelName, _t('ncd_hifz')),
+      _goalChannelId: (_goalChannelName, _t('ncd_goal')),
+      _adhkarChannelId: (_adhkarChannelName, _t('ncd_adhkar')),
+      _customAdhkarChannelId: (_customAdhkarChannelName, _t('ncd_custom_adhkar')),
+      _prayerChannelId: (_prayerChannelName, _t('ncd_prayer')),
+      _prayerChannelIdAdhan: (_prayerChannelNameAdhan, _t('ncd_prayer')),
+      _timeLogChannelId: (_timeLogChannelName, _t('ncd_timelog')),
+      _companionChannelId: (_companionChannelName, _t('ncd_companion')),
+      _lifeChannelId: (_lifeChannelName, _t('life_notif_channel_desc')),
+    };
+    for (final c in existing) {
+      final n = names[c.id];
+      if (n == null || (c.name == n.$1 && c.description == n.$2)) continue;
+      await android.createNotificationChannel(AndroidNotificationChannel(
+        c.id,
+        n.$1,
+        description: n.$2,
+        importance: c.importance,
+        playSound: c.playSound,
+        sound: c.sound,
+        enableVibration: c.enableVibration,
+      ));
+    }
+  }
 
   /// Returns the payload of the notification that launched the app from a
   /// fully-closed state, if any — call once from `main.dart` after
@@ -297,14 +344,14 @@ class NotificationService {
 
     await _plugin.zonedSchedule(
       id: id,
-      title: 'تذكير بمهمة',
+      title: _t('n_task_title'),
       body: title,
       scheduledDate: tz.TZDateTime.from(dateTime, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _taskChannelId,
           _taskChannelName,
-          channelDescription: 'تذكير بمهمة يومية حدّدها الطالب لنفسه',
+          channelDescription: _t('ncd_task'),
           importance: Importance.high,
           priority: Priority.high,
         ),
@@ -335,14 +382,14 @@ class NotificationService {
     if (fireAt == null) return;
     await _plugin.zonedSchedule(
       id: _readingReminderNotificationId,
-      title: 'اشتقنا لك 📖',
-      body: 'لم تفتح أي كتاب منذ عدة أيام — عد إلى مكتبتك وتابع قراءتك.',
+      title: _t('n_reading_title'),
+      body: await NotificationPolicy.instance.variant('n_reading_body', 4, _lang),
       scheduledDate: tz.TZDateTime.from(fireAt, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _readingChannelId,
           _readingChannelName,
-          channelDescription: 'تذكير عند التوقف عن القراءة لعدة أيام',
+          channelDescription: _t('ncd_reading'),
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
@@ -365,14 +412,14 @@ class NotificationService {
     if (fireAt == null) return;
     await _plugin.zonedSchedule(
       id: _hifzReminderNotificationId,
-      title: 'حفظ القرآن 📖',
-      body: 'لا تنسَ نصيبك اليوم من الحفظ أو المراجعة.',
+      title: _t('n_hifz_title'),
+      body: await NotificationPolicy.instance.variant('n_hifz_body', 4, _lang),
       scheduledDate: tz.TZDateTime.from(fireAt, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _hifzChannelId,
           _hifzChannelName,
-          channelDescription: 'تذكير يومي بحفظ أو مراجعة القرآن',
+          channelDescription: _t('ncd_hifz'),
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
@@ -408,14 +455,14 @@ class NotificationService {
 
     await _plugin.zonedSchedule(
       id: id,
-      title: 'لم تكمل نصيبك اليوم 🎯',
+      title: _t('n_goal_title'),
       body: '$goalTitle — $dailyTargetLabel',
       scheduledDate: tz.TZDateTime.from(fireAt, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _goalChannelId,
           _goalChannelName,
-          channelDescription: 'تذكير يومي بنصيبك من خطة ختم لم تُنجَز بعد',
+          channelDescription: _t('ncd_goal'),
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
@@ -472,24 +519,24 @@ class NotificationService {
       id: _adhkarMorningNotificationId,
       prefs: prefs,
       defaultHour: fajrHour ?? _adhkarMorningHour,
-      title: 'أذكار الصباح 🌅',
-      body: '$morningMinutes دقائق فقط ترفع درجتك اليوم — لنبدأ.',
+      title: _t('n_adhkar_morning_title'),
+      body: _t('n_adhkar_morning_body').replaceAll('{minutes}', '$morningMinutes'),
     );
     await _scheduleAdhkarCategory(
       category: 'evening',
       id: _adhkarEveningNotificationId,
       prefs: prefs,
       defaultHour: asrHour ?? _adhkarEveningHour,
-      title: 'أذكار المساء 🌇',
-      body: '$morningMinutes دقائق فقط تحفظ يومك — لنكمله بذكر.',
+      title: _t('n_adhkar_evening_title'),
+      body: _t('n_adhkar_evening_body').replaceAll('{minutes}', '$morningMinutes'),
     );
     await _scheduleAdhkarCategory(
       category: 'sleep',
       id: _adhkarSleepNotificationId,
       prefs: prefs,
       defaultHour: ishaHour ?? _adhkarSleepHour,
-      title: 'أذكار النوم 🌙',
-      body: '$sleepMinutes دقائق فقط قبل أن تنام — ختام جميل ليومك.',
+      title: _t('n_adhkar_sleep_title'),
+      body: _t('n_adhkar_sleep_body').replaceAll('{minutes}', '$sleepMinutes'),
     );
   }
 
@@ -513,7 +560,7 @@ class NotificationService {
       body: body,
       channelId: _adhkarChannelId,
       channelName: _adhkarChannelName,
-      channelDescription: 'تذكير يومي بأذكار الصباح/المساء/النوم، بوقت مرتبط بأوقات الصلاة الفعلية عند توفر الموقع',
+      channelDescription: _t('ncd_adhkar'),
       payload: 'adhkar',
     );
   }
@@ -562,11 +609,11 @@ class NotificationService {
       final times = await PrayerTimesRepository().prayerTimesFor(coords);
 
       final prayers = [
-        (_fajrNotificationId, 'الفجر', times.fajr),
-        (_dhuhrNotificationId, 'الظهر', times.dhuhr),
-        (_asrNotificationId, 'العصر', times.asr),
-        (_maghribNotificationId, 'المغرب', times.maghrib),
-        (_ishaNotificationId, 'العشاء', times.isha),
+        (_fajrNotificationId, _t('prayer_fajr'), times.fajr),
+        (_dhuhrNotificationId, _t('prayer_dhuhr'), times.dhuhr),
+        (_asrNotificationId, _t('prayer_asr'), times.asr),
+        (_maghribNotificationId, _t('prayer_maghrib'), times.maghrib),
+        (_ishaNotificationId, _t('prayer_isha'), times.isha),
       ];
 
       final now = DateTime.now();
@@ -576,14 +623,14 @@ class NotificationService {
         if (local.isBefore(now)) continue; // already passed today
         await _plugin.zonedSchedule(
           id: id,
-          title: 'حان وقت صلاة $name 🕌',
-          body: 'حي على الصلاة، حي على الفلاح.',
+          title: _t('n_prayer_title').replaceAll('{name}', name),
+          body: 'حي على الصلاة، حي على الفلاح.', // the adhan's words — kept in Arabic in every language
           scheduledDate: tz.TZDateTime.from(local, tz.local),
           notificationDetails: NotificationDetails(
             android: AndroidNotificationDetails(
               channelId,
               channelName,
-              channelDescription: 'تنبيه عند دخول وقت كل صلاة، محسوب من موقعك الفعلي',
+              channelDescription: _t('ncd_prayer'),
               importance: Importance.high,
               priority: Priority.high,
               sound: sound,
@@ -611,10 +658,10 @@ class NotificationService {
       id: _customAdhkarReminderIdBase + categoryId,
       hour: hour,
       title: '$categoryTitle 🔔',
-      body: '$minutes دقائق فقط ترفع درجتك — حان وقتها الآن.',
+      body: _t('n_custom_adhkar_body').replaceAll('{minutes}', '$minutes'),
       channelId: _customAdhkarChannelId,
       channelName: _customAdhkarChannelName,
-      channelDescription: 'تذكيرات أذكار اخترتها بنفسك من خارج الصباح/المساء/النوم',
+      channelDescription: _t('ncd_custom_adhkar'),
       payload: 'adhkar',
     );
   }
@@ -666,11 +713,11 @@ class NotificationService {
       id: _timeLogReminderNotificationId,
       hour: at.hour,
       applyQuiet: false, // already placed by the policy
-      title: 'محاسبة يومك ⏳',
-      body: 'قبل أن ينام يومك — سجّل كم نمت، وكم ضاع، وكم درست واشتغلت.',
+      title: _t('n_timelog_title'),
+      body: await NotificationPolicy.instance.variant('n_timelog_body', 4, _lang),
       channelId: _timeLogChannelId,
       channelName: _timeLogChannelName,
-      channelDescription: 'تذكير يومي ثابت بتسجيل محاسبة الوقت',
+      channelDescription: _t('ncd_timelog'),
       payload: 'home',
     );
   }
@@ -734,13 +781,13 @@ class NotificationService {
     if (!_ready) return;
     await _plugin.show(
       id: _contentNotificationId,
-      title: '📚 محتوى جديد',
+      title: _t('n_content_title'),
       body: body,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _contentChannelId,
           _contentChannelName,
-          channelDescription: 'إشعار عند وصول محتوى جديد من المشرف عبر تلجرام',
+          channelDescription: _t('ncd_content'),
           importance: Importance.high,
           priority: Priority.high,
         ),
@@ -866,11 +913,11 @@ class NotificationService {
       title: '${message.title} ${message.icon}',
       body: message.body,
       scheduledDate: tz.TZDateTime.from(at, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _companionChannelId,
           _companionChannelName,
-          channelDescription: 'رسالة يومية من رفيق طالب العلم، فقط عندما يكون لديه شيء مفيد ليقوله',
+          channelDescription: _t('ncd_companion'),
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),

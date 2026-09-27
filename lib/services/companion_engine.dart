@@ -1,3 +1,4 @@
+import '../l10n/basic_translations.dart';
 import '../repositories/completion_goal_repository.dart';
 
 /// "رفيق طالب العلم" — Ismail's 2026-08-17 request: a rule-based (NOT AI,
@@ -43,53 +44,53 @@ class CompanionContext {
 const _absenceThresholdDays = 3;
 const _celebrationStreakThreshold = 7;
 
-CompanionMessage? companionMessageFor(CompanionContext ctx) {
+CompanionMessage? companionMessageFor(CompanionContext ctx, {String lang = 'ar'}) {
   if (ctx.daysAbsent != null && ctx.daysAbsent! >= _absenceThresholdDays) {
-    return const CompanionMessage(
+    return CompanionMessage(
       state: CompanionState.returning,
       icon: '🤍',
-      title: 'الحمد لله على عودتك',
-      body: 'لا نحاول تعويض كل شيء اليوم — سنبدأ بخطوة صغيرة.',
+      title: basicText('cmp_returning_title', lang),
+      body: basicText('cmp_returning_body', lang),
     );
   }
   if (ctx.dueReviewsCount > 0) {
     return CompanionMessage(
       state: CompanionState.reviewDue,
       icon: '📚',
-      title: 'مراجعتك تنتظرك',
-      body: 'لديك ${ctx.dueReviewsCount} من المراجعات المستحقة اليوم.',
+      title: basicText('cmp_review_title', lang),
+      body: basicText('cmp_review_body', lang).replaceAll('{n}', '${ctx.dueReviewsCount}'),
     );
   }
   if (ctx.scheduleStatus == ScheduleStatus.behind) {
-    return const CompanionMessage(
+    return CompanionMessage(
       state: CompanionState.behind,
       icon: '🙂',
-      title: 'لا بأس',
-      body: 'تأخرت قليلًا عن خطتك — لنعدّل جلسة اليوم حتى تعود للمسار تدريجيًا.',
+      title: basicText('cmp_behind_title', lang),
+      body: basicText('cmp_behind_body', lang),
     );
   }
   if (ctx.scheduleStatus == ScheduleStatus.ahead) {
-    return const CompanionMessage(
+    return CompanionMessage(
       state: CompanionState.ahead,
       icon: '🔥',
-      title: 'ممتاز',
-      body: 'أنت متقدم عن خطتك — هل نستثمر هذا التقدم اليوم؟',
+      title: basicText('cmp_ahead_title', lang),
+      body: basicText('cmp_ahead_body', lang),
     );
   }
   if (ctx.streak >= _celebrationStreakThreshold) {
     return CompanionMessage(
       state: CompanionState.celebrating,
       icon: '👏',
-      title: 'أحسنت',
-      body: 'حافظت على استمرارك ${ctx.streak} يومًا متتاليًا.',
+      title: basicText('cmp_celebrate_title', lang),
+      body: basicText('cmp_celebrate_body', lang).replaceAll('{n}', '${ctx.streak}'),
     );
   }
   if (ctx.daysAbsent != null) {
-    return const CompanionMessage(
+    return CompanionMessage(
       state: CompanionState.dailyInvite,
       icon: '📖',
-      title: 'هل نقرأ القرآن اليوم؟',
-      body: 'ولو صفحة واحدة — كل خطوة تُحسب.',
+      title: basicText('cmp_invite_title', lang),
+      body: basicText('cmp_invite_body', lang),
     );
   }
   return null;

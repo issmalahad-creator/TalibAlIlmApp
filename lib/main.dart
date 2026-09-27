@@ -177,6 +177,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   Future<void> _scheduleAllNotifications() async {
     // Independent: one failing schedule must not skip the others.
     for (final schedule in <Future<void> Function()>[
+      _notificationService.syncChannelNames,
       _notificationService.scheduleAdhkarReminders,
       _notificationService.scheduleTimeLogReminder,
       _notificationService.schedulePrayerTimeNotifications,
@@ -196,7 +197,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   /// context the in-app `CompanionCard` uses and only actually schedules a
   /// notification if the rule engine has something to say today.
   Future<void> _scheduleCompanionCheckIn() async {
-    final message = companionMessageFor(await buildCompanionContext());
+    final message = companionMessageFor(await buildCompanionContext(), lang: LanguagePreferenceService.currentLanguage);
     await _notificationService.scheduleOrCancelCompanionMessage(message);
   }
 
