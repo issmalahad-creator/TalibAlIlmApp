@@ -11,6 +11,7 @@ import '../services/prayer_notification_prefs.dart';
 import '../services/quiet_hours_prefs.dart';
 import '../theme/app_theme.dart';
 import 'notification_diagnostics_screen.dart';
+import '../widgets/notification_permission_sheet.dart';
 
 const _categoryLabelKeys = {
   'morning': ('notif_cat_morning_title', 'notif_cat_morning_hint'),
@@ -114,6 +115,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }
 
   Future<void> _togglePrayerNotifications(bool value) async {
+    if (value) await ensureExactAlarmsForPrayer(context);
     await _prayerPrefs.setEnabled(value);
     setState(() => _prayerEnabled = value);
     await _notifications.schedulePrayerTimeNotifications();
@@ -165,6 +167,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     if (category == null || !mounted) return;
     final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 8, minute: 0));
     if (picked == null || !mounted) return;
+    await ensureNotificationPermission(context, NotificationReason.adhkar);
     await _customRepo.add(category.id, picked.hour);
     await _notifications.scheduleCustomAdhkarReminder(categoryId: category.id, categoryTitle: category.title, hour: picked.hour);
     _load();
@@ -181,6 +184,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }
 
   Future<void> _toggleEnabled(String category, bool value) async {
+    if (value) await ensureNotificationPermission(context, NotificationReason.adhkar);
     await _prefs.setEnabled(category, value);
     setState(() => _enabled[category] = value);
     await _apply();

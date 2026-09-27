@@ -12,6 +12,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/notification_permission_sheet.dart';
 
 /// The book's title for the merged morning+evening chapter — only this
 /// category's completions count toward the streak certificates (see
@@ -135,6 +136,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
   Future<void> _addReminder() async {
     final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 8, minute: 0));
     if (picked == null || !mounted) return;
+    await ensureNotificationPermission(context, NotificationReason.adhkar);
     await CustomAdhkarReminderRepository().add(widget.category.id, picked.hour);
     await NotificationService().scheduleCustomAdhkarReminder(
       categoryId: widget.category.id,

@@ -55,6 +55,7 @@ import 'review_screen.dart';
 import 'time_awareness_screen.dart';
 import 'curriculum_map_screen.dart';
 import '../widgets/daily_benefit_card.dart';
+import '../widgets/enable_reminders_card.dart';
 import '../widgets/feedback/talib_navigation.dart';
 import '../widgets/feedback/talib_pressable.dart';
 
@@ -194,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // A fresh sourced hadith / dhikr / ayah / faida every launch.
                   const DailyBenefitCard(),
                   const SizedBox(height: 12),
+                  const EnableRemindersCard(),
                   const CompanionCard(),
                   DailyCompanionCard(
                     onOpenPrayerTimes: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen())),

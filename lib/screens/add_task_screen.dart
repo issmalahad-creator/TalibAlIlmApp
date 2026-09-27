@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
 import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/premium_modal.dart';
+import '../widgets/notification_permission_sheet.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final DailyTask? existing;
@@ -110,6 +111,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     }
 
     if (task.reminderEnabled) {
+      if (mounted) await ensureNotificationPermission(context, NotificationReason.task);
       await _notificationService.scheduleTaskReminder(
         taskId: id,
         title: task.title,

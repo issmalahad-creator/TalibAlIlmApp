@@ -213,16 +213,14 @@ class NotificationService {
         },
       );
 
-      final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-      await android?.requestNotificationsPermission();
-      // Prayer-time notifications only (2026-08-17 reliability pass) — asks
-      // once for exact-alarm scheduling so Doze mode can't delay the adhan
-      // notification by several minutes. A no-op if already granted; opens
-      // Android's own settings screen on 12+ if not.
-      // `schedulePrayerTimeNotifications` checks `canScheduleExactNotifications()`
-      // itself and silently falls back to inexact scheduling if this was
-      // denied — never blocks or throws.
-      await android?.requestExactAlarmsPermission();
+      // No permission is requested here (NOTIFICATIONS_ARCHITECTURE.md N1):
+      // this runs at every launch, and asking with no context — worse, the
+      // exact-alarm request opens Android's settings screen on 12+ — is what
+      // makes people deny notifications. Screens the user opened ask via
+      // `requestPermission()` / `requestExactAlarms()` after explaining why
+      // (`ensureNotificationPermission` in
+      // lib/widgets/notification_permission_sheet.dart). Scheduling while
+      // not yet granted is harmless: the OS just doesn't show them.
 
       // Report-deadline reminder removed with the Report feature (Phase -1).
       // Cancel any reminder a previous app version may have already scheduled
@@ -242,6 +240,28 @@ class NotificationService {
     if (!_ready) return false;
     final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     return await android?.areNotificationsEnabled() ?? false;
+  }
+
+  /// Shows Android's notification-permission dialog (13+). Call only from a
+  /// user action, after explaining why (see `ensureNotificationPermission`).
+  /// Returns whether notifications are allowed afterwards.
+  Future<bool> requestPermission() async {
+    await _ensureInitialized();
+    if (!_ready) return false;
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    final granted = await android?.requestNotificationsPermission();
+    return granted ?? await notificationsEnabled();
+  }
+
+  /// Exact alarms — for prayer times only. On Android 12+ this opens the
+  /// system "Alarms & reminders" screen, so it must follow an explanation
+  /// (`ensureExactAlarmsForPrayer`). Returns whether exact scheduling is on.
+  Future<bool> requestExactAlarms() async {
+    await _ensureInitialized();
+    if (!_ready) return false;
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestExactAlarmsPermission();
+    return exactAlarmsEnabled();
   }
 
   /// Whether exact-alarm scheduling is currently available — same
