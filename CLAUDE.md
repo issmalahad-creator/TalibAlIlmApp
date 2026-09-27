@@ -22,6 +22,10 @@ The **Quran Learning Engine** design (the mushaf as a teaching surface: tap a wo
 
 **Not yet scoped into TODO.md phases at all**: the roadmap's "مكتبة النصوص الإسلامية" pillar (`QURAN_COMPANION_ROADMAP.md` §4.9) — 40 Nawawi Hadiths + Ibn Uthaymeen's explanation, Aqeedah Wasitiyyah, Zad al-Ma'ad excerpts, Madarij al-Salikin, full Fiqh/purification + prayer method, Hisn al-Muslim adhkar, Qaida Noorania, Asma-ul-Husna. This is most of the app's eventual scope and hasn't been started.
 
+## Lightweight by architecture (Ismail 2026-09-27)
+
+Before adding **any** feature, dataset, asset, background job, permission prompt or startup work, load the `lightweight-feature-rules` skill and answer its 10-question gate in the plan. New features are welcome; unplanned weight is not.
+
 ## The one rule that prevents scatter
 
 **Work exactly one phase at a time, in the order listed in `TODO.md`.** Do not start Phase N+1 work while Phase N is incomplete or unverified, even if it looks quick. The roadmap covers an enormous final scope (Quran + Hadith + Aqeedah + Fiqh + more) — the only way this actually ships is strict sequencing, not parallel partial progress on five things at once. `TODO.md` in this folder is the live checklist; update it the moment a phase step finishes, before starting the next one.

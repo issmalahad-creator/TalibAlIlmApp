@@ -9,6 +9,9 @@ description: >-
 
 # App Performance and Size Optimization
 
+For the rules every *new feature* must follow (the 10-question gate, BootScheduler,
+content packs, phone verification) load `lightweight-feature-rules` first.
+
 The full plan is `docs/APP_PERFORMANCE_AND_SIZE_ROADMAP.md`. Read it before
 editing performance, assets, startup, or build configuration.
 

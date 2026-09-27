@@ -138,4 +138,5 @@ description: >-
 `quran-premium-3d-ui` (لغة التصميم) ·
 `turath-study-annotations` (نموذج التظليل/الملاحظات) ·
 `app-translations` (نمط `basicText()`) ·
+`lightweight-feature-rules` (**بوابة الأسئلة العشرة قبل أي ميزة جديدة** — أين يُسمح بالعمل، أين تُشحن البيانات، والإثبات على الهاتف) ·
 `device-testing-adb` (التحقّق على الجهاز/المحاكي).
