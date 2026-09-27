@@ -358,7 +358,7 @@
 |---|---:|---:|---:|---:|---:|---:|---|
 | Baseline / SIZE-0 | 626.6-648.3 MB | 459.2 MB | TBD | TBD | TBD | TBD | Build passed; phone test pending |
 | 1 (SIZE-1, 2026-09-26) | TBD | **arm64 326.4 · v7a 310.8 · x86_64 332.5 MB** (split, `tool/build_apk.py`) | TBD | TBD | TBD | TBD | تثبيت arm64 على الهاتف — بانتظار إسماعيل |
-| 2 | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
+| S2 (2026-09-27) | — | **arm64 307.8 · x86_64 314.0 MB** (−18.5، حذف `mushaf_borders` الميت) | — | — | — | — | ✅ المصحف يعمل على هاتف إسماعيل (ص1، ص3) |
 | 3 | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 | 4 | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 
