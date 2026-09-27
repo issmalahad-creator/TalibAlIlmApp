@@ -80,6 +80,14 @@ class ContentPackEngine {
   PackManifest? _manifest;
   StreamSubscription<void>? _netSub;
 
+  /// Back-off between automatic retries of one file (4 retries ≈ 52 s).
+  static List<Duration> retryDelays = const [
+    Duration(seconds: 2),
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+  ];
+
   static const _installedKey = 'packs_installed'; // {id: {v, bytes}}
   static const _pendingKey = 'packs_pending'; // [{id, wifiOnly}]
   static const _etagKey = 'packs_manifest_etag';
@@ -228,6 +236,11 @@ class ContentPackEngine {
     return sum;
   }
 
+  Future<int> _partialBytesOf(File target) async {
+    final part = File('${target.path}.part');
+    return await part.exists() ? part.length() : 0;
+  }
+
   /// Total bytes the installed packs occupy (for «التنزيلات والمساحة»).
   Future<int> bytesUsed() async => (await _installed()).values.fold<int>(0, (s, r) => s + r.$2);
 
@@ -364,24 +377,38 @@ class ContentPackEngine {
         before += f.bytes;
         continue;
       }
-      final result = await _downloader.download(
-        uri: Uri.parse('${m.base}${f.name}'),
-        target: target,
-        expectedBytes: f.bytes,
-        expectedSha256: f.sha256,
-        isCancelled: () => _stop.contains(id),
-        onProgress: (received, _) {
-          final now = before + received;
-          final ms = sw.elapsedMilliseconds;
-          if (ms - lastMs >= 500) {
-            final instant = (now - lastBytes) * 1000 / (ms - lastMs);
-            speed = speed == null ? instant : speed! * 0.7 + instant * 0.3; // smoothed
-            lastBytes = now;
-            lastMs = ms;
-          }
-          state.value = PackDownloading(received: now, total: total, bytesPerSecond: speed);
-        },
-      );
+      // Show the connection at once — «0 / 9.2 MB», not a silent «waiting».
+      state.value = PackDownloading(received: before + (await _partialBytesOf(target)), total: total);
+      DownloadResult result;
+      var attempt = 0;
+      while (true) {
+        result = await _downloader.download(
+          uri: Uri.parse('${m.base}${f.name}'),
+          target: target,
+          expectedBytes: f.bytes,
+          expectedSha256: f.sha256,
+          isCancelled: () => _stop.contains(id),
+          onProgress: (received, _) {
+            final now = before + received;
+            final ms = sw.elapsedMilliseconds;
+            if (ms - lastMs >= 500) {
+              final instant = (now - lastBytes) * 1000 / (ms - lastMs);
+              speed = speed == null ? instant : speed! * 0.7 + instant * 0.3; // smoothed
+              lastBytes = now;
+              lastMs = ms;
+            }
+            state.value = PackDownloading(received: now, total: total, bytesPerSecond: speed);
+          },
+        );
+        // Weak network: retry with back-off, resuming from the .part each
+        // time — only give up after the last attempt, or when truly offline.
+        final transient = result is DownloadFailed &&
+            (result.reason == PackFailure.offline || result.reason == PackFailure.server);
+        if (!transient || attempt >= retryDelays.length || _stop.contains(id)) break;
+        if (!await _network.isOnline()) break;
+        await Future<void>.delayed(retryDelays[attempt++]);
+        if (_stop.contains(id)) break;
+      }
       switch (result) {
         case DownloadOk(:final file):
           files.add(file);

@@ -31,6 +31,11 @@ class PackDownloader {
 
   final http.Client Function() _clientFactory;
 
+  /// Slow links (GitHub's CDN through a weak network can take tens of
+  /// seconds to answer) — patience, not failure. Retries live in the engine.
+  static const connectTimeout = Duration(seconds: 60);
+  static const idleTimeout = Duration(seconds: 60);
+
   /// Called with `(receivedTotal, expectedTotal)` as bytes arrive.
   Future<DownloadResult> download({
     required Uri uri,
@@ -53,7 +58,7 @@ class PackDownloader {
       if (have < expectedBytes) {
         final req = http.Request('GET', uri);
         if (have > 0) req.headers['Range'] = 'bytes=$have-';
-        final res = await client.send(req).timeout(const Duration(seconds: 30));
+        final res = await client.send(req).timeout(connectTimeout);
         if (res.statusCode == 404 || res.statusCode == 410) return const DownloadFailed(PackFailure.notFound);
         if (res.statusCode == 200 && have > 0) {
           // Server ignored the range — start over rather than append.
@@ -66,7 +71,7 @@ class PackDownloader {
         var cancelled = false;
         onProgress?.call(received, expectedBytes);
         try {
-          await for (final chunk in res.stream.timeout(const Duration(seconds: 30))) {
+          await for (final chunk in res.stream.timeout(idleTimeout)) {
             if (isCancelled?.call() ?? false) {
               cancelled = true;
               break;
