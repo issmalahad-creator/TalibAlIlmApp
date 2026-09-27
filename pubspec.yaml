@@ -41,6 +41,7 @@ dependencies:
   path: ^1.9.0
   path_provider: ^2.1.4
   http: ^1.2.2
+  crypto: ^3.0.3 # content packs: sha256 of downloaded files (already transitive)
   connectivity_plus: ^6.1.0
   shared_preferences: ^2.3.3
   intl: ^0.20.1
