@@ -19,6 +19,9 @@ String packMb(int bytes) {
   return mb >= 10 ? mb.toStringAsFixed(0) : mb.toStringAsFixed(1);
 }
 
+/// «9.2 MB» that stays in that order inside Arabic text (LTR isolate).
+String packSize(int bytes) => '\u2066${packMb(bytes)} MB\u2069';
+
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
 
 enum _Net { wifi, mobile, none }
@@ -62,7 +65,7 @@ Future<DownloadChoice?> askDownloadSheet(
 }) async {
   final net = await _network();
   if (!context.mounted) return null;
-  final size = bytes == null ? null : '${packMb(bytes)} MB';
+  final size = bytes == null ? null : packSize(bytes);
   return showModalBottomSheet<DownloadChoice>(
     context: context,
     showDragHandle: true,
@@ -109,7 +112,7 @@ Future<DownloadChoice?> askDownloadSheet(
               },
               switch (net) {
                 _Net.wifi => _t('pk_on_wifi'),
-                _Net.mobile => _t('pk_on_mobile').replaceAll('{mb}', bytes == null ? '?' : packMb(bytes)),
+                _Net.mobile => _t('pk_on_mobile').replaceAll('{mb} MB', bytes == null ? '?' : packSize(bytes)),
                 _Net.none => _t('pk_no_connection'),
               },
               warn: net != _Net.wifi,
@@ -209,7 +212,7 @@ class _PackStatusViewState extends State<PackStatusView> {
 
   Widget _body(BuildContext context, PackState s) {
     final id = widget.pack.id;
-    final size = '${packMb(widget.pack.bytes)} MB';
+    final size = packSize(widget.pack.bytes);
     return switch (s) {
       PackNotInstalled() => _action(Icons.download_rounded, size, () => showPackDownloadSheet(context, widget.pack, engine: _e)),
       PackBundled() => _label(Icons.check_circle_outline, _t('pk_bundled'), AppColors.textMuted),
@@ -223,8 +226,7 @@ class _PackStatusViewState extends State<PackStatusView> {
         ),
       PackDownloading(:final received, :final total) => _progress(
           s.fraction,
-          _t('pk_progress').replaceAll('{done}', packMb(received)).replaceAll('{total}', packMb(total)) +
-              _eta(s.remaining),
+          '\u2066${packMb(received)} / ${packMb(total)} MB\u2069${_eta(s.remaining)}',
           onPause: () => _e.pause(id),
           onCancel: () => _e.cancel(id),
         ),

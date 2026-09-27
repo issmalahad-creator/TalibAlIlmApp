@@ -31,7 +31,8 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    // Instant from the snapshot/cache, then the live manifest in the background.
+    _load(refresh: false).then((_) => _load());
   }
 
   Future<void> _load({bool refresh = true}) async {
@@ -60,7 +61,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
               Text(
                 basicText('pk_delete_confirm', lang)
                     .replaceAll('{name}', pack.titleFor(lang))
-                    .replaceAll('{mb}', packMb(pack.bytes)),
+                    .replaceAll('{mb} MB', packSize(pack.bytes)),
                 style: const TextStyle(fontSize: 15, height: 1.5),
               ),
               const SizedBox(height: 16),
@@ -107,7 +108,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(basicText('downloads_used', lang).replaceAll('{mb}', packMb(_used)),
+                                Text(basicText('downloads_used', lang).replaceAll('{mb} MB', packSize(_used)),
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                                 const SizedBox(height: 4),
                                 Text(basicText('downloads_intro', lang),
@@ -151,7 +152,6 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(p.titleFor(lang), style: AppTextStyles.title),
-                    Text('${packMb(p.bytes)} MB', style: AppTextStyles.caption),
                   ],
                 ),
               ),

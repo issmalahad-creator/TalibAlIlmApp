@@ -93,12 +93,17 @@ class ContentPackEngine {
   /// [refresh] hits the network; otherwise no network at all.
   Future<PackManifest?> manifest({bool refresh = false}) async {
     if (_manifest != null && !refresh) return _manifest;
-    final prefs = await SharedPreferences.getInstance();
-    if (refresh) {
-      final fresh = await _fetchManifest(prefs);
-      if (fresh != null) _manifest = fresh;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (refresh) {
+        final fresh = await _fetchManifest(prefs);
+        if (fresh != null) _manifest = fresh;
+      }
+      _manifest ??= _parse(prefs.getString(_cachedManifestKey));
+    } catch (_) {
+      // No prefs (tests, a broken store) — fall back to the bundled snapshot.
     }
-    _manifest ??= _parse(prefs.getString(_cachedManifestKey)) ?? _parse(await _bundledManifest());
+    _manifest ??= _parse(await _bundledManifest());
     return _manifest;
   }
 
@@ -152,6 +157,15 @@ class ContentPackEngine {
   /// Reads the real state from disk/prefs into [stateOf]. Cheap; call when a
   /// screen that shows packs opens.
   Future<PackState> refreshState(String id) async {
+    try {
+      return await _refreshState(id);
+    } catch (e) {
+      debugPrint('ContentPackEngine: state of $id unknown ($e)');
+      return stateOf(id).value;
+    }
+  }
+
+  Future<PackState> _refreshState(String id) async {
     final current = stateOf(id).value;
     if (current.isBusy || current is PackWaitingForWifi) return current;
     final m = await manifest();
@@ -324,7 +338,10 @@ class ContentPackEngine {
   Future<void> _run(_Job job) async {
     final id = job.id;
     final state = stateOf(id);
-    final m = await manifest(refresh: true);
+    // The manifest we already hold is enough to start; only a pack we don't
+    // know yet is worth a network round-trip first.
+    var m = await manifest();
+    if (m?.byId(id) == null) m = await manifest(refresh: true);
     final pack = m?.byId(id);
     final installer = pack == null ? null : _installers[pack.installer];
     if (m == null || pack == null || installer == null) {

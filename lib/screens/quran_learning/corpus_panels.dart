@@ -6,7 +6,10 @@ import '../../repositories/quran_corpus_repository.dart';
 import '../../repositories/quran_reading_repository.dart';
 import '../../repositories/quran_search_repository.dart';
 import '../../services/quran_corpus_download_service.dart';
-import '../../widgets/packs/pack_ui.dart' show packMb;
+import '../../services/packs/content_pack_engine.dart';
+import '../../services/packs/pack_manifest.dart';
+import '../../services/packs/pack_state.dart';
+import '../../widgets/packs/pack_ui.dart';
 import '../../theme/app_theme.dart';
 
 /// Phase 80 / QC3 — the **Quran Corpus** surfaced on the mushaf.
@@ -635,10 +638,47 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
   List _qiraat = [];
   List<Map<String, Object?>> _riwayat = [];
 
+  /// Corpus datasets that are content packs (CP4) and aren't on the phone —
+  /// shown as «غير محمَّل» with a download button, never as an empty panel.
+  static const _packIds = ['corpus.sayings', 'corpus.notes', 'corpus.similar', 'corpus.irab_books'];
+  List<PackInfo> _missing = [];
+
   @override
   void initState() {
     super.initState();
+    for (final id in _packIds) {
+      ContentPackEngine.instance.stateOf(id).addListener(_onPackState);
+    }
     _load();
+  }
+
+  @override
+  void dispose() {
+    for (final id in _packIds) {
+      ContentPackEngine.instance.stateOf(id).removeListener(_onPackState);
+    }
+    super.dispose();
+  }
+
+  /// A pack just finished installing → its section appears in place.
+  void _onPackState() {
+    if (!mounted || _missing.isEmpty) return;
+    if (_missing.any((p) => ContentPackEngine.instance.stateOf(p.id).value is PackInstalled)) _load();
+  }
+
+  Future<List<PackInfo>> _missingPacks() async {
+    try {
+      final engine = ContentPackEngine.instance;
+      final m = await engine.manifest();
+      final out = <PackInfo>[];
+      for (final id in _packIds) {
+        final p = m?.byId(id);
+        if (p != null && !await engine.isUsable(id)) out.add(p);
+      }
+      return out;
+    } catch (_) {
+      return const []; // the panel never fails because of the pack layer
+    }
   }
 
   @override
@@ -662,9 +702,11 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
     final gm = await _repo.wordMeanings(s, a);
     final qiraat = await _repo.qiraat(s, a);
     final riwayat = await _repo.riwayat();
+    final missing = await _missingPacks();
 
     if (!mounted) return;
     setState(() {
+      _missing = missing;
       _asbab = asbab;
       _iraab = iraab;
       _nasekh = nasekhRaw is Map ? stripCorpusHtml(nasekhRaw['html']) : '';
@@ -695,7 +737,7 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
   Widget build(BuildContext context) {
     final lang = widget.lang;
     if (_loading) return _dots();
-    if (_empty) return _calmNoData(lang);
+    if (_empty && _missing.isEmpty) return _calmNoData(lang);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -710,10 +752,37 @@ class _AyahCorpusPanelState extends State<AyahCorpusPanel> {
         if (_qiraat.isNotEmpty) _qiraatSection(lang),
         if (_riwayat.isNotEmpty) _riwayatSection(lang),
         if (_topics.isNotEmpty) _topicsSection(lang),
+        if (_missing.isNotEmpty) _missingSection(lang),
         moreButton(basicText('ql_open_ayah_page', lang), widget.onOpenFull),
       ],
     );
   }
+
+  Widget _missingSection(String lang) => Container(
+        margin: const EdgeInsets.only(top: 6, bottom: 8),
+        padding: const EdgeInsets.fromLTRB(12, 10, 8, 6),
+        decoration: BoxDecoration(
+          color: AppColors.primaryLight.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(basicText('pk_missing_section', lang),
+                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+            for (final p in _missing)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(p.titleFor(lang), style: const TextStyle(fontSize: 13))),
+                    PackStatusView(pack: p, compact: true),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      );
 
   Widget _qiraatSection(String lang) => _CorpusSection(
         title: basicText('ql_qiraat', lang),
