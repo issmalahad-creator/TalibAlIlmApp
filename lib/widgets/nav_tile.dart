@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'feedback/talib_pressable.dart';
+
 import '../theme/motion.dart';
 
 /// Colorful icon-grid navigation tile, replacing the plain outlined
@@ -27,7 +29,11 @@ class NavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = InkWell(
+    // Press visual (IF-1): the tile sinks at 0 ms so the tap is felt before
+    // the next page arrives; the InkWell still owns the tap.
+    final content = TalibPressable(
+      onTap: null,
+      child: InkWell(
       onTap: data.onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
@@ -51,6 +57,7 @@ class NavTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
     if (index == 0) return content;

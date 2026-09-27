@@ -94,7 +94,7 @@ idle → pressed → running(elapsed) → success → idle
 
 | # | المرحلة |
 |---|---|
-| IF-1 | `TalibPressable` + `TalibActionButton` + `talibPush` + اختبارات §10 |
+| IF-1 ✅ (2026-09-27) | `TalibPressable` + `TalibActionButton` + `talibPush` + 9 اختبارات (`test/interaction_feedback_test.dart`)؛ مطبَّق على أيقونات `NavTile` وبطاقة القرآن في الرئيسية. **على هاتف إسماعيل:** 3 ضغطات سريعة على «القرآن الكريم» ثم رجوع واحد = العودة للرئيسية (صفحة واحدة فُتحت) |
 | IF-2 | `ContextualLoading` يحل محل `AppLoadingView` (58 ملفًا) — استبدال آلي مع مراجعة، نفس الواجهة البرمجية |
 | IF-3 | `TalibSkeleton` لأعلى 5 شاشات استخدامًا (الرئيسية، المكتبة، تراث، البحث، قائمة الختمات) |
 | IF-4 | «مرافق الانتظار» + مصادره الخمسة + ذاكرة عدم التكرار |

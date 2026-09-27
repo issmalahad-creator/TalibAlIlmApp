@@ -53,6 +53,8 @@ import 'mushaf_semantic_reader_screen.dart';
 import 'review_screen.dart';
 import 'time_awareness_screen.dart';
 import 'curriculum_map_screen.dart';
+import '../widgets/feedback/talib_navigation.dart';
+import '../widgets/feedback/talib_pressable.dart';
 import '../widgets/loading_view.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -175,13 +177,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         context, MaterialPageRoute(builder: (_) => const OnboardingScreen(reviewMode: true))),
                   ),
                   const SizedBox(height: 16),
-                  _QuranHeroCard(
-                    memorizedCount: _hifzMemorizedCount,
-                    lang: lang,
-                    onTap: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const MushafSemanticReaderScreen()));
-                      _load();
-                    },
+                  TalibPressable(
+                    onTap: null,
+                    child: _QuranHeroCard(
+                      memorizedCount: _hifzMemorizedCount,
+                      lang: lang,
+                      onTap: () async {
+                        // Deduplicated: fast repeated taps open one mushaf (IF-1).
+                        await talibPush(context, 'open_quran', (_) => const MushafSemanticReaderScreen());
+                        _load();
+                      },
+                    ),
                   ),
                   const SizedBox(height: 12),
                   const CompanionCard(),
