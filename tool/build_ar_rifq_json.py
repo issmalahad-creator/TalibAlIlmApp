@@ -389,7 +389,7 @@ EV_NOTES = {
 # under the Arabic for every language, not just EN/FR). Evidence text
 # translated literally from the Arabic hadith wording; EV-11 (Qur'an) uses
 # the REAL bundled licensed Amharic Qur'an translation
-# (assets/quran/tafsir-amharic_sadiq.jsonl.gz, QuranEnc.com / Sadiq and
+# (assets/quran/tafsir_packs/tafsir-amharic_sadiq.jsonl.gz, QuranEnc.com / Sadiq and
 # Sani) for 3:134, 7:199, 41:34 — never Claude-generated for Qur'an text.
 EV_AM = {
  "EV-01": "«አኢሻ ሆይ! አላህ ገር ነው፤ ገርነትን ይወዳል፤ በገርነት ላይ የማይሰጠውን በጭካኔ ላይ ይሰጣል፤ በሌላ በማንኛውም ነገር ላይም የማይሰጠውን ይሰጣል።»",
@@ -419,7 +419,7 @@ for e in EV:
            notes="لا تُولَّد ترجمةٌ آليّةٌ للآيات. تُسمّى «ترجمة معاني الآية».")
         tr("evidence", e["id"], "text", "am", "quran_meaning", EV_AM_QURAN_TEXT[e["id"]],
            status="approved", translator="Sadiq and Sani — QuranEnc.com (real licensed Amharic Qur'an translation, already bundled)",
-           notes="مأخوذةٌ حرفيًّا من assets/quran/tafsir-amharic_sadiq.jsonl.gz، لا مُولَّدة آليًّا لمعاني القرآن.")
+           notes="مأخوذةٌ حرفيًّا من assets/quran/tafsir_packs/tafsir-amharic_sadiq.jsonl.gz، لا مُولَّدة آليًّا لمعاني القرآن.")
         continue
     tr("evidence", e["id"], "text", "en", "literal", EV_EN[e["id"]], notes=EV_NOTES.get(e["id"], ""))
     tr("evidence", e["id"], "text", "fr", "literal", EV_FR[e["id"]])

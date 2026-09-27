@@ -20,6 +20,9 @@ MODE="${1:---release}"
 STRIP_DIRS=(
   "assets/quran/corpus/translations"
   "assets/quran/corpus/tafsir"
+  # Content packs on GitHub packs-v1 (CONTENT_PACKS_ARCHITECTURE.md CP4/CP5).
+  "assets/quran/corpus/packs"
+  "assets/quran/tafsir_packs"
 )
 BACKUP_DIR=".lite_build_backup"
 
@@ -34,7 +37,9 @@ cleanup() {
 }
 trap cleanup EXIT
 
-rm -rf "$BACKUP_DIR"
+# Never rm -rf the backup: a previous run killed mid-build leaves the only
+# copy of the stripped assets there. Restore it first instead.
+cleanup
 mkdir -p "$BACKUP_DIR"
 for d in "${STRIP_DIRS[@]}"; do
   if [ -d "$d" ]; then

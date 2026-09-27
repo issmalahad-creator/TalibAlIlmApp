@@ -6,6 +6,7 @@ import '../../repositories/quran_corpus_repository.dart';
 import '../../repositories/quran_reading_repository.dart';
 import '../../repositories/quran_search_repository.dart';
 import '../../services/quran_corpus_download_service.dart';
+import '../../widgets/packs/pack_ui.dart' show packMb;
 import '../../theme/app_theme.dart';
 
 /// Phase 80 / QC3 — the **Quran Corpus** surfaced on the mushaf.
@@ -119,9 +120,9 @@ Widget _loadingOrProgress(String category, int id, String lang) {
         child: Column(
           children: [
             Text(
-              fraction == null
+              total == null || total <= 0
                   ? basicText('ql_downloading', lang)
-                  : '${basicText('ql_downloading', lang)} — ${(fraction * 100).round()}٪',
+                  : '${basicText('ql_downloading', lang)} — ${basicText('pk_progress', lang).replaceAll('{done}', packMb(received)).replaceAll('{total}', packMb(total))}',
               style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5),
             ),
             const SizedBox(height: 6),

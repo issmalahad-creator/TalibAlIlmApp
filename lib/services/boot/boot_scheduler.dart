@@ -147,4 +147,5 @@ abstract final class BootTasks {
   static const milestones = 'milestones';
   static const notifications = 'notifications';
   static const bookContent = 'book_content';
+  static const contentPacks = 'content_packs';
 }

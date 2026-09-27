@@ -50,6 +50,9 @@ _KEY_NEEDLE = b"sk-ant-api03"
 LITE_STRIP = (
     Path("assets/quran/corpus/translations"),
     Path("assets/quran/corpus/tafsir"),
+    # Content packs on GitHub packs-v1 (CONTENT_PACKS_ARCHITECTURE.md CP4/CP5).
+    Path("assets/quran/corpus/packs"),
+    Path("assets/quran/tafsir_packs"),
 )
 
 MB = 1024 * 1024

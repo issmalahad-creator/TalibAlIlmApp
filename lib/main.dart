@@ -27,6 +27,8 @@ import 'services/companion_engine.dart';
 import 'services/content_badge_service.dart';
 import 'services/daily_benefit_service.dart';
 import 'services/language_preference_service.dart';
+import 'services/packs/content_pack_engine.dart';
+import 'services/packs/pack_installers.dart';
 import 'services/notification_service.dart';
 import 'services/quran_corpus_download_service.dart';
 import 'services/quran_import_service.dart';
@@ -111,9 +113,10 @@ Future<void> main() async {
   holdFirstFrameUntilBrandMarkReady();
   // Fresh hadith/faida for this launch's splash — small asset, not awaited.
   DailyBenefitService.instance.preloadForSplash();
+  registerPackInstallers();
   QuranCorpusDownloadService.instance.confirmDownload = (c, id, bytes) async {
     final ctx = navigatorKey.currentContext;
-    return ctx == null ? false : askCorpusDownload(ctx, bytes);
+    return ctx == null ? false : askCorpusDownload(ctx, c, id, bytes);
   };
   runApp(const RestartWidget(child: TalibAlIlmApp()));
 }
@@ -161,6 +164,8 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
       }, priority: 80)
       // Heaviest and least urgent: 49 bundled tafsir editions (~190 s cold).
       ..register(BootTasks.legacyTafsir, _quranImportService.importLegacyTafsirIfNeeded, priority: 90)
+      // Downloads left queued last time resume here, Wi-Fi only (CONTENT_PACKS_ARCHITECTURE.md §3.4).
+      ..register(BootTasks.contentPacks, ContentPackEngine.instance.resumePending, priority: 95, afterHome: true)
       ..armSafetyTimer();
     // Light and needed now: routing a notification tap that launched the app.
     NotificationService.onNotificationTap = _routeForPayload;

@@ -126,7 +126,9 @@ def fetch_edition(key):
 def main():
     done, skipped, failed = [], [], []
     for key, filename in EDITIONS:
-        path = os.path.join(OUT_DIR, filename)
+        # Non-core editions moved to tafsir_packs/ (content packs, CP5).
+        packed = os.path.join(OUT_DIR, "tafsir_packs", filename)
+        path = packed if os.path.exists(packed) else os.path.join(OUT_DIR, filename)
         if already_upgraded(path):
             print(f"skip {key} — already has footnote field")
             skipped.append(key)

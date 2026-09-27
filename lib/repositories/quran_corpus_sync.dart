@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io' show gzip;
 
 import 'package:flutter/foundation.dart' show compute, debugPrint;
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
@@ -37,6 +37,21 @@ class QuranCorpusSync {
     'tajweed': (table: 'quran_tajweed', key: 'spans'), // G-t1 — cpfair rule spans
   };
 
+  /// Heavy datasets that are content packs (`corpus.<name>` on GitHub,
+  /// CONTENT_PACKS_ARCHITECTURE.md CP4): the lite build doesn't bundle them,
+  /// so boot sync skips them and `CorpusTableInstaller` seeds them from the
+  /// downloaded file instead.
+  static const packDatasets = {'sayings', 'notes', 'similar', 'irab_books', 'fatwas'};
+
+  /// Tables each pack dataset fills — emptied again when the pack is removed.
+  static const packTables = <String, List<String>>{
+    'sayings': ['quran_saying'],
+    'notes': ['quran_note'],
+    'similar': ['quran_similar'],
+    'irab_books': ['quran_irab_book', 'quran_irab_prose'],
+    'fatwas': ['quran_fatwa'],
+  };
+
   Future<void> sync() async {
     try {
       final db = await DatabaseHelper.instance.database;
@@ -49,6 +64,7 @@ class QuranCorpusSync {
         final sha = meta['sha256'] as String? ?? '';
         final stored = await _meta(db, name);
         if (stored == sha && sha.isNotEmpty) continue;
+        if (packDatasets.contains(name) && !await _bundled(name)) continue; // lite: a pack
         try {
           await _seedOne(db, name, meta);
         } catch (e) {
@@ -60,15 +76,52 @@ class QuranCorpusSync {
     }
   }
 
+  static String _path(String name) =>
+      packDatasets.contains(name) ? '$_dir/packs/$name.json.gz' : '$_dir/$name.json.gz';
+
   Future<Map<String, dynamic>> _load(String name) async {
-    final bytes = await rootBundle.load('$_dir/$name.json.gz');
+    final bytes = await rootBundle.load(_path(name));
     // Off the UI isolate — `sayings` alone is ~15 MB gzipped.
     return compute(_decodeGzJson, bytes.buffer.asUint8List());
   }
 
+  static Set<String>? _assets;
+
+  /// Whether this build ships `<name>.json.gz` (the full flavor). Reads the
+  /// asset manifest, never the (up to 15 MB) file itself.
+  static Future<bool> _bundled(String name) async {
+    try {
+      _assets ??= (await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets().toSet();
+      return _assets!.contains(_path(name));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static Future<bool> isBundled(String name) => _bundled(name);
+
+  /// Seeds a pack dataset from its downloaded `.json.gz` (CP4 installer).
+  Future<void> seedFromFile(String name, List<int> gz) async {
+    final db = await DatabaseHelper.instance.database;
+    final man = jsonDecode(await rootBundle.loadString(_manifest)) as Map<String, dynamic>;
+    final meta = ((man['datasets'] as Map)[name] as Map?)?.cast<String, dynamic>() ?? {'sha256': ''};
+    await _seedOne(db, name, meta, preloaded: await compute(_decodeGzJson, gz));
+  }
+
+  /// Empties a pack dataset's tables and forgets it was seeded.
+  Future<void> clearDataset(String name) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.transaction((txn) async {
+      for (final t in packTables[name] ?? const <String>[]) {
+        await txn.delete(t);
+      }
+      await txn.delete('quran_corpus_meta', where: 'dataset = ?', whereArgs: [name]);
+    });
+  }
+
   Future<void> _seedOne(
-      Database db, String name, Map<String, dynamic> meta) async {
-    final obj = await _load(name);
+      Database db, String name, Map<String, dynamic> meta, {Map<String, dynamic>? preloaded}) async {
+    final obj = preloaded ?? await _load(name);
     final rows = (obj['rows'] as List?) ?? const [];
     final sha = meta['sha256'] as String? ?? '';
 

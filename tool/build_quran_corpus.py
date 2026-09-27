@@ -108,7 +108,11 @@ def write_dataset(name, rows, source, version, licence_tag, checks):
         {"v": 1, "source": source, "source_version": version,
          "licence": licence_tag, "count": len(rows), "rows": rows},
         ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    path = os.path.join(OUT, f"{name}.json.gz")
+    # Content-pack datasets live in corpus/packs/ (stripped in lite, published
+    # by tool/publish_packs.py) — keep this set in sync with QuranCorpusSync.packDatasets.
+    sub = "packs" if name in {"sayings", "notes", "similar", "irab_books", "fatwas"} else ""
+    os.makedirs(os.path.join(OUT, sub), exist_ok=True)
+    path = os.path.join(OUT, sub, f"{name}.json.gz")
     with gzip.open(path, "wb", compresslevel=9) as fh:
         fh.write(payload)
     sha = hashlib.sha256(payload).hexdigest()

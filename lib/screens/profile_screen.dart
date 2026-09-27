@@ -19,6 +19,7 @@ import 'adhkar_screen.dart';
 import 'arabic_curriculum_screen.dart';
 import 'hadith_screen.dart';
 import 'new_muslim_guide_screen.dart';
+import 'downloads_screen.dart';
 import 'notification_settings_screen.dart';
 import 'prayer_times_screen.dart';
 import 'qibla_screen.dart';
@@ -387,6 +388,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: basicText('notifications_title', _lang),
                     color: NavColors.cyan,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.download_for_offline_outlined,
+                    label: basicText('downloads_title', _lang),
+                    color: NavColors.teal,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DownloadsScreen())),
                   ),
                   NavTileData(
                     icon: Icons.support_agent_rounded,

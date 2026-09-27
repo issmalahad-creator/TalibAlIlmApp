@@ -112,58 +112,17 @@ flutter:
   assets:
     - assets/brand/quill_ink.webp
     - assets/brand/daily_benefits.json
+    # Content-packs manifest snapshot (22 KB) — sizes/titles offline (CONTENT_PACKS_ARCHITECTURE.md §3.2).
+    - assets/packs/packs_manifest.json
     - assets/quran/quran-uthmani.txt
     - assets/quran/quran-data.js
-    - assets/quran/tafsir-ibn-kathir-full.jsonl.gz
+    # Non-core tafsir editions — content packs (tafsir.<key> on GitHub packs-v1);
+    # the lite build strips this folder (CONTENT_PACKS_ARCHITECTURE.md CP5).
+    - assets/quran/tafsir_packs/
     - assets/quran/tafsir-almukhtasar.jsonl.gz
     - assets/quran/tafsir-muyassar.jsonl.gz
     - assets/quran/tafsir-saadi.jsonl.gz
-    - assets/quran/tafsir-ibn_ashur.jsonl.gz
-    - assets/quran/tafsir-english_rwwad.jsonl.gz
-    - assets/quran/tafsir-amharic_sadiq.jsonl.gz
-    - assets/quran/tafsir-french_rashid.jsonl.gz
-    - assets/quran/tafsir-turkish_rwwad.jsonl.gz
-    - assets/quran/tafsir-indonesian_sabiq.jsonl.gz
-    - assets/quran/tafsir-urdu_junagarhi.jsonl.gz
-    - assets/quran/tafsir-bengali_zakaria.jsonl.gz
-    - assets/quran/tafsir-spanish_garcia.jsonl.gz
-    - assets/quran/tafsir-portuguese_nasr.jsonl.gz
-    - assets/quran/tafsir-greek_rwwad.jsonl.gz
-    - assets/quran/tafsir-german_rwwad.jsonl.gz
-    - assets/quran/tafsir-italian_rwwad.jsonl.gz
-    - assets/quran/tafsir-bulgarian_translation.jsonl.gz
-    - assets/quran/tafsir-romanian_project.jsonl.gz
-    - assets/quran/tafsir-dutch_center.jsonl.gz
-    - assets/quran/tafsir-swedish_rwwad.jsonl.gz
-    - assets/quran/tafsir-azeri_musayev.jsonl.gz
-    - assets/quran/tafsir-georgian_rwwad.jsonl.gz
-    - assets/quran/tafsir-macedonian_group.jsonl.gz
-    - assets/quran/tafsir-albanian_nahi.jsonl.gz
-    - assets/quran/tafsir-bosnian_rwwad.jsonl.gz
-    - assets/quran/tafsir-russian_rwwad.jsonl.gz
-    - assets/quran/tafsir-belarusian_krivtsov.jsonl.gz
-    - assets/quran/tafsir-serbian_rwwad.jsonl.gz
-    - assets/quran/tafsir-croatian_rwwad.jsonl.gz
-    - assets/quran/tafsir-lithuanian_rwwad.jsonl.gz
-    - assets/quran/tafsir-ukrainian_yakubovych.jsonl.gz
-    - assets/quran/tafsir-kazakh_altai.jsonl.gz
-    - assets/quran/tafsir-uzbek_mansour.jsonl.gz
-    - assets/quran/tafsir-tajik_arifi.jsonl.gz
-    - assets/quran/tafsir-kyrgyz_hakimov.jsonl.gz
-    - assets/quran/tafsir-circassian_rwwad.jsonl.gz
-    - assets/quran/tafsir-tagalog_rwwad.jsonl.gz
-    - assets/quran/tafsir-bisayan_rwwad.jsonl.gz
-    - assets/quran/tafsir-iranun_sarro.jsonl.gz
-    - assets/quran/tafsir-maguindanao_rwwad.jsonl.gz
-    - assets/quran/tafsir-malay_basumayyah.jsonl.gz
     # 2026-08-21: re-enabled, see quran_import_service.dart's matching note.
-    - assets/quran/tafsir-chinese_suliman.jsonl.gz
-    - assets/quran/tafsir-uyghur_saleh.jsonl.gz
-    - assets/quran/tafsir-japanese_saeedsato.jsonl.gz
-    - assets/quran/tafsir-somali_yacob.jsonl.gz
-    - assets/quran/tafsir-hindi_omari.jsonl.gz
-    - assets/quran/tafsir-luganda_foundation.jsonl.gz
-    - assets/quran/tafsir-oromo_ababor.jsonl.gz
     - assets/hadith/nawawi40.json
     - assets/aqeedah/wasitiyyah.json
     - assets/fiqh_seerah/zad_almaad_vol1.json
@@ -210,6 +169,8 @@ flutter:
     - assets/quran/corpus/translations/
     - assets/quran/corpus/tafsir/
     - assets/quran/corpus/riwaya/
+    # Heavy corpus datasets — content packs (corpus.<name>), stripped in lite (CP4).
+    - assets/quran/corpus/packs/
     # AKHLAQ training system — content spec for a virtue slice (docs/akhlaq/).
     # Arabic = source of truth; translations are a separate layer. Loaded once
     # in a compute isolate by AkhlaqContent; user state lives in SQLite (v61).

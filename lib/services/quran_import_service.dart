@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show compute;
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import 'package:sqflite/sqflite.dart';
 
 import '../data/practical_lessons_seed.dart';
@@ -149,6 +149,9 @@ class QuranImportService {
         await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries WHERE source = ?', [sourceKey]),
       );
       if (existingForSource == null || existingForSource == 0) {
+        // Lite: non-core editions are content packs (CP5) — imported by
+        // `LegacyTafsirInstaller` when downloaded, not from a missing asset.
+        if (!await _assetBundled(edition.$1)) continue;
         await _importTafsirEdition(db, edition);
       }
     }
@@ -271,7 +274,7 @@ class QuranImportService {
   /// mukhtasars). Each becomes its own `source` value in `tafsir_entries`,
   /// so a single ayah can carry all four for the in-app source switcher.
   static const _tafsirEditions = [
-    ('assets/quran/tafsir-ibn-kathir-full.jsonl.gz', 'ibn_kathir_full', 'ar'),
+    ('assets/quran/tafsir_packs/tafsir-ibn-kathir-full.jsonl.gz', 'ibn_kathir_full', 'ar'),
     ('assets/quran/tafsir-almukhtasar.jsonl.gz', 'almukhtasar', 'ar'),
     ('assets/quran/tafsir-muyassar.jsonl.gz', 'muyassar', 'ar'),
     ('assets/quran/tafsir-saadi.jsonl.gz', 'saadi', 'ar'),
@@ -284,63 +287,63 @@ class QuranImportService {
     //   نفسها بالضبط، مما يرجّح أنها ثغرة حقيقية في التوثيق الرقمي الأصلي
     //   من جامعة الملك سعود، لا خطأ نسخ في مرآة واحدة. تُعرَض الآن رسالة
     //   صريحة بدل نص فارغ أو مستعار من سورة أخرى.
-    ('assets/quran/tafsir-ibn_ashur.jsonl.gz', 'ibn_ashur', 'ar'),
+    ('assets/quran/tafsir_packs/tafsir-ibn_ashur.jsonl.gz', 'ibn_ashur', 'ar'),
     // Batch 1 of the multi-language library (quirky-gliding-shell.md) —
     // QuranEnc.com source, verified redistribution terms (attribution + no
     // modification, no commercial restriction found). Same JSONL shape
     // ({surah, ayah, text} per line) produced by tool/fetch_quranenc_translations.dart.
-    ('assets/quran/tafsir-english_rwwad.jsonl.gz', 'english_rwwad', 'en'),
-    ('assets/quran/tafsir-amharic_sadiq.jsonl.gz', 'amharic_sadiq', 'am'),
+    ('assets/quran/tafsir_packs/tafsir-english_rwwad.jsonl.gz', 'english_rwwad', 'en'),
+    ('assets/quran/tafsir_packs/tafsir-amharic_sadiq.jsonl.gz', 'amharic_sadiq', 'am'),
     // Batch 2 — same source/terms, expanding language coverage.
-    ('assets/quran/tafsir-french_rashid.jsonl.gz', 'french_rashid', 'fr'),
-    ('assets/quran/tafsir-turkish_rwwad.jsonl.gz', 'turkish_rwwad', 'tr'),
-    ('assets/quran/tafsir-indonesian_sabiq.jsonl.gz', 'indonesian_sabiq', 'id'),
-    ('assets/quran/tafsir-urdu_junagarhi.jsonl.gz', 'urdu_junagarhi', 'ur'),
-    ('assets/quran/tafsir-bengali_zakaria.jsonl.gz', 'bengali_zakaria', 'bn'),
+    ('assets/quran/tafsir_packs/tafsir-french_rashid.jsonl.gz', 'french_rashid', 'fr'),
+    ('assets/quran/tafsir_packs/tafsir-turkish_rwwad.jsonl.gz', 'turkish_rwwad', 'tr'),
+    ('assets/quran/tafsir_packs/tafsir-indonesian_sabiq.jsonl.gz', 'indonesian_sabiq', 'id'),
+    ('assets/quran/tafsir_packs/tafsir-urdu_junagarhi.jsonl.gz', 'urdu_junagarhi', 'ur'),
+    ('assets/quran/tafsir_packs/tafsir-bengali_zakaria.jsonl.gz', 'bengali_zakaria', 'bn'),
     // Batch 3 — as many more QuranEnc languages as verified real.
-    ('assets/quran/tafsir-spanish_garcia.jsonl.gz', 'spanish_garcia', 'es'),
-    ('assets/quran/tafsir-portuguese_nasr.jsonl.gz', 'portuguese_nasr', 'pt'),
-    ('assets/quran/tafsir-greek_rwwad.jsonl.gz', 'greek_rwwad', 'el'),
-    ('assets/quran/tafsir-german_rwwad.jsonl.gz', 'german_rwwad', 'de'),
-    ('assets/quran/tafsir-italian_rwwad.jsonl.gz', 'italian_rwwad', 'it'),
-    ('assets/quran/tafsir-bulgarian_translation.jsonl.gz', 'bulgarian_translation', 'bg'),
-    ('assets/quran/tafsir-romanian_project.jsonl.gz', 'romanian_project', 'ro'),
-    ('assets/quran/tafsir-dutch_center.jsonl.gz', 'dutch_center', 'nl'),
-    ('assets/quran/tafsir-swedish_rwwad.jsonl.gz', 'swedish_rwwad', 'sv'),
-    ('assets/quran/tafsir-azeri_musayev.jsonl.gz', 'azeri_musayev', 'az'),
-    ('assets/quran/tafsir-georgian_rwwad.jsonl.gz', 'georgian_rwwad', 'ka'),
-    ('assets/quran/tafsir-macedonian_group.jsonl.gz', 'macedonian_group', 'mk'),
+    ('assets/quran/tafsir_packs/tafsir-spanish_garcia.jsonl.gz', 'spanish_garcia', 'es'),
+    ('assets/quran/tafsir_packs/tafsir-portuguese_nasr.jsonl.gz', 'portuguese_nasr', 'pt'),
+    ('assets/quran/tafsir_packs/tafsir-greek_rwwad.jsonl.gz', 'greek_rwwad', 'el'),
+    ('assets/quran/tafsir_packs/tafsir-german_rwwad.jsonl.gz', 'german_rwwad', 'de'),
+    ('assets/quran/tafsir_packs/tafsir-italian_rwwad.jsonl.gz', 'italian_rwwad', 'it'),
+    ('assets/quran/tafsir_packs/tafsir-bulgarian_translation.jsonl.gz', 'bulgarian_translation', 'bg'),
+    ('assets/quran/tafsir_packs/tafsir-romanian_project.jsonl.gz', 'romanian_project', 'ro'),
+    ('assets/quran/tafsir_packs/tafsir-dutch_center.jsonl.gz', 'dutch_center', 'nl'),
+    ('assets/quran/tafsir_packs/tafsir-swedish_rwwad.jsonl.gz', 'swedish_rwwad', 'sv'),
+    ('assets/quran/tafsir_packs/tafsir-azeri_musayev.jsonl.gz', 'azeri_musayev', 'az'),
+    ('assets/quran/tafsir_packs/tafsir-georgian_rwwad.jsonl.gz', 'georgian_rwwad', 'ka'),
+    ('assets/quran/tafsir_packs/tafsir-macedonian_group.jsonl.gz', 'macedonian_group', 'mk'),
     // 2026-09-12: swapped for 'albanian_nahi' — 'albanian_rwwad' carries
     // zero footnotes on quranenc.com; this one has 405 real ones.
-    ('assets/quran/tafsir-albanian_nahi.jsonl.gz', 'albanian_nahi', 'sq'),
-    ('assets/quran/tafsir-bosnian_rwwad.jsonl.gz', 'bosnian_rwwad', 'bs'),
-    ('assets/quran/tafsir-russian_rwwad.jsonl.gz', 'russian_rwwad', 'ru'),
-    ('assets/quran/tafsir-belarusian_krivtsov.jsonl.gz', 'belarusian_krivtsov', 'be'),
-    ('assets/quran/tafsir-serbian_rwwad.jsonl.gz', 'serbian_rwwad', 'sr'),
-    ('assets/quran/tafsir-croatian_rwwad.jsonl.gz', 'croatian_rwwad', 'hr'),
-    ('assets/quran/tafsir-lithuanian_rwwad.jsonl.gz', 'lithuanian_rwwad', 'lt'),
-    ('assets/quran/tafsir-ukrainian_yakubovych.jsonl.gz', 'ukrainian_yakubovych', 'uk'),
-    ('assets/quran/tafsir-kazakh_altai.jsonl.gz', 'kazakh_altai', 'kk'),
+    ('assets/quran/tafsir_packs/tafsir-albanian_nahi.jsonl.gz', 'albanian_nahi', 'sq'),
+    ('assets/quran/tafsir_packs/tafsir-bosnian_rwwad.jsonl.gz', 'bosnian_rwwad', 'bs'),
+    ('assets/quran/tafsir_packs/tafsir-russian_rwwad.jsonl.gz', 'russian_rwwad', 'ru'),
+    ('assets/quran/tafsir_packs/tafsir-belarusian_krivtsov.jsonl.gz', 'belarusian_krivtsov', 'be'),
+    ('assets/quran/tafsir_packs/tafsir-serbian_rwwad.jsonl.gz', 'serbian_rwwad', 'sr'),
+    ('assets/quran/tafsir_packs/tafsir-croatian_rwwad.jsonl.gz', 'croatian_rwwad', 'hr'),
+    ('assets/quran/tafsir_packs/tafsir-lithuanian_rwwad.jsonl.gz', 'lithuanian_rwwad', 'lt'),
+    ('assets/quran/tafsir_packs/tafsir-ukrainian_yakubovych.jsonl.gz', 'ukrainian_yakubovych', 'uk'),
+    ('assets/quran/tafsir_packs/tafsir-kazakh_altai.jsonl.gz', 'kazakh_altai', 'kk'),
     // 2026-09-12: swapped for 'uzbek_mansour' — 'uzbek_rwwad' carries zero
     // footnotes on quranenc.com; this one has 527 real ones.
-    ('assets/quran/tafsir-uzbek_mansour.jsonl.gz', 'uzbek_mansour', 'uz'),
-    ('assets/quran/tafsir-tajik_arifi.jsonl.gz', 'tajik_arifi', 'tg'),
-    ('assets/quran/tafsir-kyrgyz_hakimov.jsonl.gz', 'kyrgyz_hakimov', 'ky'),
-    ('assets/quran/tafsir-circassian_rwwad.jsonl.gz', 'circassian_rwwad', 'ady'),
-    ('assets/quran/tafsir-tagalog_rwwad.jsonl.gz', 'tagalog_rwwad', 'tl'),
-    ('assets/quran/tafsir-bisayan_rwwad.jsonl.gz', 'bisayan_rwwad', 'ceb'),
-    ('assets/quran/tafsir-iranun_sarro.jsonl.gz', 'iranun_sarro', 'iru'),
-    ('assets/quran/tafsir-maguindanao_rwwad.jsonl.gz', 'maguindanao_rwwad', 'mdh'),
-    ('assets/quran/tafsir-malay_basumayyah.jsonl.gz', 'malay_basumayyah', 'ms'),
+    ('assets/quran/tafsir_packs/tafsir-uzbek_mansour.jsonl.gz', 'uzbek_mansour', 'uz'),
+    ('assets/quran/tafsir_packs/tafsir-tajik_arifi.jsonl.gz', 'tajik_arifi', 'tg'),
+    ('assets/quran/tafsir_packs/tafsir-kyrgyz_hakimov.jsonl.gz', 'kyrgyz_hakimov', 'ky'),
+    ('assets/quran/tafsir_packs/tafsir-circassian_rwwad.jsonl.gz', 'circassian_rwwad', 'ady'),
+    ('assets/quran/tafsir_packs/tafsir-tagalog_rwwad.jsonl.gz', 'tagalog_rwwad', 'tl'),
+    ('assets/quran/tafsir_packs/tafsir-bisayan_rwwad.jsonl.gz', 'bisayan_rwwad', 'ceb'),
+    ('assets/quran/tafsir_packs/tafsir-iranun_sarro.jsonl.gz', 'iranun_sarro', 'iru'),
+    ('assets/quran/tafsir_packs/tafsir-maguindanao_rwwad.jsonl.gz', 'maguindanao_rwwad', 'mdh'),
+    ('assets/quran/tafsir_packs/tafsir-malay_basumayyah.jsonl.gz', 'malay_basumayyah', 'ms'),
     // 2026-08-21: re-enabled — asset files landed, verified directly (not
     // assumed): 6235 lines each, matching the rest of this batch, real
     // translated text in the correct script for each language (checked the
     // first line of each file). `_importTafsirEdition`'s per-edition
     // self-heal picks these up on the next app launch after an update, no
     // fresh install required.
-    ('assets/quran/tafsir-chinese_suliman.jsonl.gz', 'chinese_suliman', 'zh'),
-    ('assets/quran/tafsir-uyghur_saleh.jsonl.gz', 'uyghur_saleh', 'ug'),
-    ('assets/quran/tafsir-japanese_saeedsato.jsonl.gz', 'japanese_saeedsato', 'ja'),
+    ('assets/quran/tafsir_packs/tafsir-chinese_suliman.jsonl.gz', 'chinese_suliman', 'zh'),
+    ('assets/quran/tafsir_packs/tafsir-uyghur_saleh.jsonl.gz', 'uyghur_saleh', 'ug'),
+    ('assets/quran/tafsir_packs/tafsir-japanese_saeedsato.jsonl.gz', 'japanese_saeedsato', 'ja'),
     // 2026-09-12: swapped from 'somali_abduh' — Ismail asked whether Somali
     // could have a real explanatory note; that edition's live QuranEnc key
     // no longer exists in their current catalog and carries zero footnotes
@@ -348,23 +351,62 @@ class QuranImportService {
     // notes). 'somali_yacob' (Abdullah Hasan Yaqoub) is the current live
     // Somali edition on quranenc.com and carries 1,137 real footnotes across
     // all 6236 āyāt (verified). See TAFSIR_UNIFIED_ARCHITECTURE.md §5.
-    ('assets/quran/tafsir-somali_yacob.jsonl.gz', 'somali_yacob', 'so'),
-    ('assets/quran/tafsir-hindi_omari.jsonl.gz', 'hindi_omari', 'hi'),
-    ('assets/quran/tafsir-luganda_foundation.jsonl.gz', 'luganda_foundation', 'lg'),
+    ('assets/quran/tafsir_packs/tafsir-somali_yacob.jsonl.gz', 'somali_yacob', 'so'),
+    ('assets/quran/tafsir_packs/tafsir-hindi_omari.jsonl.gz', 'hindi_omari', 'hi'),
+    ('assets/quran/tafsir_packs/tafsir-luganda_foundation.jsonl.gz', 'luganda_foundation', 'lg'),
     // New language (2026-09-12) — Ismail asked specifically about Oromo
     // (he is in Ethiopia); verified live on quranenc.com: complete
     // (114 sūrahs), translator Ghali/Gali Ababor, real footnotes
     // (docs/quran/TAFSIR_UNIFIED_ARCHITECTURE.md §5).
-    ('assets/quran/tafsir-oromo_ababor.jsonl.gz', 'oromo_ababor', 'om'),
+    ('assets/quran/tafsir_packs/tafsir-oromo_ababor.jsonl.gz', 'oromo_ababor', 'om'),
   ];
 
-  Future<void> _importTafsirEdition(Database db, (String, String, String) edition) async {
+  static Set<String>? _assets;
+
+  static Future<bool> _assetBundled(String path) async {
+    try {
+      _assets ??= (await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets().toSet();
+      return _assets!.contains(path);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static (String, String, String)? _edition(String sourceKey) {
+    for (final e in _tafsirEditions) {
+      if (e.$2 == sourceKey) return e;
+    }
+    return null;
+  }
+
+  /// Whether this build ships the edition's `.jsonl.gz` (full flavor).
+  static Future<bool> isTafsirBundled(String sourceKey) async {
+    final e = _edition(sourceKey);
+    return e != null && await _assetBundled(e.$1);
+  }
+
+  /// Imports a downloaded edition (CP5 `LegacyTafsirInstaller`), replacing
+  /// any rows it already had.
+  Future<void> importTafsirFromBytes(String sourceKey, List<int> gz) async {
+    final e = _edition(sourceKey);
+    if (e == null) throw StateError('unknown tafsir edition $sourceKey');
+    final db = await DatabaseHelper.instance.database;
+    await removeTafsirEdition(sourceKey);
+    await _importTafsirEdition(db, e, bytes: Uint8List.fromList(gz));
+  }
+
+  Future<void> removeTafsirEdition(String sourceKey) async {
+    final db = await DatabaseHelper.instance.database;
+    await db.delete('tafsir_entries', where: 'source = ?', whereArgs: [sourceKey]);
+  }
+
+  Future<void> _importTafsirEdition(Database db, (String, String, String) edition, {Uint8List? bytes}) async {
     final (assetPath, sourceKey, language) = edition;
-    final byteData = await rootBundle.load(assetPath);
+    final raw = bytes ?? (await rootBundle.load(assetPath)).buffer.asUint8List();
     // gunzip + utf8 + jsonDecode of up to ~30 MB of text used to run on the
     // UI isolate, one edition after another, freezing the event loop so even
     // Home's tiny queries could not complete (ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §3).
-    final rows = await compute(_parseTafsirJsonl, byteData.buffer.asUint8List());
+    final rows = await compute(_parseTafsirJsonl, raw);
 
     final batch = db.batch();
     for (final r in rows) {
