@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../data/session_time_budget.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/daily_session_repository.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../repositories/memorization_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import 'memorization_quiz_screen.dart';
@@ -135,7 +137,7 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('جلسة موجّهة')), body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
+      return Scaffold(appBar: AppBar(title: const Text('جلسة موجّهة')), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)));
     }
     return Scaffold(
       appBar: AppBar(title: const Text('جلسة موجّهة')),

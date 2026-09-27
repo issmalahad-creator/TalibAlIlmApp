@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/hadith_repository.dart';
 import '../repositories/milestone_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import 'hadith_quiz_screen.dart';
@@ -67,7 +69,7 @@ class _HadithScreenState extends State<HadithScreen> {
         ],
       ),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', LanguagePreferenceService.currentLanguage))
           : Column(
               children: [
                 Padding(

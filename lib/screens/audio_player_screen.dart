@@ -360,7 +360,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           ),
           if (_loadingEpisodes) ...[
             const SizedBox(height: 10),
-            AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang)),
+            AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_audio', lang)),
           ] else if (_episodeIds.length > 1) ...[
             const SizedBox(height: 12),
             Text(basicText('episodes_header', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
@@ -438,7 +438,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           ),
           const SizedBox(height: 20),
           if (_loadingReflections)
-            AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+            AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_audio', lang))
           else if (_reflections.isNotEmpty) ...[
             Text(basicText('your_notes_on_episode_header', lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),

@@ -728,7 +728,7 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
   Widget build(BuildContext context) {
     final lang = LanguagePreferenceService.currentLanguage;
     if (_loading) {
-      return AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang));
+      return AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang));
     }
     if (_statuses.isEmpty) {
       return Center(

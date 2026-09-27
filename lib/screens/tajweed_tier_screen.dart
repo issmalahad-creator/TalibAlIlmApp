@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/tajweed_curriculum.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/milestone_repository.dart';
 import '../repositories/tajweed_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
@@ -59,7 +61,7 @@ class _TajweedTierScreenState extends State<TajweedTierScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.tier.titleAr)),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: widget.tier.rules

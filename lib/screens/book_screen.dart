@@ -529,7 +529,7 @@ class _BookScreenState extends State<BookScreen> {
     if (_loading) {
       return Scaffold(
           appBar: AppBar(title: Text(basicText('nav_book', _lang))),
-          body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', _lang)));
+          body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', _lang)));
     }
     final book = _selectedBook;
 

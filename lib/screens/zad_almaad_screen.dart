@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/zad_almaad_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'zad_almaad_chapter_screen.dart';
 import '../widgets/loading_view.dart';
@@ -41,7 +43,7 @@ class _ZadAlMaadScreenState extends State<ZadAlMaadScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('زاد المعاد')),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', LanguagePreferenceService.currentLanguage))
           : Column(
               children: [
                 Padding(

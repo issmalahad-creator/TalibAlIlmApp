@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../l10n/basic_translations.dart';
 import '../repositories/application_repository.dart';
 import '../repositories/daily_session_repository.dart';
@@ -99,7 +98,7 @@ class _DailySessionScreenState extends State<DailySessionScreen> {
       builder: (context, lang, _) => Scaffold(
       appBar: AppBar(title: Text(basicText('daily_session_title', lang))),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

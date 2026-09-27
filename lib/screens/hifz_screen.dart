@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/hifz_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
@@ -115,7 +117,7 @@ class _HifzScreenState extends State<HifzScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('حفظ القرآن')), body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
+      return Scaffold(appBar: AppBar(title: const Text('حفظ القرآن')), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)));
     }
     final checkedInToday = _checkInDates.contains(todayDate());
     final percentValue = (_percent * 100).round();

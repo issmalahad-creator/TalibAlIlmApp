@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/daily_session_repository.dart';
 import '../repositories/knowledge_review_repository.dart';
 import '../repositories/wasitiyyah_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/spaced_repetition_engine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
@@ -84,7 +86,7 @@ class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('اختبر نفسك — الواسطية')),
-      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
+      body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quiz', LanguagePreferenceService.currentLanguage)) : _buildBody(),
     );
   }
 

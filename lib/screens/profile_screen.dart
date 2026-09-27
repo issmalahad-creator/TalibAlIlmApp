@@ -116,7 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(basicText('nav_profile', _lang))),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', _lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', _lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

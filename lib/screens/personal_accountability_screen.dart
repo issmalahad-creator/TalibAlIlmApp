@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../l10n/basic_translations.dart';
 import '../models/personal_accountability.dart';
 import '../repositories/personal_accountability_repository.dart';
@@ -85,7 +84,7 @@ class _PersonalAccountabilityScreenState
         body: _loading
             ? AppLoadingView(
                 icon: Icons.hourglass_empty_rounded,
-                message: basicText('loading_generic', lang),
+                message: basicText('loading_progress', lang),
               )
             : ListView(
                 padding: const EdgeInsets.all(16),

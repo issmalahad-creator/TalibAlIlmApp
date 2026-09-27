@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/memorization_repository.dart';
 import '../repositories/quran_search_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -150,7 +152,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
   }
 
   Widget _buildResults() {
-    if (_searching) return const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...');
+    if (_searching) return AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_search', LanguagePreferenceService.currentLanguage));
     if (!_hasSearched) {
       return const Center(
         child: Text('ابحث عن أي كلمة لتظهر كل الآيات التي وردت فيها', style: TextStyle(color: AppColors.textMuted)),

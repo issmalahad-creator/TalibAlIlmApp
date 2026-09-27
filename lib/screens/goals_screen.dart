@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../l10n/basic_translations.dart';
 import '../models/goal.dart';
 import '../repositories/goal_repository.dart';
@@ -113,7 +112,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
     return Scaffold(
       appBar: AppBar(title: Text('${basicText('nav_goals', _lang)} ${monthLabel(currentMonth())}')),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', _lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', _lang))
           : _error != null
               ? Center(
                   child: Padding(

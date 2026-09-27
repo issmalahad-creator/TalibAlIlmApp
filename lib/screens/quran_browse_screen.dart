@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/memorization_repository.dart';
 import '../repositories/milestone_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
@@ -113,7 +115,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('القرآن')), body: const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
+      return Scaffold(appBar: AppBar(title: const Text('القرآن')), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)));
     }
     if (_error != null) {
       return Scaffold(

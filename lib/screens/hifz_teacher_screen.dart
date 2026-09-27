@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/hifz_student.dart';
 import '../repositories/hifz_student_repository.dart';
 import '../services/hifz_export_service.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
 import 'hifz_student_detail_screen.dart';
@@ -150,7 +152,7 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
         child: const Icon(Icons.add),
       ),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage))
           : _students.isEmpty
               ? const Center(child: Text('لا يوجد طلاب بعد — اضغط + لإضافة طالب'))
               : ListView(

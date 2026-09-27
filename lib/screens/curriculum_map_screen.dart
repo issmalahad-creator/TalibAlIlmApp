@@ -138,7 +138,7 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(title: Text(basicText('curriculum_map_title', lang))),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
           : ListView(
               padding: const EdgeInsets.only(bottom: 32),
               children: [

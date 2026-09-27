@@ -82,7 +82,7 @@ class _JourneyScreenState extends State<JourneyScreen> {
           ],
         ),
         body: _loading
-            ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+            ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
             : _status == null
                 ? _WizardView(repo: _repo, onCreated: _load)
                 : _DashboardView(status: _status!, repo: _repo, onChanged: _load, lang: lang),

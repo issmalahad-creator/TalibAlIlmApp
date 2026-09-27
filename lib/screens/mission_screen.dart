@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../l10n/basic_translations.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../repositories/placement_repository.dart';
@@ -79,7 +78,7 @@ class _MissionScreenState extends State<MissionScreen> {
       builder: (context, lang, _) => Scaffold(
       appBar: AppBar(title: Text(basicText('mission_title', lang))),
       body: _loading
-          ? AppLoadingView(icon: Icons.flag_outlined, message: basicText('loading_generic', lang))
+          ? AppLoadingView(icon: Icons.flag_outlined, message: basicText('loading_progress', lang))
           : _hasCompleted
               ? _ResultsView(
                   ratings: _ratings,

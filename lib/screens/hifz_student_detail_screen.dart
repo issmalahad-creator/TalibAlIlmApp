@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/hifz_student.dart';
 import '../repositories/hifz_student_repository.dart';
 import '../services/hifz_export_service.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -161,7 +163,7 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
         label: const Text('إضافة خانة'),
       ),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../l10n/basic_translations.dart';
 import '../models/activity_entry.dart';
 import '../repositories/activity_repository.dart';
@@ -50,7 +49,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
       builder: (context, lang, _) => Scaffold(
       appBar: AppBar(title: Text('${basicText('activities_title_word', lang)} ${monthLabel(currentMonth())}')),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
           : _entries.isEmpty
               ? Center(child: Text(basicText('no_activities_yet', lang), style: const TextStyle(color: AppColors.textMuted)))
               : ListView.builder(

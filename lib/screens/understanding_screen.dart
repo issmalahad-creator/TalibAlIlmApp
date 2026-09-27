@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../data/quran_surahs.dart';
 import '../db/database_helper.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/understanding_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -87,7 +89,7 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('الفهم')),
-      body: _loading ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...') : _buildBody(),
+      body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)) : _buildBody(),
     );
   }
 

@@ -102,7 +102,7 @@ class _WirdScreenState extends State<WirdScreen> {
       builder: (context, lang, _) => Scaffold(
       appBar: AppBar(title: Text(basicText('wird_title', lang))),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

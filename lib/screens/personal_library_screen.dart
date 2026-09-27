@@ -166,7 +166,7 @@ class _PersonalLibraryScreenState extends State<PersonalLibraryScreen> {
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) {
         if (_loading) {
-          return Scaffold(appBar: AppBar(title: Text(basicText('personal_library_title', lang))), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang)));
+          return Scaffold(appBar: AppBar(title: Text(basicText('personal_library_title', lang))), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', lang)));
         }
         return _openCategoryId == null ? _buildFolderList() : _buildCategoryBooks();
       },

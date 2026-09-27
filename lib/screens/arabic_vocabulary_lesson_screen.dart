@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../data/arabic_curriculum.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/arabic_curriculum_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
@@ -59,7 +61,7 @@ class _ArabicVocabularyLessonScreenState extends State<ArabicVocabularyLessonScr
     return Scaffold(
       appBar: AppBar(title: const Text('المرحلة ٣: أكثر كلمات القرآن تكرارًا')),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

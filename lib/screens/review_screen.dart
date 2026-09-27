@@ -137,7 +137,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
       appBar: AppBar(title: Text(basicText('review_title', lang))),
-      body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang)) : _buildBody(lang),
+      body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', lang)) : _buildBody(lang),
       ),
     );
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../l10n/basic_translations.dart';
 import '../repositories/book_repository.dart';
 import '../services/language_preference_service.dart';
@@ -67,7 +66,7 @@ class _ReadingStatsScreenState extends State<ReadingStatsScreen> {
       builder: (context, lang, _) => Scaffold(
       appBar: AppBar(title: Text(basicText('reading_stats_title', lang))),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

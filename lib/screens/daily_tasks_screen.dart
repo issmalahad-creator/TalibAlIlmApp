@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import '../l10n/basic_translations.dart';
 import '../models/checklist_item.dart';
 import '../models/daily_task.dart';
@@ -105,7 +104,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
       builder: (context, lang, _) => Scaffold(
         appBar: AppBar(title: Text(basicText('tasks_title', lang))),
         body: _loading
-            ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+            ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
             : _tasks.isEmpty
                 ? Center(child: Text(basicText('no_tasks_yet', lang), style: const TextStyle(color: AppColors.textMuted)))
                 : ListView(

@@ -123,7 +123,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
         ],
       ),
       body: _loading
-          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_generic', lang))
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_audio', lang))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

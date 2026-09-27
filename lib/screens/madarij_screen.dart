@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/madarij_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'madarij_chapter_screen.dart';
 import '../widgets/loading_view.dart';
@@ -42,7 +44,7 @@ class _MadarijScreenState extends State<MadarijScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('مدارج السالكين')),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', LanguagePreferenceService.currentLanguage))
           : Column(
               children: [
                 Container(

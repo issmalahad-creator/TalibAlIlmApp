@@ -9,6 +9,7 @@ import '../l10n/basic_translations.dart';
 import '../services/boot/boot_scheduler.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import 'feedback/light_trail.dart';
 
 /// The brand moment laid over the first real screen while it gets ready
 /// (docs/architecture/ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §4, ZW-3).
@@ -307,7 +308,7 @@ class _BrandSplashState extends State<BrandSplash> with TickerProviderStateMixin
                       SizedBox(
                         width: 86,
                         height: 6,
-                        child: CustomPaint(painter: _LightTrailPainter(_ambient, _gold)),
+                        child: CustomPaint(painter: LightTrailPainter(_ambient, _gold)),
                       ),
                       const SizedBox(height: 12),
                       AnimatedSwitcher(
@@ -496,29 +497,4 @@ class _AtmospherePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_AtmospherePainter old) => false;
-}
-
-/// A hair-thin gold rule with a point of light gliding across it.
-class _LightTrailPainter extends CustomPainter {
-  final Animation<double> t;
-  final Color gold;
-  _LightTrailPainter(this.t, this.gold) : super(repaint: t);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final y = size.height / 2;
-    canvas.drawLine(Offset(0, y), Offset(size.width, y), Paint()
-      ..color = gold.withValues(alpha: 0.22)
-      ..strokeWidth = 1);
-    // Four passes per ambient loop, eased so it lingers at the ends.
-    final p = Curves.easeInOutSine.transform((t.value * 4) % 1.0);
-    final x = size.width * p;
-    canvas.drawCircle(Offset(x, y), 5, Paint()
-      ..color = gold.withValues(alpha: 0.25)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
-    canvas.drawCircle(Offset(x, y), 1.8, Paint()..color = gold);
-  }
-
-  @override
-  bool shouldRepaint(_LightTrailPainter old) => false;
 }

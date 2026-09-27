@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:talib_alilm_app/widgets/feedback/talib_action_button.dart';
 import 'package:talib_alilm_app/widgets/feedback/talib_navigation.dart';
 import 'package:talib_alilm_app/widgets/feedback/talib_pressable.dart';
+import 'package:talib_alilm_app/widgets/feedback/light_trail.dart';
+import 'package:talib_alilm_app/widgets/loading_view.dart';
 
 /// IF-1 test matrix (docs/architecture/INTERACTION_FEEDBACK_ARCHITECTURE.md §10).
 void main() {
@@ -173,6 +175,37 @@ void main() {
       talibPush(ctx, 'b', (_) => const Scaffold(body: Text('B')));
       await tester.pumpAndSettle();
       expect(find.text('B'), findsOneWidget);
+    });
+  });
+
+  group('AppLoadingView (IF-2 timing tiers)', () {
+    Widget view() => const MaterialApp(
+          home: Scaffold(body: AppLoadingView(icon: Icons.menu_book, message: 'جاري فتح الكتاب…')),
+        );
+
+    testWidgets('a fast load shows nothing at all', (tester) async {
+      await tester.pumpWidget(view());
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byType(LightTrail), findsNothing);
+      expect(find.byIcon(Icons.menu_book), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      await tester.pumpWidget(const SizedBox()); // load finished → view gone
+    });
+
+    testWidgets('≥300 ms: icon + light trail; ≥800 ms: the contextual words', (tester) async {
+      await tester.pumpWidget(view());
+      await tester.pump(const Duration(milliseconds: 320));
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(find.byType(LightTrail), findsOneWidget);
+      expect(find.byIcon(Icons.menu_book), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing); // no spinner
+      final hidden = tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      expect(hidden.opacity, 0);
+      await tester.pump(const Duration(milliseconds: 600));
+      final shown = tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity));
+      expect(shown.opacity, 1);
+      expect(find.text('جاري فتح الكتاب…'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
     });
   });
 }

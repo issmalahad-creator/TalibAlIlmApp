@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../data/new_muslim_guide.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/guide_progress_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/guide_diagram.dart';
 import 'guide_topic_screen.dart';
@@ -41,7 +43,7 @@ class _NewMuslimGuideScreenState extends State<NewMuslimGuideScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('دليل المسلم الجديد')),
       body: _loading
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

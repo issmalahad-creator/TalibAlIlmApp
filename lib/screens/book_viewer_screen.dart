@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 
+import '../l10n/basic_translations.dart';
 import '../models/reading_record.dart';
 import '../repositories/book_repository.dart';
+import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../services/tts/text_sources/personal_library_text_source.dart';
 import '../services/tts/tts_voice_registry.dart';
@@ -134,7 +136,7 @@ class _BookViewerScreenState extends State<BookViewerScreen> {
         ],
       ),
       body: !_ready
-          ? const AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...')
+          ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', LanguagePreferenceService.currentLanguage))
           : PDFView(
               filePath: widget.filePath,
               defaultPage: _defaultPage,
@@ -302,7 +304,7 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
       initialChildSize: 0.85,
       maxChildSize: 0.95,
       builder: (context, scrollController) => _loading
-          ? const Padding(padding: EdgeInsets.all(40), child: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'))
+          ? Padding(padding: EdgeInsets.all(40), child: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', LanguagePreferenceService.currentLanguage)))
           : ListView(
               controller: scrollController,
               padding: const EdgeInsets.all(20),

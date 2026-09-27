@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
 import '../repositories/milestone_repository.dart';
+import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
@@ -50,7 +52,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: 'جاري التحميل...'));
+      return Scaffold(body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', LanguagePreferenceService.currentLanguage)));
     }
     final byType = <String, List<Milestone>>{};
     for (final m in _all) {
