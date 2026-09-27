@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Brand ivory from the very first frame (was plain white → flash).
+<!-- Brand ivory + the feather-and-inkwell mark from the very first frame, on
+     every Android version (Android 11 has no system splash icon; this also
+     sits behind the Android 12+ splash). The mark occupies 260/512 of
+     splash_mark.png, so 282dp here = a 143dp mark, screen-centred — exactly
+     where the Flutter brand splash starts it (kBrandMarkStartHeight).
      docs/architecture/ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md ZW-3 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/brand_ivory" />
+    <item
+        android:width="282dp"
+        android:height="282dp"
+        android:gravity="center"
+        android:drawable="@drawable/splash_mark" />
 </layer-list>

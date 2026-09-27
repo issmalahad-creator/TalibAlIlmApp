@@ -193,7 +193,12 @@ class _BrandSplashState extends State<BrandSplash> with TickerProviderStateMixin
       child: Material(
         color: AppColors.background,
         child: LayoutBuilder(builder: (context, box) {
-          final cy = box.maxHeight / 2;
+          // Centre on the physical *screen*, like the native launch window
+          // does — not on this view, which on Android 11 stops above the
+          // navigation bar (the mark was 41 px too high at the hand-off).
+          final display = View.of(context).display;
+          final screenH = display.size.height / display.devicePixelRatio;
+          final cy = (screenH > 0 ? screenH : box.maxHeight) / 2;
           // Final resting centre of the mark: lifted so the name and the
           // hadith sit below it with the whole group optically centred.
           final restY = cy - kBrandMarkLift;
