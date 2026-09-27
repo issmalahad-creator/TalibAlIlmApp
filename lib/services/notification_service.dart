@@ -13,6 +13,7 @@ import 'language_preference_service.dart';
 import 'life_plan_notifications.dart';
 import 'location_service.dart';
 import 'prayer_notification_prefs.dart';
+import 'notification_policy.dart';
 import 'quiet_hours_prefs.dart';
 
 /// Schedules local notifications: one optional reminder per daily task, plus
@@ -328,7 +329,10 @@ class NotificationService {
     await _ensureInitialized();
     if (!_ready) return;
     await _plugin.cancel(id: _readingReminderNotificationId);
-    final fireAt = DateTime.now().add(const Duration(days: _readingReminderInactiveDays));
+    // Encouragement tier: quiet hours + daily cap (NotificationPolicy).
+    final fireAt = await NotificationPolicy.instance.place(
+        Encouragement.reading, DateTime.now().add(const Duration(days: _readingReminderInactiveDays)));
+    if (fireAt == null) return;
     await _plugin.zonedSchedule(
       id: _readingReminderNotificationId,
       title: 'اشتقنا لك 📖',
@@ -356,7 +360,9 @@ class NotificationService {
     await _ensureInitialized();
     if (!_ready) return;
     await _plugin.cancel(id: _hifzReminderNotificationId);
-    final fireAt = DateTime.now().add(const Duration(days: _hifzReminderInactiveDays));
+    final fireAt = await NotificationPolicy.instance.place(
+        Encouragement.hifz, DateTime.now().add(const Duration(days: _hifzReminderInactiveDays)));
+    if (fireAt == null) return;
     await _plugin.zonedSchedule(
       id: _hifzReminderNotificationId,
       title: 'حفظ القرآن 📖',
@@ -648,9 +654,18 @@ class NotificationService {
   Future<void> scheduleTimeLogReminder() async {
     await _ensureInitialized();
     if (!_ready) return;
+    final now = DateTime.now();
+    final at = await NotificationPolicy.instance.place(
+        Encouragement.timeLog, DateTime(now.year, now.month, now.day, _timeLogReminderHour),
+        daily: true);
+    if (at == null) {
+      await _plugin.cancel(id: _timeLogReminderNotificationId);
+      return;
+    }
     await _scheduleDailyAt(
       id: _timeLogReminderNotificationId,
-      hour: _timeLogReminderHour,
+      hour: at.hour,
+      applyQuiet: false, // already placed by the policy
       title: 'محاسبة يومك ⏳',
       body: 'قبل أن ينام يومك — سجّل كم نمت، وكم ضاع، وكم درست واشتغلت.',
       channelId: _timeLogChannelId,
@@ -675,13 +690,14 @@ class NotificationService {
     required String channelName,
     required String channelDescription,
     required String payload,
+    bool applyQuiet = true,
   }) async {
     await _plugin.cancel(id: id);
 
     final quiet = QuietHoursPrefs();
     final effectiveHour = applyQuietHours(
       hour: hour,
-      quietEnabled: await quiet.isEnabled(),
+      quietEnabled: applyQuiet && await quiet.isEnabled(),
       quietStart: await quiet.startHour(),
       quietEnd: await quiet.endHour(),
     );
@@ -831,19 +847,37 @@ class NotificationService {
   Future<void> scheduleOrCancelCompanionMessage(CompanionMessage? message) async {
     await _ensureInitialized();
     if (!_ready) return;
+    await _plugin.cancel(id: _companionNotificationId);
     if (message == null) {
-      await _plugin.cancel(id: _companionNotificationId);
+      await NotificationPolicy.instance.release(Encouragement.companion);
       return;
     }
-    await _scheduleDailyAt(
+    // One-shot, not daily-repeating (N2): the message reflects today's
+    // context and is rebuilt on every launch, so repeating it every day
+    // until the next launch would show stale advice — and hold a daily-cap
+    // slot forever.
+    final now = DateTime.now();
+    var want = DateTime(now.year, now.month, now.day, _companionCheckInHour);
+    if (want.isBefore(now)) want = want.add(const Duration(days: 1));
+    final at = await NotificationPolicy.instance.place(Encouragement.companion, want);
+    if (at == null) return;
+    await _plugin.zonedSchedule(
       id: _companionNotificationId,
-      hour: _companionCheckInHour,
       title: '${message.title} ${message.icon}',
       body: message.body,
-      channelId: _companionChannelId,
-      channelName: _companionChannelName,
-      channelDescription: 'رسالة يومية من رفيق طالب العلم، فقط عندما يكون لديه شيء مفيد ليقوله',
+      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          _companionChannelId,
+          _companionChannelName,
+          channelDescription: 'رسالة يومية من رفيق طالب العلم، فقط عندما يكون لديه شيء مفيد ليقوله',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: 'companion',
     );
   }
+
 }
