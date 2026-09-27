@@ -1,0 +1,10 @@
+{
+  "enabledPlugins": {
+    "feature-dev@talib-alilm-plugins": true,
+    "security-guidance@talib-alilm-plugins": true,
+    "claude-md-management@talib-alilm-plugins": true,
+    "pr-review-toolkit@talib-alilm-plugins": true,
+    "claude-code-setup@talib-alilm-plugins": true,
+    "hookify@talib-alilm-plugins": true
+  }
+}
