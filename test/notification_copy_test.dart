@@ -14,9 +14,9 @@ const _langs = ['ar', 'en', 'am', 'fr', 'sw', 'ur', 'tr', 'id', 'bn', 'ha', 'so'
 void main() {
   test('every notification key is translated in all 13 languages', () {
     final keys = basicTranslations.keys
-        .where((k) => k.startsWith('nch_') || k.startsWith('ncd_') || k.startsWith('n_') || k.startsWith('cmp_'))
+        .where((k) => k.startsWith('nch_') || k.startsWith('ncd_') || k.startsWith('n_') || k.startsWith('cmp_') || k.startsWith('enc_') || k.startsWith('notif_'))
         .toList();
-    expect(keys.length, greaterThanOrEqualTo(60));
+    expect(keys.length, greaterThanOrEqualTo(90));
     for (final k in keys) {
       for (final l in _langs) {
         expect(basicTranslations[k]![l], isNotNull, reason: '$k/$l');

@@ -134,6 +134,7 @@ class NotificationService {
   // card — reuses the entirely-free 10000+ range, next id after the
   // adhkar-sleep reminder (10000).
   static const _companionNotificationId = 10001;
+  static const _testNotificationId = 10002;
   static const _companionChannelId = 'companion_checkin';
   static String get _companionChannelName => _t('nch_companion');
   static const _companionCheckInHour = 20;
@@ -770,6 +771,44 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
       payload: payload,
+    );
+  }
+
+  /// «أرسل إشعارًا تجريبيًا» (N4): one immediate notification so the
+  /// student sees what a reminder looks like — and whether any arrive at all.
+  Future<void> showTestNotification() async {
+    await _ensureInitialized();
+    if (!_ready) return;
+    await _plugin.show(
+      id: _testNotificationId,
+      title: _t('n_test_title'),
+      body: _t('n_test_body'),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          _companionChannelId,
+          _companionChannelName,
+          channelDescription: _t('ncd_companion'),
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+      ),
+      payload: 'home',
+    );
+  }
+
+  /// Turning an encouragement reminder off in settings removes the one
+  /// already queued too, not only future ones.
+  Future<void> cancelEncouragement(Encouragement kind) async {
+    await _ensureInitialized();
+    await NotificationPolicy.instance.release(kind);
+    if (!_ready) return;
+    await _plugin.cancel(
+      id: switch (kind) {
+        Encouragement.hifz => _hifzReminderNotificationId,
+        Encouragement.timeLog => _timeLogReminderNotificationId,
+        Encouragement.companion => _companionNotificationId,
+        Encouragement.reading => _readingReminderNotificationId,
+      },
     );
   }
 

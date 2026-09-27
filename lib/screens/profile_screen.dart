@@ -384,7 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   NavTileData(
                     icon: Icons.notifications_active_outlined,
-                    label: basicText('adhkar_notifications', _lang),
+                    label: basicText('notifications_title', _lang),
                     color: NavColors.cyan,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen())),
                   ),

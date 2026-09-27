@@ -6,6 +6,7 @@ import '../repositories/adhkar_repository.dart';
 import '../repositories/custom_adhkar_reminder_repository.dart';
 import '../services/adhkar_notification_prefs.dart';
 import '../services/language_preference_service.dart';
+import '../services/notification_policy.dart';
 import '../services/notification_service.dart';
 import '../services/prayer_notification_prefs.dart';
 import '../services/quiet_hours_prefs.dart';
@@ -51,6 +52,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   int _quietEnd = 6;
   bool _loading = true;
   bool _testPlaying = false;
+  bool _notifAllowed = true;
+  bool _exactOk = true;
+  Map<Encouragement, bool> _encEnabled = {};
+  int _cap = NotificationPolicy.defaultCap;
 
   @override
   void initState() {
@@ -99,6 +104,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     final quietEnabled = await _quietHoursPrefs.isEnabled();
     final quietStart = await _quietHoursPrefs.startHour();
     final quietEnd = await _quietHoursPrefs.endHour();
+    final policy = NotificationPolicy.instance;
+    final encEnabled = {for (final k in Encouragement.values) k: await policy.isEnabled(k)};
+    final cap = await policy.cap();
+    final notifAllowed = await _notifications.notificationsEnabled();
+    final exactOk = await _notifications.exactAlarmsEnabled();
     if (!mounted) return;
     setState(() {
       _enabled = enabled;
@@ -108,6 +118,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       _prayerEnabled = prayerEnabled;
       _useAdhanSound = useAdhanSound;
       _quietHoursEnabled = quietEnabled;
+      _encEnabled = encEnabled;
+      _cap = cap;
+      _notifAllowed = notifAllowed;
+      _exactOk = exactOk;
       _quietStart = quietStart;
       _quietEnd = quietEnd;
       _loading = false;
@@ -119,6 +133,43 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     await _prayerPrefs.setEnabled(value);
     setState(() => _prayerEnabled = value);
     await _notifications.schedulePrayerTimeNotifications();
+  }
+
+  Future<void> _fixNotifications() async {
+    await ensureNotificationPermission(context, NotificationReason.general);
+    await _load();
+  }
+
+  Future<void> _fixExactAlarms() async {
+    await ensureExactAlarmsForPrayer(context);
+    await _notifications.schedulePrayerTimeNotifications();
+    await _load();
+  }
+
+  Future<void> _sendTest() async {
+    if (!await ensureNotificationPermission(context, NotificationReason.general)) return;
+    await _notifications.showTestNotification();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(basicText('notif_test_sent', LanguagePreferenceService.currentLanguage))));
+    await _load();
+  }
+
+  Future<void> _toggleEncouragement(Encouragement kind, bool value) async {
+    await NotificationPolicy.instance.setEnabled(kind, value);
+    setState(() => _encEnabled[kind] = value);
+    if (!value) {
+      await _notifications.cancelEncouragement(kind);
+    } else if (kind == Encouragement.timeLog) {
+      await _notifications.scheduleTimeLogReminder();
+    }
+    // The others come back on their own trigger (a hifz check-in, opening a
+    // book, the next launch for the companion).
+  }
+
+  Future<void> _setCap(int value) async {
+    await NotificationPolicy.instance.setCap(value);
+    setState(() => _cap = value.clamp(1, 4));
   }
 
   Future<void> _toggleAdhanSound(bool value) async {
@@ -227,6 +278,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                _PermissionStatusCard(
+                  lang: lang,
+                  notifAllowed: _notifAllowed,
+                  exactOk: _exactOk,
+                  showExact: _prayerEnabled,
+                  onFixNotifications: _fixNotifications,
+                  onFixExact: _fixExactAlarms,
+                  onSendTest: _sendTest,
+                ),
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -303,6 +363,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                         ),
                     ],
                   ),
+                ),
+                _EncouragementSection(
+                  lang: lang,
+                  enabled: _encEnabled,
+                  cap: _cap,
+                  quietStart: _quietStart,
+                  quietEnd: _quietEnd,
+                  onToggle: _toggleEncouragement,
+                  onCap: _setCap,
                 ),
                 Text(basicText('adhkar_notifications_section_title', lang), style: AppTextStyles.headline),
                 const SizedBox(height: 10),
@@ -397,6 +466,149 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 ),
               ],
             ),
+      ),
+    );
+  }
+}
+
+/// «الإشعارات مسموحة / متوقفة» + exact-alarm state for prayer, each with a
+/// fix button, and the test notification (N4).
+class _PermissionStatusCard extends StatelessWidget {
+  const _PermissionStatusCard({
+    required this.lang,
+    required this.notifAllowed,
+    required this.exactOk,
+    required this.showExact,
+    required this.onFixNotifications,
+    required this.onFixExact,
+    required this.onSendTest,
+  });
+
+  final String lang;
+  final bool notifAllowed;
+  final bool exactOk;
+  final bool showExact;
+  final VoidCallback onFixNotifications;
+  final VoidCallback onFixExact;
+  final VoidCallback onSendTest;
+
+  Widget _row(IconData icon, bool ok, String text, VoidCallback onFix) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: ok ? AppColors.primary : Colors.orange.shade800),
+            const SizedBox(width: 10),
+            Expanded(child: Text(text, style: AppTextStyles.body)),
+            if (!ok) TextButton(onPressed: onFix, child: Text(basicText('notif_fix_action', lang))),
+          ],
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.fromLTRB(16, 10, 8, 6),
+      decoration: BoxDecoration(
+        color: notifAllowed ? AppColors.surface : Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: notifAllowed ? AppColors.divider : Colors.orange.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _row(notifAllowed ? Icons.notifications_active_outlined : Icons.notifications_off_outlined, notifAllowed,
+              basicText(notifAllowed ? 'notif_status_on' : 'notif_status_off', lang), onFixNotifications),
+          if (notifAllowed && showExact)
+            _row(exactOk ? Icons.alarm_on_outlined : Icons.alarm_outlined, exactOk,
+                basicText(exactOk ? 'notif_exact_on' : 'notif_exact_off', lang), onFixExact),
+          if (notifAllowed)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: onSendTest,
+                icon: const Icon(Icons.send_outlined, size: 18),
+                label: Text(basicText('notif_test_action', lang)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The four reminders the app sends on its own, each switchable, plus the
+/// daily limit they share (NotificationPolicy).
+class _EncouragementSection extends StatelessWidget {
+  const _EncouragementSection({
+    required this.lang,
+    required this.enabled,
+    required this.cap,
+    required this.quietStart,
+    required this.quietEnd,
+    required this.onToggle,
+    required this.onCap,
+  });
+
+  final String lang;
+  final Map<Encouragement, bool> enabled;
+  final int cap;
+  final int quietStart;
+  final int quietEnd;
+  final void Function(Encouragement, bool) onToggle;
+  final void Function(int) onCap;
+
+  static const _labels = {
+    Encouragement.hifz: ('enc_hifz_title', 'enc_hifz_sub'),
+    Encouragement.timeLog: ('enc_timelog_title', 'enc_timelog_sub'),
+    Encouragement.companion: ('enc_companion_title', 'enc_companion_sub'),
+    Encouragement.reading: ('enc_reading_title', 'enc_reading_sub'),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(basicText('enc_section_title', lang), style: AppTextStyles.title),
+          const SizedBox(height: 4),
+          Text(
+            basicText('enc_section_subtitle', lang)
+                .replaceAll('{start}', '$quietStart')
+                .replaceAll('{end}', '$quietEnd'),
+            style: AppTextStyles.caption,
+          ),
+          for (final k in Encouragement.values)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(basicText(_labels[k]!.$1, lang), style: AppTextStyles.body),
+              subtitle: Text(basicText(_labels[k]!.$2, lang), style: AppTextStyles.caption),
+              value: enabled[k] ?? true,
+              onChanged: (v) => onToggle(k, v),
+            ),
+          Row(
+            children: [
+              Expanded(child: Text(basicText('enc_cap_label', lang), style: AppTextStyles.body)),
+              IconButton(
+                onPressed: cap > 1 ? () => onCap(cap - 1) : null,
+                icon: const Icon(Icons.remove_circle_outline),
+              ),
+              Text('$cap', style: AppTextStyles.title),
+              IconButton(
+                onPressed: cap < 4 ? () => onCap(cap + 1) : null,
+                icon: const Icon(Icons.add_circle_outline),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
