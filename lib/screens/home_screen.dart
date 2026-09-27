@@ -53,6 +53,7 @@ import 'mushaf_semantic_reader_screen.dart';
 import 'review_screen.dart';
 import 'time_awareness_screen.dart';
 import 'curriculum_map_screen.dart';
+import '../widgets/daily_benefit_card.dart';
 import '../widgets/feedback/talib_navigation.dart';
 import '../widgets/feedback/talib_pressable.dart';
 import '../widgets/loading_view.dart';
@@ -189,6 +190,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  // A fresh sourced hadith / dhikr / ayah / faida every launch.
+                  const DailyBenefitCard(),
                   const SizedBox(height: 12),
                   const CompanionCard(),
                   DailyCompanionCard(

@@ -110,6 +110,7 @@ flutter:
   # asset needed for that. See CLAUDE.md "Book content feed".
   assets:
     - assets/brand/quill_ink.webp
+    - assets/brand/daily_benefits.json
     - assets/quran/quran-uthmani.txt
     - assets/quran/quran-data.js
     - assets/quran/tafsir-ibn-kathir-full.jsonl.gz

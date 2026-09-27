@@ -25,6 +25,7 @@ import 'services/calendar_preference_service.dart';
 import 'services/companion_context_service.dart';
 import 'services/companion_engine.dart';
 import 'services/content_badge_service.dart';
+import 'services/daily_benefit_service.dart';
 import 'services/language_preference_service.dart';
 import 'services/notification_service.dart';
 import 'services/quran_corpus_download_service.dart';
@@ -108,6 +109,8 @@ Future<void> main() async {
   // Android keeps its splash (same mark) up until the Flutter mark is decoded
   // (≤1.2 s) — no blank frame at the hand-off.
   holdFirstFrameUntilBrandMarkReady();
+  // Fresh hadith/faida for this launch's splash — small asset, not awaited.
+  DailyBenefitService.instance.preloadForSplash();
   QuranCorpusDownloadService.instance.confirmDownload = (c, id, bytes) async {
     final ctx = navigatorKey.currentContext;
     return ctx == null ? false : askCorpusDownload(ctx, bytes);

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../config/app_version.dart';
 import '../l10n/basic_translations.dart';
 import '../services/boot/boot_scheduler.dart';
+import '../services/daily_benefit_service.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'feedback/light_trail.dart';
@@ -52,10 +53,11 @@ class _BrandSplashGateState extends State<BrandSplashGate> with SingleTickerProv
   void initState() {
     super.initState();
     BootScheduler.instance.firstScreenReady.addListener(_maybeLeave);
-    // The minimum brand moment counts from when it is actually visible.
+    // The minimum brand moment counts from when it is actually visible, and
+    // stretches to give time to read the launch's hadith/faida.
     _whenFramesShown(() {
       if (!mounted) return;
-      _minTimer = Timer(widget.minVisible, () {
+      _minTimer = Timer(_readingTime(), () {
         _minElapsed = true;
         _maybeLeave();
       });
@@ -65,6 +67,26 @@ class _BrandSplashGateState extends State<BrandSplashGate> with SingleTickerProv
       _minElapsed = true;
       _maybeLeave();
     });
+  }
+
+  /// [BrandSplashGate.minVisible], lengthened for the launch's benefit text:
+  /// ~22 ms per character on top of 1.2 s, kept between 2.4 s and 4.2 s —
+  /// long enough to read a short hadith, short enough never to feel stuck
+  /// (a tap skips it anyway once the first screen is ready).
+  Duration _readingTime() {
+    final b = DailyBenefitService.instance.splashPick.value;
+    if (b == null) return widget.minVisible;
+    final ms = (1200 + b.text.length * 22).clamp(2400, 4200).toInt();
+    return Duration(milliseconds: ms > widget.minVisible.inMilliseconds ? ms : widget.minVisible.inMilliseconds);
+  }
+
+  /// Tap anywhere: skip the rest of the reading time (only once the first
+  /// screen is ready — never reveals a half-built page).
+  void _skip() {
+    if (_leaving || !mounted) return;
+    _minTimer?.cancel();
+    _minElapsed = true;
+    _maybeLeave();
   }
 
   /// Leaves once the first screen is ready (or the safety valve fired) and
@@ -101,9 +123,13 @@ class _BrandSplashGateState extends State<BrandSplashGate> with SingleTickerProv
               final t = Curves.easeInCubic.transform(_exit.value);
               return IgnorePointer(
                 ignoring: _leaving,
-                child: Opacity(
-                  opacity: 1 - t,
-                  child: Transform.scale(scale: 1 + 0.04 * t, child: splash),
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _skip,
+                  child: Opacity(
+                    opacity: 1 - t,
+                    child: Transform.scale(scale: 1 + 0.04 * t, child: splash),
+                  ),
                 ),
               );
             },
@@ -280,15 +306,26 @@ class _BrandSplashState extends State<BrandSplash> with TickerProviderStateMixin
                     _FadeUp(
                       animation: tagIn,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Text(
-                          basicText('splash_tagline', lang),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'Amiri',
-                            fontSize: 14.5,
-                            height: 1.7,
-                            color: _ink.withValues(alpha: 0.62),
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        // A fresh hadith / dhikr / ayah / faida every launch;
+                        // the fixed tagline only if the pool isn't ready.
+                        child: ValueListenableBuilder<DailyBenefit?>(
+                          valueListenable: DailyBenefitService.instance.splashPick,
+                          builder: (context, b, _) => AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 400),
+                            child: b == null
+                                ? Text(
+                                    basicText('splash_tagline', lang),
+                                    key: const ValueKey('tagline'),
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Amiri',
+                                      fontSize: 14.5,
+                                      height: 1.7,
+                                      color: _ink.withValues(alpha: 0.62),
+                                    ),
+                                  )
+                                : _SplashBenefit(key: ValueKey(b.id), benefit: b, lang: lang),
                           ),
                         ),
                       ),
@@ -300,26 +337,33 @@ class _BrandSplashState extends State<BrandSplash> with TickerProviderStateMixin
                 left: 0,
                 right: 0,
                 bottom: bottomInset + 64,
-                child: AnimatedOpacity(
-                  opacity: _showLoader ? 1 : 0,
-                  duration: const Duration(milliseconds: 600),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        width: 86,
-                        height: 6,
-                        child: CustomPaint(painter: LightTrailPainter(_ambient, _gold)),
-                      ),
-                      const SizedBox(height: 12),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 500),
-                        child: Text(
-                          basicText(_statusKeys[_status], lang),
-                          key: ValueKey(_status),
-                          style: TextStyle(fontSize: 12.5, color: _ink.withValues(alpha: 0.55)),
+                // Honest status: while the first screen is still preparing,
+                // the light trail + "جاري…"; once it is ready (the user is
+                // only reading), a quiet "tap to continue" instead — never a
+                // fake wait.
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: BootScheduler.instance.firstScreenReady,
+                  builder: (context, ready, _) => AnimatedOpacity(
+                    opacity: ready ? 0.75 : (_showLoader ? 1 : 0),
+                    duration: const Duration(milliseconds: 600),
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          width: 86,
+                          height: 6,
+                          child: ready ? null : CustomPaint(painter: LightTrailPainter(_ambient, _gold)),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 500),
+                          child: Text(
+                            ready ? basicText('splash_tap_continue', lang) : basicText(_statusKeys[_status], lang),
+                            key: ValueKey(ready ? -1 : _status),
+                            style: TextStyle(fontSize: 12.5, color: _ink.withValues(alpha: 0.55)),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -497,4 +541,46 @@ class _AtmospherePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_AtmospherePainter old) => false;
+}
+
+/// The launch's hadith / dhikr / ayah / faida on the splash: a small gold
+/// kind label, the text (ayat in the Quran font, never cut), its source.
+class _SplashBenefit extends StatelessWidget {
+  final DailyBenefit benefit;
+  final String lang;
+  const _SplashBenefit({super.key, required this.benefit, required this.lang});
+
+  @override
+  Widget build(BuildContext context) {
+    const ink = Color(0xFF3B2A1A);
+    final long = benefit.text.length > 180;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          basicText('benefit_kind_${benefit.kind}', lang),
+          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 0.4, color: kLightTrailGold),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          benefit.text,
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+          style: TextStyle(
+            fontFamily: benefit.isAyah ? 'AmiriQuran' : 'Amiri',
+            fontSize: benefit.isAyah ? 17 : (long ? 13.8 : 15.2),
+            height: benefit.isAyah ? 1.9 : 1.75,
+            color: ink.withValues(alpha: 0.82),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          benefit.source,
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+          style: TextStyle(fontSize: 10.5, color: ink.withValues(alpha: 0.45)),
+        ),
+      ],
+    );
+  }
 }
