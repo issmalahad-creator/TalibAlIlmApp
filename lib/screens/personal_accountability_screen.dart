@@ -4,6 +4,7 @@ import '../models/personal_accountability.dart';
 import '../repositories/personal_accountability_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/loading_view.dart';
 
 /// "التزامي الشخصي" — QURAN_COMPANION_ROADMAP.md section 4.7. The student
@@ -56,14 +57,7 @@ class _PersonalAccountabilityScreenState
         punishmentText: _punishmentController.text.trim(),
       ),
     );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          basicText('saved_message', LanguagePreferenceService.currentLanguage),
-        ),
-      ),
-    );
+    // Success is shown in the button itself (TalibActionButton, IF-5).
   }
 
   @override
@@ -191,10 +185,11 @@ class _PersonalAccountabilityScreenState
                       ),
                     ),
                   const SizedBox(height: 28),
-                  FilledButton.icon(
+                  TalibActionButton(
                     onPressed: _save,
-                    icon: const Icon(Icons.save),
-                    label: Text(basicText('save', lang)),
+                    icon: Icons.save,
+                    label: basicText('save', lang),
+                    successLabel: basicText('saved_message', lang),
                   ),
                 ],
               ),

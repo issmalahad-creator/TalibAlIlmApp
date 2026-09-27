@@ -81,6 +81,7 @@ void main() {
         onPressed: () async {
           runs++;
           if (runs == 1) throw StateError('db locked'); // never shown to the user
+          return null;
         },
       )));
       await tester.tap(find.text('فتح'));
@@ -239,5 +240,18 @@ void main() {
       await expectLater(find.byType(Scaffold), matchesGoldenFile('goldens/skeleton_home.png'));
       await tester.pumpWidget(const SizedBox());
     });
+  });
+
+  testWidgets('TalibActionButton: returning false (nothing to do) goes back to idle, no ✓', (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Center(child: TalibActionButton(
+      label: 'حفظ',
+      successLabel: 'تم الحفظ',
+      onPressed: () async => false, // e.g. an empty note field
+    )))));
+    await tester.tap(find.text('حفظ'));
+    await tester.pump();
+    expect(find.text('تم الحفظ'), findsNothing);
+    expect(find.byIcon(Icons.check_rounded), findsNothing);
+    expect(find.text('حفظ'), findsOneWidget);
   });
 }

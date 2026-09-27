@@ -11,6 +11,7 @@ import '../services/tts/tts_voice_registry.dart';
 import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import '../widgets/audio_reader_view.dart';
+import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/loading_view.dart';
 
 const _reflectionPrompts = [
@@ -203,14 +204,13 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
     });
   }
 
-  Future<void> _saveReflection() async {
+  Future<bool> _saveReflection() async {
     final text = widget.noteCtrl.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty) return false; // nothing to save — the button stays idle
     await widget.bookRepo.addReflection(widget.bookKey, text, page: widget.currentPage);
     widget.noteCtrl.clear();
     await _load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ ملاحظتك')));
+    return true; // «تم حفظ ملاحظتك» is shown in the button (IF-5)
   }
 
   Future<void> _editReflection(BookReflection r) async {
@@ -250,14 +250,13 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
     await _load();
   }
 
-  Future<void> _saveApplication() async {
+  Future<bool> _saveApplication() async {
     final text = widget.applicationCtrl.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty) return false; // nothing to save — the button stays idle
     await widget.bookRepo.addApplication(widget.bookKey, text);
     widget.applicationCtrl.clear();
     await _load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حفظ سجل التطبيق')));
+    return true; // «تم حفظ سجل التطبيق» is shown in the button (IF-5)
   }
 
   Future<void> _editApplication(BookApplicationEntry a) async {
@@ -338,7 +337,12 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: FilledButton.icon(onPressed: _saveReflection, icon: const Icon(Icons.save_outlined, size: 18), label: const Text('حفظ الملاحظة')),
+                  child: TalibActionButton(
+                    onPressed: _saveReflection,
+                    icon: Icons.save_outlined,
+                    label: basicText('save_note_action', LanguagePreferenceService.currentLanguage),
+                    successLabel: basicText('reflection_saved', LanguagePreferenceService.currentLanguage),
+                  ),
                 ),
                 if (_reflections.isNotEmpty) ...[
                   const SizedBox(height: 16),
@@ -379,7 +383,12 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
                 const SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: FilledButton.icon(onPressed: _saveApplication, icon: const Icon(Icons.check_circle_outline, size: 18), label: const Text('حفظ التطبيق')),
+                  child: TalibActionButton(
+                    onPressed: _saveApplication,
+                    icon: Icons.check_circle_outline,
+                    label: basicText('save_application_action', LanguagePreferenceService.currentLanguage),
+                    successLabel: basicText('application_saved', LanguagePreferenceService.currentLanguage),
+                  ),
                 ),
                 if (_applications.isNotEmpty) ...[
                   const SizedBox(height: 16),

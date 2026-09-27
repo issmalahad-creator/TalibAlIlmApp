@@ -5,6 +5,7 @@ import '../models/activity_entry.dart';
 import '../repositories/activity_repository.dart';
 import '../services/language_preference_service.dart';
 import '../utils/hijri_date.dart';
+import '../widgets/feedback/talib_action_button.dart';
 
 class AddActivityScreen extends StatefulWidget {
   final ActivityEntry? existing;
@@ -150,10 +151,14 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
               maxLines: 2,
             ),
             const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _save,
-              icon: Icon(_isEdit ? Icons.save : Icons.add),
-              label: Text(basicText(_isEdit ? 'save_changes_action' : 'add', lang)),
+            TalibActionButton(
+              onPressed: () async {
+                final valid = _titleCtrl.text.trim().isNotEmpty;
+                await _save();
+                return valid ? null : false;
+              },
+              icon: _isEdit ? Icons.save : Icons.add,
+              label: basicText(_isEdit ? 'save_changes_action' : 'add', lang),
             ),
           ],
         ),

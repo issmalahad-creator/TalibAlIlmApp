@@ -6,6 +6,7 @@ import '../l10n/basic_translations.dart';
 import '../repositories/time_awareness_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/loading_view.dart';
 
 /// "محاسبة الوقت" — Ismail's request 2026-08-16, extended 2026-08-16 same
@@ -81,10 +82,7 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
 
   Future<void> _save() async {
     await _repo.saveToday(_currentEntry);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(basicText('time_saved_confirmation', _lang))),
-    );
+    // Success is shown in the button itself (TalibActionButton, IF-5).
   }
 
   @override
@@ -198,7 +196,7 @@ class _TimeAwarenessScreenState extends State<TimeAwarenessScreen> {
                   decoration: InputDecoration(hintText: basicText('time_note_hint', _lang), border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 10),
-                Align(alignment: Alignment.centerLeft, child: FilledButton(onPressed: _save, child: Text(basicText('save', _lang)))),
+                Align(alignment: Alignment.centerLeft, child: TalibActionButton(onPressed: _save, label: basicText('save', _lang), successLabel: basicText('time_saved_confirmation', _lang))),
                 const SizedBox(height: 24),
                 Text(basicText('how_to_benefit_hours_title', _lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 10),

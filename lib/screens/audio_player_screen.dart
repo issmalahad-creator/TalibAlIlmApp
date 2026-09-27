@@ -10,6 +10,7 @@ import '../repositories/milestone_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
+import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/loading_view.dart';
 
 const _reflectionPromptKeys = [
@@ -185,24 +186,20 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     });
   }
 
-  Future<void> _saveReflection() async {
+  Future<bool> _saveReflection() async {
     final text = _noteCtrl.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty) return false; // nothing to save — the button stays idle
     final resumeNote = _resumeCtrl.text.trim();
     await _repo.addReflection(widget.seriesId, _currentVideoId, text, resumeNote: resumeNote.isEmpty ? null : resumeNote);
     _noteCtrl.clear();
     _resumeCtrl.clear();
     await _loadReflections();
-    if (!mounted) return;
+    if (!mounted) return true;
     final total = await _repo.totalReflectionCount();
     final newlyEarned = await _milestoneRepo.checkAudioReflectionMilestones(total);
-    if (!mounted) return;
-    if (newlyEarned.isNotEmpty) {
-      await showCelebration(context, newlyEarned.first);
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(basicText('note_saved_message', LanguagePreferenceService.currentLanguage))));
-    }
+    if (!mounted) return true;
+    if (newlyEarned.isNotEmpty) await showCelebration(context, newlyEarned.first);
+    return true; // «تم الحفظ» is shown in the button itself (IF-5)
   }
 
   /// "تعديل الملاحظة" / "مسح الملاحظة" (Ismail's request 2026-08-16) —
@@ -430,10 +427,11 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerLeft,
-            child: FilledButton.icon(
+            child: TalibActionButton(
               onPressed: _saveReflection,
-              icon: const Icon(Icons.save_outlined, size: 18),
-              label: Text(basicText('save_note_action', lang)),
+              icon: Icons.save_outlined,
+              label: basicText('save_note_action', lang),
+              successLabel: basicText('note_saved_message', lang),
             ),
           ),
           const SizedBox(height: 20),

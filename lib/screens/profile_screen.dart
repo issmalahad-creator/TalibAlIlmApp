@@ -11,6 +11,7 @@ import '../services/calendar_preference_service.dart';
 import '../services/language_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/nav_tile.dart';
 import '../widgets/restart_widget.dart';
 import 'adab_screen.dart';
@@ -171,10 +172,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                FilledButton.icon(
+                TalibActionButton(
                   onPressed: _save,
-                  icon: const Icon(Icons.save),
-                  label: Text(basicText('save', _lang)),
+                  icon: Icons.save,
+                  label: basicText('save', _lang),
                 ),
                 const SizedBox(height: 12),
                 Container(

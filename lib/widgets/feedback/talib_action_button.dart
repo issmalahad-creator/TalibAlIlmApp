@@ -25,7 +25,12 @@ enum TalibActionState { idle, running, success, failed }
 /// Colour is never the only signal: every state has its own icon and words.
 class TalibActionButton extends StatefulWidget {
   final String label;
-  final Future<void> Function() onPressed;
+
+  /// The action. Return `false` when nothing was done (e.g. an empty field
+  /// the handler ignored) — the button goes quietly back to idle instead of
+  /// claiming «تم». Any other result (including plain `Future<void>`) is a
+  /// success; a thrown error is a failure.
+  final Future<Object?> Function() onPressed;
   final String? runningLabel;
   final String? successLabel;
   final String? failureLabel;
@@ -73,8 +78,9 @@ class TalibActionButtonState extends State<TalibActionButton> {
       if (mounted && state == TalibActionState.running) setState(() => showRunningLabel = true);
     });
     var ok = true;
+    var nothingDone = false;
     try {
-      await widget.onPressed();
+      nothingDone = (await widget.onPressed()) == false;
     } catch (e, st) {
       ok = false;
       // Details stay in the log; the user gets words, not an exception.
@@ -83,6 +89,10 @@ class TalibActionButtonState extends State<TalibActionButton> {
     _spinnerTimer?.cancel();
     _labelTimer?.cancel();
     if (!mounted) return;
+    if (nothingDone) {
+      setState(() => state = TalibActionState.idle);
+      return;
+    }
     setState(() => state = ok ? TalibActionState.success : TalibActionState.failed);
     if (ok) {
       _resetTimer = Timer(widget.successHold, () {

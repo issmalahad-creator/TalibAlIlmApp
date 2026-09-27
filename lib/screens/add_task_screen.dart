@@ -8,6 +8,7 @@ import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
+import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/premium_modal.dart';
 
 class AddTaskScreen extends StatefulWidget {
@@ -215,10 +216,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             TextButton.icon(
                 onPressed: _addChecklistField, icon: const Icon(Icons.add), label: Text(basicText('add_checklist_point', lang))),
             const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: _save,
-              icon: Icon(_isEdit ? Icons.save : Icons.add),
-              label: Text(basicText(_isEdit ? 'save_changes_action' : 'add_task_action', lang)),
+            TalibActionButton(
+              onPressed: () async {
+                final valid = _titleCtrl.text.trim().isNotEmpty;
+                await _save();
+                return valid ? null : false;
+              },
+              icon: _isEdit ? Icons.save : Icons.add,
+              label: basicText(_isEdit ? 'save_changes_action' : 'add_task_action', lang),
             ),
           ],
         ),
