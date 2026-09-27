@@ -7,6 +7,7 @@ import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback/talib_skeleton.dart';
 import 'turath_benefits_screen.dart';
 import 'turath_categories_screen.dart';
 import 'turath_my_library_screen.dart';
@@ -165,7 +166,7 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
       case _SearchStatus.idle:
         return Center(child: Text(basicText('turath_search_prompt', lang), style: const TextStyle(color: AppColors.textMuted)));
       case _SearchStatus.loading:
-        return const Center(child: CircularProgressIndicator());
+        return TalibSkeleton(semanticLabel: basicText('loading_search', lang), child: const SkeletonCardList());
       case _SearchStatus.empty:
         return Center(child: Text(basicText('turath_no_results', lang), style: const TextStyle(color: AppColors.textMuted)));
       case _SearchStatus.error:

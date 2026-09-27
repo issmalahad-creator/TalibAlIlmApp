@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:talib_alilm_app/widgets/feedback/talib_action_button.dart';
 import 'package:talib_alilm_app/widgets/feedback/talib_navigation.dart';
 import 'package:talib_alilm_app/widgets/feedback/talib_pressable.dart';
+import 'package:talib_alilm_app/widgets/feedback/talib_skeleton.dart';
 import 'package:talib_alilm_app/widgets/feedback/light_trail.dart';
 import 'package:talib_alilm_app/widgets/loading_view.dart';
 
@@ -205,6 +206,37 @@ void main() {
       final shown = tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity));
       expect(shown.opacity, 1);
       expect(find.text('جاري فتح الكتاب…'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    });
+  });
+
+  group('TalibSkeleton (IF-3)', () {
+    Widget host(Widget child) => MaterialApp(home: Scaffold(body: TalibSkeleton(semanticLabel: 'جاري البحث…', child: child)));
+
+    testWidgets('fast load: no skeleton flash before 300 ms', (tester) async {
+      await tester.pumpWidget(host(const SkeletonCardList()));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byType(SkeletonBlock), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('after 300 ms: the content shape, pulsing, no spinner', (tester) async {
+      await tester.pumpWidget(host(const SkeletonCardList(count: 3)));
+      await tester.pump(const Duration(milliseconds: 320));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(SkeletonBlock), findsWidgets);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    });
+
+    testWidgets('home skeleton renders at phone size without overflow', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(360, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(host(const SkeletonHome()));
+      await tester.pump(const Duration(milliseconds: 320));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byType(Scaffold), matchesGoldenFile('goldens/skeleton_home.png'));
       await tester.pumpWidget(const SizedBox());
     });
   });

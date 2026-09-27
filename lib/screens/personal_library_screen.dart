@@ -7,7 +7,7 @@ import '../services/language_preference_service.dart';
 import '../services/personal_library_service.dart';
 import '../theme/app_theme.dart';
 import 'book_viewer_screen.dart';
-import '../widgets/loading_view.dart';
+import '../widgets/feedback/talib_skeleton.dart';
 
 /// "مكتبتي" — a student-organized personal library. Top level shows
 /// sections/folders the student created themselves (plus a fixed
@@ -166,7 +166,7 @@ class _PersonalLibraryScreenState extends State<PersonalLibraryScreen> {
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) {
         if (_loading) {
-          return Scaffold(appBar: AppBar(title: Text(basicText('personal_library_title', lang))), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', lang)));
+          return Scaffold(appBar: AppBar(title: Text(basicText('personal_library_title', lang))), body: TalibSkeleton(semanticLabel: basicText('loading_book', lang), child: const SkeletonCardList(leading: true, leadingSize: 56)));
         }
         return _openCategoryId == null ? _buildFolderList() : _buildCategoryBooks();
       },

@@ -16,7 +16,7 @@ import '../utils/hijri_date.dart';
 import 'circular_percent_gauge.dart';
 import 'completion_goal_session_editor.dart';
 import 'completion_goal_werd_list.dart';
-import 'loading_view.dart';
+import 'feedback/talib_skeleton.dart';
 
 /// (content_type, book_ref, label, total_units) — the fixed set of
 /// content this planner currently knows how to track. Add a row here when
@@ -728,7 +728,10 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
   Widget build(BuildContext context) {
     final lang = LanguagePreferenceService.currentLanguage;
     if (_loading) {
-      return AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang));
+      return TalibSkeleton(
+        semanticLabel: basicText('loading_progress', lang),
+        child: const SkeletonCardList(count: 3, leading: true, leadingSize: 52),
+      );
     }
     if (_statuses.isEmpty) {
       return Center(

@@ -7,7 +7,7 @@ import '../repositories/memorization_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/loading_view.dart';
+import '../widgets/feedback/talib_skeleton.dart';
 
 /// "البحث عن آية" — Phase 1 of QURAN_COMPANION_ROADMAP.md. Search a word or
 /// phrase (no tashkeel needed) and get every matching ayah in the Quran with
@@ -152,7 +152,12 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
   }
 
   Widget _buildResults() {
-    if (_searching) return AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_search', LanguagePreferenceService.currentLanguage));
+    if (_searching) {
+      return TalibSkeleton(
+        semanticLabel: basicText('loading_search', LanguagePreferenceService.currentLanguage),
+        child: const SkeletonCardList(count: 5, lines: 3),
+      );
+    }
     if (!_hasSearched) {
       return const Center(
         child: Text('ابحث عن أي كلمة لتظهر كل الآيات التي وردت فيها', style: TextStyle(color: AppColors.textMuted)),

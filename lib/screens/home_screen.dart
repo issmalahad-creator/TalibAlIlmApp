@@ -27,6 +27,7 @@ import '../widgets/companion_card.dart';
 import '../widgets/daily_companion_card.dart';
 import 'companion_chat_screen.dart';
 import '../widgets/daily_journey_card.dart';
+import '../widgets/feedback/talib_skeleton.dart';
 import '../widgets/knowledge_review_entry_card.dart';
 import '../widgets/nav_tile.dart';
 import '../widgets/time_accountability_dashboard.dart';
@@ -56,7 +57,6 @@ import 'curriculum_map_screen.dart';
 import '../widgets/daily_benefit_card.dart';
 import '../widgets/feedback/talib_navigation.dart';
 import '../widgets/feedback/talib_pressable.dart';
-import '../widgets/loading_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ValueListenableBuilder<String>(
         valueListenable: LanguagePreferenceService.languageNotifier,
         builder: (context, lang, _) => _loading
-          ? AppLoadingView(icon: Icons.wb_sunny_outlined, message: basicText('home_loading_message', lang))
+          ? TalibSkeleton(semanticLabel: basicText('home_loading_message', lang), child: const SkeletonHome())
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
