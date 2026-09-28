@@ -50,7 +50,9 @@ class _ClaudeChatScreenState extends State<ClaudeChatScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString().replaceFirst('StateError: ', ''));
+      // `.message`, not toString(): release builds are obfuscated, so the
+      // «StateError: » prefix can't be stripped by its type name.
+      setState(() => _error = e is StateError ? e.message : e.toString());
     } finally {
       if (mounted) setState(() => _sending = false);
       _scrollToEnd();

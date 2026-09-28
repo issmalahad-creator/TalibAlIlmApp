@@ -149,6 +149,11 @@ def main() -> int:
         cmd += ["--target-platform", _ABI_TARGET[args.abi]]
     if split:
         cmd.append("--split-per-abi")
+    if args.mode == "release":
+        # S6: Dart symbols out of libapp.so + short names. The symbol files
+        # (needed to read a release stack trace: `flutter symbolize`) stay
+        # local under build/ — never shipped, never committed.
+        cmd += ["--obfuscate", f"--split-debug-info=build/debug-info/{args.flavor}"]
     print("+", " ".join(cmd))
     if args.dry_run:
         return 0
