@@ -52,6 +52,7 @@ class PackInfo {
     required this.installer,
     this.author = const {},
     this.summary = const {},
+    this.lang,
   });
 
   /// Stable, dotted: `tafsir.ibn_kathir`, `corpus.sayings`.
@@ -64,6 +65,9 @@ class PackInfo {
   final Map<String, String> author;
   final Map<String, String> summary;
   final List<PackFile> files;
+
+  /// Content language of a tafsir/translation pack (`de`, `bn`…), if any.
+  final String? lang;
 
   /// Which installer turns downloaded files into usable content.
   final String installer;
@@ -83,6 +87,7 @@ class PackInfo {
         summary: Map<String, String>.from((j['summary'] as Map?) ?? const {}),
         files: [for (final f in j['files'] as List) PackFile.fromJson(f as Map<String, dynamic>)],
         installer: j['installer'] as String,
+        lang: j['lang'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -94,6 +99,7 @@ class PackInfo {
         if (summary.isNotEmpty) 'summary': summary,
         'files': [for (final f in files) f.toJson()],
         'installer': installer,
+        'lang': ?lang,
       };
 }
 

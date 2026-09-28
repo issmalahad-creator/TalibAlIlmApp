@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/basic_translations.dart';
+import '../repositories/quran_search_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/packs/content_pack_engine.dart';
 import '../services/packs/pack_manifest.dart';
@@ -35,15 +36,34 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     _load(refresh: false).then((_) => _load());
   }
 
+  final Set<String> _watched = {};
+
   Future<void> _load({bool refresh = true}) async {
     final m = await _engine.manifest(refresh: refresh);
     final used = await _engine.bytesUsed();
     if (!mounted) return;
+    // The «used» total follows every install/delete live, not only on reopen.
+    for (final p in m?.packs ?? const <PackInfo>[]) {
+      if (_watched.add(p.id)) _engine.stateOf(p.id).addListener(_onPackChanged);
+    }
     setState(() {
       _manifest = m;
       _used = used;
       _loading = false;
     });
+  }
+
+  Future<void> _onPackChanged() async {
+    final used = await _engine.bytesUsed();
+    if (mounted && used != _used) setState(() => _used = used);
+  }
+
+  @override
+  void dispose() {
+    for (final id in _watched) {
+      _engine.stateOf(id).removeListener(_onPackChanged);
+    }
+    super.dispose();
   }
 
   Future<void> _confirmDelete(PackInfo pack) async {
@@ -152,6 +172,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(p.titleFor(lang), style: AppTextStyles.title),
+                    // Many editions share a translator's centre name — the
+                    // language is what tells them apart.
+                    if (p.kind == 'translation' && QuranSearchRepository.languageLabels[p.lang] != null)
+                      Text(QuranSearchRepository.languageLabels[p.lang]!, style: AppTextStyles.caption),
                   ],
                 ),
               ),

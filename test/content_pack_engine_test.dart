@@ -385,6 +385,16 @@ void main() {
       expect(hosts, containsAllInOrder(['gh', 'cdn.jsdelivr.net']));
     });
 
+    test('live manifest with Arabic and no charset header decodes as UTF-8', () async {
+      // GitHub serves release assets as octet-stream without a charset; the
+      // first device test showed every Arabic title mangled into Latin-1.
+      final server = _FakeServer({}, manifest: manifestJson());
+      final e = engine(server, _FakeNet(), _RecordingInstaller());
+      final m = await e.manifest(refresh: true);
+      expect(server.requests.any((r) => r.url.path.endsWith('packs_manifest.json')), isTrue);
+      expect(m!.byId('corpus.sayings')!.titleFor('ar'), 'أقوال السلف');
+    });
+
     test('manifest with a newer schema is ignored, never misread', () {
       expect(
         PackManifest.tryParse({'schema': 99, 'base': 'x', 'packs': []}),

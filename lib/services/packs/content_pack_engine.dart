@@ -90,8 +90,10 @@ class ContentPackEngine {
 
   static const _installedKey = 'packs_installed'; // {id: {v, bytes}}
   static const _pendingKey = 'packs_pending'; // [{id, wifiOnly}]
-  static const _etagKey = 'packs_manifest_etag';
-  static const _cachedManifestKey = 'packs_manifest_cached';
+  // v2: v1 caches may hold a Latin-1-mangled manifest (GitHub sends no
+  // charset, `res.body` guessed wrong) — a new key discards them.
+  static const _etagKey = 'packs_manifest_etag_v2';
+  static const _cachedManifestKey = 'packs_manifest_cached_v2';
 
   void registerInstaller(String name, PackInstaller installer) => _installers[name] = installer;
 
@@ -124,9 +126,12 @@ class ContentPackEngine {
           .timeout(const Duration(seconds: 8));
       if (res.statusCode == 304) return _parse(prefs.getString(_cachedManifestKey));
       if (res.statusCode != 200) return null;
-      final m = _parse(res.body);
+      // Always UTF-8: GitHub serves release assets as octet-stream with no
+      // charset, so `res.body` would decode Arabic titles as Latin-1.
+      final body = utf8.decode(res.bodyBytes);
+      final m = _parse(body);
       if (m == null) return null;
-      await prefs.setString(_cachedManifestKey, res.body);
+      await prefs.setString(_cachedManifestKey, body);
       final newTag = res.headers['etag'];
       if (newTag != null) await prefs.setString(_etagKey, newTag);
       return m;
