@@ -381,9 +381,12 @@ class ContentPackEngine {
       state.value = PackDownloading(received: before + (await _partialBytesOf(target)), total: total);
       DownloadResult result;
       var attempt = 0;
+      // Each retry moves to the next source (GitHub → jsDelivr → raw…) and
+      // resumes the same .part — a blocked or crawling CDN costs one attempt.
+      final sources = f.sources(m.base);
       while (true) {
         result = await _downloader.download(
-          uri: Uri.parse('${m.base}${f.name}'),
+          uri: sources[attempt % sources.length],
           target: target,
           expectedBytes: f.bytes,
           expectedSha256: f.sha256,
@@ -404,7 +407,8 @@ class ContentPackEngine {
         // time — only give up after the last attempt, or when truly offline.
         final transient = result is DownloadFailed &&
             (result.reason == PackFailure.offline || result.reason == PackFailure.server);
-        if (!transient || attempt >= retryDelays.length || _stop.contains(id)) break;
+        final notFoundHere = result is DownloadFailed && result.reason == PackFailure.notFound && attempt + 1 < sources.length;
+        if ((!transient && !notFoundHere) || attempt >= retryDelays.length || _stop.contains(id)) break;
         if (!await _network.isOnline()) break;
         await Future<void>.delayed(retryDelays[attempt++]);
         if (_stop.contains(id)) break;

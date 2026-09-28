@@ -343,6 +343,48 @@ void main() {
       },
     );
 
+    test('primary CDN down → the same bytes come from a mirror', () async {
+      final mf = jsonEncode({
+        'schema': 1,
+        'base': 'https://gh/packs-v1/',
+        'packs': [
+          {
+            'id': 'corpus.similar',
+            'kind': 'corpus',
+            'version': 1,
+            'title': {'ar': 'المتشابهات'},
+            'installer': 'test',
+            'files': [
+              {
+                'name': 'sim.v1.gz',
+                'bytes': f1.length,
+                'sha256': _sha(f1),
+                'mirrors': ['https://cdn.jsdelivr.net/gh/x/y@t/sim.gz'],
+              },
+            ],
+          },
+        ],
+      });
+      final server = _FakeServer({'sim.gz': f1}, manifest: mf);
+      final hosts = <String>[];
+      http.Client client() => MockClient.streaming((req, body) async {
+            hosts.add(req.url.host);
+            if (req.url.host == 'gh') throw http.ClientException('blocked');
+            return server.handle(req, body);
+          });
+      final inst = _RecordingInstaller();
+      final e = ContentPackEngine(
+        clientFactory: client,
+        network: _FakeNet(),
+        rootDir: () async => tmp,
+        bundledManifest: () async => mf,
+      )..registerInstaller('test', inst);
+      await e.download('corpus.similar');
+      await e.idle();
+      expect(e.stateOf('corpus.similar').value, isA<PackInstalled>());
+      expect(hosts, containsAllInOrder(['gh', 'cdn.jsdelivr.net']));
+    });
+
     test('manifest with a newer schema is ignored, never misread', () {
       expect(
         PackManifest.tryParse({'schema': 99, 'base': 'x', 'packs': []}),

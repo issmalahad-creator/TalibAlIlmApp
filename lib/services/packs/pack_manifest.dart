@@ -98,7 +98,7 @@ class PackInfo {
 }
 
 class PackFile {
-  const PackFile({required this.name, required this.bytes, required this.sha256});
+  const PackFile({required this.name, required this.bytes, required this.sha256, this.mirrors = const []});
 
   final String name;
   final int bytes;
@@ -106,8 +106,21 @@ class PackFile {
   /// Lower-case hex. Mandatory: a file without one is never installed.
   final String sha256;
 
-  factory PackFile.fromJson(Map<String, dynamic> j) =>
-      PackFile(name: j['name'] as String, bytes: j['bytes'] as int, sha256: (j['sha256'] as String).toLowerCase());
+  /// Other full URLs serving the exact same bytes (jsDelivr, raw GitHub…).
+  /// Tried in order when the primary is slow or failing — the SHA-256 check
+  /// makes the source irrelevant (CONTENT_PACKS_ARCHITECTURE.md §3.4).
+  final List<String> mirrors;
 
-  Map<String, dynamic> toJson() => {'name': name, 'bytes': bytes, 'sha256': sha256};
+  /// Primary (`base` + name) first, then the mirrors.
+  List<Uri> sources(String base) => [Uri.parse('$base$name'), for (final m in mirrors) Uri.parse(m)];
+
+  factory PackFile.fromJson(Map<String, dynamic> j) => PackFile(
+        name: j['name'] as String,
+        bytes: j['bytes'] as int,
+        sha256: (j['sha256'] as String).toLowerCase(),
+        mirrors: [for (final m in (j['mirrors'] as List?) ?? const []) m as String],
+      );
+
+  Map<String, dynamic> toJson() =>
+      {'name': name, 'bytes': bytes, 'sha256': sha256, if (mirrors.isNotEmpty) 'mirrors': mirrors};
 }

@@ -33,6 +33,28 @@ TAG = "packs-v1"
 REPO = "issmalahad-creator/TalibAlIlmApp"
 BASE = f"https://github.com/{REPO}/releases/download/{TAG}/"
 SNAPSHOT = ROOT / "assets/packs/packs_manifest.json"
+# Immutable git tag whose tree holds the pack files at their repo paths — the
+# mirrors (jsDelivr, raw GitHub) serve the same bytes from it. Create/push it
+# once per content change: `git tag packs-files-v1 && git push origin packs-files-v1`.
+FILES_TAG = "packs-files-v1"
+
+
+def mirrors_for(src: Path) -> list[str]:
+    rel = src.relative_to(ROOT).as_posix()
+    return [f"https://cdn.jsdelivr.net/gh/{REPO}@{FILES_TAG}/{rel}",
+            f"https://raw.githubusercontent.com/{REPO}/{FILES_TAG}/{rel}"]
+
+
+def files_tag_published() -> bool:
+    r = subprocess.run(["git", "ls-remote", "--tags", "origin", FILES_TAG], capture_output=True, text=True, cwd=ROOT)
+    return FILES_TAG in r.stdout
+
+
+def tag_matches(src: Path, digest: str) -> bool:
+    """The file at FILES_TAG must be byte-identical, or its mirror would fail SHA."""
+    rel = src.relative_to(ROOT).as_posix()
+    r = subprocess.run(["git", "show", f"{FILES_TAG}:{rel}"], capture_output=True, cwd=ROOT)
+    return r.returncode == 0 and hashlib.sha256(r.stdout).hexdigest() == digest
 
 # Heavy corpus datasets — seeded into DB tables by the `corpus_table` installer (CP4).
 CORPUS = {
@@ -101,6 +123,9 @@ def published_manifest() -> dict | None:
 
 def build(previous: dict | None) -> tuple[dict, list[tuple[Path, str]]]:
     prev = {p["id"]: p for p in (previous or {}).get("packs", [])}
+    use_mirrors = files_tag_published()
+    if not use_mirrors:
+        print(f"note: tag {FILES_TAG} not on origin — manifest without mirrors", file=sys.stderr)
     packs, uploads = [], []
     for c in candidates():
         src: Path = c["src"]
@@ -112,8 +137,11 @@ def build(previous: dict | None) -> tuple[dict, list[tuple[Path, str]]]:
         same = old and old["files"][0]["sha256"] == digest
         version = old["version"] if same else (old["version"] + 1 if old else 1)
         name = f"{c['id']}.v{version}.{c['ext']}"
+        entry = {"name": name, "bytes": size, "sha256": digest}
+        if use_mirrors and tag_matches(src, digest):
+            entry["mirrors"] = mirrors_for(src)
         pack = {"id": c["id"], "kind": c["kind"], "version": version, "title": c["title"],
-                "files": [{"name": name, "bytes": size, "sha256": digest}], "installer": c["installer"]}
+                "files": [entry], "installer": c["installer"]}
         if c["summary"]:
             pack["summary"] = c["summary"]
         if "lang" in c:
