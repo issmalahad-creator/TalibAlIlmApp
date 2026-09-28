@@ -54,7 +54,7 @@ const _kTahzeebInfoText =
 
 /// Personal-library books that have a known page count (from having been
 /// opened at least once — `book_bookmarks` is populated by
-/// `BookViewerScreen`'s existing flutter_pdfview callbacks, not built new
+/// `BookViewerScreen`'s existing PDF-viewer page callbacks, not built new
 /// here). Books never opened yet are silently excluded rather than shown
 /// with a guessed page count.
 Future<List<(String, String?, String, int)>> _personalBookOptions(String lang) async {

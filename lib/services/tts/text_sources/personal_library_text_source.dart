@@ -39,7 +39,7 @@ class PersonalLibraryOcrEmptyException implements Exception {
 
 class PersonalLibraryTextSource implements ReadableTextSource {
   /// [pdfUrl] يُنزَّل عند أول استخدام إن لم يُمرَّر [localFilePath] — مصادر
-  /// مثل `book_viewer_screen.dart` تملك ملفًا محليًا بالفعل (نزَّله `PDFView`
+  /// مثل `book_viewer_screen.dart` تملك ملفًا محليًا بالفعل (نزَّله عارض الـPDF
   /// نفسه)، فتُمرِّره مباشرة لتفادي تنزيل مزدوج لنفس الملف.
   PersonalLibraryTextSource(
     this.bookKey,

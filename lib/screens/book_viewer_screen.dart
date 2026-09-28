@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 import '../l10n/basic_translations.dart';
 import '../models/reading_record.dart';
@@ -88,7 +88,7 @@ class _BookViewerScreenState extends State<BookViewerScreen> {
   /// "دفتر الفوائد" + "سجل التطبيق" for this book — Ismail's 2026-08-16
   /// request, explicitly "نفس المكتبة الصوتية" (same as the audio
   /// library's existing reflection log). Presented as a bottom sheet rather
-  /// than inline below the reader (unlike the audio screen) since `PDFView`
+  /// than inline below the reader (unlike the audio screen) since the PDF viewer
   /// needs the full screen for actual reading.
   Future<void> _openNotebook() async {
     await showModalBottomSheet(
@@ -132,32 +132,33 @@ class _BookViewerScreenState extends State<BookViewerScreen> {
           if (_totalPages > 0)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Center(child: Text('${_currentPage + 1} / $_totalPages')),
+              child: Center(child: Text('\u2066${_currentPage + 1} / $_totalPages\u2069')), // «2 / 10», not «10 / 2» in RTL
             ),
         ],
       ),
       body: !_ready
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_book', LanguagePreferenceService.currentLanguage))
-          : PDFView(
-              filePath: widget.filePath,
-              defaultPage: _defaultPage,
-              enableSwipe: true,
-              swipeHorizontal: false,
-              autoSpacing: true,
-              pageFling: true,
-              onRender: (pages) {
-                if (pages == null) return;
-                setState(() => _totalPages = pages);
-                _saveBookmark(_currentPage, pages);
-              },
-              onPageChanged: (page, total) {
-                if (page == null) return;
-                setState(() {
-                  _currentPage = page;
-                  if (total != null) _totalPages = total;
-                });
-                _saveBookmark(page, _totalPages);
-              },
+          // One PDF engine for the whole app (pdfrx, already used for
+          // text extraction) — flutter_pdfview shipped a second pdfium
+          // (APP_PERFORMANCE_AND_SIZE_ROADMAP.md §8.5 S3). pdfrx pages are
+          // 1-based; the bookmark stays 0-based as before.
+          : PdfViewer.file(
+              widget.filePath,
+              initialPageNumber: _defaultPage + 1,
+              params: PdfViewerParams(
+                onViewerReady: (document, controller) {
+                  final pages = document.pages.length;
+                  setState(() => _totalPages = pages);
+                  _saveBookmark(_currentPage, pages);
+                },
+                onPageChanged: (pageNumber) {
+                  if (pageNumber == null) return;
+                  final page = pageNumber - 1;
+                  if (page == _currentPage) return;
+                  setState(() => _currentPage = page);
+                  _saveBookmark(page, _totalPages);
+                },
+              ),
             ),
     );
   }
