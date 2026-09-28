@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated": "2026-09-27",
+ "generated": "2026-09-28",
  "base": "https://github.com/issmalahad-creator/TalibAlIlmApp/releases/download/packs-v1/",
  "packs": [
   {
@@ -15,7 +15,11 @@
     {
      "name": "corpus.sayings.v1.json.gz",
      "bytes": 15292900,
-     "sha256": "0c4986e1dc53dba6d702e6f7a88510233dc7e4e13bb71b9c83d189e0c745e73d"
+     "sha256": "0c4986e1dc53dba6d702e6f7a88510233dc7e4e13bb71b9c83d189e0c745e73d",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/corpus/packs/sayings.json.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/corpus/packs/sayings.json.gz"
+     ]
     }
    ],
    "installer": "corpus_table",
@@ -36,7 +40,11 @@
     {
      "name": "corpus.notes.v1.json.gz",
      "bytes": 9788671,
-     "sha256": "bae2f839958e09a95c3a036881a618839659cdffa147ec3e650cc6088fed0567"
+     "sha256": "bae2f839958e09a95c3a036881a618839659cdffa147ec3e650cc6088fed0567",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/corpus/packs/notes.json.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/corpus/packs/notes.json.gz"
+     ]
     }
    ],
    "installer": "corpus_table",
@@ -57,7 +65,11 @@
     {
      "name": "corpus.similar.v1.json.gz",
      "bytes": 4894940,
-     "sha256": "95c5390a5a74815e833f58c86e378f5711ea79ee091f8ee15c681f0f3dc76380"
+     "sha256": "95c5390a5a74815e833f58c86e378f5711ea79ee091f8ee15c681f0f3dc76380",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/corpus/packs/similar.json.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/corpus/packs/similar.json.gz"
+     ]
     }
    ],
    "installer": "corpus_table",
@@ -78,7 +90,11 @@
     {
      "name": "corpus.irab_books.v1.json.gz",
      "bytes": 4923738,
-     "sha256": "fe30a06503a1529f5697cb14f4c3a3cecba354efd4a3789e438926332fbe5d31"
+     "sha256": "fe30a06503a1529f5697cb14f4c3a3cecba354efd4a3789e438926332fbe5d31",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/corpus/packs/irab_books.json.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/corpus/packs/irab_books.json.gz"
+     ]
     }
    ],
    "installer": "corpus_table",
@@ -99,7 +115,11 @@
     {
      "name": "corpus.fatwas.v1.json.gz",
      "bytes": 3896223,
-     "sha256": "4284a8f16f81d0213cfe3efd4c5e15dec075d3c43cf53f1a64ed09fe0d6a7443"
+     "sha256": "4284a8f16f81d0213cfe3efd4c5e15dec075d3c43cf53f1a64ed09fe0d6a7443",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/corpus/packs/fatwas.json.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/corpus/packs/fatwas.json.gz"
+     ]
     }
    ],
    "installer": "corpus_table",
@@ -120,7 +140,11 @@
     {
      "name": "tafsir.ibn_kathir_full.v1.jsonl.gz",
      "bytes": 9610254,
-     "sha256": "1f122afd05e7a6a99bafde2fc2f51cfa0d5aa3792330f4ae39f86932b5c4763f"
+     "sha256": "1f122afd05e7a6a99bafde2fc2f51cfa0d5aa3792330f4ae39f86932b5c4763f",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-ibn-kathir-full.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-ibn-kathir-full.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -138,7 +162,11 @@
     {
      "name": "tafsir.ibn_ashur.v1.jsonl.gz",
      "bytes": 7792645,
-     "sha256": "86869cb6b4fcc99c3e187159f423234df7cb9e23d2ff3c20b82fca3dd84ed25e"
+     "sha256": "86869cb6b4fcc99c3e187159f423234df7cb9e23d2ff3c20b82fca3dd84ed25e",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-ibn_ashur.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-ibn_ashur.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -156,7 +184,11 @@
     {
      "name": "tafsir.english_rwwad.v1.jsonl.gz",
      "bytes": 401837,
-     "sha256": "7c3af843948de710777c37c6a290983fa6de273ba8ee96343c04ad835612fab1"
+     "sha256": "7c3af843948de710777c37c6a290983fa6de273ba8ee96343c04ad835612fab1",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-english_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-english_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -174,7 +206,11 @@
     {
      "name": "tafsir.amharic_sadiq.v1.jsonl.gz",
      "bytes": 353105,
-     "sha256": "7cf5d2f9e3486143c4cf6f935d3acdf5fd6017c7490d11892da9b5b69b47370e"
+     "sha256": "7cf5d2f9e3486143c4cf6f935d3acdf5fd6017c7490d11892da9b5b69b47370e",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-amharic_sadiq.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-amharic_sadiq.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -192,7 +228,11 @@
     {
      "name": "tafsir.french_rashid.v1.jsonl.gz",
      "bytes": 425329,
-     "sha256": "3dee4a88a37bd04c5c567df9123e9bfcbdb03f55ed4bd5b029f51f5c98e0adc4"
+     "sha256": "3dee4a88a37bd04c5c567df9123e9bfcbdb03f55ed4bd5b029f51f5c98e0adc4",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-french_rashid.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-french_rashid.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -210,7 +250,11 @@
     {
      "name": "tafsir.turkish_rwwad.v1.jsonl.gz",
      "bytes": 330644,
-     "sha256": "e9c04d2cde49fc587acd8284e4c73eefb84ddeed9dc8304c4e0d474bca06b450"
+     "sha256": "e9c04d2cde49fc587acd8284e4c73eefb84ddeed9dc8304c4e0d474bca06b450",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-turkish_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-turkish_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -228,7 +272,11 @@
     {
      "name": "tafsir.indonesian_sabiq.v1.jsonl.gz",
      "bytes": 393792,
-     "sha256": "f67735f85115c89f7f5f9f592a58aa794275b7f58daec89373cbf033c7ddc17a"
+     "sha256": "f67735f85115c89f7f5f9f592a58aa794275b7f58daec89373cbf033c7ddc17a",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-indonesian_sabiq.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-indonesian_sabiq.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -246,7 +294,11 @@
     {
      "name": "tafsir.urdu_junagarhi.v1.jsonl.gz",
      "bytes": 1555873,
-     "sha256": "7cfb76372bc82ce314bbd4040e256169d3ce4aa8b9f5544f7b884207e3dd5ab1"
+     "sha256": "7cfb76372bc82ce314bbd4040e256169d3ce4aa8b9f5544f7b884207e3dd5ab1",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-urdu_junagarhi.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-urdu_junagarhi.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -264,7 +316,11 @@
     {
      "name": "tafsir.bengali_zakaria.v1.jsonl.gz",
      "bytes": 2466361,
-     "sha256": "51bea3728283a72dd9aeb17cbafed522f7aa069ac08095d2338eb16fe21e606c"
+     "sha256": "51bea3728283a72dd9aeb17cbafed522f7aa069ac08095d2338eb16fe21e606c",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-bengali_zakaria.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-bengali_zakaria.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -282,7 +338,11 @@
     {
      "name": "tafsir.spanish_garcia.v1.jsonl.gz",
      "bytes": 433092,
-     "sha256": "215df6ff8602474ff4002dfab3e3c377983adab851863bc5527ee51e37134758"
+     "sha256": "215df6ff8602474ff4002dfab3e3c377983adab851863bc5527ee51e37134758",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-spanish_garcia.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-spanish_garcia.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -300,7 +360,11 @@
     {
      "name": "tafsir.portuguese_nasr.v1.jsonl.gz",
      "bytes": 422998,
-     "sha256": "c3588d31a1798b9b3f75f047499a64f3702bab630dbf446682b0851d06915141"
+     "sha256": "c3588d31a1798b9b3f75f047499a64f3702bab630dbf446682b0851d06915141",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-portuguese_nasr.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-portuguese_nasr.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -318,7 +382,11 @@
     {
      "name": "tafsir.greek_rwwad.v1.jsonl.gz",
      "bytes": 581460,
-     "sha256": "11a7b2ba4d488958560d7de0c3cd45bfb9c09392e342e7c4502a9de8c0d647db"
+     "sha256": "11a7b2ba4d488958560d7de0c3cd45bfb9c09392e342e7c4502a9de8c0d647db",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-greek_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-greek_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -336,7 +404,11 @@
     {
      "name": "tafsir.german_rwwad.v1.jsonl.gz",
      "bytes": 349567,
-     "sha256": "466837d9c76fbfbe310c4695864c7bb5b67fc265283d8ebb76ce5bcb2c47257d"
+     "sha256": "466837d9c76fbfbe310c4695864c7bb5b67fc265283d8ebb76ce5bcb2c47257d",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-german_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-german_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -354,7 +426,11 @@
     {
      "name": "tafsir.italian_rwwad.v1.jsonl.gz",
      "bytes": 306473,
-     "sha256": "f4efd12fe27bffcb45d251e39debcaa37abb7fcdd793a2209164b31f6e3ac430"
+     "sha256": "f4efd12fe27bffcb45d251e39debcaa37abb7fcdd793a2209164b31f6e3ac430",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-italian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-italian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -372,7 +448,11 @@
     {
      "name": "tafsir.bulgarian_translation.v1.jsonl.gz",
      "bytes": 352535,
-     "sha256": "01072a4df2140fa733956d0f39644527744338712819492b1ca1cdd6904ae0c8"
+     "sha256": "01072a4df2140fa733956d0f39644527744338712819492b1ca1cdd6904ae0c8",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-bulgarian_translation.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-bulgarian_translation.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -390,7 +470,11 @@
     {
      "name": "tafsir.romanian_project.v1.jsonl.gz",
      "bytes": 388124,
-     "sha256": "de51f186770571e7ff0066378910bcd39130520bb5a964b0303d19e402ad3efe"
+     "sha256": "de51f186770571e7ff0066378910bcd39130520bb5a964b0303d19e402ad3efe",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-romanian_project.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-romanian_project.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -408,7 +492,11 @@
     {
      "name": "tafsir.dutch_center.v1.jsonl.gz",
      "bytes": 367938,
-     "sha256": "97276f3df686476769e79a8334b6c7fc9940f08596191787575de908af089504"
+     "sha256": "97276f3df686476769e79a8334b6c7fc9940f08596191787575de908af089504",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-dutch_center.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-dutch_center.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -426,7 +514,11 @@
     {
      "name": "tafsir.swedish_rwwad.v1.jsonl.gz",
      "bytes": 317561,
-     "sha256": "c8c01892082af35545b9f84c04a24f511c7b1fea2eb18583804201edf1dd58b1"
+     "sha256": "c8c01892082af35545b9f84c04a24f511c7b1fea2eb18583804201edf1dd58b1",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-swedish_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-swedish_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -444,7 +536,11 @@
     {
      "name": "tafsir.azeri_musayev.v1.jsonl.gz",
      "bytes": 333715,
-     "sha256": "d8d9f7790ddcd43f37e51923fe8cda790109ef144f4eb6746a884356402c3321"
+     "sha256": "d8d9f7790ddcd43f37e51923fe8cda790109ef144f4eb6746a884356402c3321",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-azeri_musayev.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-azeri_musayev.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -462,7 +558,11 @@
     {
      "name": "tafsir.georgian_rwwad.v1.jsonl.gz",
      "bytes": 549481,
-     "sha256": "7b0c689eda030b6118c95857e6f007a8dacc22254c589f0d9644f7377dbabc8e"
+     "sha256": "7b0c689eda030b6118c95857e6f007a8dacc22254c589f0d9644f7377dbabc8e",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-georgian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-georgian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -480,7 +580,11 @@
     {
      "name": "tafsir.macedonian_group.v1.jsonl.gz",
      "bytes": 384119,
-     "sha256": "cdca915632cbd94fc5aa243dcbe6faa9f65c32a8ee2af56eab0e2fe2efba377b"
+     "sha256": "cdca915632cbd94fc5aa243dcbe6faa9f65c32a8ee2af56eab0e2fe2efba377b",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-macedonian_group.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-macedonian_group.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -498,7 +602,11 @@
     {
      "name": "tafsir.albanian_nahi.v1.jsonl.gz",
      "bytes": 361212,
-     "sha256": "9a778b49246f67f145fb3f19149296b238443bd838bf32c04effce442342c02a"
+     "sha256": "9a778b49246f67f145fb3f19149296b238443bd838bf32c04effce442342c02a",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-albanian_nahi.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-albanian_nahi.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -516,7 +624,11 @@
     {
      "name": "tafsir.bosnian_rwwad.v1.jsonl.gz",
      "bytes": 311595,
-     "sha256": "9d5dc7d76ae066d60b6ccb365dd0c952b811af16f8ebbe37a952848e74f82d9a"
+     "sha256": "9d5dc7d76ae066d60b6ccb365dd0c952b811af16f8ebbe37a952848e74f82d9a",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-bosnian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-bosnian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -534,7 +646,11 @@
     {
      "name": "tafsir.russian_rwwad.v1.jsonl.gz",
      "bytes": 369973,
-     "sha256": "83e7d12b04bda917f9cf5d8e8ce334be992c75e76299bb54cb38d5bf300765ee"
+     "sha256": "83e7d12b04bda917f9cf5d8e8ce334be992c75e76299bb54cb38d5bf300765ee",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-russian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-russian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -552,7 +668,11 @@
     {
      "name": "tafsir.belarusian_krivtsov.v1.jsonl.gz",
      "bytes": 350141,
-     "sha256": "091e120be9aa4b7395345068fda560acc76a555e41184dbb42cd51eac7b0b686"
+     "sha256": "091e120be9aa4b7395345068fda560acc76a555e41184dbb42cd51eac7b0b686",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-belarusian_krivtsov.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-belarusian_krivtsov.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -570,7 +690,11 @@
     {
      "name": "tafsir.serbian_rwwad.v1.jsonl.gz",
      "bytes": 351739,
-     "sha256": "a1304b776f2eb03cba29ad392453fc426948995c6b8e663a6e68ab346ae791ea"
+     "sha256": "a1304b776f2eb03cba29ad392453fc426948995c6b8e663a6e68ab346ae791ea",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-serbian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-serbian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -588,7 +712,11 @@
     {
      "name": "tafsir.croatian_rwwad.v1.jsonl.gz",
      "bytes": 310195,
-     "sha256": "209a36a1160ccce3aef035fb67ebc10ae27e3b8e230fd98a358afb90d1ec072a"
+     "sha256": "209a36a1160ccce3aef035fb67ebc10ae27e3b8e230fd98a358afb90d1ec072a",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-croatian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-croatian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -606,7 +734,11 @@
     {
      "name": "tafsir.lithuanian_rwwad.v1.jsonl.gz",
      "bytes": 430580,
-     "sha256": "33a4c071e969698e122b54dd3c9f34814240e89ff9a39db7130a82d092781379"
+     "sha256": "33a4c071e969698e122b54dd3c9f34814240e89ff9a39db7130a82d092781379",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-lithuanian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-lithuanian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -624,7 +756,11 @@
     {
      "name": "tafsir.ukrainian_yakubovych.v1.jsonl.gz",
      "bytes": 378032,
-     "sha256": "56b5d38083d51aa892acbdea46cec0e8f6562e4e2aa49b9cb49fe449048bd61d"
+     "sha256": "56b5d38083d51aa892acbdea46cec0e8f6562e4e2aa49b9cb49fe449048bd61d",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-ukrainian_yakubovych.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-ukrainian_yakubovych.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -642,7 +778,11 @@
     {
      "name": "tafsir.kazakh_altai.v1.jsonl.gz",
      "bytes": 356830,
-     "sha256": "d37666c399df6b280803c6b7e9a7fd8419359d98e9cb8601f1e9d114366e1ee2"
+     "sha256": "d37666c399df6b280803c6b7e9a7fd8419359d98e9cb8601f1e9d114366e1ee2",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-kazakh_altai.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-kazakh_altai.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -660,7 +800,11 @@
     {
      "name": "tafsir.uzbek_mansour.v1.jsonl.gz",
      "bytes": 576077,
-     "sha256": "56101183995e82c2224347e4d58192c7636d6a605f0e81032b725b816a2c38b4"
+     "sha256": "56101183995e82c2224347e4d58192c7636d6a605f0e81032b725b816a2c38b4",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-uzbek_mansour.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-uzbek_mansour.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -678,7 +822,11 @@
     {
      "name": "tafsir.tajik_arifi.v1.jsonl.gz",
      "bytes": 437126,
-     "sha256": "e9bfb5afead08b263cc4ab94b3d685bd3e1b600afc83fc9687e17b9b2bca76e2"
+     "sha256": "e9bfb5afead08b263cc4ab94b3d685bd3e1b600afc83fc9687e17b9b2bca76e2",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-tajik_arifi.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-tajik_arifi.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -696,7 +844,11 @@
     {
      "name": "tafsir.kyrgyz_hakimov.v1.jsonl.gz",
      "bytes": 602400,
-     "sha256": "8117b02de8f34ffbb6b21135b53b90422cade1f5b834063a43872685ba636dd8"
+     "sha256": "8117b02de8f34ffbb6b21135b53b90422cade1f5b834063a43872685ba636dd8",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-kyrgyz_hakimov.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-kyrgyz_hakimov.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -714,7 +866,11 @@
     {
      "name": "tafsir.circassian_rwwad.v1.jsonl.gz",
      "bytes": 65494,
-     "sha256": "4b30699388c39c5cc8253ddcaa7d4eb1e38b537a1a7bda88fba67fd675bc0648"
+     "sha256": "4b30699388c39c5cc8253ddcaa7d4eb1e38b537a1a7bda88fba67fd675bc0648",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-circassian_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-circassian_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -732,7 +888,11 @@
     {
      "name": "tafsir.tagalog_rwwad.v1.jsonl.gz",
      "bytes": 327644,
-     "sha256": "ddcd97bc9b303d4b2743d79e6808fef8d48ae617a91a5962f534f49f9ccae57f"
+     "sha256": "ddcd97bc9b303d4b2743d79e6808fef8d48ae617a91a5962f534f49f9ccae57f",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-tagalog_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-tagalog_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -750,7 +910,11 @@
     {
      "name": "tafsir.bisayan_rwwad.v1.jsonl.gz",
      "bytes": 395420,
-     "sha256": "bc5c182495e73eefdb622daae674839f7c175612027381c29c9486bae45eefea"
+     "sha256": "bc5c182495e73eefdb622daae674839f7c175612027381c29c9486bae45eefea",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-bisayan_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-bisayan_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -768,7 +932,11 @@
     {
      "name": "tafsir.iranun_sarro.v1.jsonl.gz",
      "bytes": 346034,
-     "sha256": "4a202af9c8a132b8ad96a6cc721620224e8b341220182138904277d901f2b648"
+     "sha256": "4a202af9c8a132b8ad96a6cc721620224e8b341220182138904277d901f2b648",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-iranun_sarro.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-iranun_sarro.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -786,7 +954,11 @@
     {
      "name": "tafsir.maguindanao_rwwad.v1.jsonl.gz",
      "bytes": 298748,
-     "sha256": "b08cc2ec1d45f1ef794885b6189f123f09ceae809473050278547e14529e4a36"
+     "sha256": "b08cc2ec1d45f1ef794885b6189f123f09ceae809473050278547e14529e4a36",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-maguindanao_rwwad.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-maguindanao_rwwad.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -804,7 +976,11 @@
     {
      "name": "tafsir.malay_basumayyah.v1.jsonl.gz",
      "bytes": 427155,
-     "sha256": "f97effb7a9972b0f43da5de31af30fd56f068ca57f49e143bb9442bb4cf69d58"
+     "sha256": "f97effb7a9972b0f43da5de31af30fd56f068ca57f49e143bb9442bb4cf69d58",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-malay_basumayyah.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-malay_basumayyah.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -822,7 +998,11 @@
     {
      "name": "tafsir.chinese_suliman.v1.jsonl.gz",
      "bytes": 292038,
-     "sha256": "c6ecd3a2d2181b5c58297b38a0ee294428b3636c0e5598a5c3c690fb0aba08c7"
+     "sha256": "c6ecd3a2d2181b5c58297b38a0ee294428b3636c0e5598a5c3c690fb0aba08c7",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-chinese_suliman.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-chinese_suliman.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -840,7 +1020,11 @@
     {
      "name": "tafsir.uyghur_saleh.v1.jsonl.gz",
      "bytes": 465300,
-     "sha256": "3d7cab60c3effbc39653edfe9456c62cd727919c43bb21c776c630ac4525fb1b"
+     "sha256": "3d7cab60c3effbc39653edfe9456c62cd727919c43bb21c776c630ac4525fb1b",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-uyghur_saleh.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-uyghur_saleh.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -858,7 +1042,11 @@
     {
      "name": "tafsir.japanese_saeedsato.v1.jsonl.gz",
      "bytes": 726687,
-     "sha256": "63c31dffcd58ca9db38640b356c777ec99ff87a0b89ab3c635f2a763f9002456"
+     "sha256": "63c31dffcd58ca9db38640b356c777ec99ff87a0b89ab3c635f2a763f9002456",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-japanese_saeedsato.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-japanese_saeedsato.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -876,7 +1064,11 @@
     {
      "name": "tafsir.somali_yacob.v1.jsonl.gz",
      "bytes": 415008,
-     "sha256": "222c6402832de32108a257d21ba9599a6b7d873ad72fc7a1b2dcd4421982f3f8"
+     "sha256": "222c6402832de32108a257d21ba9599a6b7d873ad72fc7a1b2dcd4421982f3f8",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-somali_yacob.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-somali_yacob.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -894,7 +1086,11 @@
     {
      "name": "tafsir.hindi_omari.v1.jsonl.gz",
      "bytes": 603255,
-     "sha256": "dbcc11db71d7d858a2a43fcd07733beca120254b90cb749514095e4dddbd25bd"
+     "sha256": "dbcc11db71d7d858a2a43fcd07733beca120254b90cb749514095e4dddbd25bd",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-hindi_omari.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-hindi_omari.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -912,7 +1108,11 @@
     {
      "name": "tafsir.luganda_foundation.v1.jsonl.gz",
      "bytes": 330629,
-     "sha256": "58acc8383e8808f59065b96d60e21627c1f207621651c4ba4a880e4acf6d1c48"
+     "sha256": "58acc8383e8808f59065b96d60e21627c1f207621651c4ba4a880e4acf6d1c48",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-luganda_foundation.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-luganda_foundation.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
@@ -930,7 +1130,11 @@
     {
      "name": "tafsir.oromo_ababor.v1.jsonl.gz",
      "bytes": 315309,
-     "sha256": "bf52db198bbd5e58262c526e046da44806c3f4a274dd91ddcca54be16c281158"
+     "sha256": "bf52db198bbd5e58262c526e046da44806c3f4a274dd91ddcca54be16c281158",
+     "mirrors": [
+      "https://cdn.jsdelivr.net/gh/issmalahad-creator/TalibAlIlmApp@packs-files-v1/assets/quran/tafsir_packs/tafsir-oromo_ababor.jsonl.gz",
+      "https://raw.githubusercontent.com/issmalahad-creator/TalibAlIlmApp/packs-files-v1/assets/quran/tafsir_packs/tafsir-oromo_ababor.jsonl.gz"
+     ]
     }
    ],
    "installer": "legacy_tafsir",
