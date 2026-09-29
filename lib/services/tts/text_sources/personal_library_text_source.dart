@@ -176,16 +176,20 @@ class PersonalLibraryTextSource implements ReadableTextSource {
   Future<int> get totalUnits async => (await _ensureLoaded()).pages.length;
 
   @override
+  /// The book viewer stores `lastPage` 0-based; audio units are 1-based
+  /// pages. Mixing them made «استماع» on page 1 ask for unit 0 (no text →
+  /// «انتهى» at once) and put the viewer one page ahead after listening.
   Future<int?> get lastReadUnit async {
     final bookmark = await _repo.getBookmark(bookKey);
-    return bookmark?.lastPage;
+    final page = bookmark?.lastPage;
+    return page == null ? null : page + 1;
   }
 
   @override
   Future<void> saveLastListenedUnit(int unitIndex) async {
     final total = await totalUnits;
     await _repo.saveBookmark(
-      BookBookmark(bookKey: bookKey, lastPage: unitIndex, totalPages: total, lastUpdatedDate: todayDate()),
+      BookBookmark(bookKey: bookKey, lastPage: unitIndex - 1, totalPages: total, lastUpdatedDate: todayDate()),
     );
   }
 
