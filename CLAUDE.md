@@ -22,6 +22,10 @@ The **Quran Learning Engine** design (the mushaf as a teaching surface: tap a wo
 
 **Not yet scoped into TODO.md phases at all**: the roadmap's "مكتبة النصوص الإسلامية" pillar (`QURAN_COMPANION_ROADMAP.md` §4.9) — 40 Nawawi Hadiths + Ibn Uthaymeen's explanation, Aqeedah Wasitiyyah, Zad al-Ma'ad excerpts, Madarij al-Salikin, full Fiqh/purification + prayer method, Hisn al-Muslim adhkar, Qaida Noorania, Asma-ul-Husna. This is most of the app's eventual scope and hasn't been started.
 
+## One app, two flavors (Ismail 2026-09-29)
+
+Every feature ships in **both** `full` and `lite` — same Dart code, no flavor branches; only the bundled assets differ (content packs). Rules + guard test: [`docs/architecture/FLAVOR_PARITY.md`](docs/architecture/FLAVOR_PARITY.md), `test/flavor_parity_test.dart`.
+
 ## Lightweight by architecture (Ismail 2026-09-27)
 
 Before adding **any** feature, dataset, asset, background job, permission prompt or startup work, load the `lightweight-feature-rules` skill and answer its 10-question gate in the plan. New features are welcome; unplanned weight is not.

@@ -114,3 +114,7 @@ in 13 languages (skill `app-translations`).
 - An asset folder added to `pubspec.yaml` without its MB in the plan.
 - "It's only a few MB" repeated three times in one feature.
 - A spinner in the middle of an empty screen.
+
+## Parity
+
+Every feature works in both `full` and `lite` with the same code — see `docs/architecture/FLAVOR_PARITY.md`; `test/flavor_parity_test.dart` fails on any flavor branch (`appFlavor`, `isLite`, package-name checks).

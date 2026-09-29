@@ -79,3 +79,7 @@ A feature asks `ContentPackEngine.instance.isUsable('<id>')` — **never** "am I
 - An installer that writes to a different table than the bundled path uses.
 - Re-uploading a changed file under the same name.
 - Publishing anything whose licence isn't recorded in `QURAN_SOURCES_AND_LICENSES.md`.
+
+## Parity
+
+Every feature works in both `full` and `lite` with the same code — see `docs/architecture/FLAVOR_PARITY.md`; `test/flavor_parity_test.dart` fails on any flavor branch (`appFlavor`, `isLite`, package-name checks).
