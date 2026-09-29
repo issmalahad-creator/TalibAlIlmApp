@@ -260,7 +260,11 @@ class LearningBlock {
   final String? textAr;
   final KnowledgeAnchor? quranRef;
   final String? sourceRefId;
-  const LearningBlock({required this.kind, this.textAr, this.quranRef, this.sourceRefId});
+
+  /// Where in [sourceRefId] the text is (e.g. «ص 11») — quotes are always
+  /// attributed to the page.
+  final String? locator;
+  const LearningBlock({required this.kind, this.textAr, this.quranRef, this.sourceRefId, this.locator});
 
   factory LearningBlock.fromJson(Object? raw) {
     if (raw is List) {
@@ -269,6 +273,7 @@ class LearningBlock {
         kind: raw.isNotEmpty ? raw[0] as String : 'note',
         textAr: raw.length > 1 ? raw[1] as String? : null,
         sourceRefId: raw.length > 2 ? raw[2] as String? : null,
+        locator: raw.length > 3 ? raw[3] as String? : null,
       );
     }
     final j = (raw as Map).cast<String, dynamic>();
@@ -279,6 +284,7 @@ class LearningBlock {
           ? null
           : KnowledgeAnchor.fromJson((j['quran_ref'] as Map).cast<String, dynamic>()),
       sourceRefId: j['source_ref_id'] as String?,
+      locator: j['locator'] as String?,
     );
   }
 
@@ -286,6 +292,7 @@ class LearningBlock {
         'kind': kind,
         if (textAr != null) 'text_ar': textAr,
         if (sourceRefId != null) 'source_ref_id': sourceRefId,
+        if (locator != null) 'locator': locator,
       };
 }
 

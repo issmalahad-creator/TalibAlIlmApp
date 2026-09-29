@@ -180,6 +180,8 @@ flutter:
     # remapped to mushafdb-v1.01). Every fact carries a SourceReference.
     # Built by tool/build_quran_learning_prototype.py. No AI.
     - assets/quran_learning/prototype.json
+    # Usul-tafsir tree (20 KB, both flavors) - tool/build_usul_tree.py, USUL_TAFSIR_TREE.md U1.
+    - assets/quran_learning/usul_tree.json
     - assets/quran_learning/sources/quran-tajweed.prototype.json
     - assets/quran_learning/sources/quran-tajweed.basetext.prototype.json
     # CC0/public domain (see LICENSED_CONTENT_SOURCES.md) — used for the

@@ -105,3 +105,5 @@ lib/config/app_config.dart
 
 # Temporary home of stripped corpus dirs during a lite build (tool/build_apk.py)
 /.lite_build_backup/
+# Build-tool caches (fetched source pages) — regenerable, never committed.
+/tool/.cache/

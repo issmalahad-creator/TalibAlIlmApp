@@ -41,7 +41,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     Future<Database> open() => openDatabase(
       path,
-      version: 70,
+      version: 71,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -122,6 +122,7 @@ class DatabaseHelper {
         await _createV68Tables(db);
         await _createV69Tables(db);
         await _createV70Tables(db);
+        await _createV71Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -204,6 +205,7 @@ class DatabaseHelper {
         if (oldVersion < 68) await _createV68Tables(db);
         if (oldVersion < 69) await _createV69Tables(db);
         if (oldVersion < 70) await _createV70Tables(db);
+        if (oldVersion < 71) await _createV71Tables(db);
       },
     );
 
@@ -2615,6 +2617,23 @@ class DatabaseHelper {
   Future<void> _createV70Tables(Database db) async {
     await db.execute("ALTER TABLE completion_goal_sessions ADD COLUMN list_kind TEXT NOT NULL DEFAULT 'session'");
     await db.execute('ALTER TABLE completion_goal_sessions ADD COLUMN reminder_enabled INTEGER NOT NULL DEFAULT 1');
+  }
+
+  /// U1 of docs/quran/USUL_TAFSIR_TREE.md — the one new table the usul-tafsir
+  /// tree needs: typed edges between `knowledge_concepts` rows, in the
+  /// science's own vocabulary (`rel`: أقسامه، أنواعه، مراتبه، …). Rebuilt
+  /// wholesale by `QuranLearningSync` together with the concepts.
+  Future<void> _createV71Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS knowledge_relations (
+        from_concept TEXT NOT NULL,
+        rel TEXT NOT NULL,
+        to_concept TEXT NOT NULL,
+        ord INTEGER NOT NULL DEFAULT 0,
+        source_ref_id TEXT,
+        PRIMARY KEY (from_concept, to_concept)
+      )
+    ''');
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

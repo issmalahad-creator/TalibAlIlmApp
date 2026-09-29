@@ -54,6 +54,11 @@ class QuranLearningValidation {
 /// touched. External/online providers are a separate concern (the gateway).
 class QuranLearningSync {
   static const _assetPath = 'assets/quran_learning/prototype.json';
+
+  /// The usul-tafsir tree (USUL_TAFSIR_TREE.md U1, built by
+  /// tool/build_usul_tree.py) — merged into the same wholesale seed, because
+  /// `_ingest` rebuilds these tables whole: a separate seeder would be wiped.
+  static const _usulAssetPath = 'assets/quran_learning/usul_tree.json';
   static const _seedVersionKey = 'seed_version';
 
   Future<QuranLearningSyncResult> sync() async {
@@ -67,10 +72,7 @@ class QuranLearningSync {
           where: 'key = ?', whereArgs: [_seedVersionKey], limit: 1);
       final storedVersion = rows.isEmpty ? null : int.tryParse(rows.first['value'] as String? ?? '');
 
-      final bytes = await rootBundle.load(_assetPath);
-      // MUST be utf8.decode — the JSON is full of Arabic; String.fromCharCodes
-      // treats each byte as a code unit and mangles every multi-byte char.
-      final payload = jsonDecode(utf8.decode(bytes.buffer.asUint8List())) as Map<String, dynamic>;
+      final payload = await _loadMerged();
       final version = (payload['version'] as num?)?.toInt() ?? 1;
 
       if (have > 0 && storedVersion == version) {
@@ -88,6 +90,38 @@ class QuranLearningSync {
       debugPrint('QuranLearningSync: skipped ($e).');
       return const QuranLearningSyncResult('skipped');
     }
+  }
+
+  /// prototype.json + usul_tree.json as one payload. The version combines
+  /// both (proto × 1000 + usul) so a change to either re-seeds.
+  Future<Map<String, dynamic>> _loadMerged() async {
+    Future<Map<String, dynamic>> read(String path) async {
+      final bytes = await rootBundle.load(path);
+      // MUST be utf8.decode — the JSON is full of Arabic; String.fromCharCodes
+      // treats each byte as a code unit and mangles every multi-byte char.
+      return jsonDecode(utf8.decode(bytes.buffer.asUint8List())) as Map<String, dynamic>;
+    }
+
+    final proto = await read(_assetPath);
+    Map<String, dynamic>? usul;
+    try {
+      usul = await read(_usulAssetPath);
+    } catch (_) {}
+    return mergePayloads(proto, usul);
+  }
+
+  @visibleForTesting
+  static Map<String, dynamic> mergePayloads(Map<String, dynamic> proto, Map<String, dynamic>? usul) {
+    if (usul == null) return proto;
+    List<dynamic> both(String k) => [...(proto[k] as List? ?? const []), ...(usul[k] as List? ?? const [])];
+    return {
+      ...proto,
+      'version': ((proto['version'] as num?)?.toInt() ?? 1) * 1000 + ((usul['version'] as num?)?.toInt() ?? 1),
+      'sources': both('sources'),
+      'concepts': both('concepts'),
+      'facts': both('facts'),
+      'relations': both('relations'),
+    };
   }
 
   /// Pure structural validation.
@@ -136,6 +170,14 @@ class QuranLearningSync {
       }
     }
 
+    // Tree edges must join two known concepts — a dangling edge would draw a
+    // branch to nowhere.
+    for (final r in (payload['relations'] as List? ?? const []).cast<Map<String, dynamic>>()) {
+      if (!conceptIds.contains(r['from']) || !conceptIds.contains(r['to'])) {
+        failures.add('relation ${r['from']} -> ${r['to']} joins an unknown concept');
+      }
+    }
+
     if (srcList.isEmpty) failures.add('no sources');
     if (factList.isEmpty) failures.add('no facts');
     if (noSource != 0) failures.add('facts without a resolvable source=$noSource');
@@ -170,7 +212,7 @@ class QuranLearningSync {
     final factList = (payload['facts'] as List).cast<Map<String, dynamic>>();
 
     await db.transaction((txn) async {
-      for (final t in const ['knowledge_facts', 'knowledge_concepts', 'source_references']) {
+      for (final t in const ['knowledge_facts', 'knowledge_concepts', 'source_references', 'knowledge_relations']) {
         await txn.delete(t);
       }
       final batch = txn.batch();
@@ -182,6 +224,15 @@ class QuranLearningSync {
       }
       for (final f in factList) {
         batch.insert('knowledge_facts', KnowledgeFact.fromJson(f).toRow());
+      }
+      for (final r in (payload['relations'] as List? ?? const []).cast<Map<String, dynamic>>()) {
+        batch.insert('knowledge_relations', {
+          'from_concept': r['from'],
+          'rel': r['rel'],
+          'to_concept': r['to'],
+          'ord': r['ord'] ?? 0,
+          'source_ref_id': r['source_ref_id'],
+        });
       }
       await batch.commit(noResult: true);
 

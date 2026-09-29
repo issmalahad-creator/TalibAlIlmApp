@@ -1,0 +1,535 @@
+{
+ "version": 1,
+ "sources": [
+  {
+   "id": "src:muqaddima_usul_tafsir",
+   "source_type": "classical_text",
+   "name": "مقدمة في أصول التفسير",
+   "author": "شيخ الإسلام أحمد بن عبد الحليم ابن تيمية (ت 728هـ)",
+   "edition": "turath.io #12081",
+   "url": "https://app.turath.io/book/12081",
+   "license": "public-domain",
+   "license_use": "bundled_ok",
+   "authority": "classical",
+   "retrieved_at": "2026-09-29",
+   "confidence": 1.0,
+   "classification": "VERIFIED",
+   "notes": "Backbone of the usul-tafsir tree (USUL_TAFSIR_TREE.md §10). Quotes are verbatim, located by tool/build_usul_tree.py."
+  }
+ ],
+ "concepts": [
+  {
+   "id": "concept:usul:usul",
+   "domain": "usul_tafsir",
+   "title_ar": "أصول التفسير",
+   "short_def_ar": null,
+   "source_ref_ids": [],
+   "blocks": [
+    [
+     "question",
+     "كيف نفهم هذه الآية على طريقة السلف؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:bayan",
+   "domain": "usul_tafsir",
+   "title_ar": "بيان النبي ﷺ لمعاني القرآن",
+   "short_def_ar": "يجب أن يعلم أن النبي ﷺ بَيَّنَ لأصحابه معاني القرآن كما بين لهم ألفاظه، فقوله تعالى: ﴿لِتُبَيِّنَ لِلنَّاسِ مَا نُزِّلَ إِلَيْهِمْ﴾ [النحل: ٤٤] يتناول هذا وهذا، وقد قال أبو عبد الرحمن السلمي: حدثنا الذين كانوا يقرئوننا القرآن كعثمان بن عفان، وعبد الله بن …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "يجب أن يعلم أن النبي ﷺ بَيَّنَ لأصحابه معاني القرآن كما بين لهم ألفاظه، فقوله تعالى: ﴿لِتُبَيِّنَ لِلنَّاسِ مَا نُزِّلَ إِلَيْهِمْ﴾ [النحل: ٤٤] يتناول هذا وهذا، وقد قال أبو عبد الرحمن السلمي: حدثنا الذين كانوا يقرئوننا القرآن كعثمان بن عفان، وعبد الله بن …",
+     "src:muqaddima_usul_tafsir",
+     "ص 9"
+    ],
+    [
+     "question",
+     "هل ورد في الآية بيان من النبي ﷺ؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "bayan_nabawi",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:ikhtilaf",
+   "domain": "usul_tafsir",
+   "title_ar": "اختلاف السلف في التفسير",
+   "short_def_ar": "الخلاف بين السلف في التفسير قليل، وخلافهم في الأحكام أكثر من خلافهم في التفسير، وغالب ما يصح عنهم من الخلاف يرجع إلى اختلاف تنوع لا اختلاف تضاد، وذلك صنفان: أحدهما: أن يعبر كل واحد منهم عن المراد بعبارة غير عبارة صاحبه، تدل على معنى في المسمى غير المعنى الآخر …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الخلاف بين السلف في التفسير قليل، وخلافهم في الأحكام أكثر من خلافهم في التفسير، وغالب ما يصح عنهم من الخلاف يرجع إلى اختلاف تنوع لا اختلاف تضاد، وذلك صنفان: أحدهما: أن يعبر كل واحد منهم عن المراد بعبارة غير عبارة صاحبه، تدل على معنى في المسمى غير المعنى الآخر …",
+     "src:muqaddima_usul_tafsir",
+     "ص 11"
+    ],
+    [
+     "question",
+     "هل في الآية أقوال؟ ومن أي نوع؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "ikhtilaf_explicit",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:tanawwu_ibara",
+   "domain": "usul_tafsir",
+   "title_ar": "اتحاد المسمى واختلاف العبارة",
+   "short_def_ar": "أحدهما: أن يعبر كل واحد منهم عن المراد بعبارة غير عبارة صاحبه، تدل على معنى في المسمى غير المعنى الآخر مع اتحاد المسمى بمنزلة الأسماء المتكافئة التي بين المترادفة والمتباينة كما قيل في اسم السيف: الصارم والمهند، وذلك مثل أسماء الله الحسنى، وأسماء رسوله ﷺ …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "أحدهما: أن يعبر كل واحد منهم عن المراد بعبارة غير عبارة صاحبه، تدل على معنى في المسمى غير المعنى الآخر مع اتحاد المسمى بمنزلة الأسماء المتكافئة التي بين المترادفة والمتباينة كما قيل في اسم السيف: الصارم والمهند، وذلك مثل أسماء الله الحسنى، وأسماء رسوله ﷺ …",
+     "src:muqaddima_usul_tafsir",
+     "ص 11"
+    ],
+    [
+     "question",
+     "هل عبّر كل مفسّر عن المعنى نفسه بعبارة؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:tanawwu_mithal",
+   "domain": "usul_tafsir",
+   "title_ar": "ذكر بعض أفراد العام مثالًا",
+   "short_def_ar": "الصنف الثاني: أن يذكر كل منهم من الاسم العام بعض أنواعه على سبيل التمثيل، وتنبيه المستمع على النوع لا على سبيل الحد المطابق للمحدود في عمومه وخصوصه، مثل سائل أعجمي سأل عن مسمى [لفظ الخبز] فأرى رغيفًا، وقيل له: هذا، فالإشارة إلى نوع هذا لا إلى هذا الرغيف وحده …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الصنف الثاني: أن يذكر كل منهم من الاسم العام بعض أنواعه على سبيل التمثيل، وتنبيه المستمع على النوع لا على سبيل الحد المطابق للمحدود في عمومه وخصوصه، مثل سائل أعجمي سأل عن مسمى [لفظ الخبز] فأرى رغيفًا، وقيل له: هذا، فالإشارة إلى نوع هذا لا إلى هذا الرغيف وحده …",
+     "src:muqaddima_usul_tafsir",
+     "ص 14"
+    ],
+    [
+     "question",
+     "هل ذكر كل مفسّر نوعًا من المعنى العام على سبيل المثال؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:muhtamal",
+   "domain": "usul_tafsir",
+   "title_ar": "اللفظ المحتمل لأمرين",
+   "short_def_ar": "ومن التنازع الموجود عنهم ما يكون اللفظ فيه محتملا للأمرين؛",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "ومن التنازع الموجود عنهم ما يكون اللفظ فيه محتملا للأمرين؛",
+     "src:muqaddima_usul_tafsir",
+     "ص 17"
+    ],
+    [
+     "question",
+     "هل في الآية لفظ مشترك أو متواطئ يحتمل أكثر من معنى؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:nuzul",
+   "domain": "usul_tafsir",
+   "title_ar": "أسباب النزول",
+   "short_def_ar": "ومعرفة سبب النزول يعين على فهم الآية؛",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "ومعرفة سبب النزول يعين على فهم الآية؛",
+     "src:muqaddima_usul_tafsir",
+     "ص 16"
+    ],
+    [
+     "question",
+     "هل للآية سبب نزول؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "nuzul",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:ijma",
+   "domain": "usul_tafsir",
+   "title_ar": "الإجماع",
+   "short_def_ar": null,
+   "source_ref_ids": [],
+   "blocks": [
+    [
+     "question",
+     "هل نُقل في الآية إجماع؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "ijma",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:naql_istidlal",
+   "domain": "usul_tafsir",
+   "title_ar": "الاختلاف من جهة النقل ومن جهة الاستدلال",
+   "short_def_ar": "الاختلاف في التفسير على نوعين: منه ما مستنده النقل فقط، ومنه ما يعلم بغير ذلك؛",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "الاختلاف في التفسير على نوعين: منه ما مستنده النقل فقط، ومنه ما يعلم بغير ذلك؛",
+     "src:muqaddima_usul_tafsir",
+     "ص 20"
+    ],
+    [
+     "question",
+     "ما حال المنقول في تفسير الآية؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:naql",
+   "domain": "usul_tafsir",
+   "title_ar": "ما مستنده النقل",
+   "short_def_ar": "والمنقول إما عن المعصوم وإما عن غير المعصوم، والمقصود بأن جنس المنقول سواء كان عن المعصوم أو غير المعصوم، وهذا هو النوع الأول منه ما يمكن معرفة الصحيح منه والضعيف، ومنه ما لا يمكن معرفة ذلك فيه.",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "والمنقول إما عن المعصوم وإما عن غير المعصوم، والمقصود بأن جنس المنقول سواء كان عن المعصوم أو غير المعصوم، وهذا هو النوع الأول منه ما يمكن معرفة الصحيح منه والضعيف، ومنه ما لا يمكن معرفة ذلك فيه.",
+     "src:muqaddima_usul_tafsir",
+     "ص 20"
+    ],
+    [
+     "question",
+     "هل حُكم على إسناد ما رُوي في الآية؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "naql",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:istidlal",
+   "domain": "usul_tafsir",
+   "title_ar": "ما يُعلم بالاستدلال",
+   "short_def_ar": "وأما النوع الثاني من مستندي الاختلاف، وهو ما يعلم بالاستدلال لا بالنقل، فهذا أكثر ما فيه الخطأ من جهتين حدثتا بعد تفسير الصحابة والتابعين وتابعيهم بإحسان؛",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "وأما النوع الثاني من مستندي الاختلاف، وهو ما يعلم بالاستدلال لا بالنقل، فهذا أكثر ما فيه الخطأ من جهتين حدثتا بعد تفسير الصحابة والتابعين وتابعيهم بإحسان؛",
+     "src:muqaddima_usul_tafsir",
+     "ص 31"
+    ],
+    [
+     "question",
+     "هل فُسّرت الآية بحمل اللفظ على معتقد أو بمجرد اللغة؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:turuq",
+   "domain": "usul_tafsir",
+   "title_ar": "أحسن طرق التفسير",
+   "short_def_ar": "فإن قال قائل: فما أحسن طرق التفسير؟ فالجواب: إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "فإن قال قائل: فما أحسن طرق التفسير؟ فالجواب: إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام …",
+     "src:muqaddima_usul_tafsir",
+     "ص 39"
+    ],
+    [
+     "question",
+     "بماذا فُسّرت هذه الآية؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:bil_quran",
+   "domain": "usul_tafsir",
+   "title_ar": "تفسير القرآن بالقرآن",
+   "short_def_ar": "إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم …",
+     "src:muqaddima_usul_tafsir",
+     "ص 39"
+    ],
+    [
+     "question",
+     "هل فُسّرت الآية بآية أخرى؟",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:bil_sunna",
+   "domain": "usul_tafsir",
+   "title_ar": "تفسيره بالسنة",
+   "short_def_ar": "فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن، قال الله تعالى: ﴿إِنَّا أَنزَلْنَا إِلَيْكَ الْكِتَابَ بِالْحَقِّ لِتَحْكُمَ بَيْنَ النَّاسِ بِمَا …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن، قال الله تعالى: ﴿إِنَّا أَنزَلْنَا إِلَيْكَ الْكِتَابَ بِالْحَقِّ لِتَحْكُمَ بَيْنَ النَّاسِ بِمَا …",
+     "src:muqaddima_usul_tafsir",
+     "ص 39"
+    ],
+    [
+     "question",
+     "هل فُسّرت الآية بحديث؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "bayan_nabawi",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:bil_sahaba",
+   "domain": "usul_tafsir",
+   "title_ar": "تفسيره بأقوال الصحابة",
+   "short_def_ar": "وحينئذ، إذا لم نجد التفسير في القرآن ولا في السنة رجعنا في ذلك إلى أقوال الصحابة، فإنهم أدرى بذلك لما شاهدوه من القرآن، والأحوال التي اختصوا بها، ولما لهم من الفهم التام، والعلم الصحيح، والعمل الصالح، لا سيما علماؤهم وكبراؤهم، كالأئمة الأربعة الخلفاء …",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "وحينئذ، إذا لم نجد التفسير في القرآن ولا في السنة رجعنا في ذلك إلى أقوال الصحابة، فإنهم أدرى بذلك لما شاهدوه من القرآن، والأحوال التي اختصوا بها، ولما لهم من الفهم التام، والعلم الصحيح، والعمل الصالح، لا سيما علماؤهم وكبراؤهم، كالأئمة الأربعة الخلفاء …",
+     "src:muqaddima_usul_tafsir",
+     "ص 40"
+    ],
+    [
+     "question",
+     "هل للصحابة قول في الآية؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "turuq_sahabi",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:bil_tabiin",
+   "domain": "usul_tafsir",
+   "title_ar": "تفسيره بأقوال التابعين",
+   "short_def_ar": "إذا لم تجد التفسير في القرآن ولا في السنة، ولا وجدته عن الصحابة، فقد رجع كثير من الأئمة في ذلك إلى أقوال التابعين، كمجاهد بن جبر؛",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "إذا لم تجد التفسير في القرآن ولا في السنة، ولا وجدته عن الصحابة، فقد رجع كثير من الأئمة في ذلك إلى أقوال التابعين، كمجاهد بن جبر؛",
+     "src:muqaddima_usul_tafsir",
+     "ص 44"
+    ],
+    [
+     "question",
+     "هل للتابعين قول في الآية؟",
+     null
+    ],
+    [
+     "usul_answer",
+     "turuq_tabii",
+     null
+    ]
+   ]
+  },
+  {
+   "id": "concept:usul:bil_ray",
+   "domain": "usul_tafsir",
+   "title_ar": "التفسير بمجرد الرأي",
+   "short_def_ar": "فأما تفسير القرآن بمجرد الرأي فحرام.",
+   "source_ref_ids": [
+    "src:muqaddima_usul_tafsir"
+   ],
+   "blocks": [
+    [
+     "definition",
+     "فأما تفسير القرآن بمجرد الرأي فحرام.",
+     "src:muqaddima_usul_tafsir",
+     "ص 46"
+    ],
+    [
+     "question",
+     "هل في تفسيرها رأي مجرد؟",
+     null
+    ]
+   ]
+  }
+ ],
+ "facts": [],
+ "relations": [
+  {
+   "from": "concept:usul:usul",
+   "rel": "أقسامه",
+   "to": "concept:usul:bayan",
+   "ord": 1,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:usul",
+   "rel": "أقسامه",
+   "to": "concept:usul:ikhtilaf",
+   "ord": 2,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:ikhtilaf",
+   "rel": "أنواعه",
+   "to": "concept:usul:tanawwu_ibara",
+   "ord": 3,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:ikhtilaf",
+   "rel": "أنواعه",
+   "to": "concept:usul:tanawwu_mithal",
+   "ord": 4,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:ikhtilaf",
+   "rel": "أنواعه",
+   "to": "concept:usul:muhtamal",
+   "ord": 5,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:ikhtilaf",
+   "rel": "أنواعه",
+   "to": "concept:usul:nuzul",
+   "ord": 6,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:ikhtilaf",
+   "rel": "أنواعه",
+   "to": "concept:usul:ijma",
+   "ord": 7,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:usul",
+   "rel": "أقسامه",
+   "to": "concept:usul:naql_istidlal",
+   "ord": 8,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:naql_istidlal",
+   "rel": "أنواعه",
+   "to": "concept:usul:naql",
+   "ord": 9,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:naql_istidlal",
+   "rel": "أنواعه",
+   "to": "concept:usul:istidlal",
+   "ord": 10,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:usul",
+   "rel": "أقسامه",
+   "to": "concept:usul:turuq",
+   "ord": 11,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:turuq",
+   "rel": "مراتبه",
+   "to": "concept:usul:bil_quran",
+   "ord": 12,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:turuq",
+   "rel": "مراتبه",
+   "to": "concept:usul:bil_sunna",
+   "ord": 13,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:turuq",
+   "rel": "مراتبه",
+   "to": "concept:usul:bil_sahaba",
+   "ord": 14,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:turuq",
+   "rel": "مراتبه",
+   "to": "concept:usul:bil_tabiin",
+   "ord": 15,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "from": "concept:usul:turuq",
+   "rel": "مراتبه",
+   "to": "concept:usul:bil_ray",
+   "ord": 16,
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  }
+ ]
+}
