@@ -20,6 +20,7 @@ class TtsVoiceOption {
     required this.espeakDataFiles,
     required this.source,
     this.assetVersion = '1',
+    this.packId,
   });
 
   /// مفتاح فريد، مثال: 'piper:ar_JO-kareem-medium'.
@@ -45,6 +46,9 @@ class TtsVoiceOption {
   /// إعادة الاستخراج بلا تحميل الأصل الكامل (63 م.ب) في الذاكرة فقط
   /// لمقارنة حجمه. **ارفعه عند أي تعديل على ملفات assets/tts/**.
   final String assetVersion;
+
+  /// Content pack holding [modelAssetPath] when this build doesn't bundle it.
+  final String? packId;
 }
 
 class TtsVoiceRegistry {
@@ -53,7 +57,11 @@ class TtsVoiceRegistry {
   static const TtsVoiceOption _kareemMedium = TtsVoiceOption(
     voiceId: 'piper:ar_JO-kareem-medium',
     displayName: 'كريم (عربي أردني)',
-    modelAssetPath: 'assets/tts/ar_JO-kareem-medium.onnx',
+    // Content pack `voice.kareem` (S7, Ismail 2026-09-29): bundled in the full
+    // build, a one-time 63 MB download in lite — the rest (tokens, espeak
+    // data, 1.2 MB) stays bundled in both.
+    modelAssetPath: 'assets/tts/packs/ar_JO-kareem-medium.onnx',
+    packId: 'voice.kareem',
     configAssetPath: 'assets/tts/ar_JO-kareem-medium.onnx.json',
     tokensAssetPath: 'assets/tts/tokens.txt',
     espeakDataAssetDir: 'assets/tts/espeak-ng-data',

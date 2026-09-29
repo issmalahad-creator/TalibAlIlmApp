@@ -13,6 +13,9 @@ import 'package:flutter/material.dart';
 import '../services/tts/audio_reader_controller.dart';
 import '../services/tts/text_sources/readable_text_source.dart';
 import '../theme/app_theme.dart';
+import '../services/packs/content_pack_engine.dart';
+import 'packs/pack_ui.dart';
+import '../services/tts/tts_voice_registry.dart';
 
 class AudioReaderView extends StatefulWidget {
   const AudioReaderView({super.key, required this.source, required this.voiceId});
@@ -20,7 +23,16 @@ class AudioReaderView extends StatefulWidget {
   final ReadableTextSource source;
   final String voiceId;
 
-  static Future<void> open(BuildContext context, {required ReadableTextSource source, required String voiceId}) {
+  static Future<void> open(BuildContext context, {required ReadableTextSource source, required String voiceId}) async {
+    // Lite (S7): the voice model is a one-time download — offer it (size,
+    // network) instead of opening a reader whose first paragraph would fail.
+    final packId = TtsVoiceRegistry.byId(voiceId).packId;
+    if (packId != null && !await ContentPackEngine.instance.isUsable(packId)) {
+      final pack = (await ContentPackEngine.instance.manifest())?.byId(packId);
+      if (pack != null && context.mounted) await showPackDownloadSheet(context, pack);
+      return;
+    }
+    if (!context.mounted) return;
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,

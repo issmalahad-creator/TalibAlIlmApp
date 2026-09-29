@@ -190,7 +190,8 @@ flutter:
     # القارئ الصوتي العام (docs/audio-reader/) — Piper TTS، صوت ar_JO-kareem-medium
     # (MIT license، rhasspy/piper-voices). مقعد اختيار القارئ في
     # TEXT_SOURCE_ADAPTERS.md §5 — voiceId يحدد أي صف من هذه الأصول يُستخدَم.
-    - assets/tts/ar_JO-kareem-medium.onnx
+    # Voice model = content pack voice.kareem (63 MB) — stripped in lite (S7).
+    - assets/tts/packs/
     - assets/tts/ar_JO-kareem-medium.onnx.json
     - assets/tts/tokens.txt
     - assets/tts/espeak-ng-data/ar_dict

@@ -45,7 +45,8 @@ _ABI_TARGET = {
 _KEY_NEEDLE = b"sk-ant-api03"
 
 # Same list as tool/build_lite_apk.sh — lite downloads these on demand via
-# QuranCorpusDownloadService. assets/tts stays bundled in both flavors
+# QuranCorpusDownloadService. assets/tts (espeak data) stays bundled in both flavors;
+# the voice model itself (assets/tts/packs) is a lite download since S7 (2026-09-29)
 # (Ismail 2026-09-19) until the §8.5 S7 decision says otherwise.
 LITE_STRIP = (
     Path("assets/quran/corpus/translations"),
@@ -53,6 +54,8 @@ LITE_STRIP = (
     # Content packs on GitHub packs-v1 (CONTENT_PACKS_ARCHITECTURE.md CP4/CP5).
     Path("assets/quran/corpus/packs"),
     Path("assets/quran/tafsir_packs"),
+    # Karim's voice model — a one-time download in lite (S7, Ismail 2026-09-29).
+    Path("assets/tts/packs"),
 )
 
 MB = 1024 * 1024
@@ -69,13 +72,19 @@ def find_flutter() -> str:
     raise FileNotFoundError("Flutter not found — add it to PATH or set FLUTTER_BIN.")
 
 
+def _backup_name(rel: Path) -> str:
+    """Full path, not the last segment: two stripped dirs are both called
+    `packs` (corpus/packs, tts/packs) and must not collide in the backup."""
+    return rel.as_posix().replace("/", "__")
+
+
 def restore_lite_backup() -> None:
     """Moves stripped corpus dirs back. Safe to call any number of times."""
     for rel in LITE_STRIP:
-        saved = BACKUP / rel.name
         target = ROOT / rel
-        if saved.is_dir() and not target.exists():
-            shutil.move(str(saved), str(target))
+        for saved in (BACKUP / _backup_name(rel), BACKUP / rel.name):  # new, then pre-2026-09-29 name
+            if saved.is_dir() and not target.exists():
+                shutil.move(str(saved), str(target))
     if BACKUP.is_dir() and not any(BACKUP.iterdir()):
         BACKUP.rmdir()
 
@@ -85,7 +94,7 @@ def strip_for_lite() -> None:
     for rel in LITE_STRIP:
         src = ROOT / rel
         if src.is_dir():
-            shutil.move(str(src), str(BACKUP / rel.name))
+            shutil.move(str(src), str(BACKUP / _backup_name(rel)))
 
 
 def sha256(path: Path) -> str:

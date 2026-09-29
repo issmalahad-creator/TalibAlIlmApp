@@ -101,6 +101,15 @@ def candidates() -> list[dict]:
     for name, (title, summary) in CORPUS.items():
         out.append({"id": f"corpus.{name}", "kind": "corpus", "src": ROOT / f"assets/quran/corpus/packs/{name}.json.gz",
                     "ext": "json.gz", "title": title, "summary": summary, "installer": "corpus_table"})
+    # Karim's reading voice (S7, Ismail 2026-09-29) — MIT, rhasspy/piper-voices
+    # ar_JO-kareem-medium via csukuangfj's sherpa-onnx repack, metadata-patched
+    # locally (tool/patch_tts_model_metadata.py), so it is NOT byte-identical
+    # to the HF file and HF can't serve as a mirror.
+    out.append({"id": "voice.kareem", "kind": "voice", "src": ROOT / "assets/tts/packs/ar_JO-kareem-medium.onnx",
+                "ext": "onnx", "installer": "voice_model",
+                "title": {"ar": "صوت القارئ كريم", "en": "Kareem reading voice"},
+                "summary": {"ar": "صوت عربي يقرأ لك الكتب في «سماع الكتب» بلا إنترنت (ترخيص MIT)",
+                            "en": "An Arabic voice that reads your books aloud offline (MIT licence)"}})
     titles = tafsir_titles()
     for path, key, lang in tafsir_editions():
         if key in CORE_TAFSIR:

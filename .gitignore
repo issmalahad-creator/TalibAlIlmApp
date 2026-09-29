@@ -89,6 +89,7 @@ lib/config/app_config.dart
 # به. جلبه عبر tool/fetch_tts_voice.sh. pubspec.yaml يفترض وجوده محليًا وقت
 # البناء فقط، مثل سياسة tool/fetch_tajweed_source.sh أعلاه تمامًا.
 /assets/tts/*.onnx
+/assets/tts/packs/
 /assets/tts/*.onnx.json
 /assets/tts/tokens.txt
 /assets/tts/espeak-ng-data/

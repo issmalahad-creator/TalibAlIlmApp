@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated": "2026-09-28",
+ "generated": "2026-09-29",
  "base": "https://github.com/issmalahad-creator/TalibAlIlmApp/releases/download/packs-v1/",
  "packs": [
   {
@@ -126,6 +126,27 @@
    "summary": {
     "ar": "فتاوى العلماء المرتبطة بالآيات",
     "en": "Scholars’ fatwas linked to verses"
+   }
+  },
+  {
+   "id": "voice.kareem",
+   "kind": "voice",
+   "version": 1,
+   "title": {
+    "ar": "صوت القارئ كريم",
+    "en": "Kareem reading voice"
+   },
+   "files": [
+    {
+     "name": "voice.kareem.v1.onnx",
+     "bytes": 63201421,
+     "sha256": "f942091e1fdb7221b289256cc2238295b5472d326029532f79bb84836380fe53"
+    }
+   ],
+   "installer": "voice_model",
+   "summary": {
+    "ar": "صوت عربي يقرأ لك الكتب في «سماع الكتب» بلا إنترنت (ترخيص MIT)",
+    "en": "An Arabic voice that reads your books aloud offline (MIT licence)"
    }
   },
   {

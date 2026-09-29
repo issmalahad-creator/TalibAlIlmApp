@@ -38,7 +38,7 @@ fetch() {
     fi
   fi
   echo "fetching: $path"
-  curl -fL --create-dirs -o "$out" "${BASE}/${path}"
+  curl -fL --create-dirs -o "$out" "${BASE}/${path#packs/}"
   size=$(wc -c < "$out")
   if [ "$size" -lt "$min_bytes" ]; then
     echo "ERROR: $path only ${size}B, expected >= ${min_bytes}B — أعد المحاولة أو تحقّق من الاتصال" >&2
@@ -46,7 +46,10 @@ fetch() {
   fi
 }
 
-fetch "ar_JO-kareem-medium.onnx" 60000000
+# The model is a content pack (voice.kareem, S7 2026-09-29) — stored in packs/
+# so the lite build strips it; the full build still bundles it.
+mkdir -p "$DEST/packs"
+fetch "packs/ar_JO-kareem-medium.onnx" 60000000
 fetch "ar_JO-kareem-medium.onnx.json" 500
 fetch "tokens.txt" 500
 
@@ -69,7 +72,7 @@ fetch "espeak-ng-data/lang/sem/ar" 20
 # بصمت (exit code 255) بدونها. رقعة تُضيفها بعد كل تنزيل جديد.
 if [ "$FORCE" -eq 1 ] || ! py -c "
 import onnx
-m = onnx.load('$DEST/ar_JO-kareem-medium.onnx')
+m = onnx.load('$DEST/packs/ar_JO-kareem-medium.onnx')
 assert any(p.key == 'sample_rate' for p in m.metadata_props)
 " 2>/dev/null; then
   echo "patching ONNX metadata (sample_rate, etc.) — see tool/patch_tts_model_metadata.py"

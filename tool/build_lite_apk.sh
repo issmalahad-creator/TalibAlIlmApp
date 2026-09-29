@@ -23,12 +23,13 @@ STRIP_DIRS=(
   # Content packs on GitHub packs-v1 (CONTENT_PACKS_ARCHITECTURE.md CP4/CP5).
   "assets/quran/corpus/packs"
   "assets/quran/tafsir_packs"
+  "assets/tts/packs"
 )
 BACKUP_DIR=".lite_build_backup"
 
 cleanup() {
   for d in "${STRIP_DIRS[@]}"; do
-    name="$(basename "$d")"
+    name="${d//\//__}"  # full path: corpus/packs and tts/packs must not collide
     if [ -d "$BACKUP_DIR/$name" ] && [ ! -d "$d" ]; then
       mv "$BACKUP_DIR/$name" "$d"
     fi
@@ -43,7 +44,7 @@ cleanup
 mkdir -p "$BACKUP_DIR"
 for d in "${STRIP_DIRS[@]}"; do
   if [ -d "$d" ]; then
-    mv "$d" "$BACKUP_DIR/$(basename "$d")"
+    mv "$d" "$BACKUP_DIR/${d//\//__}"
   fi
 done
 

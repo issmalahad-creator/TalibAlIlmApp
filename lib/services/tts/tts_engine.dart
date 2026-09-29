@@ -22,7 +22,7 @@ import 'dart:typed_data';
 import 'dart:ui' show RootIsolateToken;
 
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter/services.dart' show BackgroundIsolateBinaryMessenger, rootBundle;
+import 'package:flutter/services.dart' show AssetManifest, BackgroundIsolateBinaryMessenger, rootBundle;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
@@ -316,11 +316,37 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
 /// القرص — sherpa_onnx (FFI أصلي) يحتاج مسار ملف فعلي، لا يقرأ حزمة أصول
 /// Flutter مباشرة. يعمل داخل العزلة الخلفية (BackgroundIsolateBinaryMessenger
 /// مُهيَّأ مسبقًا يجعل rootBundle/path_provider يعملان هنا بأمان).
-Future<String> _ensureVoiceExtracted(TtsVoiceOption voice) async {
+/// Where a voice's files live on disk (also the target of the `voice.*`
+/// content-pack installer — CONTENT_PACKS_ARCHITECTURE.md, S7).
+Future<Directory> ttsVoiceDir(TtsVoiceOption voice) async {
   final supportDir = await getApplicationSupportDirectory();
-  final voiceDir = Directory(
-    p.join(supportDir.path, 'tts_voices', voice.voiceId.replaceAll(':', '_')),
-  );
+  return Directory(p.join(supportDir.path, 'tts_voices', voice.voiceId.replaceAll(':', '_')));
+}
+
+Set<String>? _bundledAssets;
+
+/// Whether this build ships [path] — read from the asset manifest, never by
+/// loading the (63 MB) file itself.
+Future<bool> ttsAssetBundled(String path) async {
+  try {
+    _bundledAssets ??= (await AssetManifest.loadFromAssetBundle(rootBundle)).listAssets().toSet();
+    return _bundledAssets!.contains(path);
+  } catch (_) {
+    return false;
+  }
+}
+
+/// The lite build doesn't bundle the voice model and it hasn't been
+/// downloaded yet — the UI offers the pack instead of failing synthesis.
+class TtsVoiceNotDownloaded implements Exception {
+  const TtsVoiceNotDownloaded(this.packId);
+  final String? packId;
+  @override
+  String toString() => 'TtsVoiceNotDownloaded($packId)';
+}
+
+Future<String> _ensureVoiceExtracted(TtsVoiceOption voice) async {
+  final voiceDir = await ttsVoiceDir(voice);
   final espeakDir = Directory(p.join(voiceDir.path, 'espeak-ng-data'));
 
   final modelFile = File(p.join(voiceDir.path, 'model.onnx'));
@@ -359,8 +385,18 @@ Future<String> _ensureVoiceExtracted(TtsVoiceOption voice) async {
   await espeakDir.create(recursive: true);
   await versionFile.writeAsString(voice.assetVersion, flush: true);
 
-  debugPrint('[TTS] استخراج model.onnx من ${voice.modelAssetPath}...');
-  await extract(voice.modelAssetPath, modelFile);
+  if (await ttsAssetBundled(voice.modelAssetPath)) {
+    debugPrint('[TTS] استخراج model.onnx من ${voice.modelAssetPath}...');
+    await extract(voice.modelAssetPath, modelFile);
+  } else if (await modelFile.exists()) {
+    // Lite: the `voice.*` pack installer already placed model.onnx here
+    // (moved, not copied — the voice never takes 63 MB twice).
+    debugPrint('[TTS] model.onnx من حزمة ${voice.packId} المنزَّلة');
+  } else {
+    await versionFile.delete().catchError((_) => versionFile);
+    debugPrint('[TTS] النموذج غير مضمَّن ولم يُنزَّل بعد (${voice.packId})');
+    throw TtsVoiceNotDownloaded(voice.packId);
+  }
   debugPrint('[TTS] استخراج tokens.txt من ${voice.tokensAssetPath}...');
   await extract(voice.tokensAssetPath, tokensFile);
   for (final fileName in voice.espeakDataFiles) {

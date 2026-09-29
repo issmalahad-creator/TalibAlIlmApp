@@ -16,7 +16,8 @@ import json
 import onnx
 
 ASSETS_DIR = "assets/tts"
-MODEL_PATH = f"{ASSETS_DIR}/ar_JO-kareem-medium.onnx"
+# The model is a content pack (voice.kareem) since 2026-09-29 — lives in packs/.
+MODEL_PATH = f"{ASSETS_DIR}/packs/ar_JO-kareem-medium.onnx"
 CONFIG_PATH = f"{ASSETS_DIR}/ar_JO-kareem-medium.onnx.json"
 
 
