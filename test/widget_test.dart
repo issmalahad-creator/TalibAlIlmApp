@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart' show SizedBox;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -98,5 +99,12 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.byType(TalibAlIlmApp), findsOneWidget);
+
+    // The app deliberately arms timers at launch — the splash's reading /
+    // max-visible timers (≤12 s) and BootScheduler's 4 s safety net. Unmount
+    // and let fake time run past them so the test ends with none pending
+    // (the binding fails a test that leaves a Timer behind).
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 15));
   });
 }

@@ -77,15 +77,33 @@ class DailyBenefitService {
     final recentSet = recent.toSet();
     final lastKind = recent.isEmpty ? null : _kindOf(recent.last);
 
-    List<DailyBenefit> candidates = pool.where((b) => !recentSet.contains(b.id) && b.kind != lastKind).toList();
-    if (candidates.isEmpty) candidates = pool.where((b) => !recentSet.contains(b.id)).toList();
-    if (candidates.isEmpty) candidates = pool; // everything seen recently — start over
+    final unseen = pool.where((b) => !recentSet.contains(b.id)).toList();
 
-    // Pick a kind first (so the small pools — hadith, ayat — appear as often
-    // as the 173 fawa'id), then an item within it.
-    final kinds = candidates.map((b) => b.kind).toSet().toList()..sort();
-    final kind = kinds[_rng.nextInt(kinds.length)];
-    final ofKind = candidates.where((b) => b.kind == kind).toList();
+    // Kind rotation that never starves the small pools: fawa'id (173) and
+    // the small kinds (hadith 25 · dhikr 50 · ayat 34) alternate, so only
+    // ~60 of the 120 remembered picks are small-kind — fewer than the 109
+    // available — and "never the same kind twice" and "never a repeat" both
+    // hold. (Picking uniformly among the other kinds spent the small pools
+    // twice as fast; once they ran out, two fawa'id came in a row.)
+    String? kind;
+    final unseenFaida = unseen.where((b) => b.kind == 'faida').toList();
+    if (lastKind != 'faida' && unseenFaida.isNotEmpty) {
+      kind = 'faida';
+    } else {
+      // The small kind shown least often lately; ties broken at random.
+      final small = unseen.where((b) => b.kind != 'faida' && b.kind != lastKind).map((b) => b.kind).toSet().toList()
+        ..shuffle(_rng);
+      if (small.isNotEmpty) {
+        int shown(String k) => recent.where((id) => _kindOf(id) == k).length;
+        small.sort((a, b) => shown(a).compareTo(shown(b)));
+        kind = small.first;
+      }
+    }
+
+    var candidates = kind == null ? const <DailyBenefit>[] : unseen.where((b) => b.kind == kind).toList();
+    if (candidates.isEmpty) candidates = unseen; // rotation impossible — still never repeat
+    if (candidates.isEmpty) candidates = pool; // everything seen recently — start over
+    final ofKind = candidates;
     final pick = ofKind[_rng.nextInt(ofKind.length)];
 
     final updated = [...recent, pick.id];

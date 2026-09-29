@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/foundation.dart' show ValueNotifier;
+import 'package:flutter/foundation.dart' show ValueNotifier, debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
@@ -108,8 +108,17 @@ class QuranCorpusDownloadService {
   /// real byte progress via [progressOf] while a network fetch is in flight
   /// (not set at all for a plain cache-hit — there's nothing to show).
   Future<List<int>?> ensureCached(String category, int id) async {
-    final file = await _fileFor(category, id);
-    if (await file.exists()) return file.readAsBytes();
+    // The "never throws" promise includes locating the cache: a failing
+    // path_provider (tests, a broken storage mount) must degrade to "no
+    // data", not crash the tafsir panel.
+    final File file;
+    try {
+      file = await _fileFor(category, id);
+      if (await file.exists()) return await file.readAsBytes();
+    } catch (e) {
+      debugPrint('QuranCorpusDownloadService: cache unavailable for $category/$id ($e)');
+      return null;
+    }
 
     final notifier = progressOf(category, id);
     final uri = Uri.parse('$_releaseBase/$id.json.gz');
