@@ -481,7 +481,8 @@ class QuranCorpusRepository {
   Future<bool> isReady() async {
     final db = await _db;
     final n = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM quran_corpus_meta'));
+        // `tafsir:<key>` rows are tafsir-import markers (ZW-5), not corpus datasets.
+        await db.rawQuery("SELECT COUNT(*) FROM quran_corpus_meta WHERE dataset NOT LIKE 'tafsir:%'"));
     return (n ?? 0) > 0;
   }
 
@@ -498,6 +499,7 @@ class QuranCorpusRepository {
           'rows',
           'seeded_at_ms'
         ],
+        where: "dataset NOT LIKE 'tafsir:%'", // import markers (ZW-5), not sources
         orderBy: 'dataset ASC');
   }
 }

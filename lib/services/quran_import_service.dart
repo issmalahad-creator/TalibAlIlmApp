@@ -145,17 +145,50 @@ class QuranImportService {
     // missing ones, same "self-heal" spirit as `memorization_units` above.
     for (final edition in _tafsirEditions) {
       final (_, sourceKey, _) = edition;
+      final marker = await _importMarker(db, sourceKey);
+      if (marker == _markerDone) continue;
       final existingForSource = Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM tafsir_entries WHERE source = ?', [sourceKey]),
       );
-      if (existingForSource == null || existingForSource == 0) {
-        // Lite: non-core editions are content packs (CP5) — imported by
-        // `LegacyTafsirInstaller` when downloaded, not from a missing asset.
-        if (!await _assetBundled(edition.$1)) continue;
-        await _importTafsirEdition(db, edition);
+      if (marker == null && (existingForSource ?? 0) > 0) {
+        // Imported by a version that committed each edition atomically —
+        // complete by construction; just record it.
+        await _setImportMarker(db, sourceKey, _markerDone, existingForSource!);
+        continue;
       }
+      // Lite: non-core editions are content packs (CP5) — imported by
+      // `LegacyTafsirInstaller` when downloaded, not from a missing asset.
+      if (!await _assetBundled(edition.$1)) continue;
+      // marker == started → a chunked import was interrupted: redo it.
+      if (marker == _markerStarted) await db.delete('tafsir_entries', where: 'source = ?', whereArgs: [sourceKey]);
+      await _importTafsirEdition(db, edition);
     }
   }
+
+  // ZW-5: an edition is imported in chunks (other queries run in between),
+  // so "has rows" no longer means "complete" — an explicit marker does.
+  // Stored in quran_corpus_meta as dataset `tafsir:<key>` (no schema change).
+  static const _markerStarted = -1;
+  static const _markerDone = 1;
+  static const _chunkRows = 500;
+
+  Future<int?> _importMarker(Database db, String sourceKey) async {
+    final rows = await db.query('quran_corpus_meta',
+        columns: ['source_version'], where: 'dataset = ?', whereArgs: ['tafsir:$sourceKey'], limit: 1);
+    if (rows.isEmpty) return null;
+    return (rows.first['source_version'] as String?) == 'started' ? _markerStarted : _markerDone;
+  }
+
+  Future<void> _setImportMarker(Database db, String sourceKey, int state, int rows) => db.insert(
+        'quran_corpus_meta',
+        {
+          'dataset': 'tafsir:$sourceKey',
+          'source_version': state == _markerDone ? 'done' : 'started',
+          'rows': rows,
+          'seeded_at_ms': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
 
   /// Hisn al-Muslim (Sa'id Al-Qahtani) — Phase 5هـ of
   /// QURAN_COMPANION_ROADMAP.md. Source: `rn0x/hisn_almuslim_json` on
@@ -398,6 +431,7 @@ class QuranImportService {
   Future<void> removeTafsirEdition(String sourceKey) async {
     final db = await DatabaseHelper.instance.database;
     await db.delete('tafsir_entries', where: 'source = ?', whereArgs: [sourceKey]);
+    await db.delete('quran_corpus_meta', where: 'dataset = ?', whereArgs: ['tafsir:$sourceKey']);
   }
 
   Future<void> _importTafsirEdition(Database db, (String, String, String) edition, {Uint8List? bytes}) async {
@@ -408,8 +442,18 @@ class QuranImportService {
     // Home's tiny queries could not complete (ZERO_WAIT_PROGRESSIVE_ARCHITECTURE.md §3).
     final rows = await compute(_parseTafsirJsonl, raw);
 
-    final batch = db.batch();
+    await _setImportMarker(db, sourceKey, _markerStarted, 0);
+    var batch = db.batch();
+    var pending = 0;
     for (final r in rows) {
+      if (pending == _chunkRows) {
+        // Commit and yield: Home/reader queries on the single connection
+        // get a turn instead of waiting behind one 6,000-row transaction.
+        await batch.commit(noResult: true);
+        batch = db.batch();
+        pending = 0;
+      }
+      pending++;
       batch.insert('tafsir_entries', {
         'surah': r.surah,
         'ayah_from': r.ayah,
@@ -428,6 +472,7 @@ class QuranImportService {
       });
     }
     await batch.commit(noResult: true);
+    await _setImportMarker(db, sourceKey, _markerDone, rows.length);
   }
 
   /// Phase 1 of QURAN_COMPANION_ROADMAP.md — one `memorization_units` row

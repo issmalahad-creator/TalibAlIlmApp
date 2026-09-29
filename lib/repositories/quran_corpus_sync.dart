@@ -41,6 +41,8 @@ class QuranCorpusSync {
   /// CONTENT_PACKS_ARCHITECTURE.md CP4): the lite build doesn't bundle them,
   /// so boot sync skips them and `CorpusTableInstaller` seeds them from the
   /// downloaded file instead.
+  static const _chunkRows = 500;
+
   static const packDatasets = {'sayings', 'notes', 'similar', 'irab_books', 'fatwas'};
 
   /// Tables each pack dataset fills — emptied again when the pack is removed.
@@ -125,13 +127,20 @@ class QuranCorpusSync {
     final rows = (obj['rows'] as List?) ?? const [];
     final sha = meta['sha256'] as String? ?? '';
 
-    await db.transaction((txn) async {
-      final batch = txn.batch();
-
-      if (_perAyahJson.containsKey(name)) {
-        final spec = _perAyahJson[name]!;
+    if (_perAyahJson.containsKey(name)) {
+      // ZW-5: per-ayah datasets (up to ~6,000 heavy rows) go in in chunks,
+      // so reader/Home queries on the single connection aren't queued
+      // behind one long transaction. The meta row below is the completion
+      // marker: it's removed first and written last, so an interrupted seed
+      // simply runs again on the next launch (the table is cleared first).
+      final spec = _perAyahJson[name]!;
+      await db.transaction((txn) async {
+        await txn.delete('quran_corpus_meta', where: 'dataset = ?', whereArgs: [name]);
         await txn.delete(spec.table);
-        for (final r in rows) {
+      });
+      for (var i = 0; i < rows.length; i += _chunkRows) {
+        final batch = db.batch();
+        for (final r in rows.skip(i).take(_chunkRows)) {
           final m = r as Map<String, dynamic>;
           batch.insert(spec.table, {
             'surah': m['s'],
@@ -139,10 +148,14 @@ class QuranCorpusSync {
             'data': jsonEncode(m[spec.key]),
           });
         }
-      } else {
-        await _seedIndex(txn, batch, name, rows);
+        await batch.commit(noResult: true);
       }
+    }
 
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      // Index datasets are small multi-table sets — kept atomic.
+      if (!_perAyahJson.containsKey(name)) await _seedIndex(txn, batch, name, rows);
       await batch.commit(noResult: true);
       await txn.insert(
         'quran_corpus_meta',
