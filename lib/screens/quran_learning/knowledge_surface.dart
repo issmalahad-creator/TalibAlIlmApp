@@ -18,6 +18,7 @@ import 'corpus_panels.dart';
 import 'irab_view_screen.dart';
 import 'learning_lesson_screen.dart';
 import 'topic_index_screen.dart';
+import '../usul/usul_tree_screen.dart';
 
 /// خطة القارئ الموحّد — P0 · لوحات المعرفة (`docs/quran/QURAN_PREMIUM_UI.md`).
 ///
@@ -1029,7 +1030,19 @@ class _AyahSurfaceState extends State<_AyahSurface> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
+          // «شجرة أصول التفسير» for this ayah (USUL_TAFSIR_TREE.md U4).
+          IconButton(
+            tooltip: basicText('usul_tree_title', lang),
+            icon: const Icon(Icons.account_tree_outlined, color: _kGold),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => UsulTreeScreen(surah: surah, ayah: ayah)),
+              );
+            },
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);

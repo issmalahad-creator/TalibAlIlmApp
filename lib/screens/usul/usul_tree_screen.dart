@@ -10,6 +10,7 @@ import '../../services/packs/content_pack_engine.dart';
 import '../../services/usul/usul_answers.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/depth.dart';
+import '../../theme/motion.dart';
 import '../../widgets/loading_view.dart';
 import '../../widgets/packs/pack_ui.dart';
 import '../ayah_study_screen.dart';
@@ -70,7 +71,10 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
         backgroundColor: _page,
         title: Column(
           children: [
-            Text(basicText('usul_tree_title', _lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            Text(
+              basicText('usul_tree_title', _lang),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
             Text('$surahName · ${widget.ayah}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           ],
         ),
@@ -78,8 +82,8 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
       body: _loading
           ? AppLoadingView(icon: Icons.account_tree_outlined, message: basicText('loading_quran', _lang))
           : _root == null
-              ? Center(child: Text(basicText('usul_status_not_found', _lang)))
-              : _TreeCanvas(root: _root!, answers: _answers, onTap: _openNode),
+          ? Center(child: Text(basicText('usul_status_not_found', _lang)))
+          : _TreeCanvas(root: _root!, answers: _answers, onTap: _openNode),
     );
   }
 
@@ -99,7 +103,10 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
           controller: scroll,
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           children: [
-            Text(n.title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: _ink)),
+            Text(
+              n.title,
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: _ink),
+            ),
             if (n.question != null) ...[
               const SizedBox(height: 4),
               Text(n.question!, style: const TextStyle(fontSize: 14, color: AppColors.textMuted)),
@@ -114,8 +121,10 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
             ],
             if (n.children.isEmpty || n.answerKey != null) ...[
               const SizedBox(height: 18),
-              Text(basicText('usul_for_this_ayah', _lang),
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              Text(
+                basicText('usul_for_this_ayah', _lang),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 8),
               ..._answerBody(n),
             ],
@@ -126,8 +135,8 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => AyahStudyScreen(
-                        surah: widget.surah, ayah: widget.ayah, initialFamily: AyahStudyFamily.uloom),
+                    builder: (_) =>
+                        AyahStudyScreen(surah: widget.surah, ayah: widget.ayah, initialFamily: AyahStudyFamily.uloom),
                   ),
                 );
               },
@@ -142,17 +151,33 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
 
   List<Widget> _answerBody(UsulTreeNode n) {
     final a = n.answerKey == null ? null : _answers[n.answerKey];
-    if (a == null) return [_StatusChip(status: null, lang: _lang), const SizedBox(height: 6), Text(basicText('usul_curated_pending', _lang), style: const TextStyle(fontSize: 13.5, height: 1.6, color: AppColors.textMuted))];
+    if (a == null) {
+      return [
+        _StatusChip(status: null, lang: _lang),
+        const SizedBox(height: 6),
+        Text(
+          basicText('usul_curated_pending', _lang),
+          style: const TextStyle(fontSize: 13.5, height: 1.6, color: AppColors.textMuted),
+        ),
+      ];
+    }
     final out = <Widget>[_StatusChip(status: a.status, lang: _lang), const SizedBox(height: 10)];
     switch (a.status) {
       case UsulStatus.notDownloaded:
-        out.add(FutureBuilder(
-          future: ContentPackEngine.instance.manifest(),
-          builder: (_, snap) {
-            final pack = snap.data?.byId('corpus.sayings');
-            return pack == null ? const SizedBox.shrink() : Align(alignment: AlignmentDirectional.centerStart, child: PackStatusView(pack: pack));
-          },
-        ));
+        out.add(
+          FutureBuilder(
+            future: ContentPackEngine.instance.manifest(),
+            builder: (_, snap) {
+              final pack = snap.data?.byId('corpus.sayings');
+              return pack == null
+                  ? const SizedBox.shrink()
+                  : Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: PackStatusView(pack: pack),
+                    );
+            },
+          ),
+        );
       case UsulStatus.hint:
         out.add(Text(basicText('usul_hint_note', _lang), style: const TextStyle(fontSize: 13.5, height: 1.6)));
       case UsulStatus.notFound:
@@ -163,8 +188,12 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
           out.add(const SizedBox(height: 8));
         }
         if (a.count > a.evidence.length) {
-          out.add(Text(basicText('usul_more_items', _lang).replaceAll('{n}', '${a.count - a.evidence.length}'),
-              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)));
+          out.add(
+            Text(
+              basicText('usul_more_items', _lang).replaceAll('{n}', '${a.count - a.evidence.length}'),
+              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+            ),
+          );
         }
     }
     return out;
@@ -180,27 +209,30 @@ class _QuoteBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-        decoration: BoxDecoration(
-          color: _page,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: const BorderDirectional(start: BorderSide(color: _gold, width: 3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (label != null)
-              Text(label!, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontWeight: FontWeight.w700)),
-            Text('«$text»', style: const TextStyle(fontSize: 15, height: 1.75)),
-            if (judgment != null) ...[
-              const SizedBox(height: 4),
-              Text(judgment!, style: TextStyle(fontSize: 12.5, color: Colors.orange.shade900)),
-            ],
-            const SizedBox(height: 4),
-            Text(attribution, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+    decoration: BoxDecoration(
+      color: _page,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      border: const BorderDirectional(start: BorderSide(color: _gold, width: 3)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label != null)
+          Text(
+            label!,
+            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontWeight: FontWeight.w700),
+          ),
+        Text('«$text»', style: const TextStyle(fontSize: 15, height: 1.75)),
+        if (judgment != null) ...[
+          const SizedBox(height: 4),
+          Text(judgment!, style: TextStyle(fontSize: 12.5, color: Colors.orange.shade900)),
+        ],
+        const SizedBox(height: 4),
+        Text(attribution, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+      ],
+    ),
+  );
 }
 
 class _StatusChip extends StatelessWidget {
@@ -215,23 +247,32 @@ class _StatusChip extends StatelessWidget {
       alignment: AlignmentDirectional.centerStart,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(AppRadius.pill)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
-          Text(basicText(key, lang), style: TextStyle(fontSize: 12.5, color: color, fontWeight: FontWeight.w700)),
-        ]),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 6),
+            Text(
+              basicText(key, lang),
+              style: TextStyle(fontSize: 12.5, color: color, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 (String, Color, IconData) statusStyle(UsulStatus? s) => switch (s) {
-      UsulStatus.sourced => ('usul_status_sourced', AppColors.primary, Icons.check_circle_rounded),
-      UsulStatus.hint => ('usul_status_hint', _gold, Icons.adjust_rounded),
-      UsulStatus.notDownloaded => ('usul_status_not_downloaded', Colors.blueGrey, Icons.download_for_offline_outlined),
-      UsulStatus.notFound || null => ('usul_status_not_found', Colors.grey, Icons.radio_button_unchecked),
-    };
+  UsulStatus.sourced => ('usul_status_sourced', AppColors.primary, Icons.check_circle_rounded),
+  UsulStatus.hint => ('usul_status_hint', _gold, Icons.adjust_rounded),
+  UsulStatus.notDownloaded => ('usul_status_not_downloaded', Colors.blueGrey, Icons.download_for_offline_outlined),
+  UsulStatus.notFound || null => ('usul_status_not_found', Colors.grey, Icons.radio_button_unchecked),
+};
 
 // ---------------------------------------------------------------- the canvas
 
@@ -256,7 +297,7 @@ class _TreeCanvas extends StatefulWidget {
   State<_TreeCanvas> createState() => _TreeCanvasState();
 }
 
-class _TreeCanvasState extends State<_TreeCanvas> {
+class _TreeCanvasState extends State<_TreeCanvas> with SingleTickerProviderStateMixin {
   static const _colW = [38.0, 146.0, 166.0];
   static const _gapX = 20.0;
   static const _rowH = 70.0;
@@ -265,11 +306,50 @@ class _TreeCanvasState extends State<_TreeCanvas> {
   final _view = TransformationController();
   double? _fittedFor;
 
+  late final List<_Placed> _placed = _layout();
+
+  /// The walk (USUL_TAFSIR_TREE.md §المرور): a light pulse runs down each
+  /// connector in reading order — a branch, then its leaves — and the node
+  /// it reaches lights up in its status for this ayah. Order index per node.
+  late final Map<String, int> _step = {for (final (i, id) in _walkOrder(widget.root).indexed) id: i};
+  static const _perStep = Duration(milliseconds: 380);
+  late final AnimationController _walk = AnimationController(vsync: this, duration: _perStep * _step.length);
+  bool _started = false;
+
+  static List<String> _walkOrder(UsulTreeNode root) {
+    final out = <String>[];
+    void visit(UsulTreeNode n) {
+      if (n.depth > 0) out.add(n.id);
+      n.children.forEach(visit);
+    }
+
+    visit(root);
+    return out;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_started) return;
+    _started = true;
+    // Reduced motion: show the lit tree at once.
+    if (MediaQuery.of(context).disableAnimations) {
+      _walk.value = 1;
+    } else {
+      _walk.forward();
+    }
+  }
+
   @override
   void dispose() {
+    _walk.dispose();
     _view.dispose();
     super.dispose();
   }
+
+  /// Walk position in steps: node i is reached when this passes i + 1.
+  double get _pos => _walk.value * _step.length;
+  bool _lit(UsulTreeNode n) => n.depth == 0 || _pos >= (_step[n.id] ?? 0) + 1;
 
   List<_Placed> _layout() {
     final placed = <_Placed>[];
@@ -308,38 +388,59 @@ class _TreeCanvasState extends State<_TreeCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    final placed = _layout();
+    final placed = _placed;
     final size = Size(
       placed.map((p) => p.rect.right).reduce(math.max) + _pad,
-      placed.map((p) => p.rect.bottom).reduce(math.max) + _pad,
+      placed.map((p) => p.rect.bottom).reduce(math.max) + _pad + 72, // room above the walk controls
     );
     final byId = {for (final p in placed) p.node.id: p};
-    return LayoutBuilder(builder: (context, box) {
-      final fit = math.min(1.0, box.maxWidth / size.width);
-      if (_fittedFor != box.maxWidth) {
-        _fittedFor = box.maxWidth;
-        _view.value = Matrix4.identity()
-          ..translateByDouble(box.maxWidth - size.width * fit, 0, 0, 1)
-          ..scaleByDouble(fit, fit, 1, 1);
-      }
-      return InteractiveViewer(
-        transformationController: _view,
-        constrained: false,
-        minScale: fit * 0.8,
-        maxScale: 2.5,
-        boundaryMargin: const EdgeInsets.all(80),
-        child: Transform(
-          // Soft depth: a hint of perspective tilting the sheet away from the
-          // reader — like a map lying on a desk — never enough to distort text.
-          alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.0007)
-            ..rotateX(0.05),
-          child: SizedBox.fromSize(
-            size: size,
-            child: Stack(
+    return LayoutBuilder(
+      builder: (context, box) {
+        final fit = math.min(1.0, box.maxWidth / size.width);
+        if (_fittedFor != box.maxWidth) {
+          _fittedFor = box.maxWidth;
+          _view.value = Matrix4.identity()
+            ..translateByDouble(box.maxWidth - size.width * fit, 0, 0, 1)
+            ..scaleByDouble(fit, fit, 1, 1);
+        }
+        return Stack(
+          children: [
+            Positioned.fill(child: _viewer(size, placed, byId, fit)),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 16 + MediaQuery.of(context).padding.bottom,
+              child: Center(
+                child: _WalkControls(walk: _walk, lang: LanguagePreferenceService.currentLanguage),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _viewer(Size size, List<_Placed> placed, Map<String, _Placed> byId, double fit) {
+    return InteractiveViewer(
+      transformationController: _view,
+      constrained: false,
+      minScale: fit * 0.8,
+      maxScale: 2.5,
+      boundaryMargin: const EdgeInsets.all(80),
+      child: Transform(
+        // Soft depth: a hint of perspective tilting the sheet away from the
+        // reader — like a map lying on a desk — never enough to distort text.
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.0007)
+          ..rotateX(0.05),
+        child: SizedBox.fromSize(
+          size: size,
+          child: AnimatedBuilder(
+            animation: _walk,
+            builder: (context, _) => Stack(
               children: [
-                Positioned.fill(child: CustomPaint(painter: _Connectors(placed, byId))),
+                Positioned.fill(child: CustomPaint(painter: _Connectors(placed, byId, _step, _pos))),
                 for (final p in placed)
                   Positioned.fromRect(
                     rect: p.rect,
@@ -347,6 +448,7 @@ class _TreeCanvasState extends State<_TreeCanvas> {
                         ? _TrunkView(node: p.node, onTap: () => widget.onTap(p.node))
                         : _NodeView(
                             node: p.node,
+                            lit: _lit(p.node),
                             status: p.node.answerKey == null ? null : widget.answers[p.node.answerKey]?.status,
                             onTap: () => widget.onTap(p.node),
                           ),
@@ -355,8 +457,64 @@ class _TreeCanvasState extends State<_TreeCanvas> {
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
+  }
+}
+
+/// Pause / skip while the pulse walks; replay once it has finished.
+/// Stateful because `stop()` notifies nobody — the label must still flip.
+class _WalkControls extends StatefulWidget {
+  const _WalkControls({required this.walk, required this.lang});
+  final AnimationController walk;
+  final String lang;
+
+  @override
+  State<_WalkControls> createState() => _WalkControlsState();
+}
+
+class _WalkControlsState extends State<_WalkControls> {
+  AnimationController get walk => widget.walk;
+  String get lang => widget.lang;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: walk,
+      builder: (context, _) {
+        final done = walk.value >= 1;
+        final running = walk.isAnimating;
+        Widget btn(IconData icon, String key, VoidCallback onTap) => TextButton.icon(
+          onPressed: () {
+            onTap();
+            setState(() {});
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.white, minimumSize: const Size(0, 40)),
+          icon: Icon(icon, size: 20),
+          label: Text(basicText(key, lang), style: const TextStyle(fontWeight: FontWeight.w700)),
+        );
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          decoration: BoxDecoration(
+            color: _ink.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            border: Border.all(color: _gold.withValues(alpha: 0.5)),
+            boxShadow: DepthShadows.floating(_ink),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: done
+                ? [btn(Icons.replay_rounded, 'usul_walk_replay', () => walk.forward(from: 0))]
+                : [
+                    running
+                        ? btn(Icons.pause_rounded, 'usul_walk_pause', walk.stop)
+                        : btn(Icons.play_arrow_rounded, 'usul_walk_resume', walk.forward),
+                    btn(Icons.skip_next_rounded, 'usul_walk_skip', () => walk.value = 1),
+                  ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -392,16 +550,26 @@ class _TrunkView extends StatelessWidget {
 }
 
 class _Connectors extends CustomPainter {
-  _Connectors(this.placed, this.byId);
+  _Connectors(this.placed, this.byId, this.step, this.pos);
   final List<_Placed> placed;
   final Map<String, _Placed> byId;
+  final Map<String, int> step;
+  final double pos;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = _ink.withValues(alpha: 0.45)
+    final dim = Paint()
+      ..color = _ink.withValues(alpha: 0.3)
       ..strokeWidth = 1.6
       ..style = PaintingStyle.stroke;
+    final lit = Paint()
+      ..color = _gold.withValues(alpha: 0.85)
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke;
+    final glow = Paint()
+      ..color = _gold.withValues(alpha: 0.55)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    final core = Paint()..color = _gold;
     for (final p in placed) {
       final parent = p.node.parentId == null ? null : byId[p.node.parentId];
       if (parent == null) continue;
@@ -410,23 +578,36 @@ class _Connectors extends CustomPainter {
       final path = Path()
         ..moveTo(from.dx, from.dy)
         ..cubicTo(from.dx - 10, from.dy, to.dx + 10, to.dy, to.dx, to.dy);
-      // Dotted, like the paper map.
+      // Dotted, like the paper map; gold up to where the pulse has run.
+      final i = step[p.node.id] ?? 0;
+      final t = (pos - i).clamp(0.0, 1.0);
       for (final m in path.computeMetrics()) {
+        final reached = m.length * t;
         for (var d = 0.0; d < m.length; d += 7) {
           final seg = m.extractPath(d, math.min(d + 3.5, m.length));
-          canvas.drawPath(seg, paint);
+          canvas.drawPath(seg, d < reached ? lit : dim);
+        }
+        if (t > 0 && t < 1) {
+          final at = m.getTangentForOffset(reached)?.position;
+          if (at != null) {
+            canvas.drawCircle(at, 9, glow);
+            canvas.drawCircle(at, 3.5, core);
+          }
         }
       }
     }
   }
 
   @override
-  bool shouldRepaint(_Connectors old) => old.placed != placed;
+  bool shouldRepaint(_Connectors old) => old.placed != placed || old.pos != pos;
 }
 
 class _NodeView extends StatelessWidget {
-  const _NodeView({required this.node, required this.status, required this.onTap});
+  const _NodeView({required this.node, required this.lit, required this.status, required this.onTap});
   final UsulTreeNode node;
+
+  /// False until the walk's pulse reaches this node: drawn faint, no state.
+  final bool lit;
   final UsulStatus? status;
   final VoidCallback onTap;
 
@@ -437,36 +618,54 @@ class _NodeView extends StatelessWidget {
     final shadows = node.depth == 0
         ? DepthShadows.modal(_ink)
         : node.depth == 1
-            ? DepthShadows.floating(_ink)
-            : DepthShadows.soft(_ink);
+        ? DepthShadows.floating(_ink)
+        : DepthShadows.soft(_ink);
     return GestureDetector(
       onTap: onTap,
-      child: CustomPaint(
-        painter: _HexPainter(fill: dark ? _ink : _leafFill, edge: status == UsulStatus.sourced ? _gold : null, shadows: shadows),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Row(
-            children: [
-              if (node.answerKey != null || !dark)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 6),
-                  child: Icon(icon, size: 16, color: dark ? Colors.white70 : stateColor),
-                ),
-              Expanded(
-                child: Text(
-                  node.title,
-                  maxLines: node.depth == 1 ? 3 : 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: dark ? Colors.white : _ink,
-                    fontWeight: node.depth == 0 ? FontWeight.w800 : FontWeight.w700,
-                    fontSize: 13.5,
-                    height: 1.3,
+      child: AnimatedOpacity(
+        opacity: lit ? 1 : 0.35,
+        duration: AppMotion.fast,
+        curve: AppMotion.entranceCurve,
+        child: AnimatedScale(
+          scale: lit ? 1 : 0.96,
+          duration: AppMotion.fast,
+          curve: AppMotion.entranceCurve,
+          child: CustomPaint(
+            painter: _HexPainter(
+              fill: dark ? _ink : _leafFill,
+              edge: lit && status == UsulStatus.sourced ? _gold : null,
+              shadows: lit ? shadows : const [],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  if (node.answerKey != null || !dark)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(end: 6),
+                      child: Icon(
+                        lit ? icon : Icons.radio_button_unchecked,
+                        size: 16,
+                        color: dark ? Colors.white70 : (lit ? stateColor : Colors.grey),
+                      ),
+                    ),
+                  Expanded(
+                    child: Text(
+                      node.title,
+                      maxLines: node.depth == 1 ? 3 : 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: dark ? Colors.white : _ink,
+                        fontWeight: node.depth == 0 ? FontWeight.w800 : FontWeight.w700,
+                        fontSize: 13.5,
+                        height: 1.3,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -508,11 +707,12 @@ class _HexPainter extends CustomPainter {
     canvas.drawPath(path, Paint()..color = fill);
     if (edge != null) {
       canvas.drawPath(
-          path,
-          Paint()
-            ..color = edge!
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+        path,
+        Paint()
+          ..color = edge!
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
     }
   }
 
