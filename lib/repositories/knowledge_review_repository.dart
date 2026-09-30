@@ -110,6 +110,8 @@ class KnowledgeReviewRepository {
       'hadith': await dueToday('hadith'),
       'wasitiyyah': await dueToday('wasitiyyah'),
       'adhkar': await dueToday('adhkar'),
+      // «أعد بناء الشجرة» cards (USUL_TAFSIR_TREE.md U6).
+      'usul_tree': await dueToday('usul_tree'),
     };
   }
 

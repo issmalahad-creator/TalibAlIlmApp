@@ -13,6 +13,9 @@ import 'adhkar_quiz_screen.dart';
 import 'hadith_quiz_screen.dart';
 import 'review_screen.dart';
 import 'wasitiyyah_quiz_screen.dart';
+import '../repositories/usul_tree_repository.dart';
+import '../services/usul/usul_rebuild.dart';
+import 'usul/usul_rebuild_screen.dart';
 
 /// "مراجعتك اليوم" — Ismail's 2026-08-16 "الدماغ الذي يربط" request, Batch 1
 /// item 17 ("نظام المراجعة الشاملة"). A single cross-pillar due-list, not a
@@ -37,6 +40,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
   List<String> _hadithDueTexts = [];
   List<String> _wasitiyyahDueTexts = [];
   List<String> _adhkarDueTexts = [];
+  List<UsulRebuildGroup> _usulDue = [];
 
   @override
   void initState() {
@@ -55,6 +59,11 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
     final allHadiths = hadithIds.isEmpty ? <NawawiHadith>[] : await HadithRepository().all();
     final allSections = wasitiyyahIds.isEmpty ? <WasitiyyahSection> [] : await WasitiyyahRepository().all();
     final adhkarItems = adhkarIds.isEmpty ? <AdhkarItem>[] : await AdhkarRepository().itemsByIds(adhkarIds);
+    final usulIds = (reviewDue['usul_tree'] ?? []).map((d) => d.itemId).toSet();
+    final usulRoot = usulIds.isEmpty ? null : await UsulTreeRepository().tree();
+    final usulDue = usulRoot == null
+        ? <UsulRebuildGroup>[]
+        : usulRebuildGroups(usulRoot).where((g) => usulIds.contains(g.itemId)).toList();
 
     if (!mounted) return;
     setState(() {
@@ -62,6 +71,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
       _hadithDueTexts = allHadiths.where((h) => hadithIds.contains(h.id)).map((h) => h.text).toList();
       _wasitiyyahDueTexts = allSections.where((s) => wasitiyyahIds.contains(s.id)).map((s) => s.text).toList();
       _adhkarDueTexts = adhkarItems.map((i) => i.text).toList();
+      _usulDue = usulDue;
       _loading = false;
     });
   }
@@ -74,7 +84,7 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
       appBar: AppBar(title: Text(basicText('knowledge_review_title', lang))),
       body: _loading
           ? AppLoadingView(icon: Icons.fact_check_outlined, message: basicText('assembling_review_message', lang))
-          : (_quranDue == 0 && _hadithDueTexts.isEmpty && _wasitiyyahDueTexts.isEmpty && _adhkarDueTexts.isEmpty)
+          : (_quranDue == 0 && _hadithDueTexts.isEmpty && _wasitiyyahDueTexts.isEmpty && _adhkarDueTexts.isEmpty && _usulDue.isEmpty)
               ? const _EmptyState()
               : RefreshIndicator(
                   onRefresh: _load,
@@ -122,6 +132,22 @@ class _KnowledgeReviewScreenState extends State<KnowledgeReviewScreen> {
                           previewLines: _adhkarDueTexts,
                           onTap: () async {
                             await Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarQuizScreen()));
+                            _load();
+                          },
+                        ),
+                      if (_usulDue.isNotEmpty)
+                        _PillarSection(
+                          icon: Icons.account_tree_outlined,
+                          title: basicText('usul_tree_title', lang),
+                          count: _usulDue.length,
+                          previewLines: _usulDue.map((g) => g.prompt).toList(),
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => UsulRebuildScreen(onlyItemIds: {for (final g in _usulDue) g.itemId}),
+                              ),
+                            );
                             _load();
                           },
                         ),

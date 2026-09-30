@@ -14,6 +14,7 @@ import '../../theme/motion.dart';
 import '../../widgets/loading_view.dart';
 import '../../widgets/packs/pack_ui.dart';
 import '../ayah_study_screen.dart';
+import 'usul_rebuild_screen.dart';
 
 /// «شجرة أصول التفسير» for one ayah (docs/quran/USUL_TAFSIR_TREE.md U3) —
 /// the paper mind-map Ismail showed: root on the right, the four branches of
@@ -91,6 +92,13 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: basicText('usul_rebuild_title', _lang),
+            icon: const Icon(Icons.extension_outlined),
+            onPressed: _root == null
+                ? null
+                : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UsulRebuildScreen())),
+          ),
           IconButton(
             tooltip: basicText('usul_examples_index', _lang),
             icon: const Icon(Icons.format_list_bulleted_rounded),

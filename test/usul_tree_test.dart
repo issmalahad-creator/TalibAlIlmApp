@@ -8,7 +8,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/models/quran_learning.dart';
 import 'package:talib_alilm_app/repositories/quran_learning_sync.dart';
+import 'package:talib_alilm_app/repositories/knowledge_review_repository.dart';
 import 'package:talib_alilm_app/repositories/usul_tree_repository.dart';
+import 'package:talib_alilm_app/services/usul/usul_rebuild.dart';
 import 'package:talib_alilm_app/services/quran_learning/knowledge_gateway.dart';
 
 /// U1 of docs/quran/USUL_TAFSIR_TREE.md — the usul-tafsir tree from Ibn
@@ -156,6 +158,34 @@ void main() {
     expect(index.length, greaterThanOrEqualTo(20));
     final local = await LocalKnowledgeProvider().factsForAyah(1, 6);
     expect(local.where((f) => f.domain == 'usul_tafsir'), isEmpty);
+  });
+
+  // U6 — «أعد بناء الشجرة»: recall cards on the shared review engine.
+  test('rebuild: one card per parent, named in the science’s own words, stable ids', () async {
+    await QuranLearningSync().ingestFromJson(merged);
+    final root = (await UsulTreeRepository().tree())!;
+    final groups = usulRebuildGroups(root);
+    expect(groups.map((g) => g.prompt), [
+      'أقسام أصول التفسير',
+      'أنواع اختلاف السلف في التفسير',
+      'أنواع الاختلاف من جهة النقل ومن جهة الاستدلال',
+      'مراتب أحسن طرق التفسير',
+    ]);
+    expect(groups.map((g) => g.children.length), [4, 5, 2, 5]);
+    expect(groups.map((g) => g.itemId).toSet().length, groups.length);
+    // The id is a pure function of the concept id — the same on every device.
+    expect(usulItemId('concept:usul:usul'), usulItemId('concept:usul:usul'));
+    expect(usulItemId('concept:usul:usul'), isNot(usulItemId('concept:usul:turuq')));
+    expect(usulItemId('concept:usul:usul'), inInclusiveRange(0, 0x7FFFFFFF));
+    expect(relNoun('أقسامه'), 'أقسام');
+    expect(relNoun(null), '');
+
+    // First session enrols the card; it then shows up in the shared due list.
+    final review = KnowledgeReviewRepository();
+    expect(await review.isUnderReview(usulReviewType, groups.first.itemId), isFalse);
+    await review.startReviewing(usulReviewType, groups.first.itemId);
+    expect(await review.isUnderReview(usulReviewType, groups.first.itemId), isTrue);
+    expect((await review.dueTodayAll()).keys, contains(usulReviewType));
   });
 
   test('a dangling edge is rejected', () {
