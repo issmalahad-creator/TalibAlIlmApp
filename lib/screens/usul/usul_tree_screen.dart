@@ -41,6 +41,7 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
   final _repo = UsulTreeRepository();
   UsulTreeNode? _root;
   Map<String, UsulNodeAnswer> _answers = const {};
+  Map<String, List<UsulExample>> _examples = const {};
   bool _loading = true;
 
   @override
@@ -52,12 +53,23 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
   Future<void> _load() async {
     final root = await _repo.tree();
     final answers = await _repo.answersFor(widget.surah, widget.ayah);
+    final examples = await _repo.examplesFor(widget.surah, widget.ayah);
     if (!mounted) return;
     setState(() {
       _root = root;
       _answers = answers;
+      _examples = examples;
       _loading = false;
     });
+  }
+
+  /// What the node shows for this ayah: the source's own word first, then
+  /// a book example (U5), then whatever U2 found (hint / not found / …).
+  UsulStatus? _statusOf(UsulTreeNode n) {
+    final a = n.answerKey == null ? null : _answers[n.answerKey]?.status;
+    if (a == UsulStatus.sourced) return a;
+    if (_examples[n.id]?.isNotEmpty ?? false) return UsulStatus.curated;
+    return a;
   }
 
   String get _lang => LanguagePreferenceService.currentLanguage;
@@ -78,17 +90,28 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
             Text('$surahName · ${widget.ayah}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: basicText('usul_examples_index', _lang),
+            icon: const Icon(Icons.format_list_bulleted_rounded),
+            onPressed: _root == null ? null : _openIndex,
+          ),
+        ],
       ),
       body: _loading
           ? AppLoadingView(icon: Icons.account_tree_outlined, message: basicText('loading_quran', _lang))
           : _root == null
           ? Center(child: Text(basicText('usul_status_not_found', _lang)))
-          : _TreeCanvas(root: _root!, answers: _answers, onTap: _openNode),
+          : _TreeCanvas(root: _root!, statusOf: _statusOf, onTap: _openNode),
     );
   }
 
   Future<void> _openNode(UsulTreeNode n) async {
     final name = n.sourceRefId == null ? null : await _repo.sourceName(n.sourceRefId!);
+    final exNames = <String, String?>{
+      for (final id in {for (final e in _examples[n.id] ?? const <UsulExample>[]) e.sourceRefId})
+        id: await _repo.sourceName(id),
+    };
     if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
@@ -126,7 +149,7 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 8),
-              ..._answerBody(n),
+              ..._answerBody(n, exNames),
             ],
             const SizedBox(height: 18),
             OutlinedButton.icon(
@@ -149,8 +172,16 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
     );
   }
 
-  List<Widget> _answerBody(UsulTreeNode n) {
+  List<Widget> _answerBody(UsulTreeNode n, Map<String, String?> sourceNames) {
     final a = n.answerKey == null ? null : _answers[n.answerKey];
+    final examples = _examples[n.id] ?? const <UsulExample>[];
+    if (examples.isNotEmpty && a?.status != UsulStatus.sourced) {
+      return [
+        _StatusChip(status: UsulStatus.curated, lang: _lang),
+        const SizedBox(height: 10),
+        ..._exampleBoxes(examples, sourceNames),
+      ];
+    }
     if (a == null) {
       return [
         _StatusChip(status: null, lang: _lang),
@@ -195,17 +226,109 @@ class _UsulTreeScreenState extends State<UsulTreeScreen> {
             ),
           );
         }
+      case UsulStatus.curated:
+        break;
+    }
+    if (examples.isNotEmpty) {
+      out
+        ..add(const SizedBox(height: 14))
+        ..add(
+          Text(
+            basicText('usul_status_curated', _lang),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+          ),
+        )
+        ..add(const SizedBox(height: 8))
+        ..addAll(_exampleBoxes(examples, sourceNames));
     }
     return out;
+  }
+
+  /// The book's own words for this ayah (U5) — a mistaken tafsir quoted to
+  /// warn against it is marked red, so it can never read as the meaning.
+  List<Widget> _exampleBoxes(List<UsulExample> examples, Map<String, String?> sourceNames) => [
+    for (final e in examples) ...[
+      _QuoteBox(
+        label: basicText('usul_kind_${e.kind}', _lang),
+        text: e.text,
+        attribution: [sourceNames[e.sourceRefId], e.locator].whereType<String>().join('، '),
+        accent: e.kind == 'error' ? Colors.red.shade700 : _gold,
+      ),
+      const SizedBox(height: 8),
+    ],
+  ];
+
+  /// «آيات الأمثلة» — every ayah the book itself uses as an example; a tap
+  /// opens that ayah's tree.
+  Future<void> _openIndex() async {
+    final titles = <String, String>{};
+    void walk(UsulTreeNode n) {
+      titles[n.id] = n.title;
+      n.children.forEach(walk);
+    }
+
+    walk(_root!);
+    final ayat = await _repo.exampleAyat();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: AppColors.surface,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.7,
+        maxChildSize: 0.92,
+        builder: (ctx, scroll) => ListView.builder(
+          controller: scroll,
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+          itemCount: ayat.length + 1,
+          itemBuilder: (ctx, i) {
+            if (i == 0) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(8, 0, 8, 10),
+                child: Text(
+                  basicText('usul_examples_index', _lang),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: _ink),
+                ),
+              );
+            }
+            final e = ayat[i - 1];
+            final here = e.surah == widget.surah && e.ayah == widget.ayah;
+            final name = e.surah <= quranSurahs.length ? quranSurahs[e.surah - 1].name : '';
+            return ListTile(
+              selected: here,
+              selectedColor: _ink,
+              selectedTileColor: _gold.withValues(alpha: 0.12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+              leading: const Icon(Icons.account_tree_outlined, color: _gold),
+              title: Text('$name · ${e.ayah}', style: const TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: Text(e.nodeIds.map((id) => titles[id] ?? '').join(' · ')),
+              onTap: () {
+                Navigator.pop(ctx);
+                if (here) return;
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => UsulTreeScreen(surah: e.surah, ayah: e.ayah),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 
 class _QuoteBox extends StatelessWidget {
-  const _QuoteBox({required this.text, required this.attribution, this.label, this.judgment});
+  const _QuoteBox({required this.text, required this.attribution, this.label, this.judgment, this.accent = _gold});
   final String text;
   final String attribution;
   final String? label;
   final String? judgment;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -213,7 +336,7 @@ class _QuoteBox extends StatelessWidget {
     decoration: BoxDecoration(
       color: _page,
       borderRadius: BorderRadius.circular(AppRadius.md),
-      border: const BorderDirectional(start: BorderSide(color: _gold, width: 3)),
+      border: BorderDirectional(start: BorderSide(color: accent, width: 3)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +344,11 @@ class _QuoteBox extends StatelessWidget {
         if (label != null)
           Text(
             label!,
-            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              fontSize: 11.5,
+              color: accent == _gold ? AppColors.textMuted : accent,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         Text('«$text»', style: const TextStyle(fontSize: 15, height: 1.75)),
         if (judgment != null) ...[
@@ -269,6 +396,7 @@ class _StatusChip extends StatelessWidget {
 
 (String, Color, IconData) statusStyle(UsulStatus? s) => switch (s) {
   UsulStatus.sourced => ('usul_status_sourced', AppColors.primary, Icons.check_circle_rounded),
+  UsulStatus.curated => ('usul_status_curated', AppColors.primary, Icons.menu_book_rounded),
   UsulStatus.hint => ('usul_status_hint', _gold, Icons.adjust_rounded),
   UsulStatus.notDownloaded => ('usul_status_not_downloaded', Colors.blueGrey, Icons.download_for_offline_outlined),
   UsulStatus.notFound || null => ('usul_status_not_found', Colors.grey, Icons.radio_button_unchecked),
@@ -288,9 +416,9 @@ class _Placed {
 /// parent centred on its children. Sized so a phone shows the whole map at
 /// ~0.9 scale; it opens fitted to the width and aligned right (RTL).
 class _TreeCanvas extends StatefulWidget {
-  const _TreeCanvas({required this.root, required this.answers, required this.onTap});
+  const _TreeCanvas({required this.root, required this.statusOf, required this.onTap});
   final UsulTreeNode root;
-  final Map<String, UsulNodeAnswer> answers;
+  final UsulStatus? Function(UsulTreeNode) statusOf;
   final void Function(UsulTreeNode) onTap;
 
   @override
@@ -449,7 +577,7 @@ class _TreeCanvasState extends State<_TreeCanvas> with SingleTickerProviderState
                         : _NodeView(
                             node: p.node,
                             lit: _lit(p.node),
-                            status: p.node.answerKey == null ? null : widget.answers[p.node.answerKey]?.status,
+                            status: widget.statusOf(p.node),
                             onTap: () => widget.onTap(p.node),
                           ),
                   ),
@@ -633,7 +761,7 @@ class _NodeView extends StatelessWidget {
           child: CustomPaint(
             painter: _HexPainter(
               fill: dark ? _ink : _leafFill,
-              edge: lit && status == UsulStatus.sourced ? _gold : null,
+              edge: lit && (status == UsulStatus.sourced || status == UsulStatus.curated) ? _gold : null,
               shadows: lit ? shadows : const [],
             ),
             child: Padding(

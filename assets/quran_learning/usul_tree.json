@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "sources": [
   {
    "id": "src:muqaddima_usul_tafsir",
@@ -11,7 +11,7 @@
    "license": "public-domain",
    "license_use": "bundled_ok",
    "authority": "classical",
-   "retrieved_at": "2026-09-29",
+   "retrieved_at": "2026-09-30",
    "confidence": 1.0,
    "classification": "VERIFIED",
    "notes": "Backbone of the usul-tafsir tree (USUL_TAFSIR_TREE.md §10). Quotes are verbatim, located by tool/build_usul_tree.py."
@@ -36,14 +36,14 @@
    "id": "concept:usul:bayan",
    "domain": "usul_tafsir",
    "title_ar": "بيان النبي ﷺ لمعاني القرآن",
-   "short_def_ar": "يجب أن يعلم أن النبي ﷺ بَيَّنَ لأصحابه معاني القرآن كما بين لهم ألفاظه، فقوله تعالى: ﴿لِتُبَيِّنَ لِلنَّاسِ مَا نُزِّلَ إِلَيْهِمْ﴾ [النحل: ٤٤] يتناول هذا وهذا، وقد قال أبو عبد الرحمن السلمي: حدثنا الذين كانوا يقرئوننا القرآن كعثمان بن عفان، وعبد الله بن …",
+   "short_def_ar": "يجب أن يعلم أن النبي ﷺ بَيَّنَ لأصحابه معاني القرآن كما بين لهم ألفاظه، فقوله تعالى: ﴿لِتُبَيِّنَ لِلنَّاسِ مَا نُزِّلَ إِلَيْهِمْ﴾ [النحل: ٤٤] يتناول هذا وهذا، وقد قال أبو عبد الرحمن السلمي: حدثنا الذين كانوا يقرئوننا القرآن كعثمان بن عفان، وعبد الله بن …",
    "source_ref_ids": [
     "src:muqaddima_usul_tafsir"
    ],
    "blocks": [
     [
      "definition",
-     "يجب أن يعلم أن النبي ﷺ بَيَّنَ لأصحابه معاني القرآن كما بين لهم ألفاظه، فقوله تعالى: ﴿لِتُبَيِّنَ لِلنَّاسِ مَا نُزِّلَ إِلَيْهِمْ﴾ [النحل: ٤٤] يتناول هذا وهذا، وقد قال أبو عبد الرحمن السلمي: حدثنا الذين كانوا يقرئوننا القرآن كعثمان بن عفان، وعبد الله بن …",
+     "يجب أن يعلم أن النبي ﷺ بَيَّنَ لأصحابه معاني القرآن كما بين لهم ألفاظه، فقوله تعالى: ﴿لِتُبَيِّنَ لِلنَّاسِ مَا نُزِّلَ إِلَيْهِمْ﴾ [النحل: ٤٤] يتناول هذا وهذا، وقد قال أبو عبد الرحمن السلمي: حدثنا الذين كانوا يقرئوننا القرآن كعثمان بن عفان، وعبد الله بن …",
      "src:muqaddima_usul_tafsir",
      "ص 9"
     ],
@@ -273,14 +273,14 @@
    "id": "concept:usul:turuq",
    "domain": "usul_tafsir",
    "title_ar": "أحسن طرق التفسير",
-   "short_def_ar": "فإن قال قائل: فما أحسن طرق التفسير؟ فالجواب: إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام …",
+   "short_def_ar": "فإن قال قائل: فما أحسن طرق التفسير؟ فالجواب: إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام …",
    "source_ref_ids": [
     "src:muqaddima_usul_tafsir"
    ],
    "blocks": [
     [
      "definition",
-     "فإن قال قائل: فما أحسن طرق التفسير؟ فالجواب: إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام …",
+     "فإن قال قائل: فما أحسن طرق التفسير؟ فالجواب: إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام …",
      "src:muqaddima_usul_tafsir",
      "ص 39"
     ],
@@ -295,14 +295,14 @@
    "id": "concept:usul:bil_quran",
    "domain": "usul_tafsir",
    "title_ar": "تفسير القرآن بالقرآن",
-   "short_def_ar": "إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم …",
+   "short_def_ar": "إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم …",
    "source_ref_ids": [
     "src:muqaddima_usul_tafsir"
    ],
    "blocks": [
     [
      "definition",
-     "إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم …",
+     "إن أصح الطرق في ذلك أن يفسر القرآن بالقرآن، فما أُجْمِلَ في مكان فإنه قد فُسِّرَ في موضع آخر، وما اخْتُصِر من مكان فقد بُسِطَ في موضع آخر، فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم …",
      "src:muqaddima_usul_tafsir",
      "ص 39"
     ],
@@ -317,14 +317,14 @@
    "id": "concept:usul:bil_sunna",
    "domain": "usul_tafsir",
    "title_ar": "تفسيره بالسنة",
-   "short_def_ar": "فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن، قال الله تعالى: ﴿إِنَّا أَنزَلْنَا إِلَيْكَ الْكِتَابَ بِالْحَقِّ لِتَحْكُمَ بَيْنَ النَّاسِ بِمَا …",
+   "short_def_ar": "فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن، قال الله تعالى: ﴿إِنَّا أَنزَلْنَا إِلَيْكَ الْكِتَابَ بِالْحَقِّ لِتَحْكُمَ بَيْنَ النَّاسِ بِمَا …",
    "source_ref_ids": [
     "src:muqaddima_usul_tafsir"
    ],
    "blocks": [
     [
      "definition",
-     "فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن، قال الله تعالى: ﴿إِنَّا أَنزَلْنَا إِلَيْكَ الْكِتَابَ بِالْحَقِّ لِتَحْكُمَ بَيْنَ النَّاسِ بِمَا …",
+     "فإن أعياك ذلك فعليك بالسنة، فإنها شارحة للقرآن وموضحة له، بل قد قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن، قال الله تعالى: ﴿إِنَّا أَنزَلْنَا إِلَيْكَ الْكِتَابَ بِالْحَقِّ لِتَحْكُمَ بَيْنَ النَّاسِ بِمَا …",
      "src:muqaddima_usul_tafsir",
      "ص 39"
     ],
@@ -417,7 +417,1480 @@
    ]
   }
  ],
- "facts": [],
+ "facts": [
+  {
+   "id": "usul:tanawwu_ibara:001:006:000",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 1,
+    "ayah": 6,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_ibara",
+    "kind": "example",
+    "text": "فهذان القولان متفقان؛ لأن دين الإسلام هو إتباع القرآن، ولكن كل منهما نبه على وصف غير الوصف الآخر، كما أن لفظ \" صراط \" يشعر بوصف ثالث، وكذلك قول من قال: هو السنة والجماعة.",
+    "locator": "ص 14"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_ibara:020:124:001",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 20,
+    "ayah": 124,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_ibara",
+    "kind": "example",
+    "text": "فسواء قيل: ذكري كتابي أو كلامي أو هداي أو نحو ذلك، كان المسمى واحدًا.",
+    "locator": "ص 13"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_ibara:052:009:002",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 52,
+    "ayah": 9,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_ibara",
+    "kind": "example",
+    "text": "إن المور هو الحركة كان تقريبا؛ إذ المور حركة خفيفة سريعة.",
+    "locator": "ص 18"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_ibara:002:002:003",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 2,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_ibara",
+    "kind": "example",
+    "text": "ومن قال: ﴿لاريب﴾: لا شك، فهذا تقريب، وإلا فالريب فيه اضطراب وحركة …",
+    "locator": "ص 18"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_ibara:006:070:004",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 6,
+    "ayah": 70,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_ibara",
+    "kind": "example",
+    "text": "فإذا قال أحدهم: ﴿أَن تُبْسَلَ﴾: أي تحبس، وقال الآخر: ترتهن، ونحو ذلك، لم يكن من اختلاف التضاد، وإن كان المحبوس قد يكون مرتهنا وقد لا يكون، إذ هذا تقريب للمعنى كما تقدم …",
+    "locator": "ص 19"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_ibara:004:163:005",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 4,
+    "ayah": 163,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_ibara",
+    "kind": "example",
+    "text": "وكذلك إذا قال: الوحي: الإعلام، أو قيل: ﴿أَوْحَيْنَا إِلَيْكَ﴾ [النساء: ١٦٣]: أنزلنا إليك، أو قيل: ﴿وَقَضَيْنَا إِلَى بَنِي إِسْرَائِيلَ﴾ [الإسراء: ٤] أي: أعلمنا، وأمثال ذلك، فهذا كله تقريب لا تحقيق؛",
+    "locator": "ص 18"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_ibara:017:004:005",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 17,
+    "ayah": 4,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_ibara",
+    "kind": "example",
+    "text": "وكذلك إذا قال: الوحي: الإعلام، أو قيل: ﴿أَوْحَيْنَا إِلَيْكَ﴾ [النساء: ١٦٣]: أنزلنا إليك، أو قيل: ﴿وَقَضَيْنَا إِلَى بَنِي إِسْرَائِيلَ﴾ [الإسراء: ٤] أي: أعلمنا، وأمثال ذلك، فهذا كله تقريب لا تحقيق؛",
+    "locator": "ص 18"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_mithal:035:032:006",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 35,
+    "ayah": 32,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_mithal",
+    "kind": "example",
+    "text": "فمعلوم أن الظالم لنفسه يتناول المضيع للواجبات، والمنتهك للمحرمات، والمقتصد يتناول فاعل الواجبات وتارك المحرمات، والسابق يدخل فيه من سبق فتقرب بالحسنات مع الواجبات، فالمقتصدون هم أصحاب اليمين …",
+    "locator": "ص 14"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:tanawwu_mithal:035:032:007",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 35,
+    "ayah": 32,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:tanawwu_mithal",
+    "kind": "example",
+    "text": "فكل قول فيه ذكر نوع داخل في الآية ذكر لتعريف المستمع بتناول الآية له وتنبيهه به على نظيره، فإن التعريف بالمثال قد يسهل أكثر من التعريف بالحد المطلق، والعقل السليم يتفطن للنوع، كما يتفطن إذا أشير له إلى رغيف، فقيل له: هذا هو الخبز.",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:074:051:008",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 74,
+    "ayah": 51,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "إما لكونه مشتركًا في اللفظ كلفظ ﴿قَسْوَرَةٍ﴾ الذي يراد به الرامي، ويراد به الأسد …",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:081:017:009",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 81,
+    "ayah": 17,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "ولفظ ﴿عَسْعَسَ﴾ الذي يراد به إقبال الليل وإدباره …",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:053:008:010",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 53,
+    "ayah": 8,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "كالضمائر في قوله: ﴿ثُمَّ دَنَا فَتَدَلَّى فَكَانَ قَابَ قَوْسَيْنِ أَوْ أَدْنَى﴾ [النجم: ٨، ٩] …",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:053:009:010",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 53,
+    "ayah": 9,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "كالضمائر في قوله: ﴿ثُمَّ دَنَا فَتَدَلَّى فَكَانَ قَابَ قَوْسَيْنِ أَوْ أَدْنَى﴾ [النجم: ٨، ٩] …",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:089:001:011",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 89,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "وكلفظ ﴿وَالْفَجْرِ وَلَيَالٍ عَشْرٍ وَالشَّفْعِ وَالْوَتْرٌِ﴾ [الفجر: ١-٣] وما أشبه ذلك.",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:089:002:011",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 89,
+    "ayah": 2,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "وكلفظ ﴿وَالْفَجْرِ وَلَيَالٍ عَشْرٍ وَالشَّفْعِ وَالْوَتْرٌِ﴾ [الفجر: ١-٣] وما أشبه ذلك.",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:089:003:011",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 89,
+    "ayah": 3,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "وكلفظ ﴿وَالْفَجْرِ وَلَيَالٍ عَشْرٍ وَالشَّفْعِ وَالْوَتْرٌِ﴾ [الفجر: ١-٣] وما أشبه ذلك.",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:074:051:012",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 74,
+    "ayah": 51,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "فمثل هذا قد يجوز أن يراد به كل المعاني التي قالها السلف، ووقد لا يجوز ذلك، فالأول إما لكون الآية نزلت مرتين فأريد بها هذا تارة وهذا تارة، وإما لكون اللفظ المشترك يجوز أن يراد به معنياه؛",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:muhtamal:081:017:012",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 81,
+    "ayah": 17,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:muhtamal",
+    "kind": "example",
+    "text": "فمثل هذا قد يجوز أن يراد به كل المعاني التي قالها السلف، ووقد لا يجوز ذلك، فالأول إما لكون الآية نزلت مرتين فأريد بها هذا تارة وهذا تارة، وإما لكون اللفظ المشترك يجوز أن يراد به معنياه؛",
+    "locator": "ص 17"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:058:001:013",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 58,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "إن آية الظهار نزلت في امرأة اوس بن الصامت …",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:024:006:014",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 24,
+    "ayah": 6,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "وإن آية اللعان نزلت في عويمر العَجْلاني أو هلال بن أمية …",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:004:176:015",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 4,
+    "ayah": 176,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "وإن آية الكلالة نزلت في جابر بن عبد الله …",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:005:049:016",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 49,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "وإن قوله: ﴿وَأَنِ احْكُم بَيْنَهُم بِمَا أَنزَلَ اللهُ﴾ [المائدة: ٤٩] نزلت في بني قُرَيْظَة والنَّضِير …",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:008:016:017",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 8,
+    "ayah": 16,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "وأن قوله: ﴿وَمَن يُوَلِّهِمْ يَوْمَئِذٍ دُبُرَه﴾ [الأنفال: ١٦] نزلت في بَدْر …",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:005:106:018",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 106,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "وأن قوله: ﴿شَهَادَةُ بَيْنِكُمْ إِذَا حَضَرَ أَحَدَكُمُ الْمَوْتُ﴾ [المائدة: ١٠٦] نزلت في قضية تَمِيم الداري وَعديّ بن بَدَّاء …",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:002:195:019",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 195,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "وقول أبي أيوب إن قوله: ﴿وَلاَ تُلْقُواْ بِأَيْدِيكُمْ إِلَى التَّهْلُكَةِ﴾ [البقرة: ١٩٥]: نزلت فينا معشر الأنصار، الحديث.",
+    "locator": "ص 15"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:058:001:020",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 58,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "والآية التي لها سبب معين، إن كانت أمرا ونهيا فهي متناولة لذلك الشخص ولغيره ممن كان بمنزلته، وإن كانت خبرًا بمدح أو ذم فهي متناولة لذلك الشخص وغيره ممن كان بمنزلته أيضًا.",
+    "locator": "ص 16"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:024:006:020",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 24,
+    "ayah": 6,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "والآية التي لها سبب معين، إن كانت أمرا ونهيا فهي متناولة لذلك الشخص ولغيره ممن كان بمنزلته، وإن كانت خبرًا بمدح أو ذم فهي متناولة لذلك الشخص وغيره ممن كان بمنزلته أيضًا.",
+    "locator": "ص 16"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:004:176:020",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 4,
+    "ayah": 176,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "والآية التي لها سبب معين، إن كانت أمرا ونهيا فهي متناولة لذلك الشخص ولغيره ممن كان بمنزلته، وإن كانت خبرًا بمدح أو ذم فهي متناولة لذلك الشخص وغيره ممن كان بمنزلته أيضًا.",
+    "locator": "ص 16"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:005:049:020",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 49,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "والآية التي لها سبب معين، إن كانت أمرا ونهيا فهي متناولة لذلك الشخص ولغيره ممن كان بمنزلته، وإن كانت خبرًا بمدح أو ذم فهي متناولة لذلك الشخص وغيره ممن كان بمنزلته أيضًا.",
+    "locator": "ص 16"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:008:016:020",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 8,
+    "ayah": 16,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "والآية التي لها سبب معين، إن كانت أمرا ونهيا فهي متناولة لذلك الشخص ولغيره ممن كان بمنزلته، وإن كانت خبرًا بمدح أو ذم فهي متناولة لذلك الشخص وغيره ممن كان بمنزلته أيضًا.",
+    "locator": "ص 16"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:005:106:020",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 106,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "والآية التي لها سبب معين، إن كانت أمرا ونهيا فهي متناولة لذلك الشخص ولغيره ممن كان بمنزلته، وإن كانت خبرًا بمدح أو ذم فهي متناولة لذلك الشخص وغيره ممن كان بمنزلته أيضًا.",
+    "locator": "ص 16"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:nuzul:002:195:020",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 195,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:nuzul",
+    "kind": "example",
+    "text": "والآية التي لها سبب معين، إن كانت أمرا ونهيا فهي متناولة لذلك الشخص ولغيره ممن كان بمنزلته، وإن كانت خبرًا بمدح أو ذم فهي متناولة لذلك الشخص وغيره ممن كان بمنزلته أيضًا.",
+    "locator": "ص 16"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:018:018:021",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 18,
+    "ayah": 18,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "example",
+    "text": "فمثال ما لا يفيد ولا دليل على الصحيح منه: اختلافهم في لون كلب أصحاب الكهف …",
+    "locator": "ص 20"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:002:073:022",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 73,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "example",
+    "text": "وفي البعض الذي ضرب به موسى من البقرة …",
+    "locator": "ص 20"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:018:074:023",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 18,
+    "ayah": 74,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "example",
+    "text": "وفي اسم الغلام الذي قتله الخضر …",
+    "locator": "ص 21"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:018:022:024",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 18,
+    "ayah": 22,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "basis",
+    "text": "فقد اشتملت هذه الآية الكريمة على الأدب في هذا المقام، وتعليم ما ينبغي في مثل هذا؛",
+    "locator": "ص 43"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:018:022:025",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 18,
+    "ayah": 22,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "basis",
+    "text": "فهذا أحسن ما يكون في حكاية الخلاف؛",
+    "locator": "ص 43"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:013:007:026",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 13,
+    "ayah": 7,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "error",
+    "text": "والموضوعات في كتب التفسير كثيرة، مثل الأحاديث الكثيرة الصريحة في الجهر بالبسملة، وحديث على الطويل في تصدقه بخاتمه في الصلاة، فإنه موضوع باتفاق أهل العلم، ومثل ما روي في قوله: ﴿وَلِكُلِّ قَوْمٍ هَادٍ﴾ [الرعد: ٧] أنه علي ﴿وَتَعِيَهَا أُذُنٌ وَاعِيَةٌ﴾ [الحاقة: ١٢] أذنك يا علي.",
+    "locator": "ص 31"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:069:012:026",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 69,
+    "ayah": 12,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "error",
+    "text": "والموضوعات في كتب التفسير كثيرة، مثل الأحاديث الكثيرة الصريحة في الجهر بالبسملة، وحديث على الطويل في تصدقه بخاتمه في الصلاة، فإنه موضوع باتفاق أهل العلم، ومثل ما روي في قوله: ﴿وَلِكُلِّ قَوْمٍ هَادٍ﴾ [الرعد: ٧] أنه علي ﴿وَتَعِيَهَا أُذُنٌ وَاعِيَةٌ﴾ [الحاقة: ١٢] أذنك يا علي.",
+    "locator": "ص 31"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:naql:005:055:026",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 55,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:naql",
+    "kind": "error",
+    "text": "والموضوعات في كتب التفسير كثيرة، مثل الأحاديث الكثيرة الصريحة في الجهر بالبسملة، وحديث على الطويل في تصدقه بخاتمه في الصلاة، فإنه موضوع باتفاق أهل العلم، ومثل ما روي في قوله: ﴿وَلِكُلِّ قَوْمٍ هَادٍ﴾ [الرعد: ٧] أنه علي ﴿وَتَعِيَهَا أُذُنٌ وَاعِيَةٌ﴾ [الحاقة: ١٢] أذنك يا علي.",
+    "locator": "ص 31"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:111:001:027",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 111,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: ﴿تَبَّتْ يَدَا أَبِي لَهَبٍ وَتَبَّ﴾ [المسد: ١] هما أبو بكر وعمر …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:039:065:028",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 39,
+    "ayah": 65,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿لَئِنْ أَشْرَكْتَ لَيَحْبَطَنَّ عَمَلُكَ﴾ [الزمر: ٦٥] …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:002:067:029",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 67,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿إِنَّ اللهَ يَأْمُرُكُمْ أَنْ تَذْبَحُواْ بَقَرَةً﴾ [البقرة: ٦٧] هي عائشة …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:009:012:030",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 9,
+    "ayah": 12,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿فَقَاتِلُواْ أَئِمَّةَ الْكُفْرِ﴾ [التوبة: ١٢] طلحة والزبير …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:055:019:031",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 55,
+    "ayah": 19,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿مَرَجَ الْبَحْرَيْنِ﴾ [الرحمن: ١٩] على وفاطمة …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:055:022:032",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 55,
+    "ayah": 22,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿اللُّؤْلُؤُ وَالْمَرْجَانُ﴾ [الرحمن: ٢٢] الحسن والحسين …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:036:012:033",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 36,
+    "ayah": 12,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿وَكُلَّ شَيْءٍ أحْصَيْنَاهُ فِي إِمَامٍ مُبِينٍ﴾ [يس: ١٢] فى علي بن أبي طالب …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:078:001:034",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 78,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿عَمَّ يَتَسَاءلُونَ عَنِ النَّبَإِ الْعَظِيمِ﴾ [النبأ: ١، ٢] علي بن أبي طالب …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:078:002:034",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 78,
+    "ayah": 2,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿عَمَّ يَتَسَاءلُونَ عَنِ النَّبَإِ الْعَظِيمِ﴾ [النبأ: ١، ٢] علي بن أبي طالب …",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:005:055:035",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 55,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … و﴿إِنَّمَا وَلِيُّكُمُ اللهُ وَرَسُولُهُ وَالَّذِينَ آمَنُواْ الَّذِينَ يُقِيمُونَ الصَّلاَةَ وَيُؤْتُونَ الزَّكَاةَ وَهُمْ رَاكِعُون﴾ [المائدة: ٥٥] هو علي.",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:002:157:036",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 157,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "فتفسير الرافضة كقولهم: … وكذلك قوله: ﴿أُولَئِكَ عَلَيْهِمْ صَلَوَاتٌ مِّن رَّبِّهِمْ وَرَحْمَةٌ﴾ [البقرة: ١٥٧] نزلت في علي لما أصيب بحمزة.",
+    "locator": "ص 36"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:001:037",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وأعجب من ذلك قول بعضهم ﴿وَالتِّينِ﴾ أبو بكر ﴿وَالزَّيْتُونِ﴾ عمر ﴿وَطُورِ سِينِينَ﴾ عثمان ﴿وَهَذَا الْبَلَدِ الْأَمِينِ﴾ [التين: ١-٣] علي …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:002:037",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 2,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وأعجب من ذلك قول بعضهم ﴿وَالتِّينِ﴾ أبو بكر ﴿وَالزَّيْتُونِ﴾ عمر ﴿وَطُورِ سِينِينَ﴾ عثمان ﴿وَهَذَا الْبَلَدِ الْأَمِينِ﴾ [التين: ١-٣] علي …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:003:037",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 3,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وأعجب من ذلك قول بعضهم ﴿وَالتِّينِ﴾ أبو بكر ﴿وَالزَّيْتُونِ﴾ عمر ﴿وَطُورِ سِينِينَ﴾ عثمان ﴿وَهَذَا الْبَلَدِ الْأَمِينِ﴾ [التين: ١-٣] علي …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:001:038",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وأمثال هذه الخرافات التي تتضمن تارة تفسير اللفظ بما لا يدل عليه بحال …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:002:038",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 2,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وأمثال هذه الخرافات التي تتضمن تارة تفسير اللفظ بما لا يدل عليه بحال …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:003:038",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 3,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وأمثال هذه الخرافات التي تتضمن تارة تفسير اللفظ بما لا يدل عليه بحال …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:048:029:038",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 48,
+    "ayah": 29,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وأمثال هذه الخرافات التي تتضمن تارة تفسير اللفظ بما لا يدل عليه بحال …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:048:029:039",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 48,
+    "ayah": 29,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وقوله تعالى: ﴿وَالَّذِينَ مَعَهُ أَشِدَّاء عَلَى الْكُفَّارِ رُحَمَاء بَيْنَهُمْ تَرَاهُمْ رُكَّعًا سُجَّدًا﴾ كل ذلك نعت للذين معه، وهي التي يسميها النحاة خبرًا بعد خبر.",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:005:055:040",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 55,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وتتضمن تارة جعل اللفظ المطلق العام منحصرا في شخص واحد كقوله: إن قوله: ﴿إِنَّمَا وَلِيُّكُمُ اللهُ وَرَسُولُهُ وَالَّذِينَ آمَنُواْ﴾ أريد بها علي وحده …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:039:033:040",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 39,
+    "ayah": 33,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وتتضمن تارة جعل اللفظ المطلق العام منحصرا في شخص واحد كقوله: إن قوله: ﴿إِنَّمَا وَلِيُّكُمُ اللهُ وَرَسُولُهُ وَالَّذِينَ آمَنُواْ﴾ أريد بها علي وحده …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:057:010:040",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 57,
+    "ayah": 10,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وتتضمن تارة جعل اللفظ المطلق العام منحصرا في شخص واحد كقوله: إن قوله: ﴿إِنَّمَا وَلِيُّكُمُ اللهُ وَرَسُولُهُ وَالَّذِينَ آمَنُواْ﴾ أريد بها علي وحده …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:039:033:041",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 39,
+    "ayah": 33,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وقول بعضهم: إن قوله: ﴿وَالَّذِي جَاء بِالصِّدْقِ وَصَدَّقَ بِهِ﴾ [الزمر: ٣٣] أريد بها أبو بكر وحده …",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:057:010:042",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 57,
+    "ayah": 10,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "وقوله: ﴿لَا يَسْتَوِي مِنكُم مَّنْ أَنفَقَ مِن قَبْلِ الْفَتْحِ وَقَاتَلَ﴾ [الحديد: ١٠] أريد بها أبو بكر وحده ونحو ذلك.",
+    "locator": "ص 37"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:111:001:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 111,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:039:065:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 39,
+    "ayah": 65,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:002:067:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 67,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:009:012:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 9,
+    "ayah": 12,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:055:019:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 55,
+    "ayah": 19,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:055:022:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 55,
+    "ayah": 22,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:036:012:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 36,
+    "ayah": 12,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:078:001:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 78,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:078:002:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 78,
+    "ayah": 2,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:005:055:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 5,
+    "ayah": 55,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:002:157:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 2,
+    "ayah": 157,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:048:029:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 48,
+    "ayah": 29,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:001:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 1,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:002:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 2,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:095:003:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 95,
+    "ayah": 3,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:039:033:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 39,
+    "ayah": 33,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:istidlal:057:010:043",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 57,
+    "ayah": 10,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:istidlal",
+    "kind": "error",
+    "text": "والمقصود أن مثل هؤلاء اعتقدوا رأيا ثم حملوا ألفاظ القرآن عليه …",
+    "locator": "ص 35"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_ray:080:031:044",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 80,
+    "ayah": 31,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_ray",
+    "kind": "example",
+    "text": "أن أبا بكر الصديق سئل عن قوله: ﴿وَفَاكِهَةً وَأَبًّا﴾ [عبس: ٣١] فقال: أي سماء تظلني، وأي أرض تقلني، إن أنا قلت في كتاب الله ما لا أعلم؟ منقطع …",
+    "locator": "ص 47"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_ray:080:031:045",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 80,
+    "ayah": 31,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_ray",
+    "kind": "example",
+    "text": "أن عمر بن الخطاب قرأ على المنبر: ﴿وَفَاكِهَةً وَأَبًّا﴾ فقال: هذه الفاكهة قد عرفناها فما الأبُّ؟ ثم رجع إلى نفسه فقال: إن هذا لهو التكلف يا عمر.",
+    "locator": "ص 47"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_ray:080:031:046",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 80,
+    "ayah": 31,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_ray",
+    "kind": "example",
+    "text": "وهذا كله محمول على أنهما ﵄ إنما أرادا استكشاف علم كيفية الأب، وإلا فكونه نبتًا من الأرض ظاهر لا يجهل؛",
+    "locator": "ص 48"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_ray:032:005:047",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 32,
+    "ayah": 5,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_ray",
+    "kind": "example",
+    "text": "سأل رجل ابن عباس عن: ﴿فِي يَوْمٍ كَانَ مِقْدَارُهُ أَلْفَ سَنَةٍ مِّمَّا تَعُدُّونَ﴾ [السجدة: ٥] فقال له ابن عباس فما: ﴿يَوْمٍ كَانَ مِقْدَارُهُ خَمْسِينَ أَلْفَ سَنَةٍ﴾ [المعارج: ٤] فقال الرجل: إنما سألتك لتحدثني، فقال ابن عباس: هما يومان ذكرهما الله في كتابه، الله أعلم بهما، فكره أن يقول في كتاب الله ما لا يعلم.",
+    "locator": "ص 48"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_ray:070:004:047",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 70,
+    "ayah": 4,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_ray",
+    "kind": "example",
+    "text": "سأل رجل ابن عباس عن: ﴿فِي يَوْمٍ كَانَ مِقْدَارُهُ أَلْفَ سَنَةٍ مِّمَّا تَعُدُّونَ﴾ [السجدة: ٥] فقال له ابن عباس فما: ﴿يَوْمٍ كَانَ مِقْدَارُهُ خَمْسِينَ أَلْفَ سَنَةٍ﴾ [المعارج: ٤] فقال الرجل: إنما سألتك لتحدثني، فقال ابن عباس: هما يومان ذكرهما الله في كتابه، الله أعلم بهما، فكره أن يقول في كتاب الله ما لا يعلم.",
+    "locator": "ص 48"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_sunna:004:105:048",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 4,
+    "ayah": 105,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_sunna",
+    "kind": "basis",
+    "text": "فإن أعياك ذلك فعليك بالسنة …",
+    "locator": "ص 39"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_sunna:016:044:048",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 16,
+    "ayah": 44,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_sunna",
+    "kind": "basis",
+    "text": "فإن أعياك ذلك فعليك بالسنة …",
+    "locator": "ص 39"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_sunna:016:064:048",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 16,
+    "ayah": 64,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_sunna",
+    "kind": "basis",
+    "text": "فإن أعياك ذلك فعليك بالسنة …",
+    "locator": "ص 39"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_sunna:004:105:049",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 4,
+    "ayah": 105,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_sunna",
+    "kind": "basis",
+    "text": "قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن …",
+    "locator": "ص 39"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_sunna:016:044:049",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 16,
+    "ayah": 44,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_sunna",
+    "kind": "basis",
+    "text": "قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن …",
+    "locator": "ص 39"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  },
+  {
+   "id": "usul:bil_sunna:016:064:049",
+   "domain": "usul_tafsir",
+   "anchor": {
+    "surah": 16,
+    "ayah": 64,
+    "scope": "ayah"
+   },
+   "payload": {
+    "concept_id": "concept:usul:bil_sunna",
+    "kind": "basis",
+    "text": "قال الإمام أبو عبد الله محمد بن إدريس الشافعي: كل ما حكم به رسول الله ﷺ فهو مما فهمه من القرآن …",
+    "locator": "ص 39"
+   },
+   "source_ref_id": "src:muqaddima_usul_tafsir"
+  }
+ ],
  "relations": [
   {
    "from": "concept:usul:usul",

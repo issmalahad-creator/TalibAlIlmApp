@@ -196,7 +196,7 @@ class LocalKnowledgeProvider extends KnowledgeProvider {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query(
       'knowledge_facts',
-      where: 'surah = ? AND ayah = ? AND word_start <= ? AND word_end >= ?',
+      where: "domain != 'usul_tafsir' AND surah = ? AND ayah = ? AND word_start <= ? AND word_end >= ?",
       whereArgs: [surah, ayah, wordIndex, wordIndex],
       orderBy: 'domain ASC, id ASC',
     );
@@ -208,7 +208,9 @@ class LocalKnowledgeProvider extends KnowledgeProvider {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query(
       'knowledge_facts',
-      where: 'surah = ? AND ayah = ?',
+      // `usul_tafsir` examples (U5) live in
+      // the same table but belong to the usul tree, not the knowledge surface.
+      where: "domain != 'usul_tafsir' AND surah = ? AND ayah = ?",
       whereArgs: [surah, ayah],
       orderBy: 'domain ASC, word_start ASC, id ASC',
     );

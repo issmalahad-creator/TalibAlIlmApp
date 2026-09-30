@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../db/database_helper.dart';
 import '../models/quran_learning.dart';
 import '../services/boot/boot_scheduler.dart';
@@ -42,6 +44,44 @@ class UsulTreeNode {
   final String? answerKey;
 
   final List<UsulTreeNode> children = [];
+}
+
+/// An ayah an usul book itself uses as an example of a node (U5) — the
+/// author's words verbatim, with the page.
+class UsulExample {
+  const UsulExample({
+    required this.nodeId,
+    required this.surah,
+    required this.ayah,
+    required this.kind,
+    required this.text,
+    required this.locator,
+    required this.sourceRefId,
+  });
+
+  final String nodeId;
+  final int surah;
+  final int ayah;
+
+  /// example · error (a mistaken tafsir cited to warn) · basis (the ayah is
+  /// evidence for the principle itself).
+  final String kind;
+  final String text;
+  final String locator;
+  final String sourceRefId;
+
+  factory UsulExample.fromRow(Map<String, Object?> r) {
+    final p = (jsonDecode(r['payload_json'] as String) as Map).cast<String, dynamic>();
+    return UsulExample(
+      nodeId: p['concept_id'] as String,
+      surah: r['surah'] as int,
+      ayah: r['ayah'] as int,
+      kind: p['kind'] as String? ?? 'example',
+      text: p['text'] as String,
+      locator: p['locator'] as String? ?? '',
+      sourceRefId: r['source_ref_id'] as String,
+    );
+  }
 }
 
 /// Loads the tree (USUL_TAFSIR_TREE.md U1 — `knowledge_concepts` with
@@ -98,10 +138,55 @@ class UsulTreeRepository {
   /// Human name of a source row, for the «المصدر» line under a quote.
   Future<String?> sourceName(String id) async {
     final db = await DatabaseHelper.instance.database;
-    final rows = await db.query('source_references', columns: ['name', 'author'], where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows = await db.query(
+      'source_references',
+      columns: ['name', 'author'],
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
     if (rows.isEmpty) return null;
     final author = rows.first['author'] as String?;
     return author == null ? rows.first['name'] as String : '${rows.first['name']} — $author';
+  }
+
+  /// U5 book examples for one ayah, by node id.
+  Future<Map<String, List<UsulExample>>> examplesFor(int surah, int ayah) async {
+    await BootScheduler.instance.ensure(BootTasks.quranLearning);
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query(
+      'knowledge_facts',
+      columns: ['surah', 'ayah', 'payload_json', 'source_ref_id'],
+      where: "domain = 'usul_tafsir' AND surah = ? AND ayah = ?",
+      whereArgs: [surah, ayah],
+      orderBy: 'id ASC',
+    );
+    final out = <String, List<UsulExample>>{};
+    for (final r in rows) {
+      final e = UsulExample.fromRow(r);
+      (out[e.nodeId] ??= []).add(e);
+    }
+    return out;
+  }
+
+  /// Every ayah that has a book example, in mushaf order, with the node ids
+  /// it illustrates — the «آيات الأمثلة» index.
+  Future<List<({int surah, int ayah, List<String> nodeIds})>> exampleAyat() async {
+    await BootScheduler.instance.ensure(BootTasks.quranLearning);
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query(
+      'knowledge_facts',
+      columns: ['surah', 'ayah', 'payload_json', 'source_ref_id'],
+      where: "domain = 'usul_tafsir'",
+      orderBy: 'surah ASC, ayah ASC, id ASC',
+    );
+    final byAyah = <(int, int), List<String>>{};
+    for (final r in rows) {
+      final e = UsulExample.fromRow(r);
+      final ids = byAyah[(e.surah, e.ayah)] ??= [];
+      if (!ids.contains(e.nodeId)) ids.add(e.nodeId);
+    }
+    return [for (final e in byAyah.entries) (surah: e.key.$1, ayah: e.key.$2, nodeIds: e.value)];
   }
 
   /// U2 answers for one ayah. In lite without the athar pack, the athar-fed
@@ -111,9 +196,6 @@ class UsulTreeRepository {
     final haveAthar = await ContentPackEngine.instance.isUsable('corpus.sayings');
     final raw = haveAthar ? await corpus.sayings(surah, ayah) : null;
     final asbab = await corpus.asbab(surah, ayah);
-    return usulAnswersFor(
-      sayings: haveAthar ? (raw is List ? raw.cast<Object?>() : const []) : null,
-      asbab: asbab,
-    );
+    return usulAnswersFor(sayings: haveAthar ? (raw is List ? raw.cast<Object?>() : const []) : null, asbab: asbab);
   }
 }

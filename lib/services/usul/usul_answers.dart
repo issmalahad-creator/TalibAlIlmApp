@@ -4,14 +4,15 @@ import 'narrator_tiers.dart';
 /// tree says about ONE ayah, from data we ship. Pure (no DB) so every rule
 /// is tested directly.
 ///
-/// The four honest states of §3 — never a score:
+/// The honest states of §3 — never a score:
 /// * [UsulStatus.sourced] — the source itself says it; evidence is quoted.
+/// * [UsulStatus.curated] — «منسَّق ومُراجَع»: an usul book names this ayah
+///   as an example of the node (U5), quoted with its page.
 /// * [UsulStatus.hint] — «قد ينطبق — للمراجعة», an automatic signal shown
 ///   differently, never as an answer.
-/// * [UsulStatus.notFound] — «لم نجد في مصادرنا» (also every curated node
-///   until reviewed book examples exist — U5).
+/// * [UsulStatus.notFound] — «لم نجد في مصادرنا».
 /// * [UsulStatus.notDownloaded] — lite build without the athar pack.
-enum UsulStatus { sourced, hint, notFound, notDownloaded }
+enum UsulStatus { sourced, curated, hint, notFound, notDownloaded }
 
 class UsulEvidence {
   const UsulEvidence({required this.text, required this.sayer, required this.source, this.judgment});

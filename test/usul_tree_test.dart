@@ -8,6 +8,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/models/quran_learning.dart';
 import 'package:talib_alilm_app/repositories/quran_learning_sync.dart';
+import 'package:talib_alilm_app/repositories/usul_tree_repository.dart';
+import 'package:talib_alilm_app/services/quran_learning/knowledge_gateway.dart';
 
 /// U1 of docs/quran/USUL_TAFSIR_TREE.md — the usul-tafsir tree from Ibn
 /// Taymiyya's «مقدمة في أصول التفسير», merged into the knowledge seed.
@@ -93,13 +95,67 @@ void main() {
     final rels = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM knowledge_relations'));
     expect(rels, (usul['relations'] as List).length);
     // The existing lessons are still there (the wholesale rebuild includes both).
-    final protoFacts = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM knowledge_facts'));
+    final protoFacts = Sqflite.firstIntValue(
+        await db.rawQuery("SELECT COUNT(*) FROM knowledge_facts WHERE domain != 'usul_tafsir'"));
     expect(protoFacts, (proto['facts'] as List).length);
+    final usulFacts = Sqflite.firstIntValue(
+        await db.rawQuery("SELECT COUNT(*) FROM knowledge_facts WHERE domain = 'usul_tafsir'"));
+    expect(usulFacts, (usul['facts'] as List).length);
     // The page survives the round trip through blocks_json.
     final row = (await db.query('knowledge_concepts', where: 'id = ?', whereArgs: ['concept:usul:nuzul'])).single;
     final nuzul = LearningConcept.fromRow(row);
     expect(nuzul.blocks.first.locator, 'ص 16');
     expect(nuzul.blocks.first.textAr, startsWith('ومعرفة سبب النزول يعين على فهم الآية'));
+  });
+
+  // U5 — the ayat the Muqaddima itself uses as examples.
+  test('book examples: quoted with a page, on a real node, never a guessed kind', () {
+    final facts = (usul['facts'] as List).cast<Map<String, dynamic>>();
+    final nodes = {for (final c in (usul['concepts'] as List)) (c as Map)['id'] as String};
+    final ayat = <String>{};
+    for (final f in facts) {
+      final p = (f['payload'] as Map).cast<String, dynamic>();
+      final a = (f['anchor'] as Map).cast<String, dynamic>();
+      expect(f['domain'], 'usul_tafsir');
+      expect(f['source_ref_id'], 'src:muqaddima_usul_tafsir');
+      expect(a['scope'], 'ayah');
+      expect(a['word_start'], isNull, reason: 'an example is about the whole ayah');
+      expect(nodes, contains(p['concept_id']), reason: f['id'] as String);
+      expect(p['locator'], matches(RegExp(r'^ص \d+$')));
+      expect(const {'example', 'error', 'basis'}, contains(p['kind']));
+      // A mistaken tafsir is only ever cited under the two nodes that warn.
+      if (p['kind'] == 'error') {
+        expect(const {'concept:usul:istidlal', 'concept:usul:naql'}, contains(p['concept_id']), reason: f['id'] as String);
+      }
+      expect((p['text'] as String).trim(), isNotEmpty);
+      ayat.add('${a['surah']}:${a['ayah']}');
+    }
+    expect(ayat.length, greaterThanOrEqualTo(20), reason: 'U5 promises ~20 fully answered ayat');
+    // Spot checks against the book: the famous examples are where Ibn Taymiyya put them.
+    String? kindOf(String node, int s, int a) => facts
+        .where((f) => (f['payload'] as Map)['concept_id'] == 'concept:usul:$node' &&
+            (f['anchor'] as Map)['surah'] == s && (f['anchor'] as Map)['ayah'] == a)
+        .map((f) => (f['payload'] as Map)['kind'] as String?)
+        .firstOrNull;
+    expect(kindOf('tanawwu_ibara', 1, 6), 'example'); // الصراط المستقيم
+    expect(kindOf('tanawwu_mithal', 35, 32), 'example'); // ظالم لنفسه / مقتصد / سابق
+    expect(kindOf('muhtamal', 74, 51), 'example'); // قسورة
+    expect(kindOf('istidlal', 111, 1), 'error'); // تبت يدا أبي لهب
+    expect(kindOf('bil_ray', 80, 31), 'example'); // وفاكهة وأبًّا
+  });
+
+  test('examples reach the tree, and stay out of the word knowledge surface', () async {
+    await QuranLearningSync().ingestFromJson(merged);
+    final repo = UsulTreeRepository();
+    final ex = await repo.examplesFor(111, 1);
+    expect(ex['concept:usul:istidlal']!.map((e) => e.kind), everyElement('error'));
+    expect(ex['concept:usul:istidlal']!.first.locator, matches(RegExp(r'^ص \d+$')));
+    expect(await repo.examplesFor(1, 2), isEmpty);
+    final index = await repo.exampleAyat();
+    expect(index.first.surah, 1, reason: 'mushaf order');
+    expect(index.length, greaterThanOrEqualTo(20));
+    final local = await LocalKnowledgeProvider().factsForAyah(1, 6);
+    expect(local.where((f) => f.domain == 'usul_tafsir'), isEmpty);
   });
 
   test('a dangling edge is rejected', () {
