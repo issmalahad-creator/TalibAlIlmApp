@@ -241,18 +241,35 @@ class _Placed {
   final Rect rect;
 }
 
-/// Lays the tree out right-to-left like the paper map: depth = column from
-/// the right, leaves stacked, each parent centred on its children.
-class _TreeCanvas extends StatelessWidget {
+/// Lays the tree out right-to-left like the paper map: the root is a slim
+/// trunk pillar on the right edge (its name is also the screen title), the
+/// branches and their nodes are columns to its left, leaves stacked, each
+/// parent centred on its children. Sized so a phone shows the whole map at
+/// ~0.9 scale; it opens fitted to the width and aligned right (RTL).
+class _TreeCanvas extends StatefulWidget {
   const _TreeCanvas({required this.root, required this.answers, required this.onTap});
   final UsulTreeNode root;
   final Map<String, UsulNodeAnswer> answers;
   final void Function(UsulTreeNode) onTap;
 
-  static const _colW = [150.0, 176.0, 196.0];
-  static const _gapX = 46.0;
-  static const _rowH = 74.0;
-  static const _pad = 28.0;
+  @override
+  State<_TreeCanvas> createState() => _TreeCanvasState();
+}
+
+class _TreeCanvasState extends State<_TreeCanvas> {
+  static const _colW = [38.0, 146.0, 166.0];
+  static const _gapX = 20.0;
+  static const _rowH = 70.0;
+  static const _pad = 12.0;
+
+  final _view = TransformationController();
+  double? _fittedFor;
+
+  @override
+  void dispose() {
+    _view.dispose();
+    super.dispose();
+  }
 
   List<_Placed> _layout() {
     final placed = <_Placed>[];
@@ -261,14 +278,14 @@ class _TreeCanvas extends StatelessWidget {
     double xFor(int depth) {
       var right = width - _pad;
       for (var d = 0; d < depth; d++) {
-        right -= _colW[d] + _gapX;
+        right -= _colW[math.min(d, _colW.length - 1)] + _gapX;
       }
       return right - _colW[math.min(depth, _colW.length - 1)];
     }
 
     double place(UsulTreeNode n) {
       final w = _colW[math.min(n.depth, _colW.length - 1)];
-      final h = n.depth == 0 ? 72.0 : (n.depth == 1 ? 60.0 : 54.0);
+      final h = n.depth == 1 ? 68.0 : 54.0;
       double cy;
       if (n.children.isEmpty) {
         cy = _pad + nextRow * _rowH + _rowH / 2;
@@ -281,7 +298,11 @@ class _TreeCanvas extends StatelessWidget {
       return cy;
     }
 
-    place(root);
+    place(widget.root);
+    // The trunk runs the full height of the map.
+    final i = placed.indexWhere((p) => p.node.depth == 0);
+    final r = placed[i].rect;
+    placed[i] = _Placed(placed[i].node, Rect.fromLTRB(r.left, _pad, r.right, _pad + nextRow * _rowH));
     return placed;
   }
 
@@ -293,33 +314,76 @@ class _TreeCanvas extends StatelessWidget {
       placed.map((p) => p.rect.bottom).reduce(math.max) + _pad,
     );
     final byId = {for (final p in placed) p.node.id: p};
-    return InteractiveViewer(
-      constrained: false,
-      minScale: 0.45,
-      maxScale: 2.5,
-      boundaryMargin: const EdgeInsets.all(120),
-      child: Transform(
-        // Soft depth: a hint of perspective tilting the sheet away from the
-        // reader — like a map lying on a desk — never enough to distort text.
-        alignment: Alignment.center,
-        transform: Matrix4.identity()
-          ..setEntry(3, 2, 0.0007)
-          ..rotateX(0.05),
-        child: SizedBox.fromSize(
-          size: size,
-          child: Stack(
-            children: [
-              Positioned.fill(child: CustomPaint(painter: _Connectors(placed, byId))),
-              for (final p in placed)
-                Positioned.fromRect(
-                  rect: p.rect,
-                  child: _NodeView(
-                    node: p.node,
-                    status: p.node.answerKey == null ? null : answers[p.node.answerKey]?.status,
-                    onTap: () => onTap(p.node),
+    return LayoutBuilder(builder: (context, box) {
+      final fit = math.min(1.0, box.maxWidth / size.width);
+      if (_fittedFor != box.maxWidth) {
+        _fittedFor = box.maxWidth;
+        _view.value = Matrix4.identity()
+          ..translateByDouble(box.maxWidth - size.width * fit, 0, 0, 1)
+          ..scaleByDouble(fit, fit, 1, 1);
+      }
+      return InteractiveViewer(
+        transformationController: _view,
+        constrained: false,
+        minScale: fit * 0.8,
+        maxScale: 2.5,
+        boundaryMargin: const EdgeInsets.all(80),
+        child: Transform(
+          // Soft depth: a hint of perspective tilting the sheet away from the
+          // reader — like a map lying on a desk — never enough to distort text.
+          alignment: Alignment.center,
+          transform: Matrix4.identity()
+            ..setEntry(3, 2, 0.0007)
+            ..rotateX(0.05),
+          child: SizedBox.fromSize(
+            size: size,
+            child: Stack(
+              children: [
+                Positioned.fill(child: CustomPaint(painter: _Connectors(placed, byId))),
+                for (final p in placed)
+                  Positioned.fromRect(
+                    rect: p.rect,
+                    child: p.node.depth == 0
+                        ? _TrunkView(node: p.node, onTap: () => widget.onTap(p.node))
+                        : _NodeView(
+                            node: p.node,
+                            status: p.node.answerKey == null ? null : widget.answers[p.node.answerKey]?.status,
+                            onTap: () => widget.onTap(p.node),
+                          ),
                   ),
-                ),
-            ],
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+/// The root as the tree's trunk: a tall pillar with its name written down it.
+class _TrunkView extends StatelessWidget {
+  const _TrunkView({required this.node, required this.onTap});
+  final UsulTreeNode node;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _ink,
+          borderRadius: BorderRadius.circular(AppRadius.pill),
+          border: Border.all(color: _gold.withValues(alpha: 0.7), width: 1.5),
+          boxShadow: DepthShadows.modal(_ink),
+        ),
+        alignment: Alignment.center,
+        child: RotatedBox(
+          quarterTurns: 1,
+          child: Text(
+            node.title,
+            maxLines: 1,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15),
           ),
         ),
       ),
@@ -341,11 +405,11 @@ class _Connectors extends CustomPainter {
     for (final p in placed) {
       final parent = p.node.parentId == null ? null : byId[p.node.parentId];
       if (parent == null) continue;
-      final from = parent.rect.centerLeft;
+      final from = parent.node.depth == 0 ? Offset(parent.rect.left, p.rect.center.dy) : parent.rect.centerLeft;
       final to = p.rect.centerRight;
       final path = Path()
         ..moveTo(from.dx, from.dy)
-        ..cubicTo(from.dx - 24, from.dy, to.dx + 24, to.dy, to.dx, to.dy);
+        ..cubicTo(from.dx - 10, from.dy, to.dx + 10, to.dy, to.dx, to.dy);
       // Dotted, like the paper map.
       for (final m in path.computeMetrics()) {
         for (var d = 0.0; d < m.length; d += 7) {
@@ -380,7 +444,7 @@ class _NodeView extends StatelessWidget {
       child: CustomPaint(
         painter: _HexPainter(fill: dark ? _ink : _leafFill, edge: status == UsulStatus.sourced ? _gold : null, shadows: shadows),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Row(
             children: [
               if (node.answerKey != null || !dark)
@@ -391,13 +455,13 @@ class _NodeView extends StatelessWidget {
               Expanded(
                 child: Text(
                   node.title,
-                  maxLines: 2,
+                  maxLines: node.depth == 1 ? 3 : 2,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: dark ? Colors.white : _ink,
                     fontWeight: node.depth == 0 ? FontWeight.w800 : FontWeight.w700,
-                    fontSize: node.depth == 0 ? 15 : 13,
+                    fontSize: 13.5,
                     height: 1.3,
                   ),
                 ),
