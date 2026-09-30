@@ -11,6 +11,7 @@ import '../repositories/quran_search_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
 import '../theme/app_theme.dart';
+import 'usul/usul_tree_screen.dart';
 
 /// Domain → its title key, shared by the "العلوم المرتبطة" cards and reader
 /// (`AyahCorpusPanel` in corpus_panels.dart uses the same keys for its
@@ -256,6 +257,15 @@ class _AyahStudyScreenState extends State<AyahStudyScreen> {
             style: const TextStyle(fontSize: 15),
           ),
           actions: [
+            // «شجرة أصول التفسير» for this ayah (USUL_TAFSIR_TREE.md U3).
+            IconButton(
+              tooltip: basicText('usul_tree_title', lang),
+              icon: const Icon(Icons.account_tree_outlined),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => UsulTreeScreen(surah: _surah, ayah: _ayah)),
+              ),
+            ),
             IconButton(
               tooltip: basicText('ayah_notebook_open_action', lang),
               icon: const Icon(Icons.auto_stories_outlined),
