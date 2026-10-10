@@ -55,6 +55,12 @@ class MushafPageView extends StatelessWidget {
   /// Long-press on a word (future shortcut, e.g. ayah panel / notebook).
   final void Function(MushafWord word)? onWordLongPress;
 
+  /// Long-press on a word body or a verse-end medallion → that whole ayah,
+  /// with the global rect of its boxes on this page (where the reader
+  /// anchors its ayah menu). Geometry only — the reader decides what opens.
+  /// Takes precedence over [onWordLongPress] when both are set.
+  final void Function(int surah, int ayah, Rect globalRect)? onAyahLongPress;
+
   /// When set, the (monochrome) MushafDatabase art is re-inked in this
   /// colour via `BlendMode.srcIn` — used for night reading. Null = the art's
   /// own black.
@@ -95,6 +101,7 @@ class MushafPageView extends StatelessWidget {
     this.onWordTap,
     this.onAyaMarkTap,
     this.onWordLongPress,
+    this.onAyahLongPress,
     this.artInk,
     this.wordCaption,
     this.tajweed = false,
@@ -165,8 +172,28 @@ class MushafPageView extends StatelessWidget {
         }
 
         void handleLongPress(Offset widgetLocal) {
-          if (onWordLongPress == null) return;
           final p = toLocalViewBox(widgetLocal);
+          if (onAyahLongPress != null) {
+            final mark = layout.ayaMarkAtPoint(p.dx, p.dy);
+            final w = mark == null ? layout.wordAtPoint(p.dx, p.dy) : null;
+            final key = mark != null
+                ? (surah: mark.surah, ayah: mark.ayah)
+                : (w != null ? (surah: w.surah, ayah: w.ayah) : null);
+            if (key == null) return;
+            final boxes = layout.ayahBoxes(key.surah, key.ayah);
+            var local = Rect.fromCenter(center: widgetLocal, width: 1, height: 1);
+            if (boxes.isNotEmpty) {
+              local = boxes
+                  .map((b) => Rect.fromLTWH(dx + b.x * scale, dy + b.y * scale,
+                      b.w * scale, b.h * scale))
+                  .reduce((a, b) => a.expandToInclude(b));
+            }
+            final box = context.findRenderObject() as RenderBox?;
+            final origin = box?.localToGlobal(Offset.zero) ?? Offset.zero;
+            onAyahLongPress!(key.surah, key.ayah, local.shift(origin));
+            return;
+          }
+          if (onWordLongPress == null) return;
           final w = layout.wordAtPoint(p.dx, p.dy);
           if (w != null) onWordLongPress!.call(w);
         }

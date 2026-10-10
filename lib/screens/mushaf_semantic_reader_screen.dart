@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/quran_surahs.dart';
@@ -19,16 +21,20 @@ import '../services/language_preference_service.dart';
 import '../services/quran_audio/quran_audio_provider_registry.dart';
 import '../services/quran_audio_engine.dart';
 import '../widgets/completion_goal_list_view.dart';
+import '../widgets/mushaf/mushaf_ayah_menu.dart';
+import '../widgets/mushaf/mushaf_chrome_style.dart';
+import '../widgets/mushaf/pinch_zoom.dart';
 import '../widgets/mushaf_page_view.dart';
 import '../theme/app_theme.dart';
 import '../theme/tajweed_palette.dart';
 import 'tajweed_tier_screen.dart';
 import 'ayah_notebook_screen.dart';
 import 'journey_screen.dart';
+import 'mushaf_index_screen.dart';
+import 'mushaf_search_screen.dart';
 import 'page_recitation_screen.dart';
 import 'quran_browse_screen.dart';
 import 'quran_notebook_home_screen.dart';
-import 'quran_search_screen.dart';
 import 'recitation_mistakes_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
 import 'quran_learning/knowledge_surface.dart';
@@ -60,9 +66,43 @@ class _MushafSemanticReaderScreenState
   static const _pageCount = 604;
   final _repo = MushafLayoutRepository();
   final _cache = <int, MushafPageLayout?>{};
-  late final PageController _controller;
+  late PageController _controller;
   late int _current;
   bool? _ready;
+
+  // ── view mode + pinch zoom (Ismail 2026-10-10) ─────────────────────
+  /// «المصحف الرأسي»: one continuous vertical scroll of pages — scroll down
+  /// to the next page. «المصحف الأفقي»: one page at a time, swipe to turn.
+  static const _verticalPrefKey = 'mushaf_view_vertical';
+  static const _zoomPrefKey = 'mushaf_vertical_zoom';
+  bool _vertical = true;
+
+  /// Page size multiplier from a two-finger pinch (1 = fit the width).
+  /// Remembered in vertical mode (where reading continues zoomed — for older
+  /// eyes); in horizontal mode it is per page and resets on a page turn.
+  double _zoom = 1;
+  double _pinchStartZoom = 1;
+  bool _pinching = false;
+  static const _maxZoom = 3.0;
+  bool get _zoomed => _zoom > 1.001;
+
+  /// Height ÷ width of each page box in the continuous view. The width is
+  /// the fitted content frame (`_kContentRectPad`, uniform on all 604
+  /// pages); 1.86 adds the art's own juzʼ/surah header above it and the
+  /// printed page number below it (the bare frame is 1.534–1.549). One
+  /// fixed extent → an exact page ↔ offset mapping.
+  static const _pageAspect = 1.86;
+  static const _pageGap = 12.0;
+  ScrollController? _vScroll; // vertical mode — down the pages
+  final _hScroll = ScrollController(); // vertical mode, zoomed — across
+  final _zvScroll = ScrollController(); // horizontal mode, zoomed page
+  final _zhScroll = ScrollController();
+  double _vExtent = 0;
+  double _vTopPad = 0;
+
+  /// The ayah under the long-press menu — highlighted while it is open.
+  ({int surah, int ayah})? _menuAyah;
+
 
   static const _nightPrefKey = 'quran_reading_night_mode';
   static const _reciterPrefKey = 'quran_reading_reciter';
@@ -131,6 +171,14 @@ class _MushafSemanticReaderScreenState
       if (v != null && mounted) setState(() => _night = v);
       final tj = p.getBool(_tajweedPrefKey);
       if (tj == true && mounted) setState(() => _tajweedMode = true);
+      final vert = p.getBool(_verticalPrefKey) ?? true;
+      final z = (p.getDouble(_zoomPrefKey) ?? 1).clamp(1.0, _maxZoom);
+      if (mounted) {
+        setState(() {
+          _vertical = vert;
+          _zoom = vert ? z : 1;
+        });
+      }
     });
   }
 
@@ -177,6 +225,10 @@ class _MushafSemanticReaderScreenState
     _sessionTimer?.cancel();
     _audio.stop();
     _controller.dispose();
+    _vScroll?.dispose();
+    _hScroll.dispose();
+    _zvScroll.dispose();
+    _zhScroll.dispose();
     if (MushafPageCache.instance.tajweedPaintResolver == _tajweedPaintFor) {
       MushafPageCache.instance.tajweedPaintResolver = null;
       MushafPageCache.instance.invalidateTajweed();
@@ -209,19 +261,24 @@ class _MushafSemanticReaderScreenState
   List<({int surah, int ayah})> get _pageAyat =>
       _cache[_current]?.ayat ?? const [];
 
+  /// Bumped by every [_playFrom] — an older loop sees the change and exits,
+  /// so «next/previous ayah» never leaves two recitation loops running.
+  int _playGen = 0;
+
   Future<void> _playFrom(int start) async {
     final ayat = _pageAyat;
     if (ayat.isEmpty) return;
+    final gen = ++_playGen;
     setState(() {
       _playing = true;
       _paused = false;
       _audioIdx = start.clamp(0, ayat.length - 1);
     });
     for (var i = _audioIdx; i < ayat.length; i++) {
-      if (!mounted || !_playing) return;
+      if (!mounted || !_playing || gen != _playGen) return;
       while (_paused) {
         await Future<void>.delayed(const Duration(milliseconds: 200));
-        if (!mounted || !_playing) return;
+        if (!mounted || !_playing || gen != _playGen) return;
       }
       setState(() {
         _audioIdx = i;
@@ -229,7 +286,7 @@ class _MushafSemanticReaderScreenState
       });
       await _audio.playAyah(_reciterId, ayat[i].surah, ayat[i].ayah);
     }
-    if (mounted) {
+    if (mounted && gen == _playGen) {
       setState(() {
         _playing = false;
         _playingAyah = null;
@@ -487,129 +544,546 @@ class _MushafSemanticReaderScreenState
         ],
       ),
     );
-    if (target != null && target >= 1 && target <= _pageCount) {
-      _controller.jumpToPage(target - 1);
-    }
+    if (target != null) _jumpToPage(target);
   }
 
   void _jumpToPage(int page) {
-    if (page >= 1 && page <= _pageCount) _controller.jumpToPage(page - 1);
+    if (page < 1 || page > _pageCount) return;
+    if (_vertical) {
+      final c = _vScroll;
+      if (c != null && c.hasClients && _vExtent > 0) {
+        c.jumpTo(
+          ((page - 1) * _vExtent).clamp(0.0, c.position.maxScrollExtent),
+        );
+      }
+      _setCurrent(page);
+    } else {
+      _controller.jumpToPage(page - 1);
+    }
   }
 
+  void _setCurrent(int page) {
+    if (page == _current) return;
+    setState(() {
+      _current = page;
+      _selWord = null;
+      _selMark = null;
+    });
+    MushafPageCache.instance.preloadAround(_current);
+  }
+
+  // ── view mode + pinch zoom ─────────────────────────────────────────
+
+  Future<void> _setVertical(bool v) async {
+    if (v == _vertical) return;
+    final p = await SharedPreferences.getInstance();
+    p.setBool(_verticalPrefKey, v);
+    final remembered = (p.getDouble(_zoomPrefKey) ?? 1).clamp(1.0, _maxZoom);
+    if (!mounted) return;
+    final page = _current;
+    setState(() {
+      _vertical = v;
+      _zoom = v ? remembered : 1;
+      if (v) {
+        _vScroll?.dispose();
+        _vScroll = null; // rebuilt at the current page by _continuousView
+      } else {
+        _controller.dispose();
+        _controller = PageController(initialPage: page - 1);
+      }
+    });
+  }
+
+  void _onPinchStart() => _pinchStartZoom = _zoom;
+
+  void _onPinchActive(bool active) {
+    if (active == _pinching) return;
+    setState(() => _pinching = active);
+    if (!active && _vertical) {
+      SharedPreferences.getInstance().then(
+        (p) => p.setDouble(_zoomPrefKey, _zoom),
+      );
+    }
+  }
+
+  /// Keep the point under the fingers still while the page grows/shrinks.
+  /// Several pointer moves can land between two frames, so the target
+  /// offsets accumulate in [_pendingX]/[_pendingY] and are applied once,
+  /// after the frame that lays the new size out.
+  double? _pendingX, _pendingY;
+  bool _jumpScheduled = false;
+  double _vViewportW = 0;
+
+  double _extentFor(double zoom) => _vViewportW * zoom * _pageAspect + _pageGap;
+
+  void _onPinchUpdate(double scale, Offset focal) {
+    final z = (_pinchStartZoom * scale).clamp(1.0, _maxZoom);
+    if ((z - _zoom).abs() < 0.004) return;
+    final ratio = z / _zoom;
+    final h = _vertical ? _hScroll : _zhScroll;
+    final v = _vertical ? _vScroll : _zvScroll;
+    double off(ScrollController? c) => (c != null && c.hasClients) ? c.offset : 0;
+    final x = _pendingX ?? off(h);
+    final y = _pendingY ?? off(v);
+    _pendingX = (x + focal.dx) * ratio - focal.dx;
+    if (_vertical && _vViewportW > 0) {
+      // in page units, so the fixed band between pages doesn't drift
+      final pages = (y + focal.dy - _vTopPad) / _extentFor(_zoom);
+      _pendingY = pages * _extentFor(z) + _vTopPad - focal.dy;
+    } else {
+      _pendingY = (y + focal.dy) * ratio - focal.dy;
+    }
+    setState(() => _zoom = z);
+    if (_jumpScheduled) return;
+    _jumpScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _jumpScheduled = false;
+      void jump(ScrollController? c, double? to) {
+        if (to == null || c == null || !c.hasClients) return;
+        c.jumpTo(to.clamp(0.0, c.position.maxScrollExtent));
+      }
+
+      jump(_vertical ? _hScroll : _zhScroll, _pendingX);
+      jump(_vertical ? _vScroll : _zvScroll, _pendingY);
+      _pendingX = null;
+      _pendingY = null;
+    });
+  }
+
+  void _resetZoom() {
+    setState(() => _zoom = 1);
+    if (_vertical) {
+      SharedPreferences.getInstance().then((p) => p.setDouble(_zoomPrefKey, 1));
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _jumpToPage(_current),
+      );
+    }
+  }
+
+  // ── the long-press ayah menu ────────────────────────────────────────
+
+  Future<void> _onAyahLongPress(
+    int page,
+    int surah,
+    int ayah,
+    Rect rect,
+  ) async {
+    HapticFeedback.selectionClick();
+    final lang = LanguagePreferenceService.currentLanguage;
+    final quran = QuranReadingRepository();
+    final fav = await quran.isFavorite(surah, ayah);
+    if (!mounted) return;
+    setState(() => _menuAyah = (surah: surah, ayah: ayah));
+    final action = await showMushafAyahMenu<String>(
+      context: context,
+      anchor: rect,
+      night: _night,
+      items: [
+        MushafAyahMenuItem(
+          'tafsir',
+          Icons.menu_book_rounded,
+          basicText('ql_domain_tafsir', lang),
+        ),
+        MushafAyahMenuItem(
+          'translation',
+          Icons.translate_rounded,
+          basicText('ql_translation', lang),
+        ),
+        MushafAyahMenuItem(
+          'listen',
+          Icons.play_circle_fill_rounded,
+          basicText('listen_ayah_action', lang),
+        ),
+        MushafAyahMenuItem(
+          'fav',
+          fav ? Icons.bookmark_remove_rounded : Icons.bookmark_rounded,
+          basicText(
+            fav ? 'remove_from_favorites_action' : 'add_to_favorites_action',
+            lang,
+          ),
+        ),
+        MushafAyahMenuItem(
+          'notebook',
+          Icons.edit_note_rounded,
+          basicText('ql_add_to_notebook', lang),
+        ),
+        MushafAyahMenuItem(
+          'share',
+          Icons.ios_share_rounded,
+          basicText('share_action', lang),
+        ),
+      ],
+    );
+    if (!mounted) return;
+    final sel = QuranSelection(
+      page: page,
+      surah: surah,
+      ayah: ayah,
+      type: QuranSelectionType.ayah,
+    );
+    switch (action) {
+      case 'tafsir':
+      case 'translation':
+        await showAyahKnowledgeSurface(
+          context,
+          selection: sel,
+          lang: lang,
+          openTranslation: action == 'translation',
+        );
+      case 'listen':
+        _listenFrom(page, surah, ayah);
+      case 'fav':
+        if (fav) {
+          await quran.removeFavorite(surah, ayah);
+        } else {
+          await quran.addFavorite(surah, ayah);
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                basicText(
+                  fav ? 'ayah_removed_favorite' : 'ayah_added_favorite',
+                  lang,
+                ),
+              ),
+            ),
+          );
+        }
+      case 'notebook':
+        _openAyahNotebook(surah, ayah, openAdd: true);
+      case 'share':
+        final a = await quran.ayahAt(surah, ayah);
+        if (a != null) {
+          await Share.share('﴿${a.text}﴾\n[${_surahName(surah)}: $ayah]');
+        }
+    }
+    if (mounted) setState(() => _menuAyah = null);
+  }
+
+  /// «الاستماع» from the menu: open the listen bar and recite this page from
+  /// the pressed ayah onward.
+  Future<void> _listenFrom(int page, int surah, int ayah) async {
+    if (page != _current) _setCurrent(page);
+    if (!_audioBar) await _toggleAudioBar();
+    final layout = await _layout(page);
+    if (!mounted || layout == null) return;
+    final i = layout.ayat.indexWhere((a) => a.surah == surah && a.ayah == ayah);
+    _audio.stop();
+    _playFrom(i < 0 ? 0 : i);
+  }
+
+  /// «القائمة» — a floating card in the reader's own palette (Ismail's
+  /// reference, 2026-10-10): the view-mode toggle on top, then grouped
+  /// sections. Switches update in place; navigation rows close it first.
   Future<void> _openMenu(String lang) async {
     void go(Widget screen) {
       Navigator.pop(context);
       Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
     }
 
+    void then(VoidCallback f) {
+      Navigator.pop(context);
+      f();
+    }
+
     await showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
       isScrollControlled: true,
-      builder: (_) => SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.list_alt_rounded),
-                title: Text(basicText('mushaf_index_surahs', lang)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _openIndex(lang);
-                },
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.28),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          final night = _night;
+          final fg = MushafChrome.fg(night);
+          final card = night ? AppColors.surfaceNight : MushafChrome.paper;
+          final iconC = night ? MushafChrome.gold : MushafChrome.brown;
+
+          Widget header(String key) => Container(
+            width: double.infinity,
+            color: (night ? Colors.white : MushafChrome.tan).withValues(
+              alpha: night ? 0.05 : 0.55,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+            child: Text(
+              basicText(key, lang),
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: fg.withValues(alpha: 0.65),
               ),
-              ListTile(
-                leading: const Icon(Icons.search_rounded),
-                title: Text(basicText('search_action', lang)),
-                onTap: () => go(const QuranSearchScreen()),
+            ),
+          );
+          Widget tile(IconData icon, String label, VoidCallback onTap) =>
+              InkWell(
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 13,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(icon, size: 22, color: iconC),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w600,
+                            color: fg,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+          Widget toggle(
+            IconData icon,
+            String label,
+            bool value,
+            ValueChanged<bool> onChanged,
+          ) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 12, 4),
+            child: Row(
+              children: [
+                Icon(icon, size: 22, color: iconC),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w600,
+                      color: fg,
+                    ),
+                  ),
+                ),
+                Switch(
+                  value: value,
+                  activeThumbColor: MushafChrome.brown,
+                  onChanged: onChanged,
+                ),
+              ],
+            ),
+          );
+          final div = Divider(
+            height: 1,
+            indent: 20,
+            endIndent: 20,
+            color: MushafChrome.line(night),
+          );
+
+          return DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.82,
+            minChildSize: 0.4,
+            maxChildSize: 0.94,
+            builder: (_, sc) => Container(
+              margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              decoration: BoxDecoration(
+                color: card,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: MushafChrome.gold.withValues(alpha: 0.35),
+                ),
               ),
-              ListTile(
-                leading: const Icon(Icons.tag_rounded),
-                title: Text(basicText('mushaf_go_to_page', lang)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _promptGoToPage(lang);
-                },
+              clipBehavior: Clip.antiAlias,
+              child: ListView(
+                controller: sc,
+                padding: EdgeInsets.zero,
+                children: [
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 10),
+                      width: 38,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: fg.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                    child: Column(
+                      children: [
+                        Text(
+                          basicText('mushaf_view_mode', lang),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: fg,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        MushafSegmented(
+                          night: night,
+                          selected: _vertical ? 0 : 1,
+                          onChanged: (i) async {
+                            await _setVertical(i == 0);
+                            setSheet(() {});
+                          },
+                          options: [
+                            (
+                              label: basicText('mushaf_view_vertical', lang),
+                              icon: Icons.view_day_outlined,
+                            ),
+                            (
+                              label: basicText('mushaf_view_horizontal', lang),
+                              icon: Icons.auto_stories_outlined,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          basicText('mushaf_zoom_hint', lang),
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: fg.withValues(alpha: 0.55),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  header('mushaf_section_mushaf'),
+                  tile(
+                    Icons.format_list_bulleted_rounded,
+                    basicText('mushaf_index_surahs', lang),
+                    () => then(() => _openIndex(lang)),
+                  ),
+                  div,
+                  tile(
+                    Icons.search_rounded,
+                    basicText('search_action', lang),
+                    () => then(() => _openSearch(lang)),
+                  ),
+                  div,
+                  tile(
+                    Icons.tag_rounded,
+                    basicText('mushaf_go_to_page', lang),
+                    () => then(() => _promptGoToPage(lang)),
+                  ),
+                  if (_zoomed) ...[
+                    div,
+                    tile(
+                      Icons.zoom_out_map_rounded,
+                      basicText('mushaf_zoom_reset', lang),
+                      () => then(_resetZoom),
+                    ),
+                  ],
+                  header('mushaf_section_khatma'),
+                  tile(
+                    Icons.flag_circle_outlined,
+                    basicText('khatm_reading_plans_short', lang),
+                    () => then(() => _openKhatmSheet(lang)),
+                  ),
+                  div,
+                  tile(
+                    Icons.route_outlined,
+                    basicText('my_journey', lang),
+                    () => go(const JourneyScreen()),
+                  ),
+                  div,
+                  tile(
+                    Icons.timer_outlined,
+                    basicText('reading_session_prompt', lang),
+                    () => then(() => _openSessionSheet(lang)),
+                  ),
+                  header('mushaf_section_tahfeez'),
+                  tile(
+                    Icons.record_voice_over_outlined,
+                    basicText('tahfeez_audio_action', lang),
+                    () => go(const TahfeezSessionSetupScreen()),
+                  ),
+                  div,
+                  tile(
+                    Icons.mic_none_rounded,
+                    basicText('recite_page_action', lang),
+                    () => go(PageRecitationScreen(pageNumber: _current)),
+                  ),
+                  div,
+                  tile(
+                    Icons.history_edu_outlined,
+                    basicText('recitation_mistakes_title', lang),
+                    () => go(const RecitationMistakesScreen()),
+                  ),
+                  div,
+                  tile(
+                    Icons.checklist_rounded,
+                    basicText('mushaf_mark_memorized', lang),
+                    () => go(const QuranBrowseScreen()),
+                  ),
+                  header('mushaf_section_features'),
+                  tile(
+                    Icons.headphones_outlined,
+                    basicText('listen_ayah_action', lang),
+                    () => then(_toggleAudioBar),
+                  ),
+                  div,
+                  toggle(
+                    Icons.nightlight_outlined,
+                    basicText('night_mode', lang),
+                    _night,
+                    (v) async {
+                      await _setNight(v);
+                      setSheet(() {});
+                    },
+                  ),
+                  div,
+                  toggle(
+                    Icons.brush_outlined,
+                    basicText('mushaf_tajweed_mode', lang),
+                    _tajweedMode,
+                    (v) async {
+                      await _setTajweed(v);
+                      setSheet(() {});
+                    },
+                  ),
+                  div,
+                  tile(
+                    Icons.travel_explore_rounded,
+                    basicText('ql_topic_index_title', lang),
+                    () => go(const TopicIndexScreen()),
+                  ),
+                  div,
+                  tile(
+                    Icons.info_outline_rounded,
+                    basicText('ql_sources_screen_title', lang),
+                    () => go(const SourcesScreen()),
+                  ),
+                  header('favorites_title'),
+                  tile(
+                    Icons.bookmark_outline_rounded,
+                    basicText('favorites_title', lang),
+                    () => then(() => _openFavorites(lang)),
+                  ),
+                  div,
+                  tile(
+                    Icons.auto_stories_outlined,
+                    basicText('quran_notebook_title', lang),
+                    () => go(const QuranNotebookHomeScreen()),
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.bookmark_outline_rounded),
-                title: Text(basicText('favorites_title', lang)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _openFavorites(lang);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.auto_stories_outlined),
-                title: Text(basicText('quran_notebook_title', lang)),
-                onTap: () => go(const QuranNotebookHomeScreen()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.checklist_rounded),
-                title: Text(basicText('mushaf_mark_memorized', lang)),
-                onTap: () => go(const QuranBrowseScreen()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.route_outlined),
-                title: Text(basicText('my_journey', lang)),
-                onTap: () => go(const JourneyScreen()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.travel_explore_rounded),
-                title: Text(basicText('ql_topic_index_title', lang)),
-                onTap: () => go(const TopicIndexScreen()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.info_outline_rounded),
-                title: Text(basicText('ql_sources_screen_title', lang)),
-                onTap: () => go(const SourcesScreen()),
-              ),
-              const Divider(height: 1),
-              // التسميع (recitation-follow) — the deeper engine is deferred,
-              // but these existing standalone screens stay reachable here.
-              ListTile(
-                leading: const Icon(Icons.record_voice_over_outlined),
-                title: Text(basicText('tahfeez_audio_action', lang)),
-                onTap: () => go(const TahfeezSessionSetupScreen()),
-              ),
-              ListTile(
-                leading: const Icon(Icons.mic_none_rounded),
-                title: Text(basicText('recite_page_action', lang)),
-                onTap: () =>
-                    go(PageRecitationScreen(pageNumber: _current)),
-              ),
-              ListTile(
-                leading: const Icon(Icons.history_edu_outlined),
-                title: Text(basicText('recitation_mistakes_title', lang)),
-                onTap: () => go(const RecitationMistakesScreen()),
-              ),
-              const Divider(height: 1),
-              SwitchListTile(
-                secondary: const Icon(Icons.nightlight_outlined),
-                title: Text(basicText('night_mode', lang)),
-                value: _night,
-                onChanged: (v) {
-                  Navigator.pop(context);
-                  _setNight(v);
-                },
-              ),
-              SwitchListTile(
-                secondary: const Icon(Icons.brush_outlined),
-                title: Text(basicText('mushaf_tajweed_mode', lang)),
-                subtitle: Text(basicText('mushaf_tajweed_mode_hint', lang),
-                    style: const TextStyle(fontSize: 11)),
-                value: _tajweedMode,
-                onChanged: (v) {
-                  Navigator.pop(context);
-                  _setTajweed(v);
-                },
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
+  }
+
+  Future<void> _openSearch(String lang) async {
+    final page = await Navigator.push<int>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MushafSearchScreen(lang: lang, night: _night),
+      ),
+    );
+    if (page != null) _jumpToPage(page);
   }
 
   /// Persistent "الختمات" entry point (KHATM_SYSTEM_AND_STYLE_REFERENCE.md
@@ -793,72 +1267,10 @@ class _MushafSemanticReaderScreenState
   }
 
   Future<void> _openIndex(String lang) async {
-    final page = await showModalBottomSheet<int>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => DefaultTabController(
-        length: 2,
-        child: DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.82,
-          builder: (context, sc) => Column(
-            children: [
-              const SizedBox(height: 8),
-              TabBar(tabs: [
-                Tab(text: basicText('index_tab_surahs', lang)),
-                Tab(text: basicText('index_tab_juz', lang)),
-              ]),
-              Expanded(
-                child: TabBarView(children: [
-                  ListView.builder(
-                    controller: sc,
-                    itemCount: quranSurahs.length,
-                    itemBuilder: (context, i) {
-                      final s = quranSurahs[i];
-                      return ListTile(
-                        dense: true,
-                        leading: CircleAvatar(
-                          radius: 13,
-                          backgroundColor: AppColors.primaryLight,
-                          child: Text('${s.number}',
-                              style: const TextStyle(
-                                  fontSize: 10, color: AppColors.primaryDark)),
-                        ),
-                        title: Text(s.name, textDirection: TextDirection.rtl),
-                        onTap: () async {
-                          final p = await _repo.pageForReference(s.number);
-                          if (context.mounted) Navigator.pop(context, p);
-                        },
-                      );
-                    },
-                  ),
-                  ListView.builder(
-                    itemCount: 30,
-                    itemBuilder: (context, i) {
-                      final juz = i + 1;
-                      return ListTile(
-                        dense: true,
-                        leading: CircleAvatar(
-                          radius: 13,
-                          backgroundColor: AppColors.primaryLight,
-                          child: Text('$juz',
-                              style: const TextStyle(
-                                  fontSize: 10, color: AppColors.primaryDark)),
-                        ),
-                        title: Text('${basicText('juz_label', lang)} $juz',
-                            textDirection: TextDirection.rtl),
-                        onTap: () async {
-                          final p = await _repo.pageForJuz(juz);
-                          if (context.mounted) Navigator.pop(context, p);
-                        },
-                      );
-                    },
-                  ),
-                ]),
-              ),
-            ],
-          ),
-        ),
+    final page = await Navigator.push<int>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MushafIndexScreen(lang: lang, night: _night),
       ),
     );
     if (page != null) _jumpToPage(page);
@@ -1044,7 +1456,14 @@ class _MushafSemanticReaderScreenState
                             style: const TextStyle(color: AppColors.textMuted)),
                       ),
                     )
-                  : _readerPageView(lang),
+                  : PinchZoomListener(
+                      onStart: _onPinchStart,
+                      onUpdate: _onPinchUpdate,
+                      onPinchActive: _onPinchActive,
+                      child: _vertical
+                          ? _continuousView(lang)
+                          : _readerPageView(lang),
+                    ),
             ),
             if (_chromeVisible)
               Positioned(
@@ -1087,33 +1506,24 @@ class _MushafSemanticReaderScreenState
                             },
                           ),
                         ),
+                        // A running reading session shows its countdown;
+                        // tapping it ends the session (started from the menu).
                         if (_sessionTimer != null)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Text(
-                                '${_sessionRemaining ~/ 60}:${(_sessionRemaining % 60).toString().padLeft(2, '0')}',
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary),
-                              ),
+                          TextButton.icon(
+                            onPressed: () => _openSessionSheet(lang),
+                            icon: const Icon(Icons.timer_rounded, size: 16, color: AppColors.primary),
+                            label: Text(
+                              '${_sessionRemaining ~/ 60}:${(_sessionRemaining % 60).toString().padLeft(2, '0')}',
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary),
                             ),
                           ),
-                        IconButton(
-                          tooltip: basicText('reading_session_prompt', lang),
-                          icon: Icon(_sessionTimer != null ? Icons.timer_rounded : Icons.timer_outlined, color: onBg),
-                          onPressed: () => _openSessionSheet(lang),
-                        ),
                         IconButton(
                           tooltip: basicText('listen_ayah_action', lang),
                           icon: Icon(_audioBar ? Icons.headphones_rounded : Icons.headphones_outlined, color: onBg),
                           onPressed: _toggleAudioBar,
-                        ),
-                        IconButton(
-                          tooltip: basicText('night_mode', lang),
-                          icon: Icon(_night ? Icons.wb_sunny_rounded : Icons.nightlight_outlined, color: onBg),
-                          onPressed: () => _setNight(!_night),
                         ),
                         IconButton(
                           tooltip: basicText('khatm_reading_plans_short', lang),
@@ -1141,6 +1551,58 @@ class _MushafSemanticReaderScreenState
                     if (_tajweedMode) _tajweedLegendPill(lang),
                     if (_audioBar) _buildAudioBar(lang),
                   ]),
+                ),
+              ),
+            // Zoomed: the size and a one-tap way back to the fitted page.
+            if (_zoomed)
+              Positioned(
+                bottom: (_chromeVisible && (_audioBar || _tajweedMode))
+                    ? 96
+                    : 18,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  child: Center(
+                    child: Material(
+                      color: bg.withValues(alpha: 0.92),
+                      shape: StadiumBorder(
+                        side: BorderSide(
+                          color: MushafChrome.gold.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      elevation: 2,
+                      child: InkWell(
+                        customBorder: const StadiumBorder(),
+                        onTap: _resetZoom,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 7,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.zoom_out_map_rounded,
+                                size: 16,
+                                color: onBg,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${(_zoom * 100).round()}%',
+                                textDirection: TextDirection.ltr,
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: onBg,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             // A second, always-available way to toggle the chrome — tapping
@@ -1177,75 +1639,190 @@ class _MushafSemanticReaderScreenState
     );
   }
 
-  Widget _readerPageView(String lang) {
-    return PageView.builder(
-                controller: _controller,
-                // Page-turn direction (Ismail 2026-09-03): swipe left→right
-                // advances to the next page, like turning the leaf of a
-                // physical muṣḥaf held spine-right.
-                reverse: false,
-                itemCount: _pageCount,
-                onPageChanged: (i) {
-                  setState(() {
-                    _current = i + 1;
-                    _selWord = null;
-                    _selMark = null;
-                  });
-                  MushafPageCache.instance.preloadAround(_current);
-                },
-                itemBuilder: (context, i) {
-                  final page = i + 1;
-                  return FutureBuilder<MushafPageLayout?>(
-                    future: _layout(page),
-                    builder: (context, snap) {
-                      if (!snap.hasData) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      final layout = snap.data;
-                      if (layout == null) {
-                        return Center(
-                          child: Text(basicText('mushaf_not_ready', lang),
-                              style:
-                                  const TextStyle(color: AppColors.textMuted)),
-                        );
-                      }
-                      final onThisPage = page == _current;
-                      // Edge-to-edge, top to bottom (Ismail 2026-09-18: "لا
-                      // أريد مساحة بيضاء") — no card padding/border/radius
-                      // around the page; the muṣḥaf fills the whole
-                      // available body, chrome (app bar/bottom bars) is the
-                      // only thing that shows/hides.
-                      return Container(
-                          color: _night
-                              ? AppColors.surfaceNight
-                              : AppColors.surface,
-                          child: MushafPageView(
-                            layout: layout,
-                            selectedWord: onThisPage ? _selWord : null,
-                            wordCaption:
-                                onThisPage ? _selWordCaption : null,
-                            tajweed: _tajweedMode,
-                            selectedAyah: !onThisPage
-                                ? null
-                                : (_playingAyah ??
-                                    (_selMark == null
-                                        ? null
-                                        : (surah: _selMark!.surah,
-                                            ayah: _selMark!.ayah))),
-                            artInk: _night
-                                ? AppColors.textDarkNight
-                                : null,
-                            onWordTap: _onWord,
-                            onAyaMarkTap: _onAyaMark,
-                            onWordLongPress: (w) => _openAyahNotebook(
-                                w.surah, w.ayah,
-                                openAdd: true),
-                            onBackgroundTap: _toggleChrome,
-                          ),
-                      );
-                    },
-                  );
-                },
+  /// One mushaf page (layout loaded on demand) — shared by both view modes.
+  /// The selection paints only on the page it belongs to; an ayah highlight
+  /// (playing / medallion / long-press menu) is matched by `(surah, ayah)`,
+  /// so it shows on every page the ayah spans.
+  Widget _page(String lang, int page) {
+    // Already loaded → build synchronously: a rebuild (every page change in
+    // the continuous view) must never flash a spinner over a visible page.
+    if (_cache.containsKey(page)) return _pageBody(lang, page, _cache[page]);
+    return FutureBuilder<MushafPageLayout?>(
+      future: _layout(page),
+      builder: (context, snap) => snap.connectionState != ConnectionState.done
+          ? const Center(child: CircularProgressIndicator())
+          : _pageBody(lang, page, snap.data),
     );
   }
+
+  Widget _pageBody(String lang, int page, MushafPageLayout? layout) {
+    if (layout == null) {
+      return Center(
+        child: Text(
+          basicText('mushaf_not_ready', lang),
+          style: const TextStyle(color: AppColors.textMuted),
+        ),
+      );
+    }
+    final word = _selWord?.page == page ? _selWord : null;
+    return Container(
+      color: _night ? AppColors.surfaceNight : AppColors.surface,
+      child: MushafPageView(
+        layout: layout,
+        selectedWord: word,
+        wordCaption: word != null ? _selWordCaption : null,
+        tajweed: _tajweedMode,
+        selectedAyah:
+            _playingAyah ??
+            _menuAyah ??
+            (_selMark == null || _selMark!.page != page
+                ? null
+                : (surah: _selMark!.surah, ayah: _selMark!.ayah)),
+        artInk: _night ? AppColors.textDarkNight : null,
+        onWordTap: _onWord,
+        onAyaMarkTap: _onAyaMark,
+        onAyahLongPress: (s, a, rect) => _onAyahLongPress(page, s, a, rect),
+        onBackgroundTap: _toggleChrome,
+      ),
+    );
+  }
+
+  /// «المصحف الأفقي» — one page at a time, swipe to turn. Pinched in, the
+  /// page grows inside a two-axis scroll and the swipe pauses until it is
+  /// back to size (a turn would otherwise fight the pan).
+  Widget _readerPageView(String lang) {
+    const freeze = NeverScrollableScrollPhysics();
+    return PageView.builder(
+      controller: _controller,
+      // Page-turn direction (Ismail 2026-09-03): swipe left→right
+      // advances to the next page, like turning the leaf of a
+      // physical muṣḥaf held spine-right.
+      reverse: false,
+      physics: (_pinching || _zoomed) ? freeze : null,
+      itemCount: _pageCount,
+      onPageChanged: (i) {
+        if (_zoomed) setState(() => _zoom = 1);
+        _setCurrent(i + 1);
+      },
+      itemBuilder: (context, i) {
+        final page = i + 1;
+        final child = _page(lang, page);
+        if (!_zoomed || page != _current) return child;
+        return LayoutBuilder(
+          builder: (context, c) => Directionality(
+            // left-based offsets, so the pinch anchor math is direction-free
+            textDirection: TextDirection.ltr,
+            child: SingleChildScrollView(
+              controller: _zvScroll,
+              physics: _pinching ? freeze : null,
+              child: SingleChildScrollView(
+                controller: _zhScroll,
+                scrollDirection: Axis.horizontal,
+                physics: _pinching ? freeze : null,
+                child: SizedBox(
+                  width: c.maxWidth * _zoom,
+                  height: c.maxHeight * _zoom,
+                  child: child,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// «المصحف الرأسي» — every page in one vertical scroll (Ismail's reference
+  /// screenshots): scroll down and the next page follows. Each page is a
+  /// fixed-height box, so page ↔ offset is exact (jumps, the current page,
+  /// the pinch anchor). Pinched in, pages widen and the list also scrolls
+  /// sideways — reading carries on down the pages at that size.
+  Widget _continuousView(String lang) {
+    const freeze = NeverScrollableScrollPhysics();
+    return LayoutBuilder(
+      builder: (context, c) {
+        final pageW = c.maxWidth * _zoom;
+        final pageH = pageW * _pageAspect;
+        _vExtent = pageH + _pageGap;
+        _vViewportW = c.maxWidth;
+        _vTopPad = MediaQuery.paddingOf(context).top + 52;
+        final controller = _vScroll ??= ScrollController(
+          initialScrollOffset: (_current - 1) * _vExtent,
+        );
+        final gapColor = _night
+            ? AppColors.backgroundNight
+            : const Color(0xFFEDE3D3);
+
+        final Widget list0 = ListView.builder(
+          controller: controller,
+          physics: _pinching ? freeze : null,
+          itemExtent: _vExtent,
+          itemCount: _pageCount,
+          padding: EdgeInsets.only(
+            top: _vTopPad,
+            bottom: MediaQuery.paddingOf(context).bottom + 80,
+          ),
+          itemBuilder: (context, i) => Column(
+            children: [
+              SizedBox(
+                width: pageW,
+                height: pageH,
+                child: CustomPaint(
+                  foregroundPainter: _PageFramePainter(night: _night, scale: _zoom),
+                  child: _page(lang, i + 1),
+                ),
+              ),
+              Container(height: _pageGap, color: gapColor),
+            ],
+          ),
+        );
+        // Always in the tree (locked while unzoomed): wrapping the list only
+        // once zoomed would re-create its scroll position mid-pinch and jump
+        // to a far page.
+        final list = Directionality(
+          textDirection: TextDirection.ltr,
+          child: SingleChildScrollView(
+            controller: _hScroll,
+            scrollDirection: Axis.horizontal,
+            physics: (_pinching || !_zoomed) ? freeze : null,
+            child: SizedBox(width: pageW, height: c.maxHeight, child: list0),
+          ),
+        );
+        return NotificationListener<ScrollUpdateNotification>(
+          onNotification: (n) {
+            if (n.metrics.axis == Axis.vertical && _vExtent > 0) {
+              // the page filling the upper-middle of the screen is "current"
+              final y = n.metrics.pixels + c.maxHeight * 0.35 - _vTopPad;
+              _setCurrent((y / _vExtent).floor().clamp(0, _pageCount - 1) + 1);
+            }
+            return false;
+          },
+          child: list,
+        );
+      },
+    );
+  }
+}
+
+/// Each page of the continuous view as a sheet of paper: a hairline gold
+/// edge at the box border (the art's headers sit close to the sides, so
+/// nothing is drawn inside the page). Decoration only.
+class _PageFramePainter extends CustomPainter {
+  final bool night;
+  final double scale;
+  _PageFramePainter({required this.night, required this.scale});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = night ? MushafChrome.gold.withValues(alpha: 0.45) : MushafChrome.brown.withValues(alpha: 0.55);
+    canvas.drawRect(
+        (Offset.zero & size).deflate(0.6),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2
+          ..color = c);
+  }
+
+  @override
+  bool shouldRepaint(_PageFramePainter o) => o.night != night || o.scale != scale;
 }
