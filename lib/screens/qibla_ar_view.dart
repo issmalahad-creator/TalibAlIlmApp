@@ -72,6 +72,11 @@ class QiblaArView extends StatefulWidget {
   final double? headingAccuracy;
   final double qiblaBearing;
 
+  /// Magnetic declination (degrees east) added to the camera bearing — the
+  /// rotation sensor measures from magnetic north. [heading] is already
+  /// corrected by `QiblaScreen`.
+  final double declination;
+
   const QiblaArView({
     super.key,
     required this.latitude,
@@ -79,6 +84,7 @@ class QiblaArView extends StatefulWidget {
     required this.heading,
     required this.qiblaBearing,
     this.headingAccuracy,
+    this.declination = 0,
   });
 
   @override
@@ -136,7 +142,7 @@ class _QiblaArViewState extends State<QiblaArView> with WidgetsBindingObserver {
         (event) {
           if (!mounted) return;
           final m = event.rotationMatrix;
-          final rawBearingDeg = (atan2(-m.c, -m.f) * 180 / pi) % 360;
+          final rawBearingDeg = (atan2(-m.c, -m.f) * 180 / pi + widget.declination) % 360;
           final rawPitchDeg = event.eulerAngles.pitch * 180 / pi;
           setState(() {
             _cameraBearingDeg = _smoothHeading(_cameraBearingDeg, rawBearingDeg, 0.18);

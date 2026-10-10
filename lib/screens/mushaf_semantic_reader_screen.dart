@@ -14,6 +14,7 @@ import '../l10n/basic_translations.dart';
 import '../models/mushaf_layout.dart';
 import '../models/quran_selection.dart';
 import '../models/tajweed_span.dart';
+import '../repositories/completion_goal_repository.dart';
 import '../repositories/mushaf_layout_repository.dart';
 import '../repositories/quran_corpus_repository.dart';
 import '../services/boot/boot_scheduler.dart';
@@ -205,6 +206,7 @@ class _MushafSemanticReaderScreenState
     });
     // The tajwīd renderer asks this for a page's path→hue map; we memoise.
     MushafPageCache.instance.tajweedPaintResolver = _tajweedPaintFor;
+    _loadKhatm();
 
     SharedPreferences.getInstance().then((p) {
       final v = p.getBool(_nightPrefKey);
@@ -1473,6 +1475,128 @@ class _MushafSemanticReaderScreenState
         ),
       ),
     );
+    _loadKhatm();
+  }
+
+  // ── khatma strip (R7) ─────────────────────────────────────────────
+
+  final _goalRepo = CompletionGoalRepository();
+
+  /// The reading khatma shown under the page: the oldest unfinished one
+  /// (else the oldest), with its stripe colour as the khatma list shows it.
+  CompletionGoalStatus? _khatm;
+  int _khatmColor = 0;
+
+  Future<void> _loadKhatm() async {
+    final goals = (await _goalRepo.activeGoals())
+        .where((g) => g.contentType == 'quran_reading')
+        .toList()
+      ..sort((a, b) => a.id.compareTo(b.id));
+    if (goals.isEmpty) {
+      if (mounted && _khatm != null) setState(() => _khatm = null);
+      return;
+    }
+    final statuses = await Future.wait(goals.map(_goalRepo.statusFor));
+    var i = statuses.indexWhere((s) => s.remaining > 0);
+    if (i < 0) i = 0;
+    if (!mounted) return;
+    setState(() {
+      _khatm = statuses[i];
+      _khatmColor = (goals[i].colorIndex ?? i) % kKhatmTabColors.length;
+    });
+  }
+
+  /// The last mushaf page this khatma has recorded (absolute page).
+  int _khatmRecordedPage(CompletionGoalStatus s) =>
+      (s.goal.startUnit ?? 1) - 1 + s.currentPosition;
+
+  /// Reading never moves a khatma by itself (see `recordProgress`): the
+  /// strip offers it, one tap, when the reader is past the recorded page.
+  bool _khatmCanRecord(CompletionGoalStatus s) {
+    final start = s.goal.startUnit ?? 1;
+    final end = s.goal.endUnit ?? (start - 1 + s.goal.totalUnits);
+    return _current >= start && _current <= end && _current > _khatmRecordedPage(s);
+  }
+
+  Future<void> _recordKhatm(String lang) async {
+    final s = _khatm;
+    if (s == null) return;
+    final page = _current;
+    await _goalRepo.recordProgress(s.goal.id, page);
+    await _loadKhatm();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(basicText('mkh_recorded', lang)
+          .replaceAll('{n}', mushafDigits(page, lang))),
+      duration: const Duration(seconds: 2),
+    ));
+  }
+
+  Widget _khatmStrip(String lang, Color bg, Color onBg) {
+    final s = _khatm!;
+    final pct = s.goal.totalUnits == 0 ? 0.0 : (s.currentPosition / s.goal.totalUnits).clamp(0.0, 1.0);
+    final color = kKhatmTabColors[_khatmColor];
+    final canRecord = _khatmCanRecord(s);
+    final today = s.remaining == 0
+        ? basicText('mkh_khatm_done', lang)
+        : s.pagesRemainingToday > 0
+            ? basicText('mkh_today_left', lang).replaceAll('{n}', mushafDigits(s.pagesRemainingToday, lang))
+            : basicText('mkh_today_done', lang);
+    return Material(
+      color: bg.withValues(alpha: 0.94),
+      shape: StadiumBorder(side: BorderSide(color: MushafChrome.gold.withValues(alpha: 0.45))),
+      elevation: 2,
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: () => _openKhatmSheet(lang),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 10, 6),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  value: pct,
+                  strokeWidth: 3,
+                  color: color,
+                  backgroundColor: color.withValues(alpha: 0.18),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                // No «·» separator: in Amiri it reads like the digit «٠».
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(s.goal.displayLabelFor(lang),
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: onBg)),
+                  const SizedBox(width: 6),
+                  Text('${mushafDigits((pct * 100).round(), lang)}${lang == 'ar' ? '٪' : '%'}',
+                      style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: color)),
+                ]),
+                Text(today, style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+              ]),
+            ]),
+          ),
+        ),
+        if (canRecord)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4),
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: color,
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+              onPressed: () => _recordKhatm(lang),
+              icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
+              label: Text(
+                basicText('mkh_record_to', lang).replaceAll('{n}', mushafDigits(_current, lang)),
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+      ]),
+    );
   }
 
   /// A single small pill under the page while «وضع التجويد» is on — `تجويد ▾`
@@ -1926,6 +2050,27 @@ class _MushafSemanticReaderScreenState
                     if (_tajweedMode) _tajweedLegendPill(lang),
                     if (_audioBar) _buildAudioBar(lang),
                   ]),
+                ),
+              ),
+            // The active reading khatma, with a one-tap «record up to here».
+            if (_chromeVisible &&
+                _khatm != null &&
+                !_zoomed &&
+                !_autoScroll &&
+                !_audioBar &&
+                !_tajweedMode)
+              Positioned(
+                bottom: 14,
+                left: 64,
+                right: 64,
+                child: SafeArea(
+                  top: false,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _khatmStrip(lang, bg, onBg),
+                    ),
+                  ),
                 ),
               ),
             // Zoomed: the size and a one-tap way back to the fitted page.

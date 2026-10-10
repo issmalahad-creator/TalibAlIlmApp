@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
 
@@ -9,6 +11,7 @@ import '../l10n/basic_translations.dart';
 import '../repositories/prayer_times_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/location_service.dart';
+import '../services/magnetic_declination.dart';
 import '../services/solar_position.dart';
 import '../theme/app_theme.dart';
 import 'qibla_ar_view.dart';
@@ -66,7 +69,36 @@ class _QiblaScreenState extends State<QiblaScreen> {
   /// `flutter_compass` reading on devices without a gyroscope/rotation-vector
   /// sensor (older/cheaper hardware) so the feature still works there, just
   /// without the extra stability.
-  double? get _effectiveHeading => _fusedHeading ?? _heading;
+  ///
+  /// Both sensors report MAGNETIC north (flutter_compass returns true north
+  /// on iOS only); the qibla bearing is from TRUE north, so the local
+  /// declination (WMM2025) is added — up to 15–20° in some countries.
+  double? get _effectiveHeading {
+    final fused = _fusedHeading;
+    if (fused != null) return (fused + _declination) % 360;
+    final h = _heading;
+    if (h == null) return null;
+    return Platform.isIOS ? h : (h + _declination) % 360;
+  }
+
+  /// Magnetic declination at the student's location, degrees east.
+  double _declination = 0;
+
+  /// One gentle tap the moment the phone turns onto the qibla (same 8°
+  /// window that lights the dial), so the student needn't stare at it.
+  /// Re-arms only after leaving a wider 14° window — no buzzing at the edge.
+  bool _hapticArmed = true;
+  void _hapticOnQibla() {
+    final h = _effectiveHeading, q = _qiblaBearing;
+    if (h == null || q == null || _method != _QiblaMethod.compass) return;
+    final diff = (((q - h + 540) % 360) - 180).abs();
+    if (_hapticArmed && diff < 8) {
+      _hapticArmed = false;
+      HapticFeedback.mediumImpact();
+    } else if (diff > 14) {
+      _hapticArmed = true;
+    }
+  }
 
   @override
   void initState() {
@@ -78,6 +110,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
         _heading = event.heading;
         _headingAccuracy = event.accuracy;
       });
+      _hapticOnQibla();
     });
     _initFusedHeading();
   }
@@ -90,6 +123,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
           if (!mounted) return;
           final rawHeadingDeg = (event.eulerAngles.azimuth * 180 / pi) % 360;
           setState(() => _fusedHeading = _smoothHeading(_fusedHeading, rawHeadingDeg, 0.18));
+          _hapticOnQibla();
         },
         onError: (_) {
           // No gyroscope/rotation-vector sensor on this device — stays on
@@ -130,8 +164,10 @@ class _QiblaScreenState extends State<QiblaScreen> {
       return;
     }
     final bearing = _prayerRepo.qiblaBearing(coords);
+    final declination = MagneticDeclination.degrees(coords.latitude, coords.longitude);
     if (!mounted) return;
     setState(() {
+      _declination = declination;
       _coordinates = coords;
       _qiblaBearing = bearing;
       _noLocation = false;
@@ -222,6 +258,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
           confidence: _confidence,
           isManualLocation: coords.isManual,
           locationAccuracyMeters: coords.accuracyMeters,
+          declination: _declination,
         );
       case _QiblaMethod.map:
         return QiblaMapView(
@@ -236,6 +273,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
           heading: _effectiveHeading,
           headingAccuracy: _headingAccuracy,
           qiblaBearing: _qiblaBearing ?? 0,
+          declination: _declination,
         );
       case _QiblaMethod.sun:
         return _SunView(latitude: coords.latitude, longitude: coords.longitude, qiblaBearing: _qiblaBearing ?? 0);
@@ -301,12 +339,16 @@ class _CompassView extends StatelessWidget {
   /// screen didn't previously surface at all.
   final double? locationAccuracyMeters;
 
+  /// Already applied to [heading]; shown so the correction is visible.
+  final double declination;
+
   const _CompassView({
     required this.qiblaBearing,
     required this.heading,
     required this.confidence,
     required this.isManualLocation,
     this.locationAccuracyMeters,
+    this.declination = 0,
   });
 
   /// Same "never upgrade past what the sensor reports" spirit as the
@@ -425,6 +467,14 @@ class _CompassView extends StatelessWidget {
                 Expanded(child: Text(_locationConfidence!.$1, style: TextStyle(fontSize: 12.5, color: _locationConfidence!.$2, fontWeight: FontWeight.w700))),
               ],
             ),
+          ),
+        ],
+        if (declination.abs() >= 0.5) ...[
+          const SizedBox(height: 6),
+          Text(
+            _t('qb_declination').replaceAll('{d}', '${declination >= 0 ? '+' : '−'}${declination.abs().toStringAsFixed(1)}°'),
+            style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
+            textAlign: TextAlign.center,
           ),
         ],
         if (isManualLocation) ...[

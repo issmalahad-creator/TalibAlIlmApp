@@ -72,10 +72,18 @@ class LocationService {
         return null;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 10)),
-      );
-      return AppCoordinates(latitude: position.latitude, longitude: position.longitude, accuracyMeters: position.accuracy);
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.medium, timeLimit: Duration(seconds: 10)),
+        );
+        return AppCoordinates(latitude: position.latitude, longitude: position.longitude, accuracyMeters: position.accuracy);
+      } catch (_) {
+        // No fresh fix in time (indoors, Doze): the phone's own last fix is
+        // still newer than anything this app cached — e.g. after travelling.
+        final last = await Geolocator.getLastKnownPosition();
+        if (last == null) return null;
+        return AppCoordinates(latitude: last.latitude, longitude: last.longitude, accuracyMeters: last.accuracy);
+      }
     } catch (_) {
       // Any platform/timeout failure just means "no GPS fix right now" —
       // callers fall back to cached/manual location instead of crashing.
