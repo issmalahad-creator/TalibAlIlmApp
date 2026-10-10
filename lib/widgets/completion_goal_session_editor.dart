@@ -17,6 +17,12 @@ const Map<String, String> kPrayerAnchorLabels = {
   'isha': 'العشاء',
 };
 
+/// The prayer's name in the app language (`prayer_<key>`), Arabic label as fallback.
+String _prayerLabel(String key) {
+  final t = basicText('prayer_$key', LanguagePreferenceService.currentLanguage);
+  return t == 'prayer_$key' ? (kPrayerAnchorLabels[key] ?? key) : t;
+}
+
 String _twoDigits(int n) => n.toString().padLeft(2, '0');
 
 /// §2.3 field 7أ — the wizard's "توزيع الورد على الصلوات" editor. Owns its
@@ -103,7 +109,7 @@ class _CompletionGoalSessionEditorState extends State<CompletionGoalSessionEdito
 
   String _anchorSummary(CompletionGoalSession s, String lang) {
     if (s.anchorType == 'prayer') {
-      final name = kPrayerAnchorLabels[s.anchorPrayer] ?? s.anchorPrayer ?? '';
+      final name = s.anchorPrayer == null ? '' : _prayerLabel(s.anchorPrayer!);
       if (s.offsetMinutes == 0) return name;
       final sign = s.offsetMinutes > 0 ? '+' : '';
       return '$name ($sign${s.offsetMinutes} ${basicText('minute_short_label', lang)})';
@@ -311,7 +317,7 @@ class _CompletionGoalSessionEditSheetState extends State<CompletionGoalSessionEd
                 DropdownButton<String>(
                   isExpanded: true,
                   value: _prayer,
-                  items: kPrayerAnchorLabels.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
+                  items: kPrayerAnchorLabels.keys.map((k) => DropdownMenuItem(value: k, child: Text(_prayerLabel(k)))).toList(),
                   onChanged: (v) => setState(() => _prayer = v ?? _prayer),
                 ),
                 Row(

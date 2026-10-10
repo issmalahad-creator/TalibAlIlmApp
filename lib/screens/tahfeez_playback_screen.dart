@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../data/quran_surahs.dart';
 import '../db/database_helper.dart';
 import '../models/tahfeez_session_config.dart';
 import '../services/quran_audio_engine.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// The active تحفيظ session player — either started fresh with a
 /// [config], or resumed from `TahfeezSessionPrefs` when [resume] is true.
@@ -81,13 +88,13 @@ class _TahfeezPlaybackScreenState extends State<TahfeezPlaybackScreen> {
   String _modeLabel(TahfeezPlaybackMode mode) {
     switch (mode) {
       case TahfeezPlaybackMode.playing:
-        return 'استماع';
+        return _t('tp_listening');
       case TahfeezPlaybackMode.silence:
-        return 'سكتة — كرر الآن';
+        return _t('tp_silence');
       case TahfeezPlaybackMode.paused:
-        return 'إيقاف مؤقت';
+        return _t('tp_paused');
       case TahfeezPlaybackMode.finished:
-        return 'انتهت الجلسة';
+        return _t('tp_finished');
       case TahfeezPlaybackMode.idle:
         return '';
     }
@@ -97,7 +104,7 @@ class _TahfeezPlaybackScreenState extends State<TahfeezPlaybackScreen> {
   Widget build(BuildContext context) {
     final state = _state;
     return Scaffold(
-      appBar: AppBar(title: const Text('جلسة التحفيظ')),
+      appBar: AppBar(title: Text(_t('tp_title'))),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -109,9 +116,9 @@ class _TahfeezPlaybackScreenState extends State<TahfeezPlaybackScreen> {
                     if (_finished) ...[
                       const Icon(Icons.check_circle, color: AppColors.primary, size: 64),
                       const SizedBox(height: 16),
-                      const Text('أحسنت — أتممت الجلسة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      Text(_t('tp_done'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                     ] else ...[
-                      Text('${_surahName(state.surah)} — الآية ${state.ayah}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
+                      Text(_t('tp_surah_ayah').replaceAll('{s}', _surahName(state.surah)).replaceAll('{a}', '${state.ayah}'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textMuted)),
                       const SizedBox(height: 14),
                       if (_ayahText != null && _ayahTextFor == (state.surah, state.ayah))
                         Container(
@@ -127,7 +134,7 @@ class _TahfeezPlaybackScreenState extends State<TahfeezPlaybackScreen> {
                           ),
                         ),
                       const SizedBox(height: 10),
-                      Text('جولة ${state.rangePass} — تكرار ${state.ayahRepeat}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                      Text(_t('tp_round').replaceAll('{r}', '${state.rangePass}').replaceAll('{n}', '${state.ayahRepeat}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                       const SizedBox(height: 20),
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
@@ -153,8 +160,8 @@ class _TahfeezPlaybackScreenState extends State<TahfeezPlaybackScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: _running
-                            ? OutlinedButton.icon(onPressed: _stop, icon: const Icon(Icons.stop_circle_outlined), label: const Text('إيقاف الجلسة'))
-                            : FilledButton.icon(onPressed: _startOrResume, icon: const Icon(Icons.play_circle_outline), label: const Text('استئناف')),
+                            ? OutlinedButton.icon(onPressed: _stop, icon: const Icon(Icons.stop_circle_outlined), label: Text(_t('tp_stop')))
+                            : FilledButton.icon(onPressed: _startOrResume, icon: const Icon(Icons.play_circle_outline), label: Text(_t('pk_resume'))),
                       ),
                     ],
                   ],

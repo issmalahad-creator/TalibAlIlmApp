@@ -14,18 +14,13 @@ import '../widgets/audio_reader_view.dart';
 import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/loading_view.dart';
 
-const _reflectionPrompts = [
-  'ما الفكرة التي لفتت انتباهك في هذه الصفحات؟',
-  'كيف يمكن أن تطبّق هذا في حياتك اليوم؟',
-  'ما سؤال بقي عندك تريد البحث عنه لاحقًا؟',
-  'ما عبارة أو موقف أثّر فيك؟',
-];
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
 
-const _applicationPrompts = [
-  'ما الخُلق الذي طبّقته اليوم من هذا الكتاب؟',
-  'موقف حصل لك اليوم وتذكّرت فيه شيئًا من الكتاب',
-  'خُلق تريد أن تبدأ بتطبيقه غدًا',
-];
+
+const _reflectionPrompts = ['bv_ref_1', 'bv_ref_2', 'bv_ref_3', 'bv_ref_4'];
+
+const _applicationPrompts = ['bv_app_1', 'bv_app_2', 'bv_app_3'];
 
 class BookViewerScreen extends StatefulWidget {
   final String filePath;
@@ -112,12 +107,12 @@ class _BookViewerScreenState extends State<BookViewerScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.menu_book_outlined),
-            tooltip: 'دفتر الفوائد وسجل التطبيق',
+            tooltip: _t('bv_notebook_tip'),
             onPressed: _openNotebook,
           ),
           IconButton(
             icon: const Icon(Icons.headphones_outlined),
-            tooltip: 'استماع',
+            tooltip: _t('bv_listen'),
             onPressed: () => AudioReaderView.open(
               context,
               source: PersonalLibraryTextSource(
@@ -219,11 +214,11 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تعديل الملاحظة'),
+        title: Text(_t('bv_edit_note')),
         content: TextField(controller: textCtrl, maxLines: 4, decoration: const InputDecoration(border: OutlineInputBorder())),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('cancel_action'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(_t('save_action'))),
         ],
       ),
     );
@@ -238,11 +233,11 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('مسح الملاحظة؟'),
-        content: const Text('لا يمكن التراجع عن هذا.'),
+        title: Text(_t('bv_clear_note')),
+        content: Text(_t('bv_no_undo')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('مسح')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('undo_action'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(_t('ar_clear'))),
         ],
       ),
     );
@@ -265,11 +260,11 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تعديل التطبيق'),
+        title: Text(_t('bv_edit_app')),
         content: TextField(controller: textCtrl, maxLines: 4, decoration: const InputDecoration(border: OutlineInputBorder())),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('cancel_action'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(_t('save_action'))),
         ],
       ),
     );
@@ -284,11 +279,11 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('مسح السجل؟'),
-        content: const Text('لا يمكن التراجع عن هذا.'),
+        title: Text(_t('bv_clear_log')),
+        content: Text(_t('bv_no_undo')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('مسح')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('undo_action'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(_t('ar_clear'))),
         ],
       ),
     );
@@ -312,14 +307,15 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
                 Center(
                   child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16), decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2))),
                 ),
-                const Text('دفتر الفوائد', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(_t('bv_benefits'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                const Text('اكتب فائدة استفدتها من هذا الكتاب — لنفسك، لا أحد غيرك سيراها', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                Text(_t('bv_benefits_hint'), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
                   children: _reflectionPrompts
+                      .map(_t)
                       .map((p) => ActionChip(
                             label: Text(p, style: const TextStyle(fontSize: 11)),
                             onPressed: () {
@@ -333,7 +329,7 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
                 TextField(
                   controller: widget.noteCtrl,
                   maxLines: 4,
-                  decoration: InputDecoration(hintText: 'اكتب ما استفدته هنا... (صفحة ${widget.currentPage})', border: const OutlineInputBorder()),
+                  decoration: InputDecoration(hintText: _t('bv_benefit_input').replaceAll('{p}', '${widget.currentPage}'), border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 8),
                 Align(
@@ -347,25 +343,26 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
                 ),
                 if (_reflections.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  const Text('ملاحظاتك', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+                  Text(_t('bv_your_notes'), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
                   ..._reflections.map((r) => _EntryCard(
                         text: r.text,
                         date: r.createdDate,
-                        tag: r.page != null ? 'صفحة ${r.page}' : null,
+                        tag: r.page != null ? '${_t('page_label')} ${r.page}' : null,
                         onEdit: () => _editReflection(r),
                         onDelete: () => _deleteReflection(r),
                       )),
                 ],
                 const Divider(height: 32),
-                const Text('سجل التطبيق', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(_t('bv_practice_log'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
-                const Text('ما الخُلق الذي طبّقته اليوم من هذا الكتاب؟', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                Text(_t('bv_app_1'), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
                   children: _applicationPrompts
+                      .map(_t)
                       .map((p) => ActionChip(
                             label: Text(p, style: const TextStyle(fontSize: 11)),
                             onPressed: () {
@@ -379,7 +376,7 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
                 TextField(
                   controller: widget.applicationCtrl,
                   maxLines: 4,
-                  decoration: const InputDecoration(hintText: 'اكتب ما طبّقته هنا...', border: OutlineInputBorder()),
+                  decoration: InputDecoration(hintText: _t('bv_practice_input'), border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 8),
                 Align(
@@ -393,7 +390,7 @@ class _BookNotebookSheetState extends State<_BookNotebookSheet> {
                 ),
                 if (_applications.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  const Text('سجلّك', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
+                  Text(_t('bv_your_log'), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800)),
                   const SizedBox(height: 8),
                   ..._applications.map((a) => _EntryCard(
                         text: a.text,
