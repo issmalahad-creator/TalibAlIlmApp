@@ -2095,6 +2095,12 @@ const Map<String, Map<String, String>> basicTranslations = {
   'mkh_khatm_done': {'ar': 'اكتملت الختمة', 'en': 'Khatma complete', 'am': 'ኽትማው ተጠናቋል', 'fr': 'Khatma terminée', 'sw': 'Khatma imekamilika', 'ur': 'ختمہ مکمل', 'tr': 'Hatim tamamlandı', 'id': 'Khatam selesai', 'bn': 'খতম সম্পন্ন', 'ha': 'An kammala khatma', 'so': 'Khatmadu waa dhammaatay', 'fa': 'ختم کامل شد', 'ms': 'Khatam selesai'},
   // ---- qibla magnetic declination (13-language retrofit, 2026-10-10 audit)
   'qb_declination': {'ar': 'صُحّح فرق الشمال المغناطيسي هنا: {d}', 'en': 'Magnetic north corrected here: {d}', 'am': 'የማግኔቲክ ሰሜን ልዩነት ተስተካክሏል፦ {d}', 'fr': 'Nord magnétique corrigé ici : {d}', 'sw': 'Kaskazini ya sumaku imerekebishwa hapa: {d}', 'ur': 'یہاں مقناطیسی شمال کی تصحیح: {d}', 'tr': 'Manyetik kuzey burada düzeltildi: {d}', 'id': 'Utara magnetik dikoreksi di sini: {d}', 'bn': 'এখানে চৌম্বক উত্তর সংশোধিত: {d}', 'ha': 'An gyara arewa ta maganadisu a nan: {d}', 'so': 'Waqooyiga birlabka halkan waa la saxay: {d}', 'fa': 'شمال مغناطیسی اینجا اصلاح شد: {d}', 'ms': 'Utara magnet dibetulkan di sini: {d}'},
+  // ---- adhkar morning/evening sessions (13-language retrofit, 2026-10-10 audit)
+  'adc_session_morning': {'ar': 'الصباح', 'en': 'Morning', 'am': 'ጠዋት', 'fr': 'Matin', 'sw': 'Asubuhi', 'ur': 'صبح', 'tr': 'Sabah', 'id': 'Pagi', 'bn': 'সকাল', 'ha': 'Safiya', 'so': 'Subax', 'fa': 'صبح', 'ms': 'Pagi'},
+  'adc_session_evening': {'ar': 'المساء', 'en': 'Evening', 'am': 'ምሽት', 'fr': 'Soir', 'sw': 'Jioni', 'ur': 'شام', 'tr': 'Akşam', 'id': 'Petang', 'bn': 'সন্ধ্যা', 'ha': 'Maraice', 'so': 'Fiid', 'fa': 'شام', 'ms': 'Petang'},
+  // ---- adhkar session modes (13-language retrofit, 2026-10-10 audit)
+  'adc_session_auto': {'ar': 'تلقائي', 'en': 'Auto', 'am': 'በራስ-ሰር', 'fr': 'Auto', 'sw': 'Kiotomatiki', 'ur': 'خودکار', 'tr': 'Otomatik', 'id': 'Otomatis', 'bn': 'স্বয়ংক্রিয়', 'ha': 'Kai-tsaye', 'so': 'Toos', 'fa': 'خودکار', 'ms': 'Automatik'},
+  'adc_session_all': {'ar': 'الكل', 'en': 'All', 'am': 'ሁሉም', 'fr': 'Tout', 'sw': 'Zote', 'ur': 'سب', 'tr': 'Tümü', 'id': 'Semua', 'bn': 'সব', 'ha': 'Duka', 'so': 'Dhammaan', 'fa': 'همه', 'ms': 'Semua'},
   'mushaf_go_to_page': {
     'ar': 'اذهب إلى صفحة', 'en': 'Go to page', 'am': 'ወደ ገጽ ሂድ', 'fr': 'Aller à la page', 'sw': 'Nenda ukurasa',
     'ur': 'صفحہ پر جائیں', 'tr': 'Sayfaya git', 'id': 'Ke halaman', 'bn': 'পৃষ্ঠায় যান', 'ha': 'Je shafi',

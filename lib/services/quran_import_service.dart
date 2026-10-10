@@ -218,6 +218,8 @@ class QuranImportService {
           'text': item['text'] as String,
           'footnote': item['footnote'] as String?,
           'repeat_count': item['repeat'] as int,
+          'time_of_day': item['when'] as String?,
+          'evening_text': item['evening'] as String?,
         });
       }
     }

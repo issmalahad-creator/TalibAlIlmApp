@@ -55,11 +55,10 @@ class JourneySuggestion {
 
 /// Category-title lookup only — deliberately by title, the same idiom
 /// `adhkar_category_screen.dart`'s `_streakTrackedCategoryTitle` already
-/// uses, not a new ID/type column. Note: "أذكار الصباح والمساء" itself is
-/// one undifferentiated 25-item category (not split by time internally),
-/// so morning/evening only change the label and framing here, not which
-/// items appear — splitting the content itself would be a content-curation
-/// task, not a UX one.
+/// uses, not a new ID/type column. "أذكار الصباح والمساء" is one chapter in
+/// the DB, read as two sessions since v72 (`AdhkarItem.forSession`): the
+/// card passes 'morning'/'evening' so the evening wording («أمسينا…») and
+/// the evening-only adhkar appear.
 const _suggestions = {
   DayWindow.earlyMorning: JourneySuggestion(categoryTitle: 'أذكار الاستيقاظ من النوم', label: 'ابدأ يومك بذكر الاستيقاظ', icon: Icons.bedtime_outlined),
   DayWindow.morning: JourneySuggestion(categoryTitle: 'أذكار الصباح والمساء', label: 'أذكار الصباح', icon: Icons.wb_sunny_outlined),

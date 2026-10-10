@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
@@ -41,7 +42,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     Future<Database> open() => openDatabase(
       path,
-      version: 71,
+      version: 72,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -123,6 +124,7 @@ class DatabaseHelper {
         await _createV69Tables(db);
         await _createV70Tables(db);
         await _createV71Tables(db);
+        await _createV72Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -206,6 +208,7 @@ class DatabaseHelper {
         if (oldVersion < 69) await _createV69Tables(db);
         if (oldVersion < 70) await _createV70Tables(db);
         if (oldVersion < 71) await _createV71Tables(db);
+        if (oldVersion < 72) await _createV72Tables(db);
       },
     );
 
@@ -2634,6 +2637,51 @@ class DatabaseHelper {
         PRIMARY KEY (from_concept, to_concept)
       )
     ''');
+  }
+
+  /// Morning and evening adhkar read separately, as Hisn al-Muslim
+  /// prescribes («وإذا أمسى قال…»): `time_of_day` ('both' | 'morning' |
+  /// 'evening', null = not part of that chapter) and `evening_text` (the
+  /// evening wording, null = same as `text`). Also re-applies the repaired
+  /// chapter (`tool/fix_adhkar_morning_evening.py`: footnotes that sat on
+  /// the wrong dhikr) to an existing install, in place by `item_order` so
+  /// item ids — used by the review engine — never change. On a fresh
+  /// install the tables are still empty here; the import writes it all.
+  Future<void> _createV72Tables(Database db) async {
+    await db.execute('ALTER TABLE adhkar_items ADD COLUMN time_of_day TEXT');
+    await db.execute('ALTER TABLE adhkar_items ADD COLUMN evening_text TEXT');
+    await syncAdhkarMorningEvening(db);
+  }
+
+  static const adhkarMorningEveningTitle = 'أذكار الصباح والمساء';
+
+  /// Rewrites the morning/evening chapter's items from the bundled JSON.
+  /// No-op when the adhkar haven't been imported yet.
+  static Future<void> syncAdhkarMorningEvening(Database db) async {
+    final cat = await db.query('adhkar_categories', columns: ['id'], where: 'title = ?', whereArgs: [adhkarMorningEveningTitle], limit: 1);
+    if (cat.isEmpty) return;
+    final categoryId = cat.first['id'] as int;
+    final raw = await rootBundle.loadString('assets/adhkar/hisn_almuslim.json');
+    final chapters = jsonDecode(raw) as List<dynamic>;
+    final chapter = chapters.cast<Map<String, dynamic>>().firstWhere((c) => c['title'] == adhkarMorningEveningTitle);
+    final items = chapter['items'] as List<dynamic>;
+    final batch = db.batch();
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i] as Map<String, dynamic>;
+      batch.update(
+        'adhkar_items',
+        {
+          'text': item['text'] as String,
+          'footnote': item['footnote'] as String?,
+          'repeat_count': item['repeat'] as int,
+          'time_of_day': item['when'] as String?,
+          'evening_text': item['evening'] as String?,
+        },
+        where: 'category_id = ? AND item_order = ?',
+        whereArgs: [categoryId, i + 1],
+      );
+    }
+    await batch.commit(noResult: true);
   }
 
   /// 100_IDEAS_FOR_IMPROVEMENT.md #70 — `quran_ayat.page_number` is queried

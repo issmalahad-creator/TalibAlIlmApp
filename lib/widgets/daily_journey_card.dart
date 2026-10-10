@@ -91,7 +91,11 @@ class _DailyJourneyCardState extends State<DailyJourneyCard> {
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: () async {
-        await Navigator.push(context, MaterialPageRoute(builder: (_) => AdhkarCategoryScreen(category: category)));
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => AdhkarCategoryScreen(
+              category: category,
+              // The window already knows which: open the right list (prayer-time based).
+              session: suggestion.label == 'أذكار المساء' ? 'evening' : suggestion.label == 'أذكار الصباح' ? 'morning' : null,
+            )));
         _load();
       },
       child: Container(
