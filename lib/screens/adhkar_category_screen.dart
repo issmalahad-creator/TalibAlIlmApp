@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../repositories/adhkar_repository.dart';
@@ -13,6 +16,10 @@ import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/notification_permission_sheet.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// The book's title for the merged morning+evening chapter — only this
 /// category's completions count toward the streak certificates (see
@@ -144,7 +151,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
       hour: picked.hour,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم إضافة تذكير يومي الساعة ${picked.hour}:00')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_reminder_added').replaceAll('{h}', '${picked.hour}'))));
   }
 
   @override
@@ -239,12 +246,12 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     final alreadyIn = await KnowledgeReviewRepository().isUnderReview('adhkar', item.id);
     if (alreadyIn) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('هذا الذكر مضاف بالفعل لمراجعة الحفظ')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_already_review'))));
       return;
     }
     await KnowledgeReviewRepository().startReviewing('adhkar', item.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُضيف — ستراجعه غدًا في "مراجعتك اليوم" 🌱')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_added_review').replaceAll('{screen}', _t('knowledge_review_title')))));
   }
 
   @override
@@ -254,7 +261,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     return Scaffold(
       backgroundColor: _darkReading ? _readingBackgroundDark : _readingBackground,
       body: _loading || pageController == null
-          ? const AppLoadingView(icon: Icons.spa_outlined, message: 'جاري تحميل الأذكار...')
+          ? AppLoadingView(icon: Icons.spa_outlined, message: _t('ad_loading'))
           : Listener(
               onPointerDown: (_) => _resetFocusTimer(),
               child: Stack(
@@ -320,8 +327,8 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                                   children: [
                                     Text(
                                       _alreadyDoneToday
-                                          ? 'مراجعة — ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}'
-                                          : 'الدعاء ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}',
+                                          ? _t('adc_review_counter').replaceAll('{i}', '${_currentIndex < _items.length ? _currentIndex + 1 : _items.length}').replaceAll('{n}', '${_items.length}')
+                                          : _t('adc_dua_counter').replaceAll('{i}', '${_currentIndex < _items.length ? _currentIndex + 1 : _items.length}').replaceAll('{n}', '${_items.length}'),
                                       style: TextStyle(fontSize: 10.5, color: chromeMuted, fontWeight: FontWeight.w600),
                                     ),
                                     if (!_alreadyDoneToday && _remainingSeconds > 0) ...[
@@ -329,7 +336,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                                       Text('·', style: TextStyle(fontSize: 10.5, color: chromeMuted)),
                                       const SizedBox(width: 8),
                                       Text(
-                                        '⏱ ${_formatCountdown(_remainingSeconds)} متبقٍ',
+                                        _t('adc_remaining').replaceAll('{t}', _formatCountdown(_remainingSeconds)),
                                         style: TextStyle(fontSize: 10.5, color: chromeMuted, fontWeight: FontWeight.w600),
                                       ),
                                     ],
@@ -503,7 +510,7 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
             ),
             const SizedBox(height: 10),
             Text(
-              _done ? 'تم — اسحب لليسار للمتابعة' : 'اضغط للتكرار',
+              _done ? _t('adc_done_swipe') : _t('adc_tap_repeat'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11.5, color: hintColor, fontWeight: FontWeight.w600),
             ),
@@ -516,7 +523,7 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
               child: TextButton.icon(
                 onPressed: widget.onMemorize,
                 icon: const Icon(Icons.psychology_outlined, size: 16),
-                label: const Text('أضفه لحفظ الأذكار', style: TextStyle(fontSize: 11.5)),
+                label: Text(_t('adc_add_memorize'), style: const TextStyle(fontSize: 11.5)),
                 style: TextButton.styleFrom(foregroundColor: hintColor, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
               ),
             ),
@@ -553,11 +560,11 @@ class _CompletionPage extends StatelessWidget {
               const SizedBox(height: 18),
               Text('ما شاء الله', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textColor)),
               const SizedBox(height: 8),
-              Text('أتممت $categoryTitle', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: hintColor)),
+              Text(_t('adc_completed').replaceAll('{c}', categoryTitle), textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: hintColor)),
               const SizedBox(height: 6),
               Text('جزاك الله خيرًا 🌿', style: TextStyle(fontSize: 13, color: hintColor)),
               const SizedBox(height: 28),
-              SizedBox(width: double.infinity, child: FilledButton(onPressed: onDone, child: const Text('تم'))),
+              SizedBox(width: double.infinity, child: FilledButton(onPressed: onDone, child: Text(_t('feedback_done')))),
             ],
           ),
         ),

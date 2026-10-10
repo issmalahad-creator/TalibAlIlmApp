@@ -10,6 +10,10 @@ import '../utils/hijri_date.dart';
 import 'hifz_student_detail_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "أستاذ التحفيظ" — a simple roster tool for a Quran-memorization teacher,
 /// deliberately built with the exact same interaction pattern as
 /// [GoalsScreen] per Ismail's own instruction: a flat list, swipe to
@@ -70,25 +74,25 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isEdit ? 'تعديل بيانات الطالب' : 'طالب جديد'),
+        title: Text(isEdit ? _t('hz_edit_student') : _t('hz_new_student')),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'اسم الطالب')),
-              TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'رقم ولي الأمر'),
+              TextField(controller: nameCtrl, decoration: InputDecoration(labelText: _t('hz_student_name'))),
+              TextField(controller: phoneCtrl, decoration: InputDecoration(labelText: _t('hz_guardian_phone')),
                   keyboardType: TextInputType.phone),
-              TextField(controller: ageCtrl, decoration: const InputDecoration(labelText: 'عمر الطالب'),
+              TextField(controller: ageCtrl, decoration: InputDecoration(labelText: _t('hz_student_age')),
                   keyboardType: TextInputType.number),
               TextField(
                   controller: progressCtrl,
-                  decoration: const InputDecoration(labelText: 'التقدم (كم جزء / أين وصل في القاعدة)')),
+                  decoration: InputDecoration(labelText: _t('hz_progress_field'))),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(isEdit ? 'حفظ' : 'إضافة')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('cancel_action'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(isEdit ? _t('save_action') : _t('add'))),
         ],
       ),
     );
@@ -125,7 +129,7 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
       await _exportService.exportAll(_students, fieldsByStudent.cast());
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر التصدير: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('hz_export_failed').replaceAll('{e}', '$e'))));
     } finally {
       if (mounted) setState(() => _exportingAll = false);
     }
@@ -136,13 +140,13 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
     final visible = _visibleStudents;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('أستاذ التحفيظ'),
+        title: Text(_t('hz_teacher_title')),
         actions: [
           IconButton(
             icon: _exportingAll
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.ios_share_rounded),
-            tooltip: 'تصدير كل الطلاب (Excel)',
+            tooltip: _t('hz_export_all'),
             onPressed: (_exportingAll || _students.isEmpty) ? null : _exportAll,
           ),
         ],
@@ -154,7 +158,7 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage))
           : _students.isEmpty
-              ? const Center(child: Text('لا يوجد طلاب بعد — اضغط + لإضافة طالب'))
+              ? Center(child: Text(_t('hz_no_students')))
               : ListView(
                   padding: const EdgeInsets.only(top: 8),
                   children: [
@@ -164,10 +168,10 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
                         child: TextField(
                           controller: _searchController,
                           onChanged: (v) => setState(() => _searchQuery = v),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             isDense: true,
-                            hintText: 'ابحث باسم الطالب...',
-                            prefixIcon: Icon(Icons.search_rounded, size: 20),
+                            hintText: _t('hz_search_student'),
+                            prefixIcon: const Icon(Icons.search_rounded, size: 20),
                           ),
                         ),
                       ),
@@ -193,7 +197,7 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
                               },
                               title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.w700)),
                               subtitle: Text(
-                                s.progress.isEmpty ? 'لا يوجد تقدم مسجَّل بعد' : s.progress,
+                                s.progress.isEmpty ? _t('hz_no_progress') : s.progress,
                                 style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
                               ),
                               trailing: const Icon(Icons.chevron_left_rounded),
