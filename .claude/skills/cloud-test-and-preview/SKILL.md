@@ -87,3 +87,12 @@ What makes it render for real (each one cost a failed attempt):
 gives real ink bounds (`Group.bbox()` alone returns None). Page structure:
 `md-page-outer` (headers, page number, margin hizb) then `md-page-inner` →
 `md-line-01..15`. Pages 1–2 are the decorated opening (no headers).
+
+## 6. Project-wide audit (re-runnable)
+
+`docs/AUDIT_2026-10-10.md` + `tool/audit/`: lifecycle scanner (setState
+after await, undisposed controllers), Arabic-literal finder, the 13-language
+retrofit helper (`l10n_lib.py`: `add_keys` escapes `'` and `\n`), and
+`constfix.py` (removes the enclosing `const` the analyzer complains about
+after a string becomes `_t('key')`). Run them before calling a screen done.
+
