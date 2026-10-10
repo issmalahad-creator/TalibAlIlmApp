@@ -72,6 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _studyTrack = profile.studyTrack;
     }
     _photoPath = profile.photoPath;
+    if (!mounted) return;
     setState(() => _loading = false);
   }
 

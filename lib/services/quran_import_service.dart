@@ -228,7 +228,7 @@ class QuranImportService {
   /// scope (advanced tier only, part 1 of typically 3).
   Future<void> _importMadarij(Database db) async {
     final raw = await rootBundle.loadString('assets/aqeedah/madarij_part1.json');
-    final list = jsonDecode(raw) as List<dynamic>;
+    final list = await compute(_decodeJsonList, raw); // ~1 MB — off the UI isolate
     final batch = db.batch();
     for (var i = 0; i < list.length; i++) {
       final entry = list[i] as Map<String, dynamic>;
@@ -246,7 +246,7 @@ class QuranImportService {
   /// doc comment for scope (volume 1 of 5 only, for now).
   Future<void> _importZadAlMaad(Database db) async {
     final raw = await rootBundle.loadString('assets/fiqh_seerah/zad_almaad_vol1.json');
-    final list = jsonDecode(raw) as List<dynamic>;
+    final list = await compute(_decodeJsonList, raw); // ~1 MB — off the UI isolate
     final batch = db.batch();
     for (var i = 0; i < list.length; i++) {
       final entry = list[i] as Map<String, dynamic>;
@@ -612,3 +612,7 @@ List<({int surah, int ayah, String text, String? footnote})> _parseTafsirJsonl(U
   }
   return out;
 }
+
+/// Background-isolate JSON decode for the ~1 MB text assets (Madarij,
+/// Zad al-Ma'ad) — `lightweight-feature-rules` §2.
+List<dynamic> _decodeJsonList(String raw) => jsonDecode(raw) as List<dynamic>;

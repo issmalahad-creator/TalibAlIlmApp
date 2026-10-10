@@ -23,6 +23,7 @@ class _MadarijChapterScreenState extends State<MadarijChapterScreen> {
 
   Future<void> _markRead() async {
     await _repo.markRead(widget.section.id);
+    if (!mounted) return;
     setState(() => _readDone = true);
   }
 

@@ -110,6 +110,7 @@ class _QiblaArViewState extends State<QiblaArView> with WidgetsBindingObserver {
         await controller.dispose();
         return;
       }
+      if (!mounted) return;
       setState(() => _controller = controller);
     } catch (_) {
       if (mounted) setState(() => _permissionDenied = true);

@@ -46,6 +46,7 @@ class _QuizScreenState extends State<QuizScreen> {
         takenAt: DateTime.now().toIso8601String(),
       ),
     );
+    if (!mounted) return;
     setState(() {
       _submitted = true;
       _scorePercent = score;

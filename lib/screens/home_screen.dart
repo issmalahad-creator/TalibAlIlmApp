@@ -289,7 +289,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: basicText('mosques_title', lang),
                       color: NavColors.green,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MosquesScreen()))
-                          .then((_) => setState(() => _mosqueRefreshTick++)),
+                          .then((_) {
+                        if (mounted) setState(() => _mosqueRefreshTick++);
+                      }),
                     ),
                         ]),
                       ],

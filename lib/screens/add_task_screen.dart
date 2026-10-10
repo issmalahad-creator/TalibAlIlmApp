@@ -57,6 +57,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (picked != null) {
+      if (!mounted) return;
       setState(() {
         _pickedDate = picked;
         _pickedDateChanged = true;
@@ -66,6 +67,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Future<void> _pickTime() async {
     final picked = await showTimePicker(context: context, initialTime: _pickedTime ?? TimeOfDay.now());
+    if (!mounted) return;
     if (picked != null) setState(() => _pickedTime = picked);
   }
 

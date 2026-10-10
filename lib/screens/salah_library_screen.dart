@@ -40,6 +40,7 @@ class _SalahLibraryScreenState extends State<SalahLibraryScreen> {
   Future<void> _toggle(String key) async {
     if (_read.contains(key)) return;
     await _repo.markLessonRead(key);
+    if (!mounted) return;
     setState(() => _read = {..._read, key});
   }
 

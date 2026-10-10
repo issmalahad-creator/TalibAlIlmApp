@@ -23,6 +23,7 @@ class _ZadAlMaadChapterScreenState extends State<ZadAlMaadChapterScreen> {
 
   Future<void> _markRead() async {
     await _repo.markRead(widget.chapter.id);
+    if (!mounted) return;
     setState(() => _readDone = true);
   }
 

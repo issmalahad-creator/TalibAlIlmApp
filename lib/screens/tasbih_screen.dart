@@ -108,6 +108,7 @@ class _TasbihScreenState extends State<TasbihScreen> {
     if (confirmed != true) return;
     await _repo.deleteCustomPhrase(id);
     if (_phraseKey == phraseKey) {
+      if (!mounted) return;
       setState(() => _phraseKey = 'subhanallah');
     }
     await _load();

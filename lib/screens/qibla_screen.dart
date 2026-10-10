@@ -15,6 +15,10 @@ import 'qibla_ar_view.dart';
 import 'qibla_map_view.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// Exact Kaaba coordinates verified against `adhan_dart`'s own
 /// `Qibla.makkah` constant (`Coordinates(21.4225241, 39.8261818)`,
 /// `adhan_dart-2.0.1/lib/src/Qibla.dart`) — the same source the bearing
@@ -139,17 +143,17 @@ class _QiblaScreenState extends State<QiblaScreen> {
   /// upgraded/guessed past what the sensor actually reports.
   (String, Color) get _confidence {
     final acc = _headingAccuracy;
-    if (_effectiveHeading == null) return ('لا توجد بيانات من البوصلة', AppColors.textMuted);
-    if (acc == null) return ('دقة البوصلة غير معروفة على هذا الجهاز', AppColors.textMuted);
+    if (_effectiveHeading == null) return (_t('qb_no_compass'), AppColors.textMuted);
+    if (acc == null) return (_t('qb_acc_unknown'), AppColors.textMuted);
     final accDegrees = acc * 180 / pi;
     // Ismail's 2026-08-16 "استمر في نقاط التحسين" follow-up — showing the
     // actual degree figure alongside the tier label, same spirit as the
     // location-accuracy addition just before this one (never hide the raw
     // number behind only a qualitative label).
     final degText = '~${accDegrees.round()}°';
-    if (accDegrees < 15) return ('دقة عالية ($degText)', AppColors.primary);
-    if (accDegrees < 40) return ('دقة متوسطة ($degText) — قد تحتاج معايرة', const Color(0xFFB8860B));
-    return ('دقة ضعيفة ($degText) — حرّك هاتفك برسم ٨ لمعايرة البوصلة', Colors.redAccent);
+    if (accDegrees < 15) return (_t('qb_acc_high').replaceAll('{d}', degText), AppColors.primary);
+    if (accDegrees < 40) return (_t('qb_acc_mid').replaceAll('{d}', degText), const Color(0xFFB8860B));
+    return (_t('qb_acc_low').replaceAll('{d}', degText), Colors.redAccent);
   }
 
   @override
@@ -168,7 +172,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
         ],
       ),
       body: _loading
-          ? const AppLoadingView(icon: Icons.explore_outlined, message: 'جاري تحديد موقعك لحساب اتجاه القبلة بدقة...')
+          ? AppLoadingView(icon: Icons.explore_outlined, message: _t('qb_locating'))
           : _noLocation
               ? _NoLocationView(onRetry: _load)
               : Column(
@@ -310,9 +314,9 @@ class _CompassView extends StatelessWidget {
   (String, Color)? get _locationConfidence {
     final acc = locationAccuracyMeters;
     if (acc == null) return null;
-    if (acc < 20) return ('دقة الموقع عالية (~${acc.round()} م)', AppColors.primary);
-    if (acc < 100) return ('دقة الموقع متوسطة (~${acc.round()} م)', const Color(0xFFB8860B));
-    return ('دقة الموقع ضعيفة (~${acc.round()} م) — قد يزيح اتجاه القبلة قليلًا', Colors.redAccent);
+    if (acc < 20) return (_t('qb_loc_high').replaceAll('{m}', '${acc.round()}'), AppColors.primary);
+    if (acc < 100) return (_t('qb_loc_mid').replaceAll('{m}', '${acc.round()}'), const Color(0xFFB8860B));
+    return (_t('qb_loc_low').replaceAll('{m}', '${acc.round()}'), Colors.redAccent);
   }
 
   /// Light-up gold glow color (Ismail's 2026-08-16 "اجعل البوصلة تضيء عند
@@ -324,11 +328,11 @@ class _CompassView extends StatelessWidget {
   /// 2026-08-16 "استمر في نقاط التحسين" follow-up. 8-direction resolution
   /// (not 16) — precise enough to be useful ("roughly north-east") without
   /// implying false precision from a single degree number alone.
-  static const _cardinalNames = ['الشمال', 'الشمال الشرقي', 'الشرق', 'الجنوب الشرقي', 'الجنوب', 'الجنوب الغربي', 'الغرب', 'الشمال الغربي'];
+  static const _cardinalNames = ['qb_dir_n', 'qb_dir_ne', 'qb_dir_e', 'qb_dir_se', 'qb_dir_s', 'qb_dir_sw', 'qb_dir_w', 'qb_dir_nw'];
 
   static String _cardinalDirection(double bearingDeg) {
     final index = ((bearingDeg % 360) / 45).round() % 8;
-    return _cardinalNames[index];
+    return _t(_cardinalNames[index]);
   }
 
   @override
@@ -387,14 +391,14 @@ class _CompassView extends StatelessWidget {
         ),
         if (facingQibla) ...[
           const SizedBox(height: 12),
-          Text('أنت تواجه القبلة الآن 🕋', textAlign: TextAlign.center, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: _glowColor)),
+          Text(_t('qb_facing'), textAlign: TextAlign.center, style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: _glowColor)),
         ],
         const SizedBox(height: 20),
         Row(
           children: [
-            Expanded(child: _StatCard(label: 'اتجاه القبلة', value: '${qiblaBearing.toStringAsFixed(1)}°', subtitle: _cardinalDirection(qiblaBearing))),
+            Expanded(child: _StatCard(label: _t('qb_qibla_dir'), value: '${qiblaBearing.toStringAsFixed(1)}°', subtitle: _cardinalDirection(qiblaBearing))),
             const SizedBox(width: 10),
-            Expanded(child: _StatCard(label: 'من الشمال', value: heading == null ? '—' : '${((qiblaBearing - heading!) % 360).toStringAsFixed(0)}°')),
+            Expanded(child: _StatCard(label: _t('qb_from_north'), value: heading == null ? '—' : '${((qiblaBearing - heading!) % 360).toStringAsFixed(0)}°')),
           ],
         ),
         const SizedBox(height: 10),
@@ -425,12 +429,12 @@ class _CompassView extends StatelessWidget {
         ],
         if (isManualLocation) ...[
           const SizedBox(height: 8),
-          const Text('يُستخدم موقع مُدخَل يدويًا — دقة الاتجاه تعتمد على دقة الإحداثيات المدخلة', style: TextStyle(fontSize: 11, color: AppColors.textMuted), textAlign: TextAlign.center),
+          Text(_t('qb_manual_loc'), style: const TextStyle(fontSize: 11, color: AppColors.textMuted), textAlign: TextAlign.center),
         ],
         const SizedBox(height: 6),
-        const Text(
-          'وجّه أعلى الهاتف نحو السهم — إن كانت الدقة ضعيفة، حرّك الهاتف على شكل ٨ لمعايرة البوصلة',
-          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+        Text(
+          _t('qb_point_hint'),
+          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 10),
@@ -439,9 +443,9 @@ class _CompassView extends StatelessWidget {
         // north, not true north; the geographic bearing above doesn't have
         // that error at all, so the map tab is a genuinely independent
         // cross-check rather than just "another view of the same number."
-        const Text(
-          'ملاحظة: البوصلة تعتمد الشمال المغناطيسي، وقد يظهر فرق بسيط بضع درجات حسب موقعك — للتأكد، قارن مع تبويب "المرئية" فهو محسوب جغرافيًا مباشرة بلا اعتماد على البوصلة',
-          style: TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+        Text(
+          _t('qb_magnetic_note').replaceAll('{map}', _t('qibla_tab_map')),
+          style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
           textAlign: TextAlign.center,
         ),
       ],
@@ -617,11 +621,11 @@ class _SunViewState extends State<_SunView> {
             children: [
               const Icon(Icons.nightlight_outlined, size: 40, color: AppColors.textMuted),
               const SizedBox(height: 12),
-              const Text('الشمس غاربة الآن', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14), textAlign: TextAlign.center),
+              Text(_t('qb_sun_set'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14), textAlign: TextAlign.center),
               const SizedBox(height: 6),
-              const Text(
-                'طريقة الشمس تعمل فقط أثناء ظهورها فوق الأفق — استخدم الآن تبويب "البوصلة" أو "المرئية"',
-                style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+              Text(
+                _t('qb_sun_only_day').replaceAll('{compass}', _t('qibla_tab_compass')).replaceAll('{map}', _t('qibla_tab_map')),
+                style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -642,9 +646,9 @@ class _SunViewState extends State<_SunView> {
       children: [
         Row(
           children: [
-            Expanded(child: _StatCard(label: 'اتجاه الشمس الآن', value: '${sun.azimuthDegrees.toStringAsFixed(0)}°')),
+            Expanded(child: _StatCard(label: _t('qb_sun_azimuth'), value: '${sun.azimuthDegrees.toStringAsFixed(0)}°')),
             const SizedBox(width: 10),
-            Expanded(child: _StatCard(label: 'ارتفاع الشمس', value: '${sun.altitudeDegrees.toStringAsFixed(0)}°')),
+            Expanded(child: _StatCard(label: _t('qb_sun_altitude'), value: '${sun.altitudeDegrees.toStringAsFixed(0)}°')),
           ],
         ),
         const SizedBox(height: 20),
@@ -658,12 +662,12 @@ class _SunViewState extends State<_SunView> {
                 children: [
                   Icon(turnRight ? Icons.turn_right : Icons.turn_left, color: AppColors.primaryDark),
                   const SizedBox(width: 8),
-                  const Text('طريقة استقبال الشمس', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                  Text(_t('qb_sun_method'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
-                'قف مستقبلًا الشمس مباشرة، ثم استدر ${turn.abs().toStringAsFixed(0)}° نحو ${turnRight ? "يمينك" : "يسارك"} — تكون بذلك متجهًا نحو القبلة.',
+                _t('qb_sun_turn').replaceAll('{deg}', turn.abs().toStringAsFixed(0)).replaceAll('{side}', _t(turnRight ? 'qb_right' : 'qb_left')),
                 style: const TextStyle(fontSize: 13, color: AppColors.textDark, height: 1.6),
               ),
             ],
@@ -679,15 +683,15 @@ class _SunViewState extends State<_SunView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.wb_shade_outlined, color: AppColors.textMuted, size: 18),
-                    SizedBox(width: 8),
-                    Text('أو بطريقة الظل', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                  children: [
+                    const Icon(Icons.wb_shade_outlined, color: AppColors.textMuted, size: 18),
+                    const SizedBox(width: 8),
+                    Text(_t('qb_shadow_title'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'إن كانت الشمس قوية على عينيك، انظر إلى ظل أي شيء عمودي (عصا، عمود) بدلًا منها — الظل الآن يشير إلى ${shadowAzimuth.toStringAsFixed(0)}°، أي بعيدًا عن الشمس تمامًا. قف وظلك في هذا الاتجاه، ثم استدر ${turn.abs().toStringAsFixed(0)}° نحو ${turnRight ? "يمينك" : "يسارك"} كما في الطريقة الأولى.',
+                  _t('qb_shadow_body').replaceAll('{sh}', shadowAzimuth.toStringAsFixed(0)).replaceAll('{deg}', turn.abs().toStringAsFixed(0)).replaceAll('{side}', _t(turnRight ? 'qb_right' : 'qb_left')),
                   style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6),
                 ),
               ],
@@ -695,9 +699,9 @@ class _SunViewState extends State<_SunView> {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
-          'ميزة هذه الطريقة أنها لا تعتمد على بوصلة الهاتف إطلاقًا — فهي مستقلة تمامًا عن أي تشويش مغناطيسي قد يؤثر على تبويب "البوصلة"، ومفيدة كتأكيد إضافي.',
-          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+        Text(
+          _t('qb_sun_benefit').replaceAll('{compass}', _t('qibla_tab_compass')),
+          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
           textAlign: TextAlign.center,
         ),
       ],
@@ -719,11 +723,11 @@ class _NoLocationView extends StatelessWidget {
           children: [
             const Icon(Icons.location_off_outlined, size: 44, color: AppColors.textMuted),
             const SizedBox(height: 12),
-            const Text('لم نتمكن من تحديد موقعك', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+            Text(_t('qb_no_location'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            const Text('يحتاج اتجاه القبلة إلى موقعك — من شاشة "أوقات الصلاة" يمكنك إدخاله يدويًا', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted), textAlign: TextAlign.center),
+            Text(_t('qb_need_location'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted), textAlign: TextAlign.center),
             const SizedBox(height: 20),
-            FilledButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
+            FilledButton(onPressed: onRetry, child: Text(_t('feedback_retry'))),
           ],
         ),
       ),

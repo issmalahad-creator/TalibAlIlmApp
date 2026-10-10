@@ -81,6 +81,7 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
     if (_queue.isEmpty) return;
     await _repo.markUnderstood(_queue.first, notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim());
     _notesController.clear();
+    if (!mounted) return;
     setState(() => _queue = _queue.skip(1).toList());
     await _loadCurrent();
   }

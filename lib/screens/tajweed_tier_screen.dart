@@ -45,6 +45,7 @@ class _TajweedTierScreenState extends State<TajweedTierScreen> {
     if (_learned.contains(key)) return;
     await _repo.markLearned(key);
     final newLearned = {..._learned, key};
+    if (!mounted) return;
     setState(() => _learned = newLearned);
 
     final complete = widget.tier.rules.every((r) => newLearned.contains('${widget.tier.key}_${r.titleAr}'));

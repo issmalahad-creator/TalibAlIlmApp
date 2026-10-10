@@ -470,6 +470,7 @@ class _MushafSemanticReaderScreenState
     );
     if (mins == null || !mounted) return;
     await _sessionRepo.setTargetMinutes(mins);
+    if (!mounted) return;
     setState(() => _sessionRemaining = mins * 60);
     _sessionTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_sessionRemaining <= 1) {
@@ -777,6 +778,7 @@ class _MushafSemanticReaderScreenState
     if (!_vertical) await _setVertical(true);
     _autoTicker ??= createTicker(_autoTick);
     _autoLast = null;
+    if (!mounted) return;
     setState(() {
       _autoScroll = true;
       _autoPaused = false;

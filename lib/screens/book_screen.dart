@@ -121,6 +121,7 @@ class _BookScreenState extends State<BookScreen> {
 
   Future<void> _hideBook(BookEntry book) async {
     await _hiddenBooksService.hide(book.id);
+    if (!mounted) return;
     setState(() => _hiddenIds = {..._hiddenIds, book.id});
     if (_selectedBookId == book.id) {
       final visible = _visibleBooks;
@@ -132,6 +133,7 @@ class _BookScreenState extends State<BookScreen> {
 
   Future<void> _unhideBook(BookEntry book) async {
     await _hiddenBooksService.unhide(book.id);
+    if (!mounted) return;
     setState(() => _hiddenIds = {..._hiddenIds}..remove(book.id));
   }
 
@@ -595,9 +597,11 @@ class _VoicePlayButtonState extends State<_VoicePlayButton> {
   Future<void> _toggle() async {
     if (_playing) {
       await _player.pause();
+      if (!mounted) return;
       setState(() => _playing = false);
     } else {
       await _player.play(UrlSource(widget.url));
+      if (!mounted) return;
       setState(() => _playing = true);
     }
   }
