@@ -207,3 +207,43 @@ later we don't restart from zero. Format per entry:
   (a frame, an index, a boundary), consume it — don't re-derive it at
   runtime with magic numbers.
 - **Source:** M2–M6a, `docs/quran/MUSHAF_ENGINE_REBUILD.md`, 2026‑09‑03.
+
+## E‑13 · Clipping a page into line bands would cut letters (2026‑10‑10)
+
+- **Mistake avoided:** to spread the 15 lines down a tall screen, the obvious
+  move is to draw the page once per line clipped to `vbTop + i·pitch`.
+  Measured on all 8,807 text lines (pages 3–604): **63 % of lines have ink
+  outside their pitch band**, the worst 1 % by > 17 % of a pitch (max 34 %).
+  Band-clipping would shave marks and tall letters; widening the clip ghosts
+  the neighbour line's ink.
+- **Correct understanding:** the V1.01 SVG already groups each line
+  (`<g id="md-line-NN">` inside `md-page-inner`; headers + page number in
+  `md-page-outer`). Render each line from **its own group** — no clip, no
+  ghost (`splitMushafSvg`, `LineSpreadTransform`, verified on all 602 pages).
+- **New engineering rule:** before clipping/cropping mushaf art, measure ink
+  vs. the region on the whole set; prefer the art's own grouping.
+- **Source:** `lib/widgets/mushaf/line_spread.dart`, `test/line_spread_test.dart`.
+
+## E‑14 · Re-parenting a scroll view mid-gesture re-creates its position (2026‑10‑10)
+
+- **Mistake:** the continuous reader wrapped its `ListView` in a sideways
+  scroll only once zoomed. The first pinch frame re-parented the list → a
+  fresh `ScrollPosition` at the controller's `initialScrollOffset` (computed
+  at the old zoom) → the reader jumped from page 582 to ~328.
+- **Also:** several pointer moves arrive between two frames; computing each
+  pinch step from an offset not yet applied loses the anchor.
+- **New engineering rule:** keep scroll views in the tree for the widget's
+  lifetime (lock them with `NeverScrollableScrollPhysics` instead of removing
+  them); accumulate pending target offsets and apply once post-frame.
+- **Source:** found in rendered previews; fixed in the reader, R1.
+
+## E‑15 · Every Quran entry point opened page 1 (2026‑10‑10)
+
+- **Mistake:** `MushafSemanticReaderScreen(initialPage = 1)` and all three
+  callers (`home_screen`, `wird_screen`, `companion_card`) used the default —
+  the reader never returned to where the user stopped. The reader's search
+  also dropped its result, which in any case was a **Tanzil** page number.
+- **New engineering rule:** a reading surface resumes by default
+  (`initialPage == null` → `mushaf_last_page`); any page coming from
+  `quran_ayat`/search goes through `pageForReference(surah, ayah)` (E‑2).
+- **Source:** reader R1/R3.

@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,6 +29,7 @@ import '../widgets/mushaf/mushaf_chrome_style.dart';
 import '../widgets/mushaf/pinch_zoom.dart';
 import '../widgets/mushaf_page_view.dart';
 import '../theme/app_theme.dart';
+import '../theme/depth.dart';
 import '../theme/tajweed_palette.dart';
 import 'tajweed_tier_screen.dart';
 import 'ayah_notebook_screen.dart';
@@ -52,9 +56,11 @@ import 'quran_learning/topic_index_screen.dart';
 ///   * medallion  → `QuranSelection.ayah`  → Ayah Knowledge Surface
 ///   * long-press → the ayah notebook (future ayah-panel shortcut)
 class MushafSemanticReaderScreen extends StatefulWidget {
-  final int initialPage; // 1..604
+  /// 1..604. Null → reopen where the reader last stopped
+  /// (`mushaf_last_page`), page 1 on a first run.
+  final int? initialPage;
 
-  const MushafSemanticReaderScreen({super.key, this.initialPage = 1});
+  const MushafSemanticReaderScreen({super.key, this.initialPage});
 
   @override
   State<MushafSemanticReaderScreen> createState() =>
@@ -62,7 +68,8 @@ class MushafSemanticReaderScreen extends StatefulWidget {
 }
 
 class _MushafSemanticReaderScreenState
-    extends State<MushafSemanticReaderScreen> {
+    extends State<MushafSemanticReaderScreen>
+    with SingleTickerProviderStateMixin {
   static const _pageCount = 604;
   final _repo = MushafLayoutRepository();
   final _cache = <int, MushafPageLayout?>{};
@@ -86,12 +93,10 @@ class _MushafSemanticReaderScreenState
   static const _maxZoom = 3.0;
   bool get _zoomed => _zoom > 1.001;
 
-  /// Height ÷ width of each page box in the continuous view. The width is
-  /// the fitted content frame (`_kContentRectPad`, uniform on all 604
-  /// pages); 1.86 adds the art's own juzʼ/surah header above it and the
-  /// printed page number below it (the bare frame is 1.534–1.549). One
-  /// fixed extent → an exact page ↔ offset mapping.
-  static const _pageAspect = 1.86;
+  /// Each page of the continuous view is exactly one screen tall (below the
+  /// status bar) × zoom, its lines spread to fill it
+  /// (`MushafPageView.spreadLines`) — one fixed extent → an exact
+  /// page ↔ offset mapping.
   static const _pageGap = 12.0;
   ScrollController? _vScroll; // vertical mode — down the pages
   final _hScroll = ScrollController(); // vertical mode, zoomed — across
@@ -99,6 +104,37 @@ class _MushafSemanticReaderScreenState
   final _zhScroll = ScrollController();
   double _vExtent = 0;
   double _vTopPad = 0;
+
+  // ── last page · page colour · colored bookmarks · auto-scroll ───────
+  static const _lastPagePrefKey = 'mushaf_last_page';
+  static const _tonePrefKey = 'mushaf_paper_tone';
+  static const _bookmarksPrefKey = 'mushaf_bookmarks_v1';
+  static const _autoSpeedPrefKey = 'mushaf_auto_speed';
+
+  /// «لون المصحف» — (page, surround). 0 keeps the original look.
+  static const _tones = <(Color, Color)>[
+    (AppColors.surface, Color(0xFFFBF6EE)),
+    (Color(0xFFFFFBF1), Color(0xFFF3EAD8)), // cream
+    (Color(0xFFF1F6EC), Color(0xFFE2EBD9)), // soft green
+    (Color(0xFFEEF3F8), Color(0xFFDDE6EF)), // soft blue
+    (Color(0xFFF6E9D2), Color(0xFFE9D9BC)), // sand
+  ];
+  int _tone = 0;
+
+  /// Page bookmarks, one colour each — e.g. one colour per khatma.
+  static const _bookmarkColors = <Color>[
+    Color(0xFFD9534F), Color(0xFFD9A441), Color(0xFF4CAF50), Color(0xFF3F88C5), Color(0xFF9C5BB5),
+  ];
+  Map<int, int> _bookmarks = {};
+
+  /// «التصفح التلقائي» (vertical mode): the pages glide up at a steady pace;
+  /// any touch pauses it. Speeds in screen px/s at 100% (scaled by zoom).
+  static const _autoSpeeds = [12.0, 20.0, 30.0, 44.0, 62.0];
+  Ticker? _autoTicker;
+  bool _autoScroll = false;
+  bool _autoPaused = false;
+  int _autoSpeed = 1;
+  Duration? _autoLast;
 
   /// The ayah under the long-press menu — highlighted while it is open.
   ({int surah, int ayah})? _menuAyah;
@@ -153,7 +189,7 @@ class _MushafSemanticReaderScreenState
   @override
   void initState() {
     super.initState();
-    _current = widget.initialPage.clamp(1, _pageCount);
+    _current = (widget.initialPage ?? 1).clamp(1, _pageCount);
     _controller = PageController(initialPage: _current - 1);
     // The layout may still be seeding on a first launch — jump it to the
     // front of the boot queue instead of reporting "not ready".
@@ -173,11 +209,38 @@ class _MushafSemanticReaderScreenState
       if (tj == true && mounted) setState(() => _tajweedMode = true);
       final vert = p.getBool(_verticalPrefKey) ?? true;
       final z = (p.getDouble(_zoomPrefKey) ?? 1).clamp(1.0, _maxZoom);
-      if (mounted) {
-        setState(() {
-          _vertical = vert;
-          _zoom = vert ? z : 1;
+      final last = widget.initialPage == null ? p.getInt(_lastPagePrefKey) : null;
+      final resume = last != null && last > 1 && last <= _pageCount && last != _current;
+      Map<int, int> marks = {};
+      try {
+        final raw = p.getString(_bookmarksPrefKey);
+        if (raw != null) {
+          marks = {
+            for (final e in (jsonDecode(raw) as Map<String, dynamic>).entries)
+              int.parse(e.key): (e.value as num).toInt(),
+          };
+        }
+      } catch (_) {}
+      if (!mounted) return;
+      setState(() {
+        _vertical = vert;
+        _zoom = vert ? z : 1;
+        _tone = (p.getInt(_tonePrefKey) ?? 0).clamp(0, _tones.length - 1);
+        _autoSpeed = (p.getInt(_autoSpeedPrefKey) ?? 1).clamp(0, _autoSpeeds.length - 1);
+        final rp = p.getInt(_repeatPrefKey) ?? 1;
+        _repeat = _repeatSteps.contains(rp) ? rp : 1;
+        _bookmarks = marks;
+      });
+      if (resume) {
+        // after this frame the active view (list or PageView) is attached
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _jumpToPage(last);
         });
+        final lang = LanguagePreferenceService.currentLanguage;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          duration: const Duration(seconds: 2),
+          content: Text('${basicText('mushaf_resumed', lang)} · ${basicText('page_label', lang)} ${mushafDigits(last, lang)}'),
+        ));
       }
     });
   }
@@ -224,6 +287,7 @@ class _MushafSemanticReaderScreenState
   void dispose() {
     _sessionTimer?.cancel();
     _audio.stop();
+    _autoTicker?.dispose();
     _controller.dispose();
     _vScroll?.dispose();
     _hScroll.dispose();
@@ -261,6 +325,18 @@ class _MushafSemanticReaderScreenState
   List<({int surah, int ayah})> get _pageAyat =>
       _cache[_current]?.ayat ?? const [];
 
+  /// «تكرار الآية» for memorization — each ayah is recited this many times
+  /// before the next (∞ = 0: the same ayah until stopped). Remembered.
+  static const _repeatPrefKey = 'mushaf_repeat_ayah';
+  static const _repeatSteps = [1, 3, 5, 10, 0];
+  int _repeat = 1;
+
+  void _cycleRepeat() {
+    final i = _repeatSteps.indexOf(_repeat);
+    setState(() => _repeat = _repeatSteps[(i + 1) % _repeatSteps.length]);
+    SharedPreferences.getInstance().then((p) => p.setInt(_repeatPrefKey, _repeat));
+  }
+
   /// Bumped by every [_playFrom] — an older loop sees the change and exits,
   /// so «next/previous ayah» never leaves two recitation loops running.
   int _playGen = 0;
@@ -284,7 +360,14 @@ class _MushafSemanticReaderScreenState
         _audioIdx = i;
         _playingAyah = ayat[i];
       });
-      await _audio.playAyah(_reciterId, ayat[i].surah, ayat[i].ayah);
+      for (var r = 0; _repeat == 0 || r < _repeat; r++) {
+        if (!mounted || !_playing || gen != _playGen) return;
+        while (_paused) {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          if (!mounted || !_playing || gen != _playGen) return;
+        }
+        await _audio.playAyah(_reciterId, ayat[i].surah, ayat[i].ayah);
+      }
     }
     if (mounted && gen == _playGen) {
       setState(() {
@@ -557,7 +640,7 @@ class _MushafSemanticReaderScreenState
         );
       }
       _setCurrent(page);
-    } else {
+    } else if (_controller.hasClients) {
       _controller.jumpToPage(page - 1);
     }
   }
@@ -570,7 +653,207 @@ class _MushafSemanticReaderScreenState
       _selMark = null;
     });
     MushafPageCache.instance.preloadAround(_current);
+    SharedPreferences.getInstance().then((p) => p.setInt(_lastPagePrefKey, page));
   }
+
+  // ── page colour · bookmarks ─────────────────────────────────────────
+
+  Future<void> _setTone(int i) async {
+    setState(() => _tone = i);
+    (await SharedPreferences.getInstance()).setInt(_tonePrefKey, i);
+  }
+
+  Future<void> _saveBookmarks() async {
+    (await SharedPreferences.getInstance()).setString(
+        _bookmarksPrefKey, jsonEncode({for (final e in _bookmarks.entries) '${e.key}': e.value}));
+  }
+
+  /// The ribbon button: pick a colour for this page, or remove its mark.
+  Future<void> _bookmarkSheet(String lang) async {
+    final page = _current;
+    final had = _bookmarks[page];
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      backgroundColor: _night ? AppColors.surfaceNight : MushafChrome.paper,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('${basicText('mushaf_bookmark_page', lang)} · ${mushafDigits(page, lang)}',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: MushafChrome.fg(_night))),
+            const SizedBox(height: 16),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              for (var i = 0; i < _bookmarkColors.length; i++)
+                GestureDetector(
+                  onTap: () => Navigator.pop(ctx, i),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: _bookmarkColors[i],
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: had == i ? MushafChrome.fg(_night) : Colors.white, width: had == i ? 3 : 2),
+                      boxShadow: DepthShadows.soft(_bookmarkColors[i]),
+                    ),
+                    child: had == i ? const Icon(Icons.check_rounded, color: Colors.white) : null,
+                  ),
+                ),
+            ]),
+            if (had != null) ...[
+              const SizedBox(height: 12),
+              TextButton.icon(
+                onPressed: () => Navigator.pop(ctx, -1),
+                icon: const Icon(Icons.bookmark_remove_outlined),
+                label: Text(basicText('mushaf_bookmark_remove', lang)),
+              ),
+            ],
+          ]),
+        ),
+      ),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (picked < 0) {
+        _bookmarks.remove(page);
+      } else {
+        _bookmarks[page] = picked;
+      }
+    });
+    _saveBookmarks();
+  }
+
+  Future<void> _openBookmarks(String lang) async {
+    final pages = _bookmarks.keys.toList()..sort();
+    final names = <int, String>{};
+    for (final pg in pages) {
+      final b = await _repo.ayahBoundsForPage(pg);
+      if (b != null) names[pg] = _surahName(b.firstSurah);
+    }
+    if (!mounted) return;
+    final page = await showModalBottomSheet<int>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: _night ? AppColors.surfaceNight : MushafChrome.paper,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.6),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(basicText('mushaf_bookmarks', lang),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: MushafChrome.fg(_night))),
+            const SizedBox(height: 8),
+            if (pages.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(basicText('mushaf_no_bookmarks', lang),
+                    textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
+              )
+            else
+              Flexible(
+                child: ListView(shrinkWrap: true, children: [
+                  for (final pg in pages)
+                    ListTile(
+                      leading: Icon(Icons.bookmark_rounded, color: _bookmarkColors[_bookmarks[pg]!.clamp(0, _bookmarkColors.length - 1)]),
+                      title: Text('${basicText('page_label', lang)} ${mushafDigits(pg, lang)}',
+                          style: TextStyle(fontWeight: FontWeight.w700, color: MushafChrome.fg(_night))),
+                      subtitle: names[pg] == null ? null : Text('${basicText('surah_word', lang)} ${names[pg]}'),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => Navigator.pop(ctx, pg),
+                    ),
+                ]),
+              ),
+          ]),
+        ),
+      ),
+    );
+    if (page != null) _jumpToPage(page);
+  }
+
+  // ── auto-scroll (vertical) ──────────────────────────────────────────
+
+  Future<void> _startAutoScroll() async {
+    if (!_vertical) await _setVertical(true);
+    _autoTicker ??= createTicker(_autoTick);
+    _autoLast = null;
+    setState(() {
+      _autoScroll = true;
+      _autoPaused = false;
+      _chromeVisible = true;
+    });
+    if (!_autoTicker!.isActive) _autoTicker!.start();
+  }
+
+  void _stopAutoScroll() {
+    _autoTicker?.stop();
+    setState(() {
+      _autoScroll = false;
+      _autoPaused = false;
+    });
+  }
+
+  void _autoTick(Duration elapsed) {
+    final last = _autoLast;
+    _autoLast = elapsed;
+    final c = _vScroll;
+    if (last == null || _autoPaused || _pinching || c == null || !c.hasClients) return;
+    final dt = (elapsed - last).inMicroseconds / 1e6;
+    final next = c.offset + _autoSpeeds[_autoSpeed] * _zoom * dt;
+    if (next >= c.position.maxScrollExtent) {
+      c.jumpTo(c.position.maxScrollExtent);
+      _stopAutoScroll();
+      return;
+    }
+    c.jumpTo(next);
+  }
+
+  void _setAutoSpeed(int i) {
+    setState(() => _autoSpeed = i.clamp(0, _autoSpeeds.length - 1));
+    SharedPreferences.getInstance().then((p) => p.setInt(_autoSpeedPrefKey, _autoSpeed));
+  }
+
+  Widget _autoScrollBar(String lang, Color bg, Color fg) => Material(
+        color: bg.withValues(alpha: 0.95),
+        elevation: 3,
+        shape: StadiumBorder(side: BorderSide(color: MushafChrome.gold.withValues(alpha: 0.55))),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(
+              tooltip: basicText('mushaf_speed', lang),
+              icon: Icon(Icons.remove_rounded, color: fg),
+              onPressed: _autoSpeed > 0 ? () => _setAutoSpeed(_autoSpeed - 1) : null,
+            ),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              for (var i = 0; i < _autoSpeeds.length; i++)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                  width: 5,
+                  height: 6.0 + i * 2.5,
+                  decoration: BoxDecoration(
+                    color: i <= _autoSpeed ? MushafChrome.gold : fg.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+            ]),
+            IconButton(
+              tooltip: basicText('mushaf_speed', lang),
+              icon: Icon(Icons.add_rounded, color: fg),
+              onPressed: _autoSpeed < _autoSpeeds.length - 1 ? () => _setAutoSpeed(_autoSpeed + 1) : null,
+            ),
+            IconButton.filled(
+              style: IconButton.styleFrom(backgroundColor: MushafChrome.brown),
+              icon: Icon(_autoPaused ? Icons.play_arrow_rounded : Icons.pause_rounded, color: Colors.white),
+              onPressed: () => setState(() {
+                _autoPaused = !_autoPaused;
+                _autoLast = null;
+              }),
+            ),
+            IconButton(icon: Icon(Icons.close_rounded, color: fg), onPressed: _stopAutoScroll),
+          ]),
+        ),
+      );
 
   // ── view mode + pinch zoom ─────────────────────────────────────────
 
@@ -613,8 +896,9 @@ class _MushafSemanticReaderScreenState
   double? _pendingX, _pendingY;
   bool _jumpScheduled = false;
   double _vViewportW = 0;
+  double _vPageH = 0; // unzoomed page height
 
-  double _extentFor(double zoom) => _vViewportW * zoom * _pageAspect + _pageGap;
+  double _extentFor(double zoom) => _vPageH * zoom + _pageGap;
 
   void _onPinchUpdate(double scale, Offset focal) {
     final z = (_pinchStartZoom * scale).clamp(1.0, _maxZoom);
@@ -966,6 +1250,12 @@ class _MushafSemanticReaderScreenState
                     basicText('mushaf_go_to_page', lang),
                     () => then(() => _promptGoToPage(lang)),
                   ),
+                  div,
+                  tile(
+                    Icons.keyboard_double_arrow_down_rounded,
+                    basicText('mushaf_auto_scroll', lang),
+                    () => then(_startAutoScroll),
+                  ),
                   if (_zoomed) ...[
                     div,
                     tile(
@@ -989,7 +1279,7 @@ class _MushafSemanticReaderScreenState
                   div,
                   tile(
                     Icons.timer_outlined,
-                    basicText('reading_session_prompt', lang),
+                    basicText('mushaf_timed_session', lang),
                     () => then(() => _openSessionSheet(lang)),
                   ),
                   header('mushaf_section_tahfeez'),
@@ -1043,6 +1333,45 @@ class _MushafSemanticReaderScreenState
                     },
                   ),
                   div,
+                  // «لون المصحف» — a row of paper swatches
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                    child: Row(children: [
+                      Icon(Icons.palette_outlined, size: 22, color: iconC),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(basicText('mushaf_paper_color', lang),
+                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: fg)),
+                      ),
+                    ]),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                      for (var i = 0; i < _tones.length; i++)
+                        GestureDetector(
+                          onTap: () async {
+                            await _setTone(i);
+                            setSheet(() {});
+                          },
+                          child: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: _tones[i].$1,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: i == _tone ? MushafChrome.brown : MushafChrome.line(false),
+                                  width: i == _tone ? 3 : 1.5),
+                            ),
+                            child: i == _tone
+                                ? const Icon(Icons.check_rounded, size: 18, color: MushafChrome.brown)
+                                : null,
+                          ),
+                        ),
+                    ]),
+                  ),
+                  div,
                   tile(
                     Icons.travel_explore_rounded,
                     basicText('ql_topic_index_title', lang),
@@ -1055,6 +1384,12 @@ class _MushafSemanticReaderScreenState
                     () => go(const SourcesScreen()),
                   ),
                   header('favorites_title'),
+                  tile(
+                    Icons.bookmarks_outlined,
+                    basicText('mushaf_bookmarks', lang),
+                    () => then(() => _openBookmarks(lang)),
+                  ),
+                  div,
                   tile(
                     Icons.bookmark_outline_rounded,
                     basicText('favorites_title', lang),
@@ -1404,6 +1739,30 @@ class _MushafSemanticReaderScreenState
                 ),
               ),
             ),
+            Tooltip(
+              message: basicText('mushaf_repeat_ayah', lang),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(999),
+                onTap: _cycleRepeat,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: _repeat == 1 ? Colors.transparent : MushafChrome.gold.withValues(alpha: 0.18),
+                    border: Border.all(color: MushafChrome.gold.withValues(alpha: 0.6)),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.repeat_one_rounded, size: 16,
+                        color: _night ? AppColors.textDarkNight : AppColors.textDark),
+                    const SizedBox(width: 3),
+                    Text(_repeat == 0 ? '∞' : '×$_repeat',
+                        textDirection: TextDirection.ltr,
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800,
+                            color: _night ? AppColors.textDarkNight : AppColors.textDark)),
+                  ]),
+                ),
+              ),
+            ),
             IconButton(
               icon: const Icon(Icons.close_rounded),
               onPressed: _toggleAudioBar,
@@ -1433,7 +1792,7 @@ class _MushafSemanticReaderScreenState
 
   @override
   Widget build(BuildContext context) {
-    final bg = _night ? AppColors.backgroundNight : const Color(0xFFFBF6EE);
+    final bg = _night ? AppColors.backgroundNight : _tones[_tone].$2;
     final onBg = _night ? AppColors.textDarkNight : AppColors.textDark;
     return ValueListenableBuilder<String>(
       valueListenable: LanguagePreferenceService.languageNotifier,
@@ -1526,6 +1885,16 @@ class _MushafSemanticReaderScreenState
                           onPressed: _toggleAudioBar,
                         ),
                         IconButton(
+                          tooltip: basicText('mushaf_bookmark_page', lang),
+                          icon: Icon(
+                            _bookmarks.containsKey(_current) ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                            color: _bookmarks.containsKey(_current)
+                                ? _bookmarkColors[_bookmarks[_current]!.clamp(0, _bookmarkColors.length - 1)]
+                                : onBg,
+                          ),
+                          onPressed: () => _bookmarkSheet(lang),
+                        ),
+                        IconButton(
                           tooltip: basicText('khatm_reading_plans_short', lang),
                           icon: Icon(Icons.flag_circle_outlined, color: onBg),
                           onPressed: () => _openKhatmSheet(lang),
@@ -1554,6 +1923,13 @@ class _MushafSemanticReaderScreenState
                 ),
               ),
             // Zoomed: the size and a one-tap way back to the fitted page.
+            if (_autoScroll)
+              Positioned(
+                bottom: (_chromeVisible && (_audioBar || _tajweedMode)) ? 150 : 72,
+                left: 0,
+                right: 0,
+                child: SafeArea(child: Center(child: _autoScrollBar(lang, bg, onBg))),
+              ),
             if (_zoomed)
               Positioned(
                 bottom: (_chromeVisible && (_audioBar || _tajweedMode))
@@ -1665,9 +2041,11 @@ class _MushafSemanticReaderScreenState
       );
     }
     final word = _selWord?.page == page ? _selWord : null;
-    return Container(
-      color: _night ? AppColors.surfaceNight : AppColors.surface,
+    final mark = _bookmarks[page];
+    final view = Container(
+      color: _night ? AppColors.surfaceNight : _tones[_tone].$1,
       child: MushafPageView(
+        spreadLines: true,
         layout: layout,
         selectedWord: word,
         wordCaption: word != null ? _selWordCaption : null,
@@ -1685,6 +2063,23 @@ class _MushafSemanticReaderScreenState
         onBackgroundTap: _toggleChrome,
       ),
     );
+    if (mark == null) return view;
+    // a coloured ribbon hanging from the page's top edge
+    return Stack(children: [
+      Positioned.fill(child: view),
+      // top centre — the art's juzʼ/surah headers sit in the two corners
+      Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        child: IgnorePointer(
+          child: Center(
+            child: Icon(Icons.bookmark_rounded,
+                size: 30, color: _bookmarkColors[mark.clamp(0, _bookmarkColors.length - 1)]),
+          ),
+        ),
+      ),
+    ]);
   }
 
   /// «المصحف الأفقي» — one page at a time, swipe to turn. Pinched in, the
@@ -1741,19 +2136,25 @@ class _MushafSemanticReaderScreenState
     const freeze = NeverScrollableScrollPhysics();
     return LayoutBuilder(
       builder: (context, c) {
+        final safeTop = MediaQuery.paddingOf(context).top;
+        _vPageH = c.maxHeight - safeTop;
         final pageW = c.maxWidth * _zoom;
-        final pageH = pageW * _pageAspect;
+        final pageH = _vPageH * _zoom;
         _vExtent = pageH + _pageGap;
         _vViewportW = c.maxWidth;
-        _vTopPad = MediaQuery.paddingOf(context).top + 52;
+        _vTopPad = safeTop;
         final controller = _vScroll ??= ScrollController(
           initialScrollOffset: (_current - 1) * _vExtent,
         );
         final gapColor = _night
             ? AppColors.backgroundNight
-            : const Color(0xFFEDE3D3);
+            : Color.lerp(_tones[_tone].$2, MushafChrome.brown, 0.08)!;
 
-        final Widget list0 = ListView.builder(
+        final Widget list0 = Listener(
+          onPointerDown: (_) {
+            if (_autoScroll && !_autoPaused) setState(() => _autoPaused = true);
+          },
+          child: ListView.builder(
           controller: controller,
           physics: _pinching ? freeze : null,
           itemExtent: _vExtent,
@@ -1774,6 +2175,7 @@ class _MushafSemanticReaderScreenState
               ),
               Container(height: _pageGap, color: gapColor),
             ],
+          ),
           ),
         );
         // Always in the tree (locked while unzoomed): wrapping the list only
