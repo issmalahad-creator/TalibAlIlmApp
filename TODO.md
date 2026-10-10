@@ -2,6 +2,8 @@
 
 Last updated: 2026-09-27. **Work top to bottom, one unchecked item at a time.** Don't skip ahead — see `CLAUDE.md`'s "one rule that prevents scatter". Full detail for every item lives in `QURAN_COMPANION_ROADMAP.md`; this file only tracks status.
 
+> **2026-10-10 — queued, not started:** the daily-companion waves w1–w8 (dark theme + design system → «what now» dashboard + worship tracking → «my adhkar» + tasbih → prayer/calendar/Friday → share cards + global search → Names of Allah + knowledge map → widgets/PDF → seasons/audio), in [`docs/COMPANION_SPEC.md`](docs/COMPANION_SPEC.md). They start only after ب3 (reader) is closed on Ismail's phone, one wave per phase.
+
 ## 🧭 الخطة الرئيسية حتى نهاية المشروع (2026-09-27) — المرجع الوحيد لـ«ما التالي؟»
 
 **القاعدة (إسماعيل 2026-09-27):** «نعمل بشكل متسلسل ومنتظم ودون تشتت، لا نهتم بجهة وندع جهة». مرحلة واحدة فقط في كل وقت، من الأعلى للأسفل. لا تبدأ مرحلة قبل أن يتحقق **شرط انتهاء** السابقة (بناء + `flutter analyze` نظيف + اختبارات المرحلة + تحقق على هاتف إسماعيل حين يمسّ الواجهة). الطلب الجديد يُضاف إلى مكانه في هذه القائمة، ولا يقطع المرحلة الجارية إلا إن كان عطلًا يمنع الاستخدام.
