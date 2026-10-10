@@ -1,0 +1,64 @@
+# Builds a debug APK (full flavor, arm64) on every push and on demand, so a
+# phone build exists without a local Android toolchain. Download it from the
+# run's "Artifacts" section on the Actions tab.
+#
+# Gitignored build inputs are supplied here, never committed:
+#   - lib/config/app_config.dart  ← app_config.example.dart (placeholder keys)
+#   - assets/tts/                 ← tool/fetch_tts_voice.sh (Kareem voice, MIT)
+name: Debug APK
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: debug-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+
+      - name: Stand in the gitignored config
+        run: cp lib/config/app_config.example.dart lib/config/app_config.dart
+
+      - name: Fetch the TTS voice
+        run: |
+          pip install onnx
+          # fetch_tts_voice.sh calls the Windows `py` launcher.
+          mkdir -p "$HOME/bin" && ln -sf "$(command -v python)" "$HOME/bin/py"
+          export PATH="$HOME/bin:$PATH"
+          sh tool/fetch_tts_voice.sh
+
+      - run: flutter pub get
+
+      - name: Build debug APK
+        run: flutter build apk --debug --flavor full --target-platform android-arm64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: talib-alilm-full-debug-arm64-${{ github.sha }}
+          path: build/app/outputs/flutter-apk/app-full-debug.apk
+          retention-days: 14
+          compression-level: 0
