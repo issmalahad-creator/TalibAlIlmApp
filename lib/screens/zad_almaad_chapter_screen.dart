@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../repositories/zad_almaad_repository.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 class ZadAlMaadChapterScreen extends StatefulWidget {
   final ZadAlMaadChapter chapter;
@@ -39,16 +46,16 @@ class _ZadAlMaadChapterScreenState extends State<ZadAlMaadChapterScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'نص ابن القيم الأصلي — تعليق ابن عثيمين على هذا الفصل لم يُضَف بعد',
+                _t('x_zad_no_commentary'),
                 style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
               ),
             ),
           Text(c.text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, height: 1.9)),
           const SizedBox(height: 20),
           if (!_readDone)
-            FilledButton.icon(onPressed: _markRead, icon: const Icon(Icons.check), label: const Text('قرأته'))
+            FilledButton.icon(onPressed: _markRead, icon: const Icon(Icons.check), label: Text(_t('x_read_it')))
           else
-            const Text('قرأت هذا الفصل 🌱', textAlign: TextAlign.center, style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+            Text(_t('x_read_chapter'), textAlign: TextAlign.center, style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
         ],
       ),
     );

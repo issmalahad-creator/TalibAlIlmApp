@@ -9,6 +9,10 @@ import '../widgets/guide_diagram.dart';
 import 'guide_topic_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "دليل المسلم الجديد" — QURAN_COMPANION_ROADMAP.md §4.9 (5د, expanded).
 /// Topic list: Wudu, Ghusl, Istinja, Salah.
 class NewMuslimGuideScreen extends StatefulWidget {
@@ -41,14 +45,14 @@ class _NewMuslimGuideScreenState extends State<NewMuslimGuideScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('دليل المسلم الجديد')),
+      appBar: AppBar(title: Text(_t('x_new_muslim'))),
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text(
-                  'خطوات أساسية للطهارة والصلاة — بالعربية والإنجليزية والأمهرية',
+                Text(
+                  _t('x_new_muslim_sub'),
                   style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 16),
@@ -92,7 +96,7 @@ class _TopicCard extends StatelessWidget {
                 if (isRead) const Icon(Icons.check_circle, color: AppColors.primary, size: 18),
               ],
             ),
-            Text('${topic.steps.length} خطوة', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+            Text(_t('x_steps').replaceAll('{n}', '${topic.steps.length}'), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
           ],
         ),
       ),

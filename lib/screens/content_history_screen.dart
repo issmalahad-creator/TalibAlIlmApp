@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../models/book_content.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// Browses past announcements/banners (v6 relay's append-only log) — the
 /// Book screen only ever shows the single *current* one live; this is for
@@ -13,12 +20,12 @@ class ContentHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('سجل الإعلانات والبانرات')),
+      appBar: AppBar(title: Text(_t('x_content_history'))),
       body: history.isEmpty
-          ? const Center(
+          ? Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: Text('لا يوجد سجل بعد.', style: TextStyle(color: AppColors.textMuted)),
+                child: Text(_t('x_no_history'), style: TextStyle(color: AppColors.textMuted)),
               ),
             )
           : ListView.builder(
@@ -50,7 +57,7 @@ class ContentHistoryScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(isBanner ? 'بانر' : 'إعلان',
+                              Text(isBanner ? _t('x_banner') : _t('x_announcement'),
                                   style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                               const SizedBox(height: 2),
                               if (entry.text.isNotEmpty) Text(entry.text),

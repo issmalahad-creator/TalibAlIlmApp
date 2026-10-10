@@ -11,6 +11,10 @@ import '../services/spaced_repetition_engine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "اختبر نفسك" for Al-Arba'in Al-Nawawiyyah — same self-graded "أكمل"
 /// mechanic as the Quran quiz, generalized to a discrete hadith collection:
 /// shows the hadith's opening words, reveals the rest, self-reported.
@@ -75,7 +79,7 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
     }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(knewIt ? 'أحسنت 🌱' : 'لا بأس — راجعه اليوم')),
+      SnackBar(content: Text(knewIt ? _t('mq_good') : _t('qz_review_today'))),
     );
     _loadQuestion();
   }
@@ -83,7 +87,7 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('اختبر نفسك — الأربعين')),
+      appBar: AppBar(title: Text(_t('qz_hadith_title'))),
       body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quiz', LanguagePreferenceService.currentLanguage)) : _buildBody(),
     );
   }
@@ -91,10 +95,10 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
   Widget _buildBody() {
     final hadith = _hadith;
     if (hadith == null) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('احفظ حديثًا واحدًا على الأقل حتى يبني التطبيق لك سؤالًا', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+          padding: const EdgeInsets.all(24),
+          child: Text(_t('qz_hadith_need'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
         ),
       );
     }
@@ -104,7 +108,7 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('الحديث ${hadith.id}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+          Text(_t('qz_hadith_n').replaceAll('{n}', '${hadith.id}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(20),
@@ -112,10 +116,10 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
             child: Text(_opening, textAlign: TextAlign.right, style: const TextStyle(fontSize: 16, height: 1.9)),
           ),
           const SizedBox(height: 16),
-          const Text('أكمل الحديث', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(_t('qz_complete_hadith'), style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           if (!_revealed)
-            OutlinedButton(onPressed: () => setState(() => _revealed = true), child: const Text('أظهر الحديث كاملًا'))
+            OutlinedButton(onPressed: () => setState(() => _revealed = true), child: Text(_t('qz_show_hadith')))
           else ...[
             Container(
               padding: const EdgeInsets.all(20),
@@ -125,9 +129,9 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: OutlinedButton(onPressed: () => _selfReport(false), child: const Text('أحتاج مراجعة'))),
+                Expanded(child: OutlinedButton(onPressed: () => _selfReport(false), child: Text(_t('mq_need_review')))),
                 const SizedBox(width: 8),
-                Expanded(child: FilledButton(onPressed: () => _selfReport(true), child: const Text('كنت أذكره'))),
+                Expanded(child: FilledButton(onPressed: () => _selfReport(true), child: Text(_t('qz_remembered')))),
               ],
             ),
           ],

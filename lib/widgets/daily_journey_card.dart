@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../data/adhkar_journey.dart';
 import '../repositories/adhkar_repository.dart';
 import '../repositories/prayer_times_repository.dart';
 import '../screens/adhkar_category_screen.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// "رحلتك اليومية" home-screen card — Ismail's 2026-08-16 request: instead
 /// of the student searching "what should I read now," the app suggests it
@@ -103,12 +110,12 @@ class _DailyJourneyCardState extends State<DailyJourneyCard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('رحلتك اليومية', style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
+                  Text(_t('x_daily_journey'), style: TextStyle(fontSize: 10.5, color: AppColors.textMuted, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(suggestion.label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                   if (!_done && _minutes > 0) ...[
                     const SizedBox(height: 2),
-                    Text('⏱ ~$_minutes دقائق فقط', style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                    Text(_t('x_only_minutes').replaceAll('{n}', '$_minutes'), style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
                   ],
                 ],
               ),

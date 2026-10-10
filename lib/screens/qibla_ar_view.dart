@@ -3,12 +3,19 @@ import 'dart:math';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import 'package:flutter_rotation_sensor/flutter_rotation_sensor.dart';
 
 import '../theme/app_theme.dart';
 import 'qibla_map_view.dart' show haversineDistanceKm;
 import 'qibla_screen.dart' show kaabaLatitude, kaabaLongitude;
 import '../widgets/loading_view.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// Assumed horizontal field of view of a typical rear phone camera — the
 /// `camera` package doesn't expose the real per-device FOV, so this is a
@@ -187,20 +194,20 @@ class _QiblaArViewState extends State<QiblaArView> with WidgetsBindingObserver {
     if (acc == null) return null;
     final accDegrees = acc * 180 / pi;
     if (accDegrees < 40) return null;
-    return 'دقة البوصلة ضعيفة — حرّك الهاتف على شكل ٨ لمعايرتها';
+    return _t('ar2_weak');
   }
 
   @override
   Widget build(BuildContext context) {
     if (_permissionDenied) {
-      return const _ArMessage(icon: Icons.no_photography_outlined, text: 'يحتاج هذا الوضع إذن الكاميرا — فعّله من إعدادات الجهاز للتطبيق');
+      return _ArMessage(icon: Icons.no_photography_outlined, text: _t('ar2_need_camera'));
     }
     if (_noCamera) {
-      return const _ArMessage(icon: Icons.camera_alt_outlined, text: 'لا توجد كاميرا متاحة على هذا الجهاز');
+      return _ArMessage(icon: Icons.camera_alt_outlined, text: _t('ar2_no_camera'));
     }
     final controller = _controller;
     if (controller == null) {
-      return const AppLoadingView(icon: Icons.camera_alt_outlined, message: 'جاري تشغيل الكاميرا...');
+      return AppLoadingView(icon: Icons.camera_alt_outlined, message: _t('ar2_starting'));
     }
 
     final distanceKm = haversineDistanceKm(widget.latitude, widget.longitude, kaabaLatitude, kaabaLongitude);
@@ -284,15 +291,15 @@ class _QiblaArViewState extends State<QiblaArView> with WidgetsBindingObserver {
                   children: [
                     Text(
                       facingQibla
-                          ? 'أنت تواجه القبلة الآن 🕋'
+                          ? _t('qb_facing')
                           : withinFov
-                              ? 'حرّك الهاتف حتى تصل الأيقونة للمنتصف'
-                              : 'استدر ${diff > 0 ? 'يمينًا' : 'يسارًا'} حتى تظهر الكعبة',
+                              ? _t('ar2_center')
+                              : _t('ar2_turn').replaceAll('{side}', _t(diff > 0 ? 'ar2_right' : 'ar2_left')),
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: facingQibla ? AppColors.primaryLight : Colors.white),
                     ),
                     const SizedBox(height: 4),
-                    Text('${distanceKm.toStringAsFixed(0)} كم إلى الكعبة', style: const TextStyle(fontSize: 11, color: Colors.white70)),
+                    Text(_t('ar2_distance').replaceAll('{km}', distanceKm.toStringAsFixed(0)), style: const TextStyle(fontSize: 11, color: Colors.white70)),
                   ],
                 ),
               ),

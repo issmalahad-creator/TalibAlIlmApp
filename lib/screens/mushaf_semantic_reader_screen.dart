@@ -45,6 +45,10 @@ import 'quran_learning/knowledge_surface.dart';
 import 'quran_learning/sources_screen.dart';
 import 'quran_learning/topic_index_screen.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// خطة القارئ الموحّد — the one Quran reader, built on the Mushaf **Semantic
 /// Layer** (`mushaf_*` → [MushafLayoutRepository] → [MushafPageView]) with
 /// real MushafDatabase V1.01 art on all 604 pages.
@@ -528,7 +532,7 @@ class _MushafSemanticReaderScreenState
           final parts = <String>[
             if ('${stem['pos'] ?? ''}'.isNotEmpty) '${stem['pos']}',
             if ('${stem['inflection'] ?? ''}'.isNotEmpty) '${stem['inflection']}',
-            if ('${stem['root'] ?? ''}'.isNotEmpty) 'جذر ${stem['root']}',
+            if ('${stem['root'] ?? ''}'.isNotEmpty) _t('x_root').replaceAll('{r}', '${stem['root']}'),
           ];
           if (parts.isNotEmpty) cap = parts.join(' · ');
         }

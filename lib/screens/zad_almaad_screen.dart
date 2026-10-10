@@ -7,6 +7,10 @@ import '../theme/app_theme.dart';
 import 'zad_almaad_chapter_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "زاد المعاد" — Phase 5ج of QURAN_COMPANION_ROADMAP.md. Volume 1 only for
 /// now (see repository doc comment) — the rest is added incrementally.
 class ZadAlMaadScreen extends StatefulWidget {
@@ -49,7 +53,7 @@ class _ZadAlMaadScreenState extends State<ZadAlMaadScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    '$readCount من ${_chapters.length} فصلًا — المجلد الأول (السيرة)، وبقية المجلدات تُضاف تباعًا',
+                    _t('x_zad_progress').replaceAll('{n}', '$readCount').replaceAll('{total}', '${_chapters.length}'),
                     style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
                     textAlign: TextAlign.center,
                   ),
