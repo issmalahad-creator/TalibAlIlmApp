@@ -1,0 +1,93 @@
+# Builds both flavors on every push, in parallel, as arm64 release APKs:
+#   lite — small; tafsir/translation/corpus packs and the voice download on
+#          first use (tool/build_apk.py strips LITE_STRIP before Gradle).
+#   full — everything bundled, works fully offline.
+# Download them from the run's "Artifacts". They install side by side
+# (lite has its own applicationId suffix).
+#
+# Release mode (AOT, no debug kernel) is several times smaller than debug.
+# With no android/key.properties the release build is signed with the
+# debug key; that key is kept in the Actions cache so every build carries
+# the SAME signature and installs over the previous one as an update.
+#
+# Gitignored build inputs are supplied here, never committed:
+#   - lib/config/app_config.dart  ← app_config.example.dart (placeholder keys)
+#   - assets/tts/                 ← tool/fetch_tts_voice.sh (Kareem voice, MIT)
+name: APKs (lite + full)
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [lite, full]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+
+      - name: Keep one signing key across builds
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: talib-debug-keystore-v1
+
+      - name: Create the signing key on the first run
+        run: |
+          if [ ! -f ~/.android/debug.keystore ]; then
+            mkdir -p ~/.android
+            keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android \
+              -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Stand in the gitignored config
+        run: cp lib/config/app_config.example.dart lib/config/app_config.dart
+
+      - name: Fetch the TTS voice
+        run: |
+          pip install onnx
+          # fetch_tts_voice.sh calls the Windows `py` launcher.
+          mkdir -p "$HOME/bin" && ln -sf "$(command -v python)" "$HOME/bin/py"
+          export PATH="$HOME/bin:$PATH"
+          sh tool/fetch_tts_voice.sh
+
+      - run: flutter pub get
+
+      - name: Build ${{ matrix.flavor }} APK
+        run: python tool/build_apk.py --flavor ${{ matrix.flavor }} --abi arm64-v8a
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: talib-${{ matrix.flavor }}-arm64-${{ github.sha }}
+          path: |
+            dist/talib-${{ matrix.flavor }}-release-arm64-v8a.apk
+            dist/talib-${{ matrix.flavor }}-release-size.md
+          retention-days: 14
+          compression-level: 0
