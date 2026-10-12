@@ -81,6 +81,47 @@ Widget _calmNoData(String lang) => Padding(
       ),
     );
 
+/// Shown instead of [orElse] when the book simply isn't on the phone yet
+/// (lite build, never opened): a calm card that says so, how it works, and
+/// one button. Bundled or already-cached books go straight to [orElse].
+Widget _downloadOr(String category, int id, String lang, {required VoidCallback onDownload, required Widget orElse}) {
+  return FutureBuilder<bool>(
+    future: QuranCorpusDownloadService.instance.needsDownload(category, id),
+    builder: (context, snap) {
+      if (snap.data != true) return snap.connectionState == ConnectionState.done ? orElse : _dots();
+      return Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.18)),
+        ),
+        child: Column(children: [
+          const Icon(Icons.cloud_download_outlined, color: AppColors.primary, size: 26),
+          const SizedBox(height: 6),
+          Text(basicText('ql_dl_needed_title', lang),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 3),
+          Text(basicText('ql_dl_needed_body', lang),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.5)),
+          const SizedBox(height: 8),
+          FilledButton.icon(
+            onPressed: () {
+              QuranCorpusDownloadService.instance.forgetDecline(category, id);
+              onDownload();
+            },
+            icon: const Icon(Icons.download_rounded, size: 18),
+            label: Text(basicText('ql_dl_now', lang)),
+          ),
+        ]),
+      );
+    },
+  );
+}
+
 Widget _calmMessage(String msg) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Center(
@@ -1170,10 +1211,13 @@ class _AyahTafsirPanelState extends State<AyahTafsirPanel> {
         const SizedBox(height: 8),
         if (_loadingText)
           _loadingOrProgress('tafsir', _bookId, lang)
+        else if (_mirror && current['bundled'] != 1)
+          _calmMessage(basicText('ql_tafsir_mirror', lang)) // online-only by design
         else if (_mirror)
-          _calmMessage(basicText('ql_tafsir_mirror', lang))
+          _downloadOr('tafsir', _bookId, lang,
+              onDownload: _loadText, orElse: _calmMessage(basicText('ql_tafsir_mirror', lang)))
         else if (_text == null || _text!.trim().isEmpty)
-          _calmNoData(lang)
+          _downloadOr('tafsir', _bookId, lang, onDownload: _loadText, orElse: _calmNoData(lang))
         else
           // A short excerpt only — the card is a quick read, not a reader.
           Text(
@@ -1529,7 +1573,12 @@ class _TranslationBoxState extends State<_TranslationBox> {
                     child: _loading
                         ? _loadingOrProgress('translations', widget.editionId, widget.lang)
                         : (_text == null || _text!.trim().isEmpty)
-                            ? _calmNoData(widget.lang)
+                            ? _downloadOr('translations', widget.editionId, widget.lang,
+                                onDownload: () {
+                                  setState(() => _text = null);
+                                  _load();
+                                },
+                                orElse: _calmNoData(widget.lang))
                             : Directionality(
                                 textDirection: widget.rtl
                                     ? TextDirection.rtl
