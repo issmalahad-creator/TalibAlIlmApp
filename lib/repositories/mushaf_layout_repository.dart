@@ -162,6 +162,21 @@ class MushafLayoutRepository {
     };
   }
 
+  /// Every ḥizb's (1..60) first MushafDatabase page in one query.
+  Future<Map<int, int>> hizbStartPages() async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT qa.hizb_number AS h, MIN(mw.page) AS p
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE qa.hizb_number IS NOT NULL
+      GROUP BY qa.hizb_number
+    ''');
+    return {
+      for (final r in rows) (r['h'] as num).toInt(): (r['p'] as num).toInt(),
+    };
+  }
+
   /// Every juzʼ's first MushafDatabase page in one query (the index list).
   Future<Map<int, int>> juzStartPages() async {
     final db = await _db;

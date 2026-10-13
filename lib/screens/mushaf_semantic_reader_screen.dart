@@ -27,6 +27,7 @@ import '../services/quran_audio_engine.dart';
 import '../widgets/completion_goal_list_view.dart';
 import '../widgets/mushaf/mushaf_ayah_menu.dart';
 import '../widgets/mushaf/mushaf_chrome_style.dart';
+import '../widgets/mushaf/mushaf_go_to_sheet.dart';
 import '../widgets/mushaf/pinch_zoom.dart';
 import '../widgets/mushaf_page_view.dart';
 import '../theme/app_theme.dart';
@@ -372,7 +373,21 @@ class _MushafSemanticReaderScreenState
           await Future<void>.delayed(const Duration(milliseconds: 200));
           if (!mounted || !_playing || gen != _playGen) return;
         }
-        await _audio.playAyah(_reciterId, ayat[i].surah, ayat[i].ayah);
+        if (i + 1 < ayat.length) _audio.prefetch(_reciterId, ayat[i + 1].surah, ayat[i + 1].ayah);
+        final ok = await _audio.playAyah(_reciterId, ayat[i].surah, ayat[i].ayah);
+        if (!ok) {
+          // Offline and not downloaded: say so and stop, don't spin forever.
+          if (mounted && gen == _playGen) {
+            setState(() {
+              _playing = false;
+              _playingAyah = null;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(basicText('mushaf_audio_offline', LanguagePreferenceService.currentLanguage)),
+            ));
+          }
+          return;
+        }
       }
     }
     if (mounted && gen == _playGen) {
@@ -611,29 +626,7 @@ class _MushafSemanticReaderScreenState
   }
 
   Future<void> _promptGoToPage(String lang) async {
-    final ctrl = TextEditingController(text: '$_current');
-    final target = await showDialog<int>(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        title: Text(basicText('mushaf_go_to_page', lang)),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: '1 – 604'),
-          onSubmitted: (_) => Navigator.pop(dCtx, int.tryParse(ctrl.text)),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx),
-              child: Text(basicText('cancel_action', lang))),
-          FilledButton(
-            onPressed: () => Navigator.pop(dCtx, int.tryParse(ctrl.text)),
-            child: Text(basicText('go_action', lang)),
-          ),
-        ],
-      ),
-    );
+    final target = await showMushafGoToSheet(context, current: _current, lang: lang, night: _night);
     if (target != null) _jumpToPage(target);
   }
 
@@ -1827,13 +1820,24 @@ class _MushafSemanticReaderScreenState
               icon: const Icon(Icons.skip_previous_rounded),
               onPressed: _audioIdx > 0 ? () => _stepAudio(-1) : null,
             ),
-            IconButton.filled(
-              style:
-                  IconButton.styleFrom(backgroundColor: AppColors.primary),
-              icon: Icon((_playing && !_paused)
-                  ? Icons.pause_rounded
-                  : Icons.play_arrow_rounded),
-              onPressed: ayat.isEmpty ? null : _playPause,
+            // While the ayah's audio is fetched the button turns into a
+            // spinner — the wait is visible, never a silent dead button.
+            ValueListenableBuilder<bool>(
+              valueListenable: _audio.loading,
+              builder: (context, loading, _) => loading
+                  ? const SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(strokeWidth: 2.6, color: AppColors.primary),
+                      ),
+                    )
+                  : IconButton.filled(
+                      style: IconButton.styleFrom(backgroundColor: AppColors.primary),
+                      icon: Icon((_playing && !_paused) ? Icons.pause_rounded : Icons.play_arrow_rounded),
+                      onPressed: ayat.isEmpty ? null : _playPause,
+                    ),
             ),
             IconButton(
               icon: const Icon(Icons.skip_next_rounded),
@@ -1858,13 +1862,20 @@ class _MushafSemanticReaderScreenState
                             color: _night
                                 ? AppColors.textDarkNight
                                 : AppColors.textDark)),
-                    if (at != null)
-                      Text(
-                        '${_surahName(at.surah)} · ${at.ayah}',
-                        textDirection: TextDirection.rtl,
-                        style: const TextStyle(
-                            fontSize: 10.5, color: AppColors.textMuted),
-                      ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _audio.loading,
+                      builder: (context, loading, _) => loading
+                          ? Text(basicText('mushaf_audio_loading', lang),
+                              textDirection: TextDirection.rtl,
+                              style: const TextStyle(fontSize: 10.5, color: AppColors.primary, fontWeight: FontWeight.w700))
+                          : at != null
+                              ? Text(
+                                  '${_surahName(at.surah)} · ${at.ayah}',
+                                  textDirection: TextDirection.rtl,
+                                  style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                                )
+                              : const SizedBox.shrink(),
+                    ),
                   ],
                 ),
               ),
@@ -2137,8 +2148,12 @@ class _MushafSemanticReaderScreenState
             // a word and open its iʿrāb caption instead (Ismail 2026-09-19:
             // "قد يضغط على حرف... نحتاج إلى أيقونة تظهر وتخفي"). Fixed in a
             // corner so it's never lost regardless of chrome state.
-            Positioned(
-              bottom: 16,
+            // Lifted above the listen bar / tajwīd pill when they're open —
+            // it used to sit right on the bar's close button.
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              bottom: (_chromeVisible && (_audioBar || _tajweedMode)) ? (_audioBar ? 96 : 64) : 16,
               left: 16,
               child: SafeArea(
                 child: Material(

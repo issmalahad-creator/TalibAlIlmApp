@@ -17,6 +17,7 @@ import '../theme/app_theme.dart';
 import 'qibla_ar_view.dart';
 import 'qibla_map_view.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/location_problem_view.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -210,7 +211,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
       body: _loading
           ? AppLoadingView(icon: Icons.explore_outlined, message: _t('qb_locating'))
           : _noLocation
-              ? _NoLocationView(onRetry: _load)
+              ? LocationProblemView(problem: _locationService.lastProblem, service: _locationService, onRetry: _load)
               : Column(
                   children: [
                     _MethodTabs(current: _method, onChanged: (m) => setState(() => _method = m), lang: lang),
@@ -759,28 +760,3 @@ class _SunViewState extends State<_SunView> {
   }
 }
 
-class _NoLocationView extends StatelessWidget {
-  final VoidCallback onRetry;
-  const _NoLocationView({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.location_off_outlined, size: 44, color: AppColors.textMuted),
-            const SizedBox(height: 12),
-            Text(_t('qb_no_location'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
-            const SizedBox(height: 6),
-            Text(_t('qb_need_location'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted), textAlign: TextAlign.center),
-            const SizedBox(height: 20),
-            FilledButton(onPressed: onRetry, child: Text(_t('feedback_retry'))),
-          ],
-        ),
-      ),
-    );
-  }
-}

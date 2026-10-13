@@ -5,8 +5,9 @@ import 'package:flutter/painting.dart';
 /// **A Quran-reading palette, not Material.** Six categories, one hue per
 /// *sound behaviour* (not the 18 rule ids and not one‑hue‑per‑rule noise),
 /// drawn from the Dār al‑Maʿrifah / King Fahd Complex coloured‑muṣḥaf
-/// tradition and muted so a coloured glyph reads as "ink that happens to be
-/// coloured", never as a highlight. The six are separated by **value** as
+/// tradition. 2026-10-13 (Ismail, on his phone: «باهتة، اجعلها أكثر قوة
+/// وجمالًا») — the first, muted version read as washed out on a real
+/// screen; now clear, saturated hues that still sit on the paper as ink. The six are separated by **value** as
 /// well as hue so a colour‑blind reader still sees six bands.
 ///
 /// These hues are painted **onto the glyph outlines themselves**
@@ -37,43 +38,43 @@ const List<TajweedCategory> kTajweedCategories = [
     'madd',
     'المدّ',
     'إطالة الصوت بحرف مدّ — حركتان أو أربع أو ستّ بحسب سببه.',
-    0xFFA63D2E, // muted brick‑red — the universal madd colour, softened
-    0xFFE08A73,
+    0xFFD32F2F, // clear red — the universal madd colour
+    0xFFFF7A70,
   ),
   TajweedCategory(
     'ghunnah',
     'الغُنّة والإدغام بغُنّة',
     'صوت يخرج من الخيشوم يصاحب النون والميم المشدّدتين وأحكامهما (ومنه الإقلاب).',
-    0xFF1F7A6B, // deep teal‑green — the classic ghunnah/ikhfāʾ family
-    0xFF5FC2AE,
+    0xFF00897B, // vivid teal‑green — the classic ghunnah/ikhfāʾ family
+    0xFF4DD8BE,
   ),
   TajweedCategory(
     'ikhfa',
     'الإخفاء',
     'نطق النون الساكنة أو الميم الساكنة بصفة بين الإظهار والإدغام مع غنّة.',
-    0xFF2E6F4E, // forest‑green — same family, a darker value than ghunnah
-    0xFF66B98A,
+    0xFF2E9E3E, // bright green — same family, distinct from ghunnah
+    0xFF74E07F,
   ),
   TajweedCategory(
     'qalqalah',
     'القلقلة',
     'اضطراب المخرج عند النطق بحرف من «قُطْبُ جَدٍّ» ساكنًا حتى تُسمع نبرة.',
-    0xFF25506E, // deep muted blue — a percussive beat, not a stretch
-    0xFF6FA8CE,
+    0xFF1565C0, // strong blue — a percussive beat, not a stretch
+    0xFF6CB4FF,
   ),
   TajweedCategory(
     'idghaam',
     'الإدغام',
     'إدخال حرف ساكن في متحرّك بعده فيصيران حرفًا واحدًا مشدّدًا.',
-    0xFF5B6570, // slate‑grey — the letter steps back into the next
-    0xFF9AA4B0,
+    0xFF7048C8, // violet — the letter merges into the next
+    0xFFB59CFF,
   ),
   TajweedCategory(
     'silent',
     'حرف لا يُنطق',
     'حرف يُرسم ولا يُلفظ — كهمزة الوصل، ولام «الـ» الشمسية، وحروف الصلة.',
-    0xFF8A8072, // warm stone‑grey, the faintest — the eye skips it too
-    0xFFB9AFA0,
+    0xFF9E9488, // light stone‑grey, the faintest — the eye skips it too
+    0xFF8F877C,
   ),
 ];
 

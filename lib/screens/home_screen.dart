@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
 import '../data/quran_surahs.dart';
 import '../models/activity_entry.dart';
@@ -162,8 +163,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ? TalibSkeleton(semanticLabel: basicText('home_loading_message', lang), child: const SkeletonHome())
           : RefreshIndicator(
               onRefresh: _load,
+              // Built once, kept alive: a lazy ListView disposed each card as
+              // it scrolled away and re-created it on the way back — every
+              // card loads its data in initState and starts at height 0, so
+              // the page jumped up and down while scrolling (Ismail's phone,
+              // 2026-10-13). ~17 sections; building them all is cheap.
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                scrollCacheExtent: const ScrollCacheExtent.pixels(100000),
                 children: [
                   _GreetingHeader(
                     name: _fullName.isEmpty ? basicText('default_user_name', lang) : _fullName,
