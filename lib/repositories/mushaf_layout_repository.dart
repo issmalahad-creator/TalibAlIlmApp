@@ -162,6 +162,16 @@ class MushafLayoutRepository {
     };
   }
 
+  /// The ayat on a MushafDatabase page, in reading order.
+  Future<List<({int surah, int ayah})>> ayatOnPage(int page) async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT surah, ayah, MIN(word_order) AS o FROM mushaf_words
+      WHERE page = ? GROUP BY surah, ayah ORDER BY o
+    ''', [page]);
+    return [for (final r in rows) (surah: (r['surah'] as num).toInt(), ayah: (r['ayah'] as num).toInt())];
+  }
+
   /// Every ḥizb's (1..60) first MushafDatabase page in one query.
   Future<Map<int, int>> hizbStartPages() async {
     final db = await _db;

@@ -38,8 +38,8 @@ import 'ayah_notebook_screen.dart';
 import 'journey_screen.dart';
 import 'mushaf_index_screen.dart';
 import 'mushaf_search_screen.dart';
+import 'page_hifz_session_screen.dart';
 import 'page_recitation_screen.dart';
-import 'quran_browse_screen.dart';
 import 'quran_notebook_home_screen.dart';
 import 'recitation_mistakes_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
@@ -1304,8 +1304,8 @@ class _MushafSemanticReaderScreenState
                   div,
                   tile(
                     Icons.checklist_rounded,
-                    basicText('mushaf_mark_memorized', lang),
-                    () => go(const QuranBrowseScreen()),
+                    basicText('hz3_menu', lang),
+                    () => go(PageHifzSessionScreen(page: _current)),
                   ),
                   header('mushaf_section_features'),
                   tile(

@@ -73,6 +73,27 @@ class MemorizationRepository {
   static const _establishedRotationDays = 30;
   static const _needsReviewFallbackStation = 2;
 
+  /// The memorization unit holding (surah, ayah). Units are numbered by the
+  /// legacy `quran_ayat.page_number` pages, which don't line up with the
+  /// MushafDatabase pages the reader shows — so the reader resolves a page
+  /// to its unit through the page's first ayah, never by page number.
+  Future<int?> unitForAyah(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final key = surah * 1000 + ayah;
+    final rows = await db.rawQuery(
+      'SELECT id FROM memorization_units '
+      'WHERE surah_start * 1000 + ayah_start <= ? AND surah_end * 1000 + ayah_end >= ? LIMIT 1',
+      [key, key],
+    );
+    return rows.isEmpty ? null : rows.first['id'] as int;
+  }
+
+  Future<bool> isMemorized(int unitId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('memorization_progress', where: 'unit_id = ?', whereArgs: [unitId], limit: 1);
+    return rows.isNotEmpty;
+  }
+
   /// Marks a page as newly memorized today — starts it at station 1.
   Future<void> markMemorized(int unitId) async {
     final db = await DatabaseHelper.instance.database;
