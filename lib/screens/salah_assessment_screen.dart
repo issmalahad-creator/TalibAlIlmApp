@@ -81,6 +81,7 @@ class _SalahAssessmentScreenState extends State<SalahAssessmentScreen> {
 
   Future<void> _setRating(String dimension, int rating) async {
     await _repo.setRating(_weekStart, dimension, rating);
+    if (!mounted) return;
     setState(() => _ratings = {..._ratings, dimension: rating});
   }
 

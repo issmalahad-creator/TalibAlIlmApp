@@ -8,6 +8,10 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// One student's page — fixed info at the top, then a free-form list of
 /// "خانات" (sub-fields) the teacher adds himself, specific to this student
 /// only. Export button generates an Excel sheet for just this student.
@@ -53,25 +57,25 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تعديل بيانات الطالب'),
+        title: Text(_t('hz_edit_student')),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'اسم الطالب')),
-              TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'رقم ولي الأمر'),
+              TextField(controller: nameCtrl, decoration: InputDecoration(labelText: _t('hz_student_name'))),
+              TextField(controller: phoneCtrl, decoration: InputDecoration(labelText: _t('hz_guardian_phone')),
                   keyboardType: TextInputType.phone),
-              TextField(controller: ageCtrl, decoration: const InputDecoration(labelText: 'عمر الطالب'),
+              TextField(controller: ageCtrl, decoration: InputDecoration(labelText: _t('hz_student_age')),
                   keyboardType: TextInputType.number),
               TextField(
                   controller: progressCtrl,
-                  decoration: const InputDecoration(labelText: 'التقدم (كم جزء / أين وصل في القاعدة)')),
+                  decoration: InputDecoration(labelText: _t('hz_progress_field'))),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('حفظ')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('cancel_action'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(_t('save_action'))),
         ],
       ),
     );
@@ -98,17 +102,17 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isEdit ? 'تعديل الخانة' : 'إضافة خانة'),
+        title: Text(isEdit ? _t('hz_edit_field') : _t('hz_add_field')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: labelCtrl, decoration: const InputDecoration(labelText: 'العنوان')),
-            TextField(controller: valueCtrl, decoration: const InputDecoration(labelText: 'الملاحظة'), maxLines: 3),
+            TextField(controller: labelCtrl, decoration: InputDecoration(labelText: _t('hz_field_title'))),
+            TextField(controller: valueCtrl, decoration: InputDecoration(labelText: _t('hz_field_note')), maxLines: 3),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(isEdit ? 'حفظ' : 'إضافة')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(_t('cancel_action'))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(isEdit ? _t('save_action') : _t('add'))),
         ],
       ),
     );
@@ -135,7 +139,7 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
       await _exportService.exportStudent(_student, _fields);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر التصدير: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('hz_export_failed').replaceAll('{e}', '$e'))));
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
@@ -151,16 +155,16 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
             icon: _exporting
                 ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.ios_share_rounded),
-            tooltip: 'تصدير Excel',
+            tooltip: _t('hz_export_excel'),
             onPressed: _exporting ? null : _export,
           ),
-          IconButton(icon: const Icon(Icons.edit_rounded), tooltip: 'تعديل البيانات', onPressed: _editStudentInfo),
+          IconButton(icon: const Icon(Icons.edit_rounded), tooltip: _t('hz_edit_details'), onPressed: _editStudentInfo),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _fieldDialog(),
         icon: const Icon(Icons.add),
-        label: const Text('إضافة خانة'),
+        label: Text(_t('hz_add_field')),
       ),
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage))
@@ -173,22 +177,22 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _infoRow('رقم ولي الأمر', _student.guardianPhone),
-                        _infoRow('العمر', _student.age?.toString() ?? '—'),
-                        _infoRow('التقدم', _student.progress.isEmpty ? '—' : _student.progress),
-                        _infoRow('التاريخ', _student.dateAdded),
+                        _infoRow(_t('hz_guardian_phone'), _student.guardianPhone),
+                        _infoRow(_t('hz_age'), _student.age?.toString() ?? '—'),
+                        _infoRow(_t('hz_progress'), _student.progress.isEmpty ? '—' : _student.progress),
+                        _infoRow(_t('date_label'), _student.dateAdded),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text('خانات إضافية', style: Theme.of(context).textTheme.titleMedium),
+                Text(_t('hz_extra_fields'), style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 if (_fields.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Text('لا توجد خانات إضافية بعد — اضغط "إضافة خانة" لتسجيل ما تحتاجه لهذا الطالب.',
-                        textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Text(_t('hz_no_extra_fields').replaceAll('{add}', _t('hz_add_field')),
+                        textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
                   )
                 else
                   ..._fields.map((f) => Card(

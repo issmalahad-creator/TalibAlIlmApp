@@ -10,6 +10,10 @@ import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "حفظ القرآن" — deliberately simple, for a self-studying memorizer, not a
 /// Hifz-academy management system: mark which Surahs you've memorized, see
 /// your percentage toward 100%, and check in daily to build a streak and
@@ -85,12 +89,12 @@ class _HifzScreenState extends State<HifzScreen> {
 
   String get _motivation {
     final p = _percent;
-    if (p == 0) return 'كل حافظ للقرآن بدأ من هنا — ابدأ اليوم! 🌱';
-    if (p < 0.25) return 'خطوات ثابتة تصنع الفرق — استمر! 💪';
-    if (p < 0.5) return 'أنت في الطريق الصحيح، لا تتوقف!';
-    if (p < 0.75) return 'أكثر من النصف! بارك الله فيك، واصل.';
-    if (p < 1.0) return 'اقتربت من ختم الحفظ الكامل — لا تستسلم الآن!';
-    return 'الحمد لله — أتممت حفظ القرآن كاملاً! 🎉';
+    if (p == 0) return _t('hz_enc_0');
+    if (p < 0.25) return _t('hz_enc_1');
+    if (p < 0.5) return _t('hz_enc_2');
+    if (p < 0.75) return _t('hz_enc_3');
+    if (p < 1.0) return _t('hz_enc_4');
+    return _t('hz_enc_5');
   }
 
   Future<void> _checkIn() async {
@@ -99,7 +103,7 @@ class _HifzScreenState extends State<HifzScreen> {
     await _notificationService.scheduleHifzReminder();
     await _load();
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('بارك الله فيك — تم تسجيل اليوم')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('hz_checked_snack'))));
   }
 
   Future<void> _toggleSurah(QuranSurah surah) async {
@@ -117,7 +121,7 @@ class _HifzScreenState extends State<HifzScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('حفظ القرآن')), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)));
+      return Scaffold(appBar: AppBar(title: Text(_t('hz_title'))), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)));
     }
     final checkedInToday = _checkInDates.contains(todayDate());
     final percentValue = (_percent * 100).round();
@@ -125,7 +129,7 @@ class _HifzScreenState extends State<HifzScreen> {
         _search.trim().isEmpty ? quranSurahs : quranSurahs.where((s) => s.name.contains(_search.trim())).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('حفظ القرآن')),
+      appBar: AppBar(title: Text(_t('hz_title'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -160,14 +164,14 @@ class _HifzScreenState extends State<HifzScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${_memorized.length} من ${quranSurahs.length} سورة',
+                      Text(_t('hz_surah_progress').replaceAll('{n}', '${_memorized.length}').replaceAll('{total}', '${quranSurahs.length}'),
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                       const SizedBox(height: 6),
                       Row(
                         children: [
                           const Icon(Icons.local_fire_department_rounded, size: 16, color: Colors.deepOrange),
                           const SizedBox(width: 4),
-                          Text('$_streak يوم متتالي', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                          Text(_t('hz_streak').replaceAll('{n}', '$_streak'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -184,19 +188,19 @@ class _HifzScreenState extends State<HifzScreen> {
             child: FilledButton.icon(
               onPressed: checkedInToday ? null : _checkIn,
               icon: Icon(checkedInToday ? Icons.check_circle_rounded : Icons.check_rounded),
-              label: Text(checkedInToday ? 'تم تسجيل اليوم ✓' : 'سجّلت اليوم — حفظت أو راجعت'),
+              label: Text(checkedInToday ? _t('hz_checked_today') : _t('hz_check_in')),
             ),
           ),
           const SizedBox(height: 24),
-          Text('السور (اضغط لتعليم ما حفظته)', style: Theme.of(context).textTheme.titleMedium),
+          Text(_t('hz_surahs_header'), style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
             controller: _searchController,
             onChanged: (v) => setState(() => _search = v),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               isDense: true,
-              hintText: 'ابحث عن سورة...',
-              prefixIcon: Icon(Icons.search_rounded, size: 20),
+              hintText: _t('hz_search_surah'),
+              prefixIcon: const Icon(Icons.search_rounded, size: 20),
             ),
           ),
           const SizedBox(height: 8),
@@ -209,7 +213,7 @@ class _HifzScreenState extends State<HifzScreen> {
                 onChanged: (_) => _toggleSurah(s),
                 controlAffinity: ListTileControlAffinity.leading,
                 title: Text('${s.number}. ${s.name}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                subtitle: Text('${s.ayahCount} آية', style: const TextStyle(fontSize: 11)),
+                subtitle: Text(_t('hz_ayat_count').replaceAll('{n}', '${s.ayahCount}'), style: const TextStyle(fontSize: 11)),
               ),
             );
           }),

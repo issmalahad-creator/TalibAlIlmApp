@@ -54,6 +54,7 @@ description: >-
 | `docs/quran/QURAN_WORD_ALIGNMENT_REPORT.md` | تقرير مطابقة Tanzil↔MushafDatabase | تقرير منجَز |
 | `docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md` | تشخيص وجهي الصفحة | تقرير |
 | `docs/quran/QURAN_UNIFIED_READER_P0_STATUS.md` | حالة القارئ الموحَّد P0 | تقرير حالة |
+| `docs/quran/READER_WORK_MAP.md` | خريطة عمل شاشة القراءة ب3 (R1–R8: الوضعان، التكبير، نافذة الآية، القائمة، الفهرس/البحث، آخر صفحة، التصفح التلقائي، العلامات الملوّنة، لون المصحف، تكرار الآية، «املأ الصفحة») — ما أُنجز وما التالي | خريطة عمل حيّة |
 | `docs/MUSHAF_DATABASE_INTEGRATION_DESIGN.md` | تصميم دمج MushafDatabase | تصميم |
 | `docs/MUSHAF_SEMANTIC_LAYER.md` | الطبقة الدلالية فوق هندسة المصحف | تصميم |
 

@@ -128,7 +128,7 @@ class TalibAlIlmApp extends StatefulWidget {
   State<TalibAlIlmApp> createState() => _TalibAlIlmAppState();
 }
 
-class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
+class _TalibAlIlmAppState extends State<TalibAlIlmApp> with WidgetsBindingObserver {
   StreamSubscription<List<ConnectivityResult>>? _connSub;
   final _notificationService = NotificationService();
   final _bookContentService = BookContentService();
@@ -142,6 +142,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Zero-wait startup: none of this is needed for Home to appear, so it is
     // registered here and run sequentially once Home has painted (or after a
     // safety timeout). Screens that need a task first call `ensure(id)`.
@@ -228,8 +229,25 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _connSub?.cancel();
     super.dispose();
+  }
+
+  DateTime? _lastPrayerRefresh;
+
+  /// Back in the foreground — maybe in a new city, timezone or day: let the
+  /// adhan follow (cheap no-op when nothing changed; at most every 2 min).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    final now = DateTime.now();
+    if (_lastPrayerRefresh != null && now.difference(_lastPrayerRefresh!) < const Duration(minutes: 2)) return;
+    _lastPrayerRefresh = now;
+    _notificationService.refreshPrayerScheduleIfStale().catchError((Object e) {
+      debugPrint('prayer schedule refresh failed: $e');
+      return false;
+    });
   }
 
   @override

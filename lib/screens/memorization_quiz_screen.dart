@@ -7,6 +7,10 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "اختبر نفسك" — the 6th and last جلسة اليوم step. Generated entirely from
 /// `quran_ayat` (no external question bank exists for this — see
 /// QuizRepository's doc comment): "ما الآية التالية؟" within the student's
@@ -68,14 +72,14 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
     if (!mounted) return;
     setState(() => _markedToday = true);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(knewIt ? 'أحسنت 🌱' : 'لا بأس — راجعها مع صفحتها اليوم')),
+      SnackBar(content: Text(knewIt ? _t('mq_good') : _t('mq_review_it'))),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('اختبر نفسك')),
+      appBar: AppBar(title: Text(_t('mq_title'))),
       body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quiz', LanguagePreferenceService.currentLanguage)) : _buildBody(),
     );
   }
@@ -83,10 +87,10 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
   Widget _buildBody() {
     final q = _question;
     if (q == null) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('احفظ صفحة على الأقل حتى يبني التطبيق لك سؤالًا', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+          padding: const EdgeInsets.all(24),
+          child: Text(_t('mq_need_page'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
         ),
       );
     }
@@ -96,7 +100,7 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('سورة ${q.surahName} — آية ${q.ayah}', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+          Text(_t('qs_ref').replaceAll('{s}', q.surahName).replaceAll('{a}', '${q.ayah}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(20),
@@ -104,7 +108,7 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
             child: Text(q.currentText, textAlign: TextAlign.right, style: const TextStyle(fontSize: 18, height: 1.9)),
           ),
           const SizedBox(height: 16),
-          const Text('ما الآية التالية؟', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(_t('mq_next_ayah'), style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           if (!_revealed) ...[
             if (_hintWordCount > 0) ...[
@@ -126,12 +130,12 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _hintWordCount >= q.nextText.split(' ').length ? null : _addHintWord,
                     icon: const Icon(Icons.lightbulb_outline, size: 16),
-                    label: const Text('تلميح كلمة'),
+                    label: Text(_t('mq_hint_word')),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: FilledButton(onPressed: () => setState(() => _revealed = true), child: const Text('أظهر الإجابة كاملة')),
+                  child: FilledButton(onPressed: () => setState(() => _revealed = true), child: Text(_t('mq_reveal'))),
                 ),
               ],
             ),
@@ -143,13 +147,13 @@ class _MemorizationQuizScreenState extends State<MemorizationQuizScreen> {
             ),
             const SizedBox(height: 16),
             if (_markedToday)
-              TextButton(onPressed: _loadQuestion, child: const Text('سؤال آخر'))
+              TextButton(onPressed: _loadQuestion, child: Text(_t('mq_another')))
             else
               Row(
                 children: [
-                  Expanded(child: OutlinedButton(onPressed: () => _selfReport(false), child: const Text('أحتاج مراجعة'))),
+                  Expanded(child: OutlinedButton(onPressed: () => _selfReport(false), child: Text(_t('mq_need_review')))),
                   const SizedBox(width: 8),
-                  Expanded(child: FilledButton(onPressed: () => _selfReport(true), child: const Text('كنت أعرفها'))),
+                  Expanded(child: FilledButton(onPressed: () => _selfReport(true), child: Text(_t('mq_knew_it')))),
                 ],
               ),
           ],

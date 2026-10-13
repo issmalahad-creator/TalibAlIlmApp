@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../data/quran_surahs.dart';
 import '../models/tahfeez_session_config.dart';
 import '../services/quran_audio/quran_audio_provider_registry.dart';
@@ -79,11 +82,13 @@ class _TahfeezSessionSetupScreenState extends State<TahfeezSessionSetupScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const TahfeezPlaybackScreen(resume: true)));
   }
 
+  String get _lang => LanguagePreferenceService.currentLanguage;
+
   @override
   Widget build(BuildContext context) {
     final reciters = QuranAudioProviderRegistry.reciters();
     return Scaffold(
-      appBar: AppBar(title: const Text('التحفيظ')),
+      appBar: AppBar(title: Text(basicText('mushaf_section_tahfeez', _lang))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -95,14 +100,14 @@ class _TahfeezSessionSetupScreenState extends State<TahfeezSessionSetupScreen> {
                 children: [
                   const Icon(Icons.play_circle_outline, color: AppColors.primaryDark),
                   const SizedBox(width: 10),
-                  const Expanded(child: Text('لديك جلسة تحفيظ لم تكتمل', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
-                  TextButton(onPressed: _resume, child: const Text('استئناف')),
+                  Expanded(child: Text(basicText('tz_resume_banner', _lang), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
+                  TextButton(onPressed: _resume, child: Text(basicText('pk_resume', _lang))),
                 ],
               ),
             ),
             const SizedBox(height: 16),
           ],
-          const _SectionLabel('اختر اسم القارئ'),
+          _SectionLabel(basicText('tz_pick_reciter', _lang)),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             initialValue: _reciterId,
@@ -111,25 +116,25 @@ class _TahfeezSessionSetupScreenState extends State<TahfeezSessionSetupScreen> {
             onChanged: (v) => setState(() => _reciterId = v ?? _reciterId),
           ),
           const SizedBox(height: 20),
-          const _SectionLabel('نطاق الآيات'),
+          _SectionLabel(basicText('tz_range', _lang)),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _SurahAyahPicker(label: 'من', surah: _surahFrom, ayah: _ayahFrom, onSurahChanged: _onSurahFromChanged, onAyahChanged: (a) => setState(() => _ayahFrom = a))),
+              Expanded(child: _SurahAyahPicker(label: basicText('life_field_start', _lang), surah: _surahFrom, ayah: _ayahFrom, onSurahChanged: _onSurahFromChanged, onAyahChanged: (a) => setState(() => _ayahFrom = a))),
               const SizedBox(width: 10),
-              Expanded(child: _SurahAyahPicker(label: 'إلى', surah: _surahTo, ayah: _ayahTo, onSurahChanged: _onSurahToChanged, onAyahChanged: (a) => setState(() => _ayahTo = a))),
+              Expanded(child: _SurahAyahPicker(label: basicText('life_field_end', _lang), surah: _surahTo, ayah: _ayahTo, onSurahChanged: _onSurahToChanged, onAyahChanged: (a) => setState(() => _ayahTo = a))),
             ],
           ),
           const SizedBox(height: 20),
-          const _SectionLabel('التكرار'),
+          _SectionLabel(basicText('tz_repetition', _lang)),
           const SizedBox(height: 8),
-          _Stepper(label: 'تكرار نطاق الآيات', value: _rangeRepeatCount, min: 1, max: 20, suffix: 'مرات', onChanged: (v) => setState(() => _rangeRepeatCount = v)),
+          _Stepper(label: basicText('tz_repeat_range', _lang), value: _rangeRepeatCount, min: 1, max: 20, suffix: basicText('times_count_suffix', _lang), onChanged: (v) => setState(() => _rangeRepeatCount = v)),
           const SizedBox(height: 10),
-          _Stepper(label: 'تكرار الآية الواحدة', value: _singleAyahRepeatCount, min: 0, max: 20, suffix: _singleAyahRepeatCount == 0 ? 'بدون' : 'مرات', onChanged: (v) => setState(() => _singleAyahRepeatCount = v)),
+          _Stepper(label: basicText('tz_repeat_ayah', _lang), value: _singleAyahRepeatCount, min: 0, max: 20, suffix: _singleAyahRepeatCount == 0 ? basicText('tz_none', _lang) : basicText('times_count_suffix', _lang), onChanged: (v) => setState(() => _singleAyahRepeatCount = v)),
           const SizedBox(height: 10),
-          _DoubleStepper(label: 'طول السكتة (بقدر الآية)', value: _silenceMultiplier, min: 0.5, max: 4, step: 0.5, onChanged: (v) => setState(() => _silenceMultiplier = v)),
+          _DoubleStepper(label: basicText('tz_silence', _lang), value: _silenceMultiplier, min: 0.5, max: 4, step: 0.5, onChanged: (v) => setState(() => _silenceMultiplier = v)),
           const SizedBox(height: 28),
-          FilledButton(onPressed: _start, child: const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Text('ابدأ جلسة التحفيظ'))),
+          FilledButton(onPressed: _start, child: Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Text(basicText('tz_start', _lang)))),
         ],
       ),
     );
@@ -173,7 +178,7 @@ class _SurahAyahPicker extends StatelessWidget {
             isExpanded: true,
             value: ayah.clamp(1, ayahCount),
             underline: const SizedBox.shrink(),
-            items: List.generate(ayahCount, (i) => i + 1).map((a) => DropdownMenuItem(value: a, child: Text('الآية $a', style: const TextStyle(fontSize: 12.5)))).toList(),
+            items: List.generate(ayahCount, (i) => i + 1).map((a) => DropdownMenuItem(value: a, child: Text(basicText('tz_ayah_n', LanguagePreferenceService.currentLanguage).replaceAll('{n}', '$a'), style: const TextStyle(fontSize: 12.5)))).toList(),
             onChanged: (v) => onAyahChanged(v ?? ayah),
           ),
         ],

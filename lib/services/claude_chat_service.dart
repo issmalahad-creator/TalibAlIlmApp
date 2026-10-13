@@ -47,7 +47,7 @@ class ClaudeChatService {
             {'role': m.fromUser ? 'user' : 'assistant', 'content': m.text},
         ],
       }),
-    );
+    ).timeout(const Duration(seconds: 120));
     if (response.statusCode != 200) {
       throw StateError('فشل الاتصال بـ Claude API (${response.statusCode}): ${response.body}');
     }

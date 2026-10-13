@@ -13,6 +13,10 @@ import 'mission_screen.dart';
 import 'quran_browse_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 final _surahNames = {for (final s in quranSurahs) s.number: s.name};
 
 /// Same real hifz-institute daily-pace ceilings as `_WizardView`'s own
@@ -106,9 +110,9 @@ class _WizardViewState extends State<_WizardView> {
   final _commitmentController = TextEditingController();
 
   static const _levels = [
-    ('beginner', 'مبتدئ'),
-    ('intermediate', 'متوسط'),
-    ('advanced', 'متقدم'),
+    ('beginner', 'x_level_beginner'),
+    ('intermediate', 'x_level_intermediate'),
+    ('advanced', 'x_level_advanced'),
   ];
 
   /// Real daily سبق (new-memorization) ranges per level — from actual
@@ -174,7 +178,7 @@ class _WizardViewState extends State<_WizardView> {
           spacing: 8,
           children: _levels
               .map((l) => ChoiceChip(
-                    label: Text(levelLabels[l.$1] ?? l.$2),
+                    label: Text(levelLabels[l.$1] ?? _t(l.$2)),
                     selected: _level == l.$1,
                     onSelected: (_) => setState(() => _level = l.$1),
                   ))
@@ -359,7 +363,7 @@ class _DashboardView extends StatelessWidget {
               children: [
                 Text(basicText('today_assignment_label', lang), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
                 const SizedBox(height: 6),
-                Text('${basicText('page_label', lang)} ${nextUnit.id} — سورة $surahName، ${basicText('from_ayah_label', lang)} ${nextUnit.ayahStart}',
+                Text('${basicText('page_label', lang)} ${nextUnit.id} — ${basicText('surah_word', lang)} $surahName، ${basicText('from_ayah_label', lang)} ${nextUnit.ayahStart}',
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 4),
                 Text(

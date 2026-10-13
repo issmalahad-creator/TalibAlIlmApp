@@ -7,6 +7,7 @@ import '../services/language_preference_service.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/location_problem_view.dart';
 
 /// "أوقات الصلاة" — QURAN_COMPANION_ROADMAP.md Phase 9. Shows today's six
 /// prayers computed offline (once a location is available) via the
@@ -168,7 +169,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       body: _loading
           ? AppLoadingView(icon: Icons.access_time_outlined, message: basicText('calculating_prayer_times_message', lang))
           : _noLocation
-              ? _NoLocationView(onManualEntry: _showManualLocationSheet, onRetry: _load)
+              ? LocationProblemView(problem: _locationService.lastProblem, service: _locationService, onRetry: _load)
               : _buildTimes(lang),
     ),
     );
@@ -362,39 +363,6 @@ class _PrayerRow extends StatelessWidget {
   }
 }
 
-class _NoLocationView extends StatelessWidget {
-  final VoidCallback onManualEntry;
-  final VoidCallback onRetry;
-  const _NoLocationView({required this.onManualEntry, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final lang = LanguagePreferenceService.currentLanguage;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.location_off_outlined, size: 44, color: AppColors.textMuted),
-            const SizedBox(height: 12),
-            Text(basicText('no_location_title', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
-            const SizedBox(height: 6),
-            Text(
-              basicText('no_location_desc', lang),
-              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            FilledButton(onPressed: onRetry, child: Text(basicText('retry_action', lang))),
-            const SizedBox(height: 10),
-            OutlinedButton(onPressed: onManualEntry, child: Text(basicText('enter_location_manually_action', lang))),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Bordered selectable option button — Ismail's 2026-08-16 decorative-
 /// features request (roadmap §4.34 point 3), replacing this screen's

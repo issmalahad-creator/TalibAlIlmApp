@@ -1,6 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../repositories/adhkar_repository.dart';
@@ -10,9 +15,14 @@ import '../repositories/milestone_repository.dart';
 import '../services/adhkar_reading_prefs.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/month.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/notification_permission_sheet.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// The book's title for the merged morning+evening chapter — only this
 /// category's completions count toward the streak certificates (see
@@ -64,7 +74,11 @@ const _readingHintDark = Color(0xFFB9B4A2);
 /// page in this same continuous flow instead of a modal `showDialog`.
 class AdhkarCategoryScreen extends StatefulWidget {
   final AdhkarCategory category;
-  const AdhkarCategoryScreen({super.key, required this.category});
+
+  /// For the morning/evening chapter: 'morning' or 'evening'. Null picks by
+  /// the clock (evening from mid-afternoon until 3 am). Ignored elsewhere.
+  final String? session;
+  const AdhkarCategoryScreen({super.key, required this.category, this.session});
 
   @override
   State<AdhkarCategoryScreen> createState() => _AdhkarCategoryScreenState();
@@ -95,6 +109,35 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
   /// done (no time-pressure framing for a review pass).
   Timer? _countdownTimer;
   int _remainingSeconds = 0;
+
+  /// 'morning' | 'evening' | 'all' while reading the morning/evening
+  /// chapter — the book gives each its own wording («أمسينا…») and a few
+  /// adhkar belong to only one of them; 'all' is the whole chapter as one
+  /// list. Null for every other chapter.
+  String? _session;
+
+  /// The reader's own choice, remembered (Ismail: the timing is optional,
+  /// never forced): 'auto' follows the clock, or a fixed session.
+  static const _modePrefKey = 'adhkar_session_mode';
+  String _mode = 'auto';
+  bool get _isMorningEvening => widget.category.title == _streakTrackedCategoryTitle;
+
+  static String _defaultSession() {
+    final h = DateTime.now().hour;
+    return (h >= 15 || h < 3) ? 'evening' : 'morning';
+  }
+
+  // Per-session «done today» + resume position (the DB keeps one per
+  // chapter; the streak still counts the chapter once a day).
+  String get _sessionKey => 'adhkar_me_${_session}_${widget.category.id}';
+  Future<bool> _sessionDoneToday() async =>
+      (await SharedPreferences.getInstance()).getString('${_sessionKey}_done') == todayDate();
+  Future<int> _sessionResume() async {
+    final v = (await SharedPreferences.getInstance()).getString('${_sessionKey}_pos');
+    final parts = v?.split('|');
+    if (parts == null || parts.length != 2 || parts[0] != todayDate()) return 0;
+    return int.tryParse(parts[1]) ?? 0;
+  }
 
   @override
   void initState() {
@@ -144,7 +187,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
       hour: picked.hour,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم إضافة تذكير يومي الساعة ${picked.hour}:00')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_reminder_added').replaceAll('{h}', '${picked.hour}'))));
   }
 
   @override
@@ -156,9 +199,19 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
   }
 
   Future<void> _load() async {
-    final items = await _repo.itemsFor(widget.category.id);
-    final doneToday = await _repo.isCompletedToday(widget.category.id);
-    final resumeIndex = doneToday ? 0 : (await _repo.resumePosition(widget.category.id)).clamp(0, items.length);
+    if (_isMorningEvening && _session == null) {
+      _mode = (await SharedPreferences.getInstance()).getString(_modePrefKey) ?? 'auto';
+      _session = _mode == 'auto' ? (widget.session ?? _defaultSession()) : _mode;
+    }
+    final session = _session;
+    var items = await _repo.itemsFor(widget.category.id);
+    if (session != null && session != 'all') {
+      items = [for (final i in items) ?i.forSession(session)];
+    }
+    final doneToday = session != null ? await _sessionDoneToday() : await _repo.isCompletedToday(widget.category.id);
+    final resumeIndex = doneToday
+        ? 0
+        : (session != null ? await _sessionResume() : await _repo.resumePosition(widget.category.id)).clamp(0, items.length);
     final minutes = await _repo.estimatedMinutes(widget.category.id);
     if (!mounted) return;
     setState(() {
@@ -166,6 +219,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
       _alreadyDoneToday = doneToday;
       _remaining = {for (final i in items) i.id: doneToday ? 0 : i.repeatCount};
       _currentIndex = resumeIndex;
+      _pageController?.dispose();
       _pageController = PageController(initialPage: resumeIndex);
       _loading = false;
       _remainingSeconds = minutes * 60;
@@ -195,7 +249,11 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
   void _onPageChanged(int index) {
     setState(() => _currentIndex = index);
     if (index < _items.length) {
-      _repo.saveSessionPosition(widget.category.id, index);
+      if (_session != null) {
+        SharedPreferences.getInstance().then((p) => p.setString('${_sessionKey}_pos', '${todayDate()}|$index'));
+      } else {
+        _repo.saveSessionPosition(widget.category.id, index);
+      }
     }
     _resetFocusTimer();
   }
@@ -215,10 +273,26 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     final current = _remaining[item.id] ?? 0;
     if (current <= 0) return;
     setState(() => _remaining[item.id] = current - 1);
+    // A felt count, like a tasbih bead — so the eyes can stay on the words.
+    if (current - 1 > 0) {
+      HapticFeedback.selectionClick();
+    } else {
+      HapticFeedback.mediumImpact();
+      _advanceAfterDone(item);
+    }
     if (!_remaining.values.every((v) => v <= 0)) return;
 
-    await _repo.markCompletedToday(widget.category.id);
-    await _repo.clearSessionPosition(widget.category.id);
+    if (_session != null) {
+      final p = await SharedPreferences.getInstance();
+      await p.setString('${_sessionKey}_done', todayDate());
+      await p.remove('${_sessionKey}_pos');
+      if (!await _repo.isCompletedToday(widget.category.id)) {
+        await _repo.markCompletedToday(widget.category.id);
+      }
+    } else {
+      await _repo.markCompletedToday(widget.category.id);
+      await _repo.clearSessionPosition(widget.category.id);
+    }
     if (!mounted) return;
 
     if (widget.category.title != _streakTrackedCategoryTitle) return;
@@ -230,6 +304,35 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     }
   }
 
+  /// A finished dhikr turns the page by itself after a short beat (only if
+  /// the reader is still on it) — no extra swipe between adhkar.
+  void _advanceAfterDone(AdhkarItem item) {
+    final index = _items.indexOf(item);
+    Future.delayed(const Duration(milliseconds: 450), () {
+      final c = _pageController;
+      if (!mounted || c == null || !c.hasClients || _currentIndex != index) return;
+      c.nextPage(duration: const Duration(milliseconds: 420), curve: Curves.easeOutCubic);
+    });
+  }
+
+  /// [mode]: 'auto' | 'morning' | 'evening' | 'all' — remembered.
+  void _switchSession(String mode) {
+    if (mode == _mode) return;
+    SharedPreferences.getInstance().then((p) => p.setString(_modePrefKey, mode));
+    final session = mode == 'auto' ? _defaultSession() : mode;
+    _mode = mode;
+    if (session == _session) {
+      setState(() {});
+      return;
+    }
+    _countdownTimer?.cancel();
+    setState(() {
+      _session = session;
+      _loading = true;
+    });
+    _load();
+  }
+
   /// Opts one dhikr into the generalized spaced-review engine — Ismail's
   /// 2026-08-16 "أريد المستخدم أن يحفظ الأذكار أيضًا" request. Text-only,
   /// same `KnowledgeReviewRepository` already built for hadith/Wasitiyyah
@@ -239,12 +342,12 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     final alreadyIn = await KnowledgeReviewRepository().isUnderReview('adhkar', item.id);
     if (alreadyIn) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('هذا الذكر مضاف بالفعل لمراجعة الحفظ')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_already_review'))));
       return;
     }
     await KnowledgeReviewRepository().startReviewing('adhkar', item.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('أُضيف — ستراجعه غدًا في "مراجعتك اليوم" 🌱')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_added_review').replaceAll('{screen}', _t('knowledge_review_title')))));
   }
 
   @override
@@ -254,7 +357,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
     return Scaffold(
       backgroundColor: _darkReading ? _readingBackgroundDark : _readingBackground,
       body: _loading || pageController == null
-          ? const AppLoadingView(icon: Icons.spa_outlined, message: 'جاري تحميل الأذكار...')
+          ? AppLoadingView(icon: Icons.spa_outlined, message: _t('ad_loading'))
           : Listener(
               onPointerDown: (_) => _resetFocusTimer(),
               child: Stack(
@@ -298,7 +401,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                                 children: [
                                   IconButton(icon: Icon(Icons.arrow_back_ios_new, size: 18, color: chromeMuted), onPressed: () => Navigator.pop(context)),
                                   Expanded(
-                                    child: Text(widget.category.title, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: chromeMuted)),
+                                    child: Text(widget.category.title, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: chromeMuted)),
                                   ),
                                   _ChromeIconButton(icon: Icons.ios_share_outlined, color: chromeMuted, onPressed: _shareCurrentDua),
                                   _ChromeIconButton(icon: Icons.text_decrease, color: chromeMuted, onPressed: () => _adjustFont(-0.1)),
@@ -311,6 +414,8 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                                   _ChromeIconButton(icon: Icons.notifications_active_outlined, color: chromeMuted, onPressed: _addReminder),
                                 ],
                               ),
+                              if (_session != null)
+                                _SessionToggle(mode: _mode, session: _session!, onChanged: _switchSession, color: chromeMuted),
                               if (_items.isNotEmpty) ...[
                                 const SizedBox(height: 6),
                                 _ProgressBar(total: _items.length, current: _currentIndex),
@@ -320,8 +425,8 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                                   children: [
                                     Text(
                                       _alreadyDoneToday
-                                          ? 'مراجعة — ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}'
-                                          : 'الدعاء ${_currentIndex < _items.length ? _currentIndex + 1 : _items.length} من ${_items.length}',
+                                          ? _t('adc_review_counter').replaceAll('{i}', '${_currentIndex < _items.length ? _currentIndex + 1 : _items.length}').replaceAll('{n}', '${_items.length}')
+                                          : _t('adc_dua_counter').replaceAll('{i}', '${_currentIndex < _items.length ? _currentIndex + 1 : _items.length}').replaceAll('{n}', '${_items.length}'),
                                       style: TextStyle(fontSize: 10.5, color: chromeMuted, fontWeight: FontWeight.w600),
                                     ),
                                     if (!_alreadyDoneToday && _remainingSeconds > 0) ...[
@@ -329,7 +434,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                                       Text('·', style: TextStyle(fontSize: 10.5, color: chromeMuted)),
                                       const SizedBox(width: 8),
                                       Text(
-                                        '⏱ ${_formatCountdown(_remainingSeconds)} متبقٍ',
+                                        _t('adc_remaining').replaceAll('{t}', _formatCountdown(_remainingSeconds)),
                                         style: TextStyle(fontSize: 10.5, color: chromeMuted, fontWeight: FontWeight.w600),
                                       ),
                                     ],
@@ -345,6 +450,54 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+/// «تلقائي | الصباح | المساء | الكل» for the morning/evening chapter. The
+/// chosen [mode] is solid; under «تلقائي» the session the clock picked is
+/// softly marked so the reader still sees which one is open.
+class _SessionToggle extends StatelessWidget {
+  final String mode;
+  final String session;
+  final ValueChanged<String> onChanged;
+  final Color color;
+  const _SessionToggle({required this.mode, required this.session, required this.onChanged, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    Widget chip(String value, String key, IconData icon) {
+      final on = mode == value;
+      final soft = !on && mode == 'auto' && session == value;
+      final fg = on || soft ? AppColors.primary : color;
+      return InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => onChanged(value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          decoration: BoxDecoration(
+            color: on ? AppColors.primary.withValues(alpha: 0.14) : Colors.transparent,
+            border: Border.all(color: soft ? AppColors.primary.withValues(alpha: 0.45) : Colors.transparent),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, size: 14, color: fg),
+            const SizedBox(width: 4),
+            Text(_t(key), style: TextStyle(fontSize: 12, fontWeight: on ? FontWeight.w800 : FontWeight.w600, color: fg)),
+          ]),
+        ),
+      );
+    }
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        chip('auto', 'adc_session_auto', Icons.schedule_rounded),
+        chip('morning', 'adc_session_morning', Icons.wb_sunny_outlined),
+        chip('evening', 'adc_session_evening', Icons.wb_twilight),
+        chip('all', 'adc_session_all', Icons.view_agenda_outlined),
+      ]),
     );
   }
 }
@@ -503,7 +656,7 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
             ),
             const SizedBox(height: 10),
             Text(
-              _done ? 'تم — اسحب لليسار للمتابعة' : 'اضغط للتكرار',
+              _done ? _t('adc_done_swipe') : _t('adc_tap_repeat'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 11.5, color: hintColor, fontWeight: FontWeight.w600),
             ),
@@ -516,7 +669,7 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
               child: TextButton.icon(
                 onPressed: widget.onMemorize,
                 icon: const Icon(Icons.psychology_outlined, size: 16),
-                label: const Text('أضفه لحفظ الأذكار', style: TextStyle(fontSize: 11.5)),
+                label: Text(_t('adc_add_memorize'), style: const TextStyle(fontSize: 11.5)),
                 style: TextButton.styleFrom(foregroundColor: hintColor, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
               ),
             ),
@@ -553,11 +706,11 @@ class _CompletionPage extends StatelessWidget {
               const SizedBox(height: 18),
               Text('ما شاء الله', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textColor)),
               const SizedBox(height: 8),
-              Text('أتممت $categoryTitle', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: hintColor)),
+              Text(_t('adc_completed').replaceAll('{c}', categoryTitle), textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: hintColor)),
               const SizedBox(height: 6),
               Text('جزاك الله خيرًا 🌿', style: TextStyle(fontSize: 13, color: hintColor)),
               const SizedBox(height: 28),
-              SizedBox(width: double.infinity, child: FilledButton(onPressed: onDone, child: const Text('تم'))),
+              SizedBox(width: double.infinity, child: FilledButton(onPressed: onDone, child: Text(_t('feedback_done')))),
             ],
           ),
         ),

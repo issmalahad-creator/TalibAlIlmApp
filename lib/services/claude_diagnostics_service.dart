@@ -50,7 +50,7 @@ class ClaudeDiagnosticsService {
           },
         ],
       }),
-    );
+    ).timeout(const Duration(seconds: 120));
     if (response.statusCode != 200) {
       throw StateError('فشل الاتصال بـ Claude API (${response.statusCode}): ${response.body}');
     }

@@ -49,8 +49,35 @@ logic leaks down; no rendering choice leaks into the schema.
   — box-containment only (`pad` is tolerance, not nearest search); marks
   with null box are skipped.
 - Params: `selectedWord`, `selectedAyah`, `onWordTap`, `onAyaMarkTap`,
-  `onWordLongPress`, `artInk`, `textColor`, `debugBoxes`. (No `onAyahTap`,
-  no `highlightColor` — removed.)
+  `onWordLongPress`, `onAyahLongPress(surah, ayah, globalRect)`, `artInk`,
+  `textColor`, `debugBoxes`. (No `onAyahTap`, no `highlightColor` — removed.)
+  `onAyahLongPress` (2026-10-10): long-press on a word body OR a medallion →
+  the whole ayah + the global rect of its boxes on this page (the reader
+  anchors its ayah menu there); wins over `onWordLongPress`.
+- **Reader view modes (2026-10-10, `docs/quran/READER_WORK_MAP.md`)**:
+  «رأسي» = `_continuousView` (one `ListView.builder`, fixed `itemExtent` =
+  width × zoom × 1.545 + gap — measured content-rect aspect of all 604
+  pages) and «أفقي» = `_readerPageView` (`PageView`). Pinch zoom is a raw
+  `Listener` (`widgets/mushaf/pinch_zoom.dart`) that never enters the
+  gesture arena; zoom RESIZES the page box (no `Transform`), so the
+  hit-test and `localToGlobal` stay exact. Pages render through
+  `_page(lang, page)` — synchronous when the layout is cached (no spinner
+  flash on rebuild).
+- **`spreadLines` (2026-10-10, «املأ الصفحة»)**: the reader renders pages
+  3–604 with `LineSpreadTransform` (`widgets/mushaf/line_spread.dart`): text
+  fills the width (3% margins), the 15 lines spread evenly down the area,
+  header on top, page number at the foot. Each line is drawn from ITS OWN
+  SVG group (`splitMushafSvg`, run in `compute`, LRU 8) — never band-clipped
+  (ERRATA E-13). Hit-test, Selection Layer, caption and the long-press rect
+  all go through the same mapping (`toScreen` / `toViewBox`); pages 1–2 and
+  `spreadLines: false` keep the uniform `ScreenTransform`. Vertical-mode
+  pages are one screen tall (× zoom). Tests: `test/line_spread_test.dart`.
+- **Reader state in SharedPreferences**: `mushaf_last_page` (resume — callers
+  pass no `initialPage`), `mushaf_view_vertical`, `mushaf_vertical_zoom`,
+  `mushaf_paper_tone`, `mushaf_bookmarks_v1` (`{page: colorIndex}` JSON),
+  `mushaf_auto_speed`, `mushaf_repeat_ayah`.
+- Cloud sessions: load skill `cloud-test-and-preview` to test and to render
+  screenshots of the reader without a phone.
 - **`_contentBox(layout)`** fits the page's inked content to the viewport,
   kept horizontally centred about the viewBox centre (the stored
   `md-page-inner` rect is off-centre — do NOT fit to it) with ~½ line of

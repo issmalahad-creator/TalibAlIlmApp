@@ -7,6 +7,10 @@ import '../theme/app_theme.dart';
 import 'madarij_chapter_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "مدارج السالكين" — Phase 5ح of QURAN_COMPANION_ROADMAP.md. **المستوى
 /// المتقدم فقط** — أعمق نص بالتطبيق كله، والتحذير أعلى الشاشة ليس نصًا
 /// شكليًا، هو الضمانة الوحيدة حاليًا (لا يوجد نظام قفل مستويات تقني بعد).
@@ -51,13 +55,13 @@ class _MadarijScreenState extends State<MadarijScreen> {
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(14)),
-                  child: const Text(
-                    'مستوى متقدم — يُنصح بإتقان العقيدة والفقه الأساسيين أولًا قبل هذا الكتاب. لا يوجد قفل إجباري، القرار لك.',
+                  child: Text(
+                    _t('x_madarij_level'),
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 12.5, color: AppColors.textDark, height: 1.6),
                   ),
                 ),
-                Text('$readCount من ${_sections.length} مقطعًا — الجزء الأول، وبقية الأجزاء تُضاف تباعًا',
+                Text(_t('x_madarij_progress').replaceAll('{n}', '$readCount').replaceAll('{total}', '${_sections.length}'),
                     style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                 const SizedBox(height: 8),
                 Expanded(

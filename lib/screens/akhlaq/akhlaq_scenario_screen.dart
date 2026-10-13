@@ -41,6 +41,7 @@ class _AkhlaqScenarioScreenState extends State<AkhlaqScenarioScreen> {
 
   Future<void> _load() async {
     final slice = await _repo.slice();
+    if (!mounted) return;
     setState(() {
       _slice = slice;
       _scenario = slice?.scenarioById(widget.scenarioId);

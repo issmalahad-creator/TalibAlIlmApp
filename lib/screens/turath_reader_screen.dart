@@ -16,6 +16,10 @@ import '../widgets/annotated_page_text.dart';
 import '../widgets/audio_reader_view.dart';
 import 'turath_book_search_screen.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// The real reader (Phase 79.6/79.7) — RTL, real page text, page
 /// navigation, font size (reuses `TextScalePreferenceService`, the exact
 /// preference every other reading screen in this app already shares —
@@ -657,7 +661,7 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
                 onPressed: _toggleFavoritePage,
               ),
             IconButton(
-              tooltip: 'استماع',
+              tooltip: _t('bv_listen'),
               icon: const Icon(Icons.headphones_outlined),
               onPressed: () => AudioReaderView.open(
                 context,
@@ -689,17 +693,17 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
                     children: [
                       Icon(_nightMode ? Icons.wb_sunny : Icons.wb_sunny_outlined),
                       const SizedBox(width: 12),
-                      Text(_nightMode ? 'وضع نهاري' : 'وضع ليلي'),
+                      Text(_nightMode ? _t('x_day_mode') : _t('night_mode')),
                     ],
                   ),
                 ),
                 PopupMenuItem(
                   onTap: _pickFontSize,
-                  child: const Row(
+                  child: Row(
                     children: [
                       Icon(Icons.text_fields_rounded),
                       SizedBox(width: 12),
-                      Text('حجم الخط'),
+                      Text(_t('font_size_tooltip')),
                     ],
                   ),
                 ),

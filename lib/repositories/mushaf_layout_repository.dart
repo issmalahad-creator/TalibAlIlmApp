@@ -137,6 +137,71 @@ class MushafLayoutRepository {
     return p == null ? null : (p as num).toInt();
   }
 
+  /// The MushafDatabase page a ḥizb (1..60) starts on — via
+  /// `quran_ayat.hizb_number` (Tanzil quarters, v39), like [pageForJuz].
+  Future<int?> pageForHizb(int hizb) async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT MIN(mw.page) AS p
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE qa.hizb_number = ?
+    ''', [hizb]);
+    final p = rows.isEmpty ? null : rows.first['p'];
+    return p == null ? null : (p as num).toInt();
+  }
+
+  /// Every surah's first MushafDatabase page in one query (the index list).
+  Future<Map<int, int>> surahStartPages() async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+        'SELECT surah, MIN(page) AS p FROM mushaf_words GROUP BY surah');
+    return {
+      for (final r in rows)
+        (r['surah'] as num).toInt(): (r['p'] as num).toInt(),
+    };
+  }
+
+  /// The ayat on a MushafDatabase page, in reading order.
+  Future<List<({int surah, int ayah})>> ayatOnPage(int page) async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT surah, ayah, MIN(word_order) AS o FROM mushaf_words
+      WHERE page = ? GROUP BY surah, ayah ORDER BY o
+    ''', [page]);
+    return [for (final r in rows) (surah: (r['surah'] as num).toInt(), ayah: (r['ayah'] as num).toInt())];
+  }
+
+  /// Every ḥizb's (1..60) first MushafDatabase page in one query.
+  Future<Map<int, int>> hizbStartPages() async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT qa.hizb_number AS h, MIN(mw.page) AS p
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE qa.hizb_number IS NOT NULL
+      GROUP BY qa.hizb_number
+    ''');
+    return {
+      for (final r in rows) (r['h'] as num).toInt(): (r['p'] as num).toInt(),
+    };
+  }
+
+  /// Every juzʼ's first MushafDatabase page in one query (the index list).
+  Future<Map<int, int>> juzStartPages() async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT qa.juz_number AS j, MIN(mw.page) AS p
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE qa.juz_number IS NOT NULL
+      GROUP BY qa.juz_number
+    ''');
+    return {
+      for (final r in rows) (r['j'] as num).toInt(): (r['p'] as num).toInt(),
+    };
+  }
+
   /// The page a `(surah, ayah)` reference should open on. Falls back to the
   /// surah's first page when that exact ayah isn't found.
   Future<int?> pageForReference(int surah, {int ayah = 1}) async {

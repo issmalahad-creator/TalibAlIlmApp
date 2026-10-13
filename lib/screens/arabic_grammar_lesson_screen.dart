@@ -40,6 +40,7 @@ class _ArabicGrammarLessonScreenState extends State<ArabicGrammarLessonScreen> {
     final key = 'grammar_${c.titleAr}';
     if (_learned.contains(key)) return;
     await _repo.markLearned(key);
+    if (!mounted) return;
     setState(() => _learned = {..._learned, key});
   }
 

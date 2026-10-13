@@ -13,6 +13,10 @@ import 'arabic_resources_screen.dart';
 import 'arabic_vocabulary_lesson_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "منهج تعلم العربية لغير الناطقين بها" — QURAN_COMPANION_ROADMAP.md
 /// Phase 10b. Shows all 5 planned stages; only Stage 1 (alphabet) is
 /// actually built — the rest show honestly as "قريبًا" rather than
@@ -82,14 +86,14 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('منهج تعلم العربية')),
+      appBar: AppBar(title: Text(_t('x_arabic_title'))),
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text(
-                  'مسار متكامل لغير الناطقين بالعربية — من الحروف إلى فهم لغة القرآن',
+                Text(
+                  _t('x_arabic_sub'),
                   style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 16),
@@ -110,7 +114,7 @@ class _ArabicCurriculumScreenState extends State<ArabicCurriculumScreen> {
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArabicResourcesScreen())),
                   icon: const Icon(Icons.menu_book_outlined),
-                  label: const Text('مصادر موصى بها للدراسة الأعمق'),
+                  label: Text(_t('x_resources_deeper')),
                 ),
               ],
             ),
@@ -151,10 +155,10 @@ class _StageCard extends StatelessWidget {
             Text(stage.descriptionAr, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
             if (stage.isBuilt) ...[
               const SizedBox(height: 10),
-              Text('$learnedCount من $totalCount', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+              Text(_t('x_n_of_total').replaceAll('{n}', '$learnedCount').replaceAll('{total}', '$totalCount'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
             ] else ...[
               const SizedBox(height: 10),
-              const Text('قريبًا', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
+              Text(_t('tag_coming_soon_label'), style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, fontStyle: FontStyle.italic)),
             ],
           ],
         ),

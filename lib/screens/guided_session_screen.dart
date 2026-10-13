@@ -14,6 +14,10 @@ import 'review_screen.dart';
 import 'understanding_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 const _phaseIcons = {
   'quick_review': Icons.refresh_rounded,
   'new_memorization': Icons.add_circle_outline_rounded,
@@ -26,18 +30,13 @@ const _phaseIcons = {
 /// ("اقرأ الآيات بصوت مسموع ثم اضغط 'اختبرني'"). Static per-phase, not the
 /// rule engine (`companion_engine.dart`) — this is a fixed instruction for
 /// *this* phase, not a state-dependent message about the student overall.
-const _phaseCompanionTips = {
-  'quick_review': 'اقرأ ما راجعته سابقًا بصوت مسموع قبل أن تنتقل.',
-  'new_memorization': 'كرّر كل آية عدة مرات قبل الانتقال للتي تليها.',
-  'repetition': 'التكرار الهادئ أفضل من السرعة — لا تستعجل.',
-  'recitation_test': 'اقرأ من الذاكرة كاملة أولًا، ثم افتح المصحف للتصحيح فقط.',
-  'understanding': 'اسأل نفسك: ماذا أفهم من هذا الآن، لا فقط ماذا أحفظ؟',
-};
+/// Keys `gs_tip_<phase>` in `basic_translations.dart`.
+const _phaseCompanionTipPhases = {'quick_review', 'new_memorization', 'repetition', 'recitation_test', 'understanding'};
 
 const _difficultyOptions = [
-  ('easy', 'سهلة'),
-  ('moderate', 'مناسبة'),
-  ('hard', 'صعبة'),
+  ('easy', 'gs_easy'),
+  ('moderate', 'gs_moderate'),
+  ('hard', 'gs_hard'),
 ];
 
 /// "جلسة موجّهة" — Phase 14 Sub-phase B. Turns "جلسة اليوم" from an
@@ -126,8 +125,8 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        content: const Text('أحسنت 🌱 أنجزت جلستك اليوم', textAlign: TextAlign.center),
-        actions: [FilledButton(onPressed: () => Navigator.pop(context), child: const Text('تم'))],
+        content: Text(_t('gs_done_dialog'), textAlign: TextAlign.center),
+        actions: [FilledButton(onPressed: () => Navigator.pop(context), child: Text(_t('feedback_done')))],
       ),
     );
     if (!mounted) return;
@@ -137,10 +136,10 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('جلسة موجّهة')), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)));
+      return Scaffold(appBar: AppBar(title: Text(_t('gs_title'))), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: _t('loading_quran')));
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('جلسة موجّهة')),
+      appBar: AppBar(title: Text(_t('gs_title'))),
       body: AnimatedSwitcher(
         duration: AppMotion.normal,
         switchInCurve: AppMotion.entranceCurve,
@@ -161,18 +160,18 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Text('كم دقيقة لديك اليوم؟', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        Text(_t('gs_how_long'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
-        const Text(
-          'سنوزّع وقتك على مراحل الجلسة تلقائيًا حسب مستواك — هذا مجرد اقتراح ينظّم وقتك، لا مؤقّت صارم يجبرك على الالتزام بالثانية.',
-          style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+        Text(
+          _t('gs_how_long_hint'),
+          style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
         ),
         const SizedBox(height: 16),
         Wrap(
           spacing: 8,
           children: [15, 20, 30, 45, 60]
               .map((m) => ChoiceChip(
-                    label: Text('$m د'),
+                    label: Text(_t('gs_min_short').replaceAll('{n}', '$m')),
                     selected: _selectedMinutes == m,
                     onSelected: (_) => setState(() => _selectedMinutes = m),
                   ))
@@ -185,13 +184,13 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
                 children: [
                   Icon(_phaseIcons[p.key], size: 16, color: AppColors.primaryDark),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(p.titleAr, style: const TextStyle(fontSize: 13))),
-                  Text('${p.minutes} د', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                  Expanded(child: Text(_t('gs_phase_${p.key}'), style: const TextStyle(fontSize: 13))),
+                  Text(_t('gs_min_short').replaceAll('{n}', '${p.minutes}'), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                 ],
               ),
             )),
         const SizedBox(height: 20),
-        FilledButton(onPressed: _start, child: const Text('ابدأ الجلسة')),
+        FilledButton(onPressed: _start, child: Text(_t('gs_start'))),
       ],
     );
   }
@@ -207,16 +206,16 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Text('المرحلة $_step من ${_plan.length}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+        Text(_t('gs_step').replaceAll('{i}', '$_step').replaceAll('{n}', '${_plan.length}'), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
         const SizedBox(height: 12),
         Icon(_phaseIcons[phase.key], size: 40, color: AppColors.primaryDark),
         const SizedBox(height: 12),
-        Text(phase.titleAr, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        Text(_t('gs_phase_${phase.key}'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
-        Text('الوقت المقترح: ${phase.minutes} دقيقة', style: const TextStyle(fontSize: 13, color: AppColors.primaryDark)),
+        Text(_t('gs_suggested_time').replaceAll('{n}', '${phase.minutes}'), style: const TextStyle(fontSize: 13, color: AppColors.primaryDark)),
         const SizedBox(height: 10),
-        Text(phase.descriptionAr, style: const TextStyle(fontSize: 13.5, height: 1.7)),
-        if (_phaseCompanionTips[phase.key] != null) ...[
+        Text(_t('gs_desc_${phase.key}'), style: const TextStyle(fontSize: 13.5, height: 1.7)),
+        if (_phaseCompanionTipPhases.contains(phase.key)) ...[
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(12),
@@ -226,7 +225,7 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
               children: [
                 const Text('🌿', style: TextStyle(fontSize: 14)),
                 const SizedBox(width: 8),
-                Expanded(child: Text(_phaseCompanionTips[phase.key]!, style: const TextStyle(fontSize: 12.5, color: AppColors.primaryDark, fontWeight: FontWeight.w600))),
+                Expanded(child: Text(_t('gs_tip_${phase.key}'), style: const TextStyle(fontSize: 12.5, color: AppColors.primaryDark, fontWeight: FontWeight.w600))),
               ],
             ),
           ),
@@ -236,16 +235,16 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
           FilledButton.icon(
             onPressed: () => _openPhaseScreen(phase),
             icon: const Icon(Icons.open_in_new, size: 18),
-            label: const Text('افتح الشاشة'),
+            label: Text(_t('gs_open_screen')),
           ),
         const SizedBox(height: 20),
         Row(
           children: [
-            if (_step > 1) TextButton(onPressed: () => setState(() => _step--), child: const Text('السابق')),
+            if (_step > 1) TextButton(onPressed: () => setState(() => _step--), child: Text(_t('gs_prev'))),
             const Spacer(),
             FilledButton(
               onPressed: () => setState(() => _step++),
-              child: Text(isLast ? 'إنهاء الجلسة' : 'التالي'),
+              child: Text(isLast ? _t('gs_finish') : _t('gs_next')),
             ),
           ],
         ),
@@ -257,16 +256,16 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Text('كيف كانت جلستك اليوم؟', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        Text(_t('gs_how_was'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 6),
-        const Text('تقييمك يساعدنا على اقتراح وتيرة أنسب لك لاحقًا — لن يُغيَّر شيء تلقائيًا بدون علمك.',
-            style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+        Text(_t('gs_rating_hint'),
+            style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
         const SizedBox(height: 16),
         Wrap(
           spacing: 8,
           children: _difficultyOptions
               .map((d) => ChoiceChip(
-                    label: Text(d.$2),
+                    label: Text(_t(d.$2)),
                     selected: _difficulty == d.$1,
                     onSelected: (_) => setState(() => _difficulty = d.$1),
                   ))
@@ -276,10 +275,10 @@ class _GuidedSessionScreenState extends State<GuidedSessionScreen> {
         TextField(
           controller: _noteController,
           maxLines: 3,
-          decoration: const InputDecoration(hintText: 'ملاحظة (اختياري)...', border: OutlineInputBorder()),
+          decoration: InputDecoration(hintText: _t('gs_note_hint'), border: const OutlineInputBorder()),
         ),
         const SizedBox(height: 20),
-        FilledButton(onPressed: _difficulty == null ? null : _finish, child: const Text('إنهاء الجلسة')),
+        FilledButton(onPressed: _difficulty == null ? null : _finish, child: Text(_t('gs_finish'))),
       ],
     );
   }

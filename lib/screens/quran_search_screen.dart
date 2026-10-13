@@ -9,6 +9,10 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/feedback/talib_skeleton.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "البحث عن آية" — Phase 1 of QURAN_COMPANION_ROADMAP.md. Search a word or
 /// phrase (no tashkeel needed) and get every matching ayah in the Quran with
 /// its surah name, or search "السورة رقم" (e.g. "البقرة 255") to jump
@@ -88,7 +92,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('البحث في القرآن')),
+      appBar: AppBar(title: Text(_t('qs_title'))),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -98,21 +102,21 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
               controller: _controller,
               onChanged: _onChanged,
               autofocus: true,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
-                hintText: 'اكتب كلمة، أو "السورة رقم الآية" مثل: البقرة 255',
-                prefixIcon: Icon(Icons.search_rounded, size: 20),
+                hintText: _t('qs_hint'),
+                prefixIcon: const Icon(Icons.search_rounded, size: 20),
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'لا حاجة للتشكيل — البحث يعمل بالحروف العادية',
-              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+            Text(
+              _t('qs_no_tashkeel'),
+              style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
             ),
             const SizedBox(height: 10),
             Row(
               children: [
-                const Text('اللغة: ', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                Text(_t('qs_lang'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                 DropdownButton<String>(
                   isDense: true,
                   value: _language,
@@ -127,7 +131,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
             const SizedBox(height: 6),
             Row(
               children: [
-                const Text('التفسير: ', style: TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                Text(_t('qs_tafsir'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                 Expanded(
                   child: DropdownButton<String>(
                     isExpanded: true,
@@ -159,12 +163,12 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
       );
     }
     if (!_hasSearched) {
-      return const Center(
-        child: Text('ابحث عن أي كلمة لتظهر كل الآيات التي وردت فيها', style: TextStyle(color: AppColors.textMuted)),
+      return Center(
+        child: Text(_t('qs_empty'), style: const TextStyle(color: AppColors.textMuted)),
       );
     }
     if (_results.isEmpty) {
-      return const Center(child: Text('لم يُعثر على نتائج', style: TextStyle(color: AppColors.textMuted)));
+      return Center(child: Text(_t('qs_no_results'), style: const TextStyle(color: AppColors.textMuted)));
     }
     return ListView.separated(
       itemCount: _results.length + 1,
@@ -173,7 +177,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
         if (i == 0) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 4),
-            child: Text('${_results.length} نتيجة', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+            child: Text(_t('qs_count').replaceAll('{n}', '${_results.length}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           );
         }
         final r = _results[i - 1];
@@ -198,7 +202,7 @@ class _QuranSearchScreenState extends State<QuranSearchScreen> {
     await MemorizationRepository().markMemorized(page);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('سُجّلت صفحة $page ضمن حفظك — ستظهر في مراجعاتك القادمة')),
+      SnackBar(content: Text(_t('qs_marked').replaceAll('{p}', '$page'))),
     );
   }
 }
@@ -228,13 +232,13 @@ class _ResultCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(8)),
                 child: Text(
-                  'سورة ${result.surahName} — آية ${result.ayah}',
+                  _t('qs_ref').replaceAll('{s}', result.surahName).replaceAll('{a}', '${result.ayah}'),
                   style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
                 ),
               ),
               const Spacer(),
               if (result.pageNumber != null) ...[
-                Text('صفحة ${result.pageNumber}', style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
+                Text('${_t('page_label')} ${result.pageNumber}', style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
                 if (onTap != null) ...[
                   const SizedBox(width: 4),
                   const Icon(Icons.chevron_left, size: 14, color: AppColors.primary),
@@ -255,7 +259,7 @@ class _ResultCard extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: onMemorize,
                 icon: const Icon(Icons.bookmark_add_outlined, size: 15),
-                label: const Text('احفظ هذه الصفحة', style: TextStyle(fontSize: 11.5)),
+                label: Text(_t('qs_memorize_page'), style: const TextStyle(fontSize: 11.5)),
                 style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), minimumSize: Size.zero),
               ),
             ),

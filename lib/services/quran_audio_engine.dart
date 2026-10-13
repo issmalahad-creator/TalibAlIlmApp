@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show ValueNotifier;
+
 import 'package:audioplayers/audioplayers.dart';
 
 import '../data/quran_surahs.dart';
@@ -32,9 +34,20 @@ class QuranAudioEngine {
   void setPauseBetweenAyat(Duration d) => _pauseBetweenAyat = d;
   void setRepeatCount(int n) => _defaultRepeatCount = n;
 
+  /// True while an ayah's audio is being fetched before it can play — the
+  /// reader shows «جارٍ تحميل التلاوة…» instead of a silent wait.
+  final ValueNotifier<bool> loading = ValueNotifier(false);
+
+  /// Completed by [stop] so a caller awaiting [playAyah] returns at once
+  /// (onPlayerComplete never fires for a stopped player).
+  Completer<void>? _stopped;
+
   void stop() {
     _cancelled = true;
     _player.stop();
+    loading.value = false;
+    final s = _stopped;
+    if (s != null && !s.isCompleted) s.complete();
   }
 
   /// Real mid-playback pause/resume (unlike the caller-side `_audioPaused`
@@ -50,11 +63,48 @@ class QuranAudioEngine {
     return UrlSource(url ?? '');
   }
 
-  /// Plays one ayah and waits until it finishes.
-  Future<void> playAyah(String reciterId, int surah, int ayah) async {
-    final source = await _sourceFor(reciterId, surah, ayah);
-    await _player.play(source);
-    await _player.onPlayerComplete.first;
+  /// Plays one ayah and waits until it finishes (or [stop]).
+  ///
+  /// Fetches the file first (cached for next time) and plays it from disk:
+  /// streaming straight from the network stalled on some phones until the
+  /// user paused and resumed, with nothing on screen while it buffered.
+  /// Falls back to streaming only if the download fails. Returns false when
+  /// nothing could be played (offline and not cached).
+  Future<bool> playAyah(String reciterId, int surah, int ayah) async {
+    _cancelled = false;
+    final stopped = _stopped = Completer<void>();
+    Source? source;
+    final local = await _downloadService.localFileIfExists(reciterId, surah, ayah);
+    if (local != null) {
+      source = DeviceFileSource(local.path);
+    } else {
+      loading.value = true;
+      final f = await _downloadService.ensureAyahDownloaded(reciterId, surah, ayah);
+      loading.value = false;
+      if (_cancelled) return true;
+      if (f != null) {
+        source = DeviceFileSource(f.path);
+      } else {
+        final url = QuranAudioProviderRegistry.ayahAudioUrl(reciterId: reciterId, surah: surah, ayah: ayah);
+        if (url == null) return false;
+        source = UrlSource(url);
+      }
+    }
+    if (_cancelled) return true;
+    final done = _player.onPlayerComplete.first; // subscribe before play
+    try {
+      await _player.play(source);
+    } catch (_) {
+      return false;
+    }
+    await Future.any([done, stopped.future]);
+    return true;
+  }
+
+  /// Fetches an ayah in the background (the next one while this one plays),
+  /// so recitation flows without a gap. Never throws.
+  void prefetch(String reciterId, int surah, int ayah) {
+    _downloadService.ensureAyahDownloaded(reciterId, surah, ayah).ignore();
   }
 
   /// Plays every ayah from (surahFrom, ayahFrom) through (surahTo, ayahTo)

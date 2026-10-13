@@ -9,6 +9,10 @@ import '../widgets/celebration_overlay.dart';
 import 'hadith_quiz_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "الأربعين النووية" — Phase 5أ of QURAN_COMPANION_ROADMAP.md. Browse all
 /// 42 hadith with their commentary, mark memorized, and a quick-access
 /// button to the recall quiz.
@@ -59,7 +63,7 @@ class _HadithScreenState extends State<HadithScreen> {
         title: const Text('الأربعين النووية'),
         actions: [
           IconButton(
-            tooltip: 'اختبر نفسك',
+            tooltip: _t('mq_title'),
             icon: const Icon(Icons.quiz_outlined),
             onPressed: () async {
               await Navigator.push(context, MaterialPageRoute(builder: (_) => const HadithQuizScreen()));
@@ -74,7 +78,7 @@ class _HadithScreenState extends State<HadithScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('$memorizedCount من ${_hadiths.length} حديثًا', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                  child: Text(_t('x_hadith_count').replaceAll('{n}', '$memorizedCount').replaceAll('{total}', '${_hadiths.length}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                 ),
                 Expanded(
                   child: ListView.builder(
@@ -92,7 +96,7 @@ class _HadithScreenState extends State<HadithScreen> {
                               color: h.memorized ? AppColors.primary : AppColors.textMuted,
                               size: 20,
                             ),
-                            title: Text('الحديث ${h.id}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                            title: Text(_t('qz_hadith_n').replaceAll('{n}', '${h.id}'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                             children: [
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -102,7 +106,7 @@ class _HadithScreenState extends State<HadithScreen> {
                                     Text(h.text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, height: 1.8)),
                                     const SizedBox(height: 12),
                                     if (!h.memorized)
-                                      OutlinedButton(onPressed: () => _markMemorized(h), child: const Text('حفظته', style: TextStyle(fontSize: 12))),
+                                      OutlinedButton(onPressed: () => _markMemorized(h), child: Text(_t('x_memorized_it'), style: TextStyle(fontSize: 12))),
                                   ],
                                 ),
                               ),

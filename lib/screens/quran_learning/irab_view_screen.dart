@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import '../../data/quran_surahs.dart';
 import '../../l10n/basic_translations.dart';
 import '../../models/quran_learning.dart';
+import '../../models/mushaf_layout.dart';
+import '../../repositories/mushaf_layout_repository.dart';
+import '../../repositories/quran_corpus_repository.dart';
 import '../../repositories/quran_learning_repository.dart';
 import '../../repositories/quran_reading_repository.dart';
 import '../../services/language_preference_service.dart';
 import '../../services/quran_audio/quran_audio_provider_registry.dart';
 import '../../theme/app_theme.dart';
 import '../ayah_notebook_screen.dart';
+import 'corpus_panels.dart';
 import 'learning_lesson_screen.dart';
 
 /// Phase 79 `79-ql` — **P0: إعراب القرآن من داخل المصحف.** One ayah shown as
@@ -42,6 +46,12 @@ class _IrabViewScreenState extends State<IrabViewScreen> {
   int? _selected;
   Set<int> _highlighted = {};
   bool _playing = false;
+  bool _loaded = false;
+
+  /// For the ~all ayat with no hand-curated iʿrāb: the ayah's words (tap →
+  /// the Corpus/Treebank analysis of that word) and the iʿrāb books.
+  List<MushafWord> _words = [];
+  List<Map<String, Object?>> _prose = [];
 
   @override
   void initState() {
@@ -68,11 +78,25 @@ class _IrabViewScreenState extends State<IrabViewScreen> {
       final s = await _repo.source(id);
       if (s != null) srcs[id] = s;
     }
+    var words = <MushafWord>[];
+    var prose = <Map<String, Object?>>[];
+    if (irab.isEmpty) {
+      try {
+        words = (await MushafLayoutRepository().wordsForAyah(widget.surah, widget.ayah))
+            .where((w) => w.type == MushafWordType.text)
+            .toList();
+        prose = await QuranCorpusRepository().irabProse(widget.surah, widget.ayah);
+      } catch (_) {}
+    }
     if (!mounted) return;
     setState(() {
       _irab = irab;
       _sources = srcs;
       _ayahText = t?.text ?? '';
+      _words = words;
+      _prose = prose;
+      _selected ??= words.isNotEmpty ? words.first.wordIndex : null;
+      _loaded = true;
     });
     await _repo.logEvent(
       verb: StudyEventVerbs.opened,
@@ -151,7 +175,11 @@ class _IrabViewScreenState extends State<IrabViewScreen> {
             ),
           ],
         ),
-        body: _irab.isEmpty
+        body: !_loaded
+            ? const Center(child: CircularProgressIndicator())
+            : _irab.isEmpty && _words.isNotEmpty
+            ? _corpusFallback(lang)
+            : _irab.isEmpty
             ? Center(
                 child: Padding(
                   padding: const EdgeInsets.all(28),
@@ -207,6 +235,85 @@ class _IrabViewScreenState extends State<IrabViewScreen> {
                 ],
               ),
       ),
+    );
+  }
+
+  /// No curated iʿrāb for this ayah: its words as chips; the selected
+  /// word's full Corpus analysis (ṣarf + Treebank iʿrāb + غريب + قراءات);
+  /// then the iʿrāb books for the whole ayah.
+  Widget _corpusFallback(String lang) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 40),
+      children: [
+        if (_ayahText.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.divider),
+            ),
+            child: Text(_ayahText,
+                textAlign: TextAlign.center,
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(fontFamily: 'Amiri', fontSize: 22, height: 2.0)),
+          ),
+        const SizedBox(height: 12),
+        Text(basicText('ql_irab_tap_word', lang),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+        const SizedBox(height: 8),
+        Wrap(
+          alignment: WrapAlignment.center,
+          textDirection: TextDirection.rtl,
+          spacing: 6,
+          runSpacing: 8,
+          children: [
+            for (final w in _words)
+              ChoiceChip(
+                label: Text(w.textUthmani, style: const TextStyle(fontFamily: 'Amiri', fontSize: 18)),
+                selected: _selected == w.wordIndex,
+                onSelected: (_) => _selectWord(w.wordIndex),
+                selectedColor: AppColors.primary.withValues(alpha: 0.16),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (_selected != null)
+          WordCorpusPanel(
+            key: ValueKey(_selected),
+            surah: widget.surah,
+            ayah: widget.ayah,
+            wordIndex: _selected!,
+            lang: lang,
+          ),
+        if (_prose.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Text(basicText('ql_iraab_prose', lang),
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          for (final r in _prose)
+            Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Text('${r['name'] ?? r['short'] ?? ''}${(r['author'] ?? '') != '' ? ' — ${r['author']}' : ''}',
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.primary, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 6),
+                SelectableText(stripCorpusHtml(r['html']),
+                    textDirection: TextDirection.rtl,
+                    style: const TextStyle(fontSize: 14, height: 1.9)),
+              ]),
+            ),
+        ],
+      ],
     );
   }
 

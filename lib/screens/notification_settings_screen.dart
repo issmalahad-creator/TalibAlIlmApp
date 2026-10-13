@@ -131,6 +131,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   Future<void> _togglePrayerNotifications(bool value) async {
     if (value) await ensureExactAlarmsForPrayer(context);
     await _prayerPrefs.setEnabled(value);
+    if (!mounted) return;
     setState(() => _prayerEnabled = value);
     await _notifications.schedulePrayerTimeNotifications();
   }
@@ -157,6 +158,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   Future<void> _toggleEncouragement(Encouragement kind, bool value) async {
     await NotificationPolicy.instance.setEnabled(kind, value);
+    if (!mounted) return;
     setState(() => _encEnabled[kind] = value);
     if (!value) {
       await _notifications.cancelEncouragement(kind);
@@ -169,17 +171,20 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   Future<void> _setCap(int value) async {
     await NotificationPolicy.instance.setCap(value);
+    if (!mounted) return;
     setState(() => _cap = value.clamp(1, 4));
   }
 
   Future<void> _toggleAdhanSound(bool value) async {
     await _prayerPrefs.setUseAdhanSound(value);
+    if (!mounted) return;
     setState(() => _useAdhanSound = value);
     await _notifications.schedulePrayerTimeNotifications();
   }
 
   Future<void> _toggleQuietHours(bool value) async {
     await _quietHoursPrefs.setEnabled(value);
+    if (!mounted) return;
     setState(() => _quietHoursEnabled = value);
     await _apply();
   }
@@ -190,6 +195,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     final end = await showTimePicker(context: context, initialTime: TimeOfDay(hour: _quietEnd, minute: 0));
     if (end == null) return;
     await _quietHoursPrefs.setWindow(start.hour, end.hour);
+    if (!mounted) return;
     setState(() {
       _quietStart = start.hour;
       _quietEnd = end.hour;
@@ -237,6 +243,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   Future<void> _toggleEnabled(String category, bool value) async {
     if (value) await ensureNotificationPermission(context, NotificationReason.adhkar);
     await _prefs.setEnabled(category, value);
+    if (!mounted) return;
     setState(() => _enabled[category] = value);
     await _apply();
   }
@@ -248,12 +255,14 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     );
     if (picked == null) return;
     await _prefs.setCustomHour(category, picked.hour);
+    if (!mounted) return;
     setState(() => _customHours[category] = picked.hour);
     await _apply();
   }
 
   Future<void> _useAutoTime(String category) async {
     await _prefs.setCustomHour(category, null);
+    if (!mounted) return;
     setState(() => _customHours[category] = null);
     await _apply();
   }

@@ -2,7 +2,14 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// Real illustrated diagrams for "دليل المسلم الجديد" — redrawn 2026-08-16
 /// per Ismail's direct feedback on the original first-pass stick figures
@@ -96,7 +103,7 @@ class _WuduPainter extends CustomPainter {
     for (final dx in [-headR * 0.9, 0.0, headR * 0.9]) {
       _droplet(canvas, Offset(cx + dx, headCy - headR - 14), 6);
     }
-    _label(canvas, 'الوجه', Offset(cx, headCy - headR - 30));
+    _label(canvas, _t('x_diag_face'), Offset(cx, headCy - headR - 30));
 
     // Hands raised beside the head (washing arms)
     final handY = headCy + headR * 0.3;
@@ -104,7 +111,7 @@ class _WuduPainter extends CustomPainter {
     canvas.drawOval(Rect.fromCenter(center: Offset(cx + headR + 26, handY), width: 22, height: 34), Paint()..color = _skin);
     _droplet(canvas, Offset(cx - headR - 26, handY - 26), 5);
     _droplet(canvas, Offset(cx + headR + 26, handY - 26), 5);
-    _label(canvas, 'الذراعان', Offset(cx + headR + 26, handY + 30));
+    _label(canvas, _t('x_diag_arms'), Offset(cx + headR + 26, handY + 30));
 
     // Head-wipe indicator
     canvas.drawArc(Rect.fromCircle(center: Offset(cx, headCy - headR * 0.55), radius: headR * 0.55), -2.6, 2.2, false, Paint()..style = PaintingStyle.stroke..strokeWidth = 2.5..color = _water);
@@ -115,7 +122,7 @@ class _WuduPainter extends CustomPainter {
     canvas.drawOval(Rect.fromCenter(center: Offset(cx + 14, feetY), width: 26, height: 14), Paint()..color = _skin);
     _droplet(canvas, Offset(cx - 14, feetY - 12), 5);
     _droplet(canvas, Offset(cx + 14, feetY - 12), 5);
-    _label(canvas, 'القدمان', Offset(cx, feetY + 16));
+    _label(canvas, _t('x_diag_feet'), Offset(cx, feetY + 16));
   }
 
   @override
@@ -168,7 +175,7 @@ class _GhuslPainter extends CustomPainter {
       }
     }
 
-    _label(canvas, 'يعمّ الماء كل الجسد', Offset(cx, size.height * 0.06), fontSize: 11);
+    _label(canvas, _t('x_diag_body'), Offset(cx, size.height * 0.06), fontSize: 11);
   }
 
   @override
@@ -198,7 +205,7 @@ class _IstinjaPainter extends CustomPainter {
       ..lineTo(cx + r * 0.4, cy - r * 0.25);
     canvas.drawPath(check, Paint()..style = PaintingStyle.stroke..strokeWidth = 4..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..color = Colors.white);
 
-    _label(canvas, 'الطهارة والنظافة', Offset(cx, cy + r + 22));
+    _label(canvas, _t('x_diag_purity'), Offset(cx, cy + r + 22));
   }
 
   @override
@@ -214,11 +221,11 @@ class _SalahPainter extends CustomPainter {
     final third = size.width / 3;
     final baseY = size.height * 0.82;
     _standing(canvas, Offset(third * 0.5, baseY), size.height);
-    _label(canvas, 'قيام', Offset(third * 0.5, size.height * 0.95));
+    _label(canvas, _t('x_diag_qiyam'), Offset(third * 0.5, size.height * 0.95));
     _bowing(canvas, Offset(third * 1.5, baseY), size.height);
-    _label(canvas, 'ركوع', Offset(third * 1.5, size.height * 0.95));
+    _label(canvas, _t('x_diag_ruku'), Offset(third * 1.5, size.height * 0.95));
     _prostrating(canvas, Offset(third * 2.5, baseY), size.height);
-    _label(canvas, 'سجود', Offset(third * 2.5, size.height * 0.95));
+    _label(canvas, _t('x_diag_sujud'), Offset(third * 2.5, size.height * 0.95));
   }
 
   Paint get _fill => Paint()..color = _robe;

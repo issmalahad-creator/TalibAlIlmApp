@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../repositories/adhkar_repository.dart';
 import '../theme/app_theme.dart';
 import 'adhkar_category_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 const _occasionLabels = {
-  'travel': ('السفر', Icons.luggage_outlined),
-  'funeral': ('الجنازة والمرض', Icons.local_florist_outlined),
-  'hajj': ('الحج والعمرة', Icons.mosque_outlined),
-  'food': ('الطعام والصيام', Icons.restaurant_outlined),
+  'travel': ('ad_occ_travel', Icons.luggage_outlined),
+  'funeral': ('ad_occ_funeral', Icons.local_florist_outlined),
+  'hajj': ('ad_occ_hajj', Icons.mosque_outlined),
+  'food': ('ad_occ_food', Icons.restaurant_outlined),
 };
 
 /// Per-category icon for the أذكارك/أدعية/أخرى rows — Ismail's 2026-08-16
@@ -129,7 +136,7 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(body: AppLoadingView(icon: Icons.spa_outlined, message: 'جاري تحميل الأذكار...'));
+      return Scaffold(body: AppLoadingView(icon: Icons.spa_outlined, message: _t('ad_loading')));
     }
     final core = _all.where((c) => c.isDailyCore).toList();
     final rest = _all.where((c) => !c.isDailyCore).toList();
@@ -144,11 +151,11 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('حصن المسلم')),
+      appBar: AppBar(title: Text(_t('adhkar'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const _SectionHeader(icon: Icons.wb_sunny_outlined, title: 'عبادتك اليوم'),
+          _SectionHeader(icon: Icons.wb_sunny_outlined, title: _t('ad_today')),
           const SizedBox(height: 10),
           ...core.map((c) => _CoreCard(
                 category: c,
@@ -159,21 +166,21 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
               )),
           if (dhikr.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const _SectionHeader(icon: Icons.spa_outlined, title: 'أذكارك'),
+            _SectionHeader(icon: Icons.spa_outlined, title: _t('ad_dhikr')),
             const SizedBox(height: 10),
             ...dhikr.map((c) => _PlainRow(category: c, onTap: () => _open(c))),
           ],
           if (dua.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const _SectionHeader(icon: Icons.front_hand_outlined, title: 'أدعية'),
+            _SectionHeader(icon: Icons.front_hand_outlined, title: _t('ad_dua')),
             const SizedBox(height: 10),
             ...dua.map((c) => _PlainRow(category: c, onTap: () => _open(c))),
           ],
           if (occasionGroups.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const _SectionHeader(icon: Icons.event_note_outlined, title: 'مناسبات وأعمال'),
+            _SectionHeader(icon: Icons.event_note_outlined, title: _t('ad_occasions')),
             const SizedBox(height: 4),
-            const Text('السفر، الجنازة والمرض، الحج، الطعام والصيام', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+            Text(_t('ad_occasions_hint'), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
             const SizedBox(height: 10),
             for (final key in _occasionLabels.keys)
               if (occasionGroups[key] != null) ...[
@@ -184,9 +191,9 @@ class _AdhkarScreenState extends State<AdhkarScreen> {
           ],
           if (other.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const _SectionHeader(icon: Icons.info_outline, title: 'أخرى'),
+            _SectionHeader(icon: Icons.info_outline, title: _t('ad_other')),
             const SizedBox(height: 4),
-            const Text('فضائل وآداب عامة، ليست أذكارًا أو أدعية بعينها', style: TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+            Text(_t('ad_other_hint'), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
             const SizedBox(height: 10),
             ...other.map((c) => _PlainRow(category: c, onTap: () => _open(c))),
           ],
@@ -219,7 +226,8 @@ class _OccasionSubheader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (label, icon) = _occasionLabels[occasion]!;
+    final (labelKey, icon) = _occasionLabels[occasion]!;
+    final label = _t(labelKey);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -291,7 +299,7 @@ class _CoreCard extends StatelessWidget {
                   Text(category.title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
                   if (minutes > 0) ...[
                     const SizedBox(height: 2),
-                    Text('⏱ ~$minutes دقائق', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    Text(_t('ad_minutes').replaceAll('{n}', '$minutes'), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                   ],
                 ],
               ),

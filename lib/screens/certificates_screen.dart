@@ -7,6 +7,10 @@ import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "شهاداتي" — QURAN_COMPANION_ROADMAP.md §4.14. Shows EVERY possible
 /// certificate at once (achieved in full color, locked greyed with a
 /// 🔒 + unlock hint) so the whole reward map is visible from day one,
@@ -45,7 +49,7 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('🔒 أكمل "${m.title.replaceFirst('شهادة ', '')}" لتفتح هذه الشهادة')),
+      SnackBar(content: Text(_t('ct_locked').replaceAll('{t}', m.title.replaceFirst('شهادة ', '')))),
     );
   }
 
@@ -61,29 +65,29 @@ class _CertificatesScreenState extends State<CertificatesScreen> {
     final earnedCount = _all.where((m) => m.isAchieved).length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('شهاداتي')),
+      appBar: AppBar(title: Text(_t('ct_title'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('حصلت على $earnedCount من ${_all.length} شهادة', style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+          Text(_t('ct_count').replaceAll('{n}', '$earnedCount').replaceAll('{total}', '${_all.length}'), style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
           const SizedBox(height: 16),
-          _section('ختم القرآن الكريم كاملًا', byType['full_quran'] ?? []),
-          _section('الأربعون النووية كاملة', byType['full_arbain'] ?? []),
-          _section('دفعات الأحاديث', byType['ten_hadiths'] ?? []),
-          _section('استمرارية أذكار الصباح والمساء', [
+          _section(_t('ct_full_quran'), byType['full_quran'] ?? []),
+          _section(_t('ct_arbain'), byType['full_arbain'] ?? []),
+          _section(_t('ct_hadith_batches'), byType['ten_hadiths'] ?? []),
+          _section(_t('ct_adhkar_streak'), [
             ...byType['adhkar_streak_7'] ?? [],
             ...byType['adhkar_streak_30'] ?? [],
             ...byType['adhkar_streak_100'] ?? [],
           ]),
-          _section('الأجزاء', byType['juz'] ?? []),
-          _section('السور', byType['surah'] ?? []),
-          _section('منهج تعلم العربية', byType['stage_alphabet'] ?? []),
-          _section('دفتر فوائد الصوتيات', [
+          _section(_t('index_tab_juz'), byType['juz'] ?? []),
+          _section(_t('index_tab_surahs'), byType['surah'] ?? []),
+          _section(_t('ct_arabic'), byType['stage_alphabet'] ?? []),
+          _section(_t('ct_audio_notes'), [
             ...byType['audio_reflections_1'] ?? [],
             ...byType['audio_reflections_10'] ?? [],
             ...byType['audio_reflections_50'] ?? [],
           ]),
-          _section('التجويد', [
+          _section(_t('ql_domain_tajweed'), [
             ...byType['tajweed_basic'] ?? [],
             ...byType['tajweed_intermediate'] ?? [],
             ...byType['tajweed_advanced'] ?? [],

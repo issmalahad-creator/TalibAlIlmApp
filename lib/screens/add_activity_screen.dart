@@ -38,6 +38,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
       lastDate: DateTime.now(),
     );
     if (picked != null) {
+      if (!mounted) return;
       setState(() {
         _pickedDate = picked;
         _pickedDateChanged = true;

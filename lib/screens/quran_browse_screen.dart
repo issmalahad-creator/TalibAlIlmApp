@@ -29,6 +29,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
   final _repo = MemorizationRepository();
   final _milestoneRepo = MilestoneRepository();
   static final _surahNames = {for (final s in quranSurahs) s.number: s.name};
+  String get _lang => LanguagePreferenceService.currentLanguage;
 
   List<MemorizationUnit> _units = [];
   bool _loading = true;
@@ -78,7 +79,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
   Future<void> _markMemorized(MemorizationUnit unit) async {
     await _repo.markMemorized(unit.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('بارك الله فيك — صفحة ${unit.id} ضمن المراجعة الآن')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(basicText('qb_marked_snack', _lang).replaceAll('{n}', '${unit.id}'))));
     // 2026-08-17 (Ismail: "عند اكمال الجزء... يجب أن يظهر [الاحتفال] في تلك
     // اللحظة"): marking a page memorized here could just as easily complete
     // a Surah/Juz/the whole Quran as reviewing one on `review_screen.dart`
@@ -97,29 +98,29 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تعديل: إلغاء تسجيل هذه الصفحة؟'),
-        content: Text('ستعود صفحة ${unit.id} إلى "لم تُحفظ بعد"، وسيُحذف كل سجل مراجعتها. استخدم هذا فقط إن سجّلتها بالخطأ.'),
+        title: Text(basicText('qb_reset_title', _lang)),
+        content: Text(basicText('qb_reset_body', _lang).replaceAll('{n}', '${unit.id}')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('تراجع')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('إلغاء التسجيل')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(basicText('undo_action', _lang))),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(basicText('qb_reset_action', _lang))),
         ],
       ),
     );
     if (confirmed != true) return;
     await _repo.resetProgress(unit.id);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('أُلغي تسجيل صفحة ${unit.id}')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(basicText('qb_reset_snack', _lang).replaceAll('{n}', '${unit.id}'))));
     _load();
   }
 
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(appBar: AppBar(title: const Text('القرآن')), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)));
+      return Scaffold(appBar: AppBar(title: Text(basicText('qb_title', _lang))), body: AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', _lang)));
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('القرآن')),
+        appBar: AppBar(title: Text(basicText('qb_title', _lang))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -128,9 +129,9 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
               children: [
                 const Icon(Icons.error_outline, color: AppColors.textMuted, size: 32),
                 const SizedBox(height: 10),
-                Text('تعذّر تحميل قائمة الصفحات:\n$_error', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5)),
+                Text('${basicText('qb_load_error', _lang)}\n$_error', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5)),
                 const SizedBox(height: 14),
-                FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+                FilledButton(onPressed: _load, child: Text(basicText('feedback_retry', _lang))),
               ],
             ),
           ),
@@ -139,16 +140,16 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     }
     if (_units.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('القرآن')),
+        appBar: AppBar(title: Text(basicText('qb_title', _lang))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('لا توجد بيانات محفوظة بعد — قد يكون استيراد القرآن لم يكتمل بعد.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+                Text(basicText('qb_empty', _lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
                 const SizedBox(height: 14),
-                FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+                FilledButton(onPressed: _load, child: Text(basicText('feedback_retry', _lang))),
               ],
             ),
           ),
@@ -173,7 +174,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('القرآن')),
+      appBar: AppBar(title: Text(basicText('qb_title', _lang))),
       body: Column(
         children: [
           if (highlighted != null && highlighted.status == 'not_started')
@@ -193,15 +194,15 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('تكليف اليوم — سبق', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                              Text(basicText('qb_today_assignment', _lang), style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
                               Text(
-                                'صفحة ${highlighted.id} — من سورة ${_surahNames[highlighted.surahStart] ?? highlighted.surahStart} آية ${highlighted.ayahStart}',
+                                basicText('qb_page_from', _lang).replaceAll('{p}', '${highlighted.id}').replaceAll('{s}', '${_surahNames[highlighted.surahStart] ?? highlighted.surahStart}').replaceAll('{a}', '${highlighted.ayahStart}'),
                                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
                               ),
                             ],
                           ),
                         ),
-                        FilledButton(onPressed: () => _markMemorized(highlighted!), child: const Text('حفظتها')),
+                        FilledButton(onPressed: () => _markMemorized(highlighted!), child: Text(basicText('qb_memorized_btn', _lang))),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -209,14 +210,14 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            'كم مرة كررتها اليوم؟ $_repCount — الهدف الإرشادي ${MemorizationRepository.repetitionTargetRange.$1}-${MemorizationRepository.repetitionTargetRange.$2} مرة',
+                            basicText('qb_reps', _lang).replaceAll('{n}', '$_repCount').replaceAll('{a}', '${MemorizationRepository.repetitionTargetRange.$1}').replaceAll('{b}', '${MemorizationRepository.repetitionTargetRange.$2}'),
                             style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
                           ),
                         ),
                         OutlinedButton.icon(
                           onPressed: () => _incrementRepetition(highlighted!.id),
                           icon: const Icon(Icons.add, size: 16),
-                          label: const Text('كررتها', style: TextStyle(fontSize: 12)),
+                          label: Text(basicText('qb_repeated_btn', _lang), style: const TextStyle(fontSize: 12)),
                           style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
                         ),
                       ],
@@ -227,7 +228,7 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Text('$memorizedCount من ${_units.length} صفحة ضمن الحفظ', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+            child: Text(basicText('qb_progress', _lang).replaceAll('{n}', '$memorizedCount').replaceAll('{total}', '${_units.length}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           ),
           Expanded(
             child: ListView.builder(
@@ -247,8 +248,8 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
                     initiallyExpanded: isDefaultExpanded,
-                    title: Text('الجزء $juz', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    subtitle: Text('$juzMemorized من ${pages.length} صفحة', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                    title: Text('${basicText('juz_label', _lang)} $juz', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    subtitle: Text(basicText('qb_juz_progress', _lang).replaceAll('{n}', '$juzMemorized').replaceAll('{total}', '${pages.length}'), style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
                     children: pages.map(_pageRow).toList(),
                   ),
                 );
@@ -269,9 +270,9 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
         color: memorized ? AppColors.primary : AppColors.textMuted,
         size: 20,
       ),
-      title: Text('صفحة ${unit.id}', style: const TextStyle(fontSize: 13)),
+      title: Text('${basicText('page_label', _lang)} ${unit.id}', style: const TextStyle(fontSize: 13)),
       subtitle: Text(
-        'من سورة ${_surahNames[unit.surahStart] ?? unit.surahStart} آية ${unit.ayahStart}',
+        basicText('qb_from_surah', _lang).replaceAll('{s}', '${_surahNames[unit.surahStart] ?? unit.surahStart}').replaceAll('{a}', '${unit.ayahStart}'),
         style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
       ),
       trailing: memorized
@@ -282,31 +283,34 @@ class _QuranBrowseScreenState extends State<QuranBrowseScreen> {
                 IconButton(
                   onPressed: () => _confirmReset(unit),
                   icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textMuted),
-                  tooltip: 'تعديل',
+                  tooltip: basicText('edit_action', _lang),
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
                 ),
               ],
             )
-          : TextButton(onPressed: () => _markMemorized(unit), child: const Text('حفظتها', style: TextStyle(fontSize: 12))),
+          : TextButton(onPressed: () => _markMemorized(unit), child: Text(basicText('qb_memorized_btn', _lang), style: const TextStyle(fontSize: 12))),
     );
   }
 
-  static const _hifzCategoryLabels = {
-    HifzCategory.sabaq: 'سبق',
-    HifzCategory.sabqi: 'سبقي',
-    HifzCategory.manzil: 'منزل',
+  static const _hifzCategoryKeys = {
+    HifzCategory.sabaq: 'sabaq_label',
+    HifzCategory.sabqi: 'sabqi_label',
+    HifzCategory.manzil: 'manzil_label',
   };
 
   /// Real hifz-teaching terms (سبق/سبقي/منزل — see
   /// `MemorizationUnit.hifzCategory`, QURAN_COMPANION_ROADMAP.md §4.31)
   /// instead of an abstract "محطة N".
   String _statusLabel(MemorizationUnit unit) {
-    if (unit.status == 'established') return 'راسخة (منزل) ✓';
+    if (unit.status == 'established') return basicText('qb_established', _lang);
     final category = unit.hifzCategory();
-    final label = _hifzCategoryLabels[category];
-    if (label == null) return unit.status;
-    return unit.station != null ? '$label · محطة ${unit.station}' : label;
+    final key = _hifzCategoryKeys[category];
+    if (key == null) return unit.status;
+    final label = basicText(key, _lang);
+    return unit.station != null
+        ? '$label · ${basicText('qb_station', _lang).replaceAll('{n}', '${unit.station}')}'
+        : label;
   }
 }

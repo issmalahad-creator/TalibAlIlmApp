@@ -7,6 +7,10 @@ import '../theme/app_theme.dart';
 import 'wasitiyyah_quiz_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "العقيدة الواسطية" — Phase 5ب of QURAN_COMPANION_ROADMAP.md.
 class WasitiyyahScreen extends StatefulWidget {
   const WasitiyyahScreen({super.key});
@@ -49,7 +53,7 @@ class _WasitiyyahScreenState extends State<WasitiyyahScreen> {
         title: const Text('العقيدة الواسطية'),
         actions: [
           IconButton(
-            tooltip: 'اختبر نفسك',
+            tooltip: _t('mq_title'),
             icon: const Icon(Icons.quiz_outlined),
             onPressed: () async {
               await Navigator.push(context, MaterialPageRoute(builder: (_) => const WasitiyyahQuizScreen()));
@@ -64,7 +68,7 @@ class _WasitiyyahScreenState extends State<WasitiyyahScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Text('$memorizedCount من ${_sections.length} مقطعًا', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                  child: Text(_t('x_passages_count').replaceAll('{n}', '$memorizedCount').replaceAll('{total}', '${_sections.length}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
                 ),
                 Expanded(
                   child: ListView.builder(
@@ -87,14 +91,14 @@ class _WasitiyyahScreenState extends State<WasitiyyahScreen> {
                                     size: 18,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text('مقطع ${i + 1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textMuted)),
+                                  Text(_t('x_passage_n').replaceAll('{n}', '${i + 1}'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textMuted)),
                                 ],
                               ),
                               const SizedBox(height: 8),
                               Text(s.text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 14.5, height: 1.8)),
                               if (!s.memorized) ...[
                                 const SizedBox(height: 8),
-                                OutlinedButton(onPressed: () => _markMemorized(s), child: const Text('حفظته', style: TextStyle(fontSize: 12))),
+                                OutlinedButton(onPressed: () => _markMemorized(s), child: Text(_t('x_memorized_it'), style: TextStyle(fontSize: 12))),
                               ],
                             ],
                           ),

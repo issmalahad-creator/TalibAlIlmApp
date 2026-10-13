@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../data/salah_content.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// "قصص الأولين في الصلاة" — Ismail's request 2026-08-16. Well-known
 /// accounts of the Salaf's khushu, presented honestly as widely-circulated
@@ -12,12 +19,12 @@ class SalahStoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('قصص الأولين في الصلاة')),
+      appBar: AppBar(title: Text(_t('x_salah_stories'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text(
-            'قصص مشهورة متداولة في كتب السيرة والزهد عن خشوع السلف في صلاتهم — لتكون تذكيرًا وقدوة، لا نصًا حديثيًا مُدقَّق السند.',
+          Text(
+            _t('x_salah_stories_intro'),
             style: TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
           const SizedBox(height: 16),

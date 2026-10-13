@@ -1,4 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -101,6 +103,15 @@ class NotificationService {
   static const _asrNotificationId = 8003;
   static const _maghribNotificationId = 8004;
   static const _ishaNotificationId = 8005;
+
+  /// Prayer alarms are scheduled for today and the next days too (ids
+  /// 8001-8005 today, 8011-8015 tomorrow, 8021-8025 after) so the adhan
+  /// still sounds on a day the app isn't opened.
+  static const _prayerDaysAhead = 3;
+  static List<int> get _allPrayerIds => [
+        for (var d = 0; d < _prayerDaysAhead; d++)
+          for (var p = 1; p <= 5; p++) 8000 + d * 10 + p,
+      ];
   static const _prayerChannelId = 'prayer_time_notifications';
   static String get _prayerChannelName => _t('nch_prayer');
 
@@ -239,13 +250,7 @@ class NotificationService {
 
   Future<void> _doInit() async {
     tz.initializeTimeZones();
-    try {
-      final tzInfo = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
-    } catch (_) {
-      // Falls back to UTC if the device timezone can't be resolved — the
-      // reminder still fires, just possibly a few hours off.
-    }
+    await _syncLocalTimezone();
 
     // Everything below touches the local-notifications platform plugin. If
     // that plugin isn't registered (a plain test VM, a headless / unsupported
@@ -578,7 +583,7 @@ class NotificationService {
   Future<void> schedulePrayerTimeNotifications() async {
     await _ensureInitialized();
     if (!_ready) return;
-    final ids = [_fajrNotificationId, _dhuhrNotificationId, _asrNotificationId, _maghribNotificationId, _ishaNotificationId];
+    final ids = _allPrayerIds;
 
     if (!await PrayerNotificationPrefs().isEnabled()) {
       for (final id in ids) {
@@ -607,15 +612,21 @@ class NotificationService {
     try {
       final coords = await LocationService().currentLocation(mayAskPermission: false);
       if (coords == null) return;
-      final times = await PrayerTimesRepository().prayerTimesFor(coords);
-
-      final prayers = [
-        (_fajrNotificationId, _t('prayer_fajr'), times.fajr),
-        (_dhuhrNotificationId, _t('prayer_dhuhr'), times.dhuhr),
-        (_asrNotificationId, _t('prayer_asr'), times.asr),
-        (_maghribNotificationId, _t('prayer_maghrib'), times.maghrib),
-        (_ishaNotificationId, _t('prayer_isha'), times.isha),
-      ];
+      final repo = PrayerTimesRepository();
+      final today = DateTime.now();
+      final prayers = <(int, String, DateTime)>[];
+      for (var d = 0; d < _prayerDaysAhead; d++) {
+        final times = await repo.prayerTimesFor(coords,
+            date: DateTime(today.year, today.month, today.day + d, 12));
+        prayers.addAll([
+          (_fajrNotificationId + d * 10, _t('prayer_fajr'), times.fajr),
+          (_dhuhrNotificationId + d * 10, _t('prayer_dhuhr'), times.dhuhr),
+          (_asrNotificationId + d * 10, _t('prayer_asr'), times.asr),
+          (_maghribNotificationId + d * 10, _t('prayer_maghrib'), times.maghrib),
+          (_ishaNotificationId + d * 10, _t('prayer_isha'), times.isha),
+        ]);
+      }
+      await _rememberPrayerSchedule(coords.latitude, coords.longitude);
 
       final now = DateTime.now();
       for (final (id, name, time) in prayers) {
@@ -646,6 +657,64 @@ class NotificationService {
       // Location/prayer-time lookup failed — leave any previously
       // scheduled notifications as-is rather than clearing them.
     }
+  }
+
+  // ── follow the person (new city, new timezone, new day) ────────────
+
+  static const _schedLatKey = 'prayer_sched_lat';
+  static const _schedLngKey = 'prayer_sched_lng';
+  static const _schedDayKey = 'prayer_sched_day';
+  static const _schedTzKey = 'prayer_sched_tz';
+
+  /// Moving this far changes prayer times by about a minute — enough to
+  /// reschedule (and also where the qibla starts to drift).
+  static const movedKm = 5.0;
+
+  Future<void> _syncLocalTimezone() async {
+    try {
+      final tzInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
+    } catch (_) {
+      // Falls back to UTC if the device timezone can't be resolved — the
+      // reminder still fires, just possibly a few hours off.
+    }
+  }
+
+  static String _dayKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
+
+  Future<void> _rememberPrayerSchedule(double lat, double lng) async {
+    final p = await SharedPreferences.getInstance();
+    await p.setDouble(_schedLatKey, lat);
+    await p.setDouble(_schedLngKey, lng);
+    await p.setString(_schedDayKey, _dayKey(DateTime.now()));
+    await p.setString(_schedTzKey, tz.local.name);
+  }
+
+  /// Called whenever the app comes back to the foreground: re-reads the
+  /// device timezone and location (never asks for permission here), and
+  /// reschedules the adhan + the prayer-anchored adhkar only when the day,
+  /// the timezone, or the place (≥ [movedKm]) changed since the last
+  /// schedule. Cheap when nothing changed. Returns whether it rescheduled.
+  Future<bool> refreshPrayerScheduleIfStale() async {
+    await _ensureInitialized();
+    if (!_ready) return false;
+    await _syncLocalTimezone();
+    final p = await SharedPreferences.getInstance();
+    final lat = p.getDouble(_schedLatKey);
+    final lng = p.getDouble(_schedLngKey);
+    var stale = lat == null ||
+        lng == null ||
+        p.getString(_schedDayKey) != _dayKey(DateTime.now()) ||
+        p.getString(_schedTzKey) != tz.local.name;
+    if (!stale) {
+      final here = await LocationService().currentLocation(mayAskPermission: false);
+      if (here == null) return false;
+      stale = Geolocator.distanceBetween(lat, lng, here.latitude, here.longitude) / 1000 >= movedKm;
+    }
+    if (!stale) return false;
+    await schedulePrayerTimeNotifications();
+    await scheduleAdhkarReminders();
+    return true;
   }
 
   /// Schedules (or re-schedules) a reminder for one custom-picked adhkar

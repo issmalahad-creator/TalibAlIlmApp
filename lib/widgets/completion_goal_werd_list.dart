@@ -9,6 +9,10 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'completion_goal_session_editor.dart' show CompletionGoalSessionEditSheet;
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 String _surahName(int surahNumber) => quranSurahs[surahNumber - 1].name;
 
 /// KHATM_SYSTEM_AND_STYLE_REFERENCE.md §2.5, merged into the §2.3.7أ session
@@ -118,7 +122,7 @@ class _CompletionGoalWerdListState extends State<CompletionGoalWerdList> {
       CompletionGoalSession(
         goalId: widget.goal.id,
         sortOrder: _werds!.length,
-        label: 'الورد ${_werds!.length + 1}',
+        label: _t('x_werd_n').replaceAll('{n}', '${_werds!.length + 1}'),
         anchorType: 'fixed',
         fixedHour: 20,
         fixedMinute: 0,
