@@ -17,6 +17,7 @@ import '../models/tajweed_span.dart';
 import '../repositories/completion_goal_repository.dart';
 import '../repositories/mushaf_layout_repository.dart';
 import '../repositories/quran_corpus_repository.dart';
+import '../services/screen_awake.dart';
 import '../services/boot/boot_scheduler.dart';
 import '../services/mushaf/tajweed_svg.dart';
 import '../repositories/quran_reading_repository.dart';
@@ -150,6 +151,7 @@ class _MushafSemanticReaderScreenState
   static const _reciterPrefKey = 'quran_reading_reciter';
   static const _tajweedPrefKey = 'mushaf_tajweed_mode';
   bool _night = false;
+  bool _keepAwake = true;
 
   /// Phase G-t v2 — the opt-in glyph-level tajwīd colour layer, off by
   /// default. `_paintCache["$page|$night"]` memoises the page's path→hue
@@ -208,6 +210,10 @@ class _MushafSemanticReaderScreenState
     // The tajwīd renderer asks this for a page's path→hue map; we memoise.
     MushafPageCache.instance.tajweedPaintResolver = _tajweedPaintFor;
     _loadKhatm();
+    ScreenAwake.acquire();
+    ScreenAwake.isEnabled().then((v) {
+      if (mounted) setState(() => _keepAwake = v);
+    });
 
     SharedPreferences.getInstance().then((p) {
       final v = p.getBool(_nightPrefKey);
@@ -292,6 +298,7 @@ class _MushafSemanticReaderScreenState
 
   @override
   void dispose() {
+    ScreenAwake.release();
     _sessionTimer?.cancel();
     _audio.stop();
     _autoTicker?.dispose();
@@ -1320,6 +1327,17 @@ class _MushafSemanticReaderScreenState
                     _night,
                     (v) async {
                       await _setNight(v);
+                      setSheet(() {});
+                    },
+                  ),
+                  div,
+                  toggle(
+                    Icons.light_mode_outlined,
+                    basicText('keep_screen_on', lang),
+                    _keepAwake,
+                    (v) async {
+                      await ScreenAwake.setEnabled(v);
+                      setState(() => _keepAwake = v);
                       setSheet(() {});
                     },
                   ),

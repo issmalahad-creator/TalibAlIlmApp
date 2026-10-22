@@ -1,6 +1,7 @@
 package com.sunnahinstitute.talib_alilm
 
 import android.graphics.BitmapFactory
+import android.view.WindowManager
 import com.googlecode.tesseract.android.TessBaseAPI
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -30,6 +31,21 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // الشاشة لا تنطفئ أثناء القراءة (lib/services/screen_awake.dart):
+        // علَم على النافذة فقط — بلا إذن ولا wakelock، ويزول بإزالته.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "talib_alilm/screen")
+            .setMethodCallHandler { call, result ->
+                if (call.method != "keepOn") {
+                    result.notImplemented()
+                    return@setMethodCallHandler
+                }
+                if (call.arguments == true) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                result.success(null)
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
                 if (call.method != "extractText") {

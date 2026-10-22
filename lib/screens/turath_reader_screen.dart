@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import '../l10n/basic_translations.dart';
 import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
+import '../services/screen_awake.dart';
 import '../services/language_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
 import '../services/tts/text_sources/turath_text_source.dart';
@@ -75,11 +76,13 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
   @override
   void initState() {
     super.initState();
+    ScreenAwake.acquire();
     _load();
   }
 
   @override
   void dispose() {
+    ScreenAwake.release();
     _scrollController.dispose();
     super.dispose();
   }
