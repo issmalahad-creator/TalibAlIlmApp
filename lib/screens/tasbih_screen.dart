@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../widgets/tasbih/misbaha_3d.dart';
 import '../l10n/basic_translations.dart';
 import '../repositories/milestone_repository.dart';
 import '../repositories/tasbih_repository.dart';
@@ -247,53 +248,49 @@ class _TasbihScreenState extends State<TasbihScreen> {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            SizedBox(
-                              width: 220,
-                              height: 220,
-                              child: Stack(
-                                alignment: Alignment.center,
+                            // a 3D misbaḥa: each tasbīḥa slides the ring one bead
+                            Misbaha3D(
+                              count: _count,
+                              complete: complete,
+                              center: Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  SizedBox(
-                                    width: 220,
-                                    height: 220,
-                                    child: TweenAnimationBuilder<double>(
-                                      tween: Tween(begin: 0, end: fraction),
-                                      duration: AppMotion.normal,
-                                      curve: AppMotion.stateCurve,
-                                      builder: (context, value, _) =>
-                                          CircularProgressIndicator(
-                                            value: value,
-                                            strokeWidth: 12,
-                                            backgroundColor: AppColors.divider,
-                                            valueColor: AlwaysStoppedAnimation(
-                                              complete
-                                                  ? const Color(0xFFB8860B)
-                                                  : AppColors.primary,
-                                            ),
-                                          ),
+                                  Text(
+                                    '$_count',
+                                    style: const TextStyle(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textDark,
                                     ),
                                   ),
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '$_count',
-                                        style: const TextStyle(
-                                          fontSize: 48,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.textDark,
-                                        ),
-                                      ),
-                                      Text(
-                                        '${basicText('of_target_prefix', lang)} $_target',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: AppColors.textMuted,
-                                        ),
-                                      ),
-                                    ],
+                                  Text(
+                                    '${basicText('of_target_prefix', lang)} $_target',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textMuted,
+                                    ),
                                   ),
                                 ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: 220,
+                              child: TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: fraction),
+                                duration: AppMotion.normal,
+                                curve: AppMotion.stateCurve,
+                                builder: (context, value, _) => ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: value,
+                                    minHeight: 6,
+                                    backgroundColor: AppColors.divider,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      complete ? const Color(0xFFB8860B) : AppColors.primary,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(height: 20),
