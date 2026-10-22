@@ -371,7 +371,10 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                       scrollDirection: Axis.horizontal,
                       onPageChanged: _onPageChanged,
                       itemCount: _items.length + 1,
-                      itemBuilder: (context, index) => index < _items.length
+                      itemBuilder: (context, index) => _PageDepth(
+                        controller: pageController,
+                        index: index,
+                        child: index < _items.length
                           ? _DuaPage(
                               item: _items[index],
                               remaining: _remaining[_items[index].id] ?? 0,
@@ -385,6 +388,7 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
                               onDone: () => Navigator.pop(context),
                               dark: _darkReading,
                             ),
+                      ),
                     ),
                   ),
                   AnimatedOpacity(
@@ -638,20 +642,40 @@ class _AdhkarItemCardState extends State<_AdhkarItemCard> with SingleTickerProvi
             Text(widget.item.text, textAlign: TextAlign.center, style: TextStyle(fontSize: 22 * widget.fontScale, height: 2.0, fontWeight: FontWeight.w600, color: textColor)),
             const SizedBox(height: 28),
             Center(
-              child: AnimatedContainer(
+              // a raised bead-button that presses in with each repetition
+              child: TweenAnimationBuilder<double>(
+                key: ValueKey(widget.remaining),
+                tween: Tween(begin: 1, end: 0),
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                builder: (context, press, child) => Transform.translate(
+                  offset: Offset(0, 3 * press),
+                  child: Transform.scale(scale: 1 - 0.06 * press, child: child),
+                ),
+                child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
-                width: 56,
-                height: 56,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _done ? AppColors.primary : AppColors.primaryLight,
-                  border: Border.all(color: AppColors.primary, width: _done ? 0 : 1.4),
+                  gradient: RadialGradient(
+                    center: const Alignment(-0.35, -0.45),
+                    colors: _done
+                        ? [const Color(0xFF7FD3A0), AppColors.primary, AppColors.primaryDark]
+                        : [Colors.white, AppColors.primaryLight, Color.lerp(AppColors.primaryLight, AppColors.primary, 0.35)!],
+                    stops: const [0, 0.6, 1],
+                  ),
+                  border: Border.all(color: AppColors.primary, width: _done ? 0 : 1.2),
+                  boxShadow: [
+                    BoxShadow(color: AppColors.primary.withValues(alpha: 0.28), blurRadius: 10, offset: const Offset(0, 5)),
+                  ],
                 ),
                 child: Center(
                   child: _done
                       ? const Icon(Icons.check, color: Colors.white, size: 26)
                       : Text('${widget.remaining}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: AppColors.primaryDark)),
                 ),
+              ),
               ),
             ),
             const SizedBox(height: 10),
@@ -774,4 +798,43 @@ class _SproutPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SproutPainter oldDelegate) => false;
+}
+
+/// Depth for the swipe between adhkar: the page being left tilts away on
+/// its outer edge and recedes, the next one comes forward from behind —
+/// a turning card instead of a flat slide. Reads the controller's live
+/// page, so it follows the finger and adds no gesture of its own.
+class _PageDepth extends StatelessWidget {
+  final PageController controller;
+  final int index;
+  final Widget child;
+  const _PageDepth({required this.controller, required this.index, required this.child});
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+        animation: controller,
+        child: child,
+        builder: (context, child) {
+          double d = 0;
+          if (controller.hasClients && controller.position.haveDimensions) {
+            d = (controller.page ?? controller.initialPage.toDouble()) - index;
+          }
+          d = d.clamp(-1.0, 1.0);
+          if (d == 0) return child!;
+          final rtl = Directionality.of(context) == TextDirection.rtl;
+          // which edge is the hinge: the one nearer the screen centre
+          final towardStart = (d > 0) == rtl;
+          return Opacity(
+            opacity: (1 - d.abs() * 0.35).clamp(0.0, 1.0),
+            child: Transform(
+              alignment: towardStart ? Alignment.centerLeft : Alignment.centerRight,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0011)
+                ..rotateY((towardStart ? -1 : 1) * d.abs() * 0.55)
+                ..scaleByDouble(1 - d.abs() * 0.08, 1 - d.abs() * 0.08, 1, 1),
+              child: child,
+            ),
+          );
+        },
+      );
 }
