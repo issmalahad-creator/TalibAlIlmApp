@@ -65,6 +65,24 @@ dark, accent).
 - Body padding is `EdgeInsets.fromLTRB(12,20,12,20)` (trimmed from 20 for
   the left selection handle — see `flutter-text-selection`).
 
+## One-step highlighting (2026-10-22, Ismail: «جهد في التظليل… أصلح»)
+
+- **Selection toolbar** = `_QuickHighlightBar` (custom `AdaptiveTextSelectionToolbar`
+  children): five colour dots — **one tap saves** the highlight in that colour
+  (`_quickHighlight`, snackbar «تراجع» → `deleteAnnotation`) — then note · copy ·
+  share. «ملاحظة» saves with the pen colour and opens `_quickNote` (one field,
+  saved on close via `updateAnnotationNote`). The old colour+note sheet
+  (`_startHighlight`) is gone. Edit-range mode keeps the system items + «تحديث النطاق».
+- **«قلم التظليل»** (FAB → `_penMode`): the page renders as `PenPageText` (plain
+  `RichText` + `GestureDetector`, **no SelectableText**, so no arena fight):
+  a sideways stroke = pan → live preview → `snapToWords` → saved; vertical
+  swipes still scroll (vertical drag wins its smaller slop); double-tap =
+  `sentenceAt`; tap on a highlight opens it. Offsets via the live
+  `RenderParagraph.getPositionForOffset`. `_PenBar` picks the colour
+  (pref `turath_pen_color`, also the toolbar's default).
+- Span drawing is shared: `annotatedSpans(...)` in `annotated_page_text.dart`.
+- Tests: `test/turath_pen_highlight_test.dart`.
+
 ## `AnnotatedPageText` (`lib/widgets/annotated_page_text.dart`)
 
 Returns `SelectableText.rich` **verbatim** — no per-span `recognizer`, no

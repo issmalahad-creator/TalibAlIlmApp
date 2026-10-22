@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/basic_translations.dart';
 import '../models/turath_models.dart';
@@ -73,10 +75,22 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
   bool _selectionActive = false;
   bool _isFavoritePage = false;
 
+  /// «قلم التظليل»: a finger stroke paints a highlight (no long-press, no
+  /// handles). Off by default — normal selection is what copying needs.
+  bool _penMode = false;
+
+  /// The colour a one-tap / pen highlight uses — the last one picked.
+  String _penColor = StudyAnnotationColors.benefit;
+  static const _penColorPref = 'turath_pen_color';
+
   @override
   void initState() {
     super.initState();
     ScreenAwake.acquire();
+    SharedPreferences.getInstance().then((p) {
+      final c = p.getString(_penColorPref);
+      if (c != null && StudyAnnotationColors.all.contains(c) && mounted) setState(() => _penColor = c);
+    }).catchError((Object _) {});
     _load();
   }
 
@@ -332,114 +346,93 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
   /// re-sliced from an offset — that was losing everything after the first
   /// space). Pick a colour, optionally write a note, then ONE save — nothing
   /// is written until the user taps حفظ.
-  Future<void> _startHighlight(String selectedText, int? charStartHint, String lang) async {
+  Future<void> _setPenColor(String c) async {
+    setState(() => _penColor = c);
+    try {
+      await (await SharedPreferences.getInstance()).setString(_penColorPref, c);
+    } catch (_) {}
+  }
+
+  /// One tap = saved (Ismail 2026-10-22: «في جهد في التظليل… أصلح»): the
+  /// highlight is stored straight away in [colorKey]; a snackbar offers
+  /// «تراجع». [withNote] then opens the small note field on it.
+  Future<void> _quickHighlight(String selectedText, int? charStartHint, String colorKey, String lang,
+      {bool withNote = false}) async {
     final selected = selectedText.trim();
     if (selected.isEmpty) return;
+    HapticFeedback.lightImpact();
+    if (colorKey != _penColor) _setPenColor(colorKey);
     final catalog = await _repo.catalogBook(widget.bookId);
+    final id = await _repo.addAnnotation(
+      bookId: widget.bookId,
+      pageNumber: _pageNumber,
+      volume: _page?.volume,
+      normalizedPageText: _normText,
+      selectedText: selectedText,
+      charStartHint: charStartHint,
+      colorKey: colorKey,
+      noteType: colorKey,
+      noteBody: '',
+      bookName: widget.bookName,
+      authorName: catalog?.authorName,
+    );
+    await _reloadAnnotations();
     if (!mounted) return;
+    if (withNote) {
+      await _quickNote(id, colorKey, lang);
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        duration: const Duration(seconds: 3),
+        content: Text(basicText('turath_highlight_saved', lang)),
+        action: SnackBarAction(
+          label: basicText('undo_action', lang),
+          onPressed: () async {
+            await _repo.deleteAnnotation(id);
+            await _reloadAnnotations();
+          },
+        ),
+      ));
+  }
 
-    final noteController = TextEditingController();
-    var chosenColor = StudyAnnotationColors.benefit;
-    var saving = false;
-
+  /// A small note field on a fresh highlight — saved on its own when the
+  /// sheet closes (no «حفظ» to remember).
+  Future<void> _quickNote(int annotationId, String colorKey, String lang) async {
+    final controller = TextEditingController();
+    final accent = AppColors.studyAnnotation(colorKey).$3;
     await showModalBottomSheet<void>(
       context: context,
-      showDragHandle: true,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
       builder: (sheetContext) => Padding(
-        padding: EdgeInsets.fromLTRB(20, 4, 20, MediaQuery.of(sheetContext).viewInsets.bottom + 20),
-        child: StatefulBuilder(
-          builder: (sheetContext, setSheetState) => SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(basicText('turath_highlight_action', lang), style: const TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(10)),
-                  child: Text(
-                    '"$selectedText"',
-                    textDirection: TextDirection.rtl,
-                    maxLines: 5,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontFamily: 'Amiri', fontSize: 14, height: 1.7),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(basicText('turath_highlight_pick_color', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  children: [
-                    for (final key in StudyAnnotationColors.all)
-                      GestureDetector(
-                        onTap: () => setSheetState(() => chosenColor = key),
-                        child: Container(
-                          width: 34,
-                          height: 34,
-                          decoration: BoxDecoration(
-                            color: AppColors.studyAnnotation(key).$3,
-                            shape: BoxShape.circle,
-                            border: key == chosenColor ? Border.all(color: AppColors.textDark, width: 2.5) : null,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(basicText('turath_highlight_add_note_optional', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                const SizedBox(height: 6),
-                TextField(
-                  controller: noteController,
-                  textDirection: TextDirection.rtl,
-                  maxLines: 3,
-                  decoration: InputDecoration(hintText: basicText('turath_note_hint', lang)),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: saving ? null : () => Navigator.pop(sheetContext),
-                        child: Text(basicText('cancel_action', lang)),
-                      ),
-                    ),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: saving
-                            ? null
-                            : () async {
-                                setSheetState(() => saving = true);
-                                await _repo.addAnnotation(
-                                  bookId: widget.bookId,
-                                  pageNumber: _pageNumber,
-                                  volume: _page?.volume,
-                                  normalizedPageText: _normText,
-                                  selectedText: selectedText,
-                                  charStartHint: charStartHint,
-                                  colorKey: chosenColor,
-                                  noteType: chosenColor,
-                                  noteBody: noteController.text.trim(),
-                                  bookName: widget.bookName,
-                                  authorName: catalog?.authorName,
-                                );
-                                if (sheetContext.mounted) Navigator.pop(sheetContext);
-                                await _reloadAnnotations();
-                              },
-                        child: Text(basicText('save_action', lang)),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        padding: EdgeInsets.fromLTRB(16, 14, 16, MediaQuery.of(sheetContext).viewInsets.bottom + 14),
+        child: TextField(
+          controller: controller,
+          autofocus: true,
+          textDirection: TextDirection.rtl,
+          minLines: 2,
+          maxLines: 5,
+          textInputAction: TextInputAction.newline,
+          decoration: InputDecoration(
+            hintText: basicText('turath_note_hint', lang),
+            prefixIcon: Icon(Icons.sticky_note_2_rounded, color: accent),
+            suffixIcon: IconButton(
+              icon: Icon(Icons.check_circle_rounded, color: accent),
+              onPressed: () => Navigator.pop(sheetContext),
             ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
           ),
         ),
       ),
     );
+    final body = controller.text.trim();
+    controller.dispose();
+    if (body.isEmpty) return;
+    await _repo.updateAnnotationNote(annotationId, noteType: colorKey, noteBody: body);
+    await _reloadAnnotations();
   }
 
   String _annotationTypeLabel(String? type, String lang) {
@@ -715,6 +708,20 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
           ],
         ),
         body: _buildBody(lang),
+        // «قلم التظليل» — one tap in, then a stroke = a highlight.
+        floatingActionButton: _status == _PageStatus.success && !_penMode && _editRangeId == null
+            ? FloatingActionButton.small(
+                heroTag: 'turath_pen',
+                tooltip: basicText('turath_pen_mode', lang),
+                backgroundColor: AppColors.studyAnnotation(_penColor).$3,
+                foregroundColor: Colors.white,
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _penMode = true);
+                },
+                child: const Icon(Icons.border_color_rounded),
+              )
+            : null,
         bottomNavigationBar: _status == _PageStatus.success ? _buildNavBar(lang) : null,
       ),
     );
@@ -779,7 +786,25 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
                       ],
                     ),
                   ),
+                if (_penMode)
+                  _PenBar(
+                    color: _penColor,
+                    hint: basicText('turath_pen_hint', lang),
+                    onColor: _setPenColor,
+                    onClose: () => setState(() => _penMode = false),
+                  ),
                 PageMarksBar(marks: _pageMarks(lang), onTap: (id) => _openAnnotationSheet(id, lang)),
+                if (_penMode)
+                  PenPageText(
+                    text: _normText,
+                    highlights: _pageHighlights(),
+                    style: TextStyle(fontFamily: 'Amiri', fontSize: 16 * scale, height: 2.0, color: textColor),
+                    night: _nightMode,
+                    colorKey: _penColor,
+                    onPaint: (start, end) => _quickHighlight(_normText.substring(start, end), start, _penColor, lang),
+                    onTapHighlight: (id) => _openAnnotationSheet(id, lang),
+                  )
+                else
                 AnnotatedPageText(
                   key: _textKey,
                   focusHighlightId: _editRangeId ?? _pulseAnnotationId,
@@ -805,39 +830,53 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
                     final value = editableTextState.textEditingValue;
                     final selection = value.selection;
                     final selectedText = selection.textInside(value.text);
-                    final items = <ContextMenuButtonItem>[
-                      ...editableTextState.contextMenuButtonItems,
-                      if (selectedText.trim().isNotEmpty) ...[
-                        ContextMenuButtonItem(
-                          label: basicText('share_action', lang),
-                          onPressed: () {
-                            editableTextState.hideToolbar();
-                            Share.share('$selectedText\n\n— ${widget.bookName}، ص $_pageNumber');
-                          },
-                        ),
-                        if (_editRangeId != null)
+                    if (selectedText.trim().isEmpty) {
+                      return AdaptiveTextSelectionToolbar.editableText(editableTextState: editableTextState);
+                    }
+                    if (_editRangeId != null) {
+                      return AdaptiveTextSelectionToolbar.buttonItems(
+                        anchors: editableTextState.contextMenuAnchors,
+                        buttonItems: [
+                          ...editableTextState.contextMenuButtonItems,
                           ContextMenuButtonItem(
                             label: basicText('turath_update_range_action', lang),
                             onPressed: () {
                               editableTextState.hideToolbar();
                               _confirmEditRange(selectedText, selection.start, lang);
                             },
-                          )
-                        else
-                          ContextMenuButtonItem(
-                            label: basicText('turath_highlight_action', lang),
-                            onPressed: () {
-                              editableTextState.hideToolbar();
-                              // Pass the SELECTED STRING as the source of truth
-                              // (not offsets re-sliced from `_normText` — that
-                              // was dropping everything after the first space);
-                              // `selection.start` is only a locate hint.
-                              _startHighlight(selectedText, selection.start, lang);
-                            },
                           ),
+                        ],
+                      );
+                    }
+                    // One-tap highlighting: the colours ARE the buttons.
+                    // The selected string is the source of truth (offsets
+                    // re-sliced from `_normText` once dropped everything
+                    // after the first space); `selection.start` is a hint.
+                    void close() => editableTextState.hideToolbar();
+                    return AdaptiveTextSelectionToolbar(
+                      anchors: editableTextState.contextMenuAnchors,
+                      children: [
+                        _QuickHighlightBar(
+                          selectedColor: _penColor,
+                          onColor: (c) {
+                            close();
+                            _quickHighlight(selectedText, selection.start, c, lang);
+                          },
+                          onNote: () {
+                            close();
+                            _quickHighlight(selectedText, selection.start, _penColor, lang, withNote: true);
+                          },
+                          onCopy: () {
+                            close();
+                            Clipboard.setData(ClipboardData(text: selectedText));
+                          },
+                          onShare: () {
+                            close();
+                            Share.share('$selectedText\n\n— ${widget.bookName}، ص $_pageNumber');
+                          },
+                        ),
                       ],
-                    ];
-                    return AdaptiveTextSelectionToolbar.buttonItems(anchors: editableTextState.contextMenuAnchors, buttonItems: items);
+                    );
                   },
                 ),
               ],
@@ -899,6 +938,122 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The selection toolbar: five colour dots (one tap = highlighted & saved),
+/// then note · copy · share. Replaces the long system menu where «ظلّل»
+/// came last and opened a whole sheet.
+class _QuickHighlightBar extends StatelessWidget {
+  final String selectedColor;
+  final ValueChanged<String> onColor;
+  final VoidCallback onNote;
+  final VoidCallback onCopy;
+  final VoidCallback onShare;
+  const _QuickHighlightBar({
+    required this.selectedColor,
+    required this.onColor,
+    required this.onNote,
+    required this.onCopy,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          for (final c in StudyAnnotationColors.all)
+            InkResponse(
+              onTap: () => onColor(c),
+              radius: 20,
+              child: Padding(
+                padding: const EdgeInsets.all(5),
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppColors.studyAnnotation(c).$3,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: c == selectedColor ? Colors.white : Colors.transparent, width: 2.5),
+                    boxShadow: c == selectedColor
+                        ? [BoxShadow(color: AppColors.studyAnnotation(c).$3.withValues(alpha: 0.6), blurRadius: 6)]
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+          Container(width: 1, height: 22, margin: const EdgeInsets.symmetric(horizontal: 4), color: Colors.black12),
+          IconButton(
+            tooltip: _t('turath_add_note_action'),
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.sticky_note_2_outlined, size: 21),
+            onPressed: onNote,
+          ),
+          IconButton(
+            tooltip: _t('copy_action'),
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.copy_rounded, size: 20),
+            onPressed: onCopy,
+          ),
+          IconButton(
+            tooltip: _t('share_action'),
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.ios_share_rounded, size: 20),
+            onPressed: onShare,
+          ),
+        ]),
+      );
+}
+
+/// Shown while «قلم التظليل» is on: pen colour + how to use it + close.
+class _PenBar extends StatelessWidget {
+  final String color;
+  final String hint;
+  final ValueChanged<String> onColor;
+  final VoidCallback onClose;
+  const _PenBar({required this.color, required this.hint, required this.onColor, required this.onClose});
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = AppColors.studyAnnotation(color).$3;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(10, 8, 4, 8),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withValues(alpha: 0.5)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Row(children: [
+          Icon(Icons.border_color_rounded, color: accent, size: 20),
+          const SizedBox(width: 8),
+          for (final c in StudyAnnotationColors.all)
+            GestureDetector(
+              onTap: () => onColor(c),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: c == color ? 28 : 22,
+                height: c == color ? 28 : 22,
+                decoration: BoxDecoration(
+                  color: AppColors.studyAnnotation(c).$3,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: c == color ? 3 : 0),
+                  boxShadow: c == color ? [BoxShadow(color: accent.withValues(alpha: 0.5), blurRadius: 8)] : null,
+                ),
+              ),
+            ),
+          const Spacer(),
+          IconButton(
+            tooltip: _t('turath_highlight_done'),
+            icon: const Icon(Icons.close_rounded),
+            onPressed: onClose,
+          ),
+        ]),
+        Text(hint, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+      ]),
     );
   }
 }
