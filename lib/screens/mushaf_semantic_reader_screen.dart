@@ -633,7 +633,15 @@ class _MushafSemanticReaderScreenState
   }
 
   Future<void> _promptGoToPage(String lang) async {
-    final target = await showMushafGoToSheet(context, current: _current, lang: lang, night: _night);
+    final target = await showMushafGoToSheet(
+      context,
+      current: _current,
+      lang: lang,
+      night: _night,
+      bookmarks: {
+        for (final e in _bookmarks.entries) e.key: _bookmarkColors[e.value.clamp(0, _bookmarkColors.length - 1)],
+      },
+    );
     if (target != null) _jumpToPage(target);
   }
 
@@ -2003,7 +2011,11 @@ class _MushafSemanticReaderScreenState
                           icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: onBg),
                           onPressed: () => Navigator.of(context).maybePop(),
                         ),
+                        // The juzʼ / surah title opens «انتقل إلى».
                         Expanded(
+                          child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () => _promptGoToPage(lang),
                           child: FutureBuilder<({int? juz, int surah})?>(
                             key: ValueKey(_current),
                             future: _headerInfo(_current),
@@ -2026,6 +2038,7 @@ class _MushafSemanticReaderScreenState
                                 ],
                               );
                             },
+                          ),
                           ),
                         ),
                         // A running reading session shows its countdown;

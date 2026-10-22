@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
@@ -170,6 +171,45 @@ class MushafLayoutRepository {
       WHERE page = ? GROUP BY surah, ayah ORDER BY o
     ''', [page]);
     return [for (final r in rows) (surah: (r['surah'] as num).toInt(), ayah: (r['ayah'] as num).toInt())];
+  }
+
+  /// The 240 rubʿ al-ḥizb boundaries `(surah, ayah)` in muṣḥaf order, from
+  /// the bundled Tanzil `QuranData.HizbQaurter` (the same source the ḥizb
+  /// numbers came from). Parsed once.
+  static List<(int, int)>? _quarters;
+  Future<List<(int, int)>> _quarterBoundaries() async {
+    if (_quarters != null) return _quarters!;
+    final raw = await rootBundle.loadString('assets/quran/quran-data.js');
+    final start = raw.indexOf('QuranData.HizbQaurter = [');
+    final block = raw.substring(start, raw.indexOf('];', start));
+    return _quarters = [
+      for (final m in RegExp(r'\[\s*(\d+)\s*,\s*(\d+)\s*\]').allMatches(block))
+        (int.parse(m.group(1)!), int.parse(m.group(2)!)),
+    ];
+  }
+
+  /// The pages a juzʼ's 8 quarters start on (rubʿ 1..8; 4 = ½ ḥizb… 5 =
+  /// second ḥizb), resolved by ayah → MushafDatabase page.
+  Future<List<int>> quarterStartPages(int juz) async {
+    final q = await _quarterBoundaries();
+    final out = <int>[];
+    for (var i = (juz - 1) * 8; i < juz * 8 && i < q.length; i++) {
+      final p = await pageForAyah(q[i].$1, q[i].$2);
+      if (p != null) out.add(p);
+    }
+    return out;
+  }
+
+  /// The first few words of a page as printed (its «مطلع»), for previews.
+  Future<String> openingWords(int page, {int count = 4}) async {
+    final db = await _db;
+    final rows = await db.query('mushaf_words',
+        columns: ['text_uthmani'],
+        where: "page = ? AND word_type = 'text'",
+        whereArgs: [page],
+        orderBy: 'word_order',
+        limit: count);
+    return rows.map((r) => r['text_uthmani'] as String).join(' ');
   }
 
   /// Every ḥizb's (1..60) first MushafDatabase page in one query.
