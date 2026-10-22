@@ -8,6 +8,7 @@ import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
+import '../widgets/hifz/juz_shelf_3d.dart';
 import '../widgets/loading_view.dart';
 
 /// This screen's strings — `basicText` in the current app language.
@@ -136,7 +137,8 @@ class _HifzScreenState extends State<HifzScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(22)),
-            child: Row(
+            child: Column(children: [
+            Row(
               children: [
                 SizedBox(
                   width: 84,
@@ -181,6 +183,14 @@ class _HifzScreenState extends State<HifzScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            // the muṣḥaf's 30 ajzāʼ, each filling as it is memorized
+            JuzShelf3D(
+              fractions: juzMemorizedFractions(_memorized),
+              labelFor: (juz, f) =>
+                  _t('hz_juz_share').replaceAll('{n}', '$juz').replaceAll('{p}', '${(f * 100).round()}'),
+            ),
+            ]),
           ),
           const SizedBox(height: 14),
           SizedBox(
