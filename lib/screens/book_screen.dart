@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/basic_translations.dart';
 import '../models/book_content.dart';
@@ -22,6 +21,7 @@ import 'personal_library_screen.dart';
 import 'quiz_screen.dart';
 import 'reading_stats_screen.dart';
 import '../widgets/loading_view.dart';
+import '../utils/open_link.dart';
 
 /// Books, their quizzes, and any extra materials — all fetched live from
 /// the Telegram-controlled content feed. Books accumulate (each `كتاب:`
@@ -233,11 +233,7 @@ class _BookScreenState extends State<BookScreen> {
 
   Future<void> _openContentItem(ContentItem item) async {
     if (!item.isPdf) {
-      final uri = Uri.parse(item.url);
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(basicText('cannot_open_file', _lang))));
-      }
+      await openLink(context, item.url);
       return;
     }
     await _downloadAndOpenPdf(url: item.url, title: item.title, cacheKey: item.url);

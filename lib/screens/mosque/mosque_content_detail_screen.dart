@@ -1,6 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/basic_translations.dart';
 import '../../models/mosque.dart';
@@ -8,6 +7,7 @@ import '../../repositories/mosque_repository.dart';
 import '../../services/language_preference_service.dart';
 import '../../theme/app_theme.dart';
 import 'mosque_common.dart';
+import '../../utils/open_link.dart';
 
 /// One mosque content item (a lesson / khutbah / announcement / recording /
 /// need / activity). Reusable — driven only by the item's `kind` and
@@ -132,8 +132,7 @@ class _MosqueContentDetailScreenState extends State<MosqueContentDetailScreen> {
                           )
                         else if (it.hasMedia)
                           OutlinedButton.icon(
-                            onPressed: () => launchUrl(Uri.parse(it.mediaUrl!),
-                                mode: LaunchMode.externalApplication),
+                            onPressed: () => openLink(context, it.mediaUrl!),
                             icon: const Icon(Icons.open_in_new_rounded, size: 16),
                             label: Text(basicText('mosque_open_attachment', lang)),
                           ),

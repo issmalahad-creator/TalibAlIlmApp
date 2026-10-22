@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../l10n/basic_translations.dart';
@@ -13,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/loading_view.dart';
+import '../utils/open_link.dart';
 
 const _reflectionPromptKeys = [
   'reflection_prompt_1',
@@ -290,27 +289,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     return _openYoutube(Uri.parse(id != null ? 'https://www.youtube.com/watch?v=$id' : widget.youtubeUrl));
   }
 
-  /// «لا يفتح اليوتيوب»: try the YouTube app, then any browser, then an
-  /// in-app browser tab — and say so if all three fail, never silently.
-  Future<void> _openYoutube(Uri uri) async {
-    for (final mode in const [
-      LaunchMode.externalNonBrowserApplication,
-      LaunchMode.externalApplication,
-      LaunchMode.inAppBrowserView,
-    ]) {
-      try {
-        if (await launchUrl(uri, mode: mode)) return;
-      } catch (_) {}
-    }
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(basicText('youtube_open_failed', LanguagePreferenceService.currentLanguage)),
-      action: SnackBarAction(
-        label: basicText('copy_action', LanguagePreferenceService.currentLanguage),
-        onPressed: () => Clipboard.setData(ClipboardData(text: uri.toString())),
-      ),
-    ));
-  }
+  Future<void> _openYoutube(Uri uri) => openLink(context, uri.toString());
 
   @override
   void dispose() {
