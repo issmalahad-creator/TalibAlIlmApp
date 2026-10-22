@@ -123,6 +123,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   // saved if the user leaves it untouched — only an explicitly emptied
   // field falls back to the auto-derived label.
   int? selectedColorIndex;
+  var coverStyle = MushafCoverStyle.shamsa;
   final nameController = TextEditingController(
     text: '${basicText('khatm_default_name_prefix', lang)} - ${formatDateForDisplay(hijriDateStringForDate(DateTime.now()))}',
   );
@@ -225,6 +226,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
     if (sessionsEnabled && sessions.isNotEmpty) {
       await repo.replaceSessions(created.id, sessions);
     }
+    await MushafCoverPrefs.set(created.id, coverStyle);
     if (context.mounted) Navigator.pop(context);
     onCreated?.call();
   }
@@ -282,7 +284,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                       boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.25), blurRadius: 22, offset: const Offset(0, 10))],
                     ),
                     child: Row(children: [
-                      KhatmBook3D(color: Color.lerp(accent, Colors.black, 0.15)!, turn: '$durationDays-$selectedColorIndex'),
+                      KhatmBook3D(color: accent, style: coverStyle, turn: '$durationDays-$selectedColorIndex-${coverStyle.index}'),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -448,7 +450,18 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                             onTap: () => setSheetState(() => selectedColorIndex = i),
                           ),
                       ]),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 14),
+                      // «تصميم الغلاف» — the person picks their muṣḥaf
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                        for (final st in MushafCoverStyle.values)
+                          MushafCoverChoice(
+                            color: accent,
+                            style: st,
+                            selected: coverStyle == st,
+                            onTap: () => setSheetState(() => coverStyle = st),
+                          ),
+                      ]),
+                      const SizedBox(height: 12),
                       TextField(
                         controller: nameController,
                         decoration: InputDecoration(

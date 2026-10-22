@@ -1,29 +1,40 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
+import 'mushaf_cover.dart';
+
+export 'mushaf_cover.dart';
 
 /// Building blocks of the «ختمة جديدة» sheet's premium look (Ismail
 /// 2026-10-13: «التصميم بدائي، نريد طابع ٣د»). Depth with Flutter-native
 /// means only — Matrix4 perspective, layered gradients, soft shadows — no
 /// 3D engine, no continuous animation (motion only when a value changes).
 
-/// A muṣḥaf in 3/4 view: cover in the khatma's colour with a gold frame and
-/// an eight-point star, page edges on the side. Turns a little whenever
-/// [turn] changes (plan length, colour), then rests.
+/// A muṣḥaf in 3/4 view: the real cover ([MushafCover], in the khatma's
+/// colour and the chosen [style]), its spine on the right as an Arabic book
+/// is bound, and the page block on the open side. Turns a little whenever
+/// [turn] changes (plan length, colour, style), then rests.
 class KhatmBook3D extends StatelessWidget {
   final Color color;
   final Object turn;
   final double size;
-  const KhatmBook3D({super.key, required this.color, required this.turn, this.size = 92});
+  final MushafCoverStyle style;
+  const KhatmBook3D({
+    super.key,
+    required this.color,
+    required this.turn,
+    this.size = 92,
+    this.style = MushafCoverStyle.shamsa,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final w = size, h = size * 1.32;
+    final w = size, h = size * 1.38;
+    final spine = size * 0.09;
+    final leather = mushafLeather(color);
     return TweenAnimationBuilder<double>(
       key: ValueKey(turn),
-      tween: Tween(begin: -0.55, end: -0.32),
+      tween: Tween(begin: 0.55, end: 0.30),
       duration: const Duration(milliseconds: 650),
       curve: Curves.easeOutBack,
       builder: (context, angle, child) => Transform(
@@ -35,76 +46,49 @@ class KhatmBook3D extends StatelessWidget {
         child: child,
       ),
       child: SizedBox(
-        width: w + 12,
+        width: w + spine + 8,
         height: h + 8,
         child: Stack(children: [
-          // page block, peeking out on the open side
+          // page block, peeking out on the open (left) side
           Positioned(
-            left: 10,
-            top: 5,
+            left: 0,
+            top: 4,
             child: Container(
               width: w,
-              height: h - 4,
+              height: h - 6,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                gradient: const LinearGradient(colors: [Color(0xFFFDF8EE), Color(0xFFE9DCC4)]),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.22), blurRadius: 16, offset: const Offset(6, 10))],
+                borderRadius: BorderRadius.circular(5),
+                gradient: const LinearGradient(colors: [Color(0xFFE9DCC4), Color(0xFFFDF8EE)]),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.24), blurRadius: 16, offset: const Offset(-4, 10))],
               ),
               child: CustomPaint(painter: _PageLinesPainter()),
             ),
           ),
-          // cover
-          Container(
-            width: w,
-            height: h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [Color.lerp(color, Colors.white, 0.18)!, color, Color.lerp(color, Colors.black, 0.35)!],
+          // spine
+          Positioned(
+            left: 8 + w - 2,
+            top: 0,
+            child: Container(
+              width: spine,
+              height: h,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.horizontal(right: Radius.circular(6)),
+                gradient: LinearGradient(colors: [
+                  Color.lerp(leather, Colors.black, 0.35)!,
+                  Color.lerp(leather, Colors.white, 0.10)!,
+                  Color.lerp(leather, Colors.black, 0.45)!,
+                ]),
               ),
-              border: Border.all(color: const Color(0xFFD9B26A), width: 1.4),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(7),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(5),
-                  border: Border.all(color: const Color(0xFFE8C987).withValues(alpha: 0.85), width: 1),
-                ),
-                child: Center(child: CustomPaint(size: Size.square(w * 0.42), painter: _StarPainter())),
-              ),
+              child: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                for (var i = 0; i < 4; i++) Container(height: 1.2, color: const Color(0xFFE2C27A)),
+              ]),
             ),
           ),
+          Positioned(left: 8, top: 0, child: MushafCover(color: color, style: style, width: w)),
         ]),
       ),
     );
   }
-}
-
-class _StarPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size s) {
-    final c = s.center(Offset.zero);
-    final r = s.width / 2;
-    final gold = Paint()
-      ..color = const Color(0xFFF1D594)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-    for (final a in [0.0, math.pi / 4]) {
-      canvas.save();
-      canvas.translate(c.dx, c.dy);
-      canvas.rotate(a);
-      canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: r * 1.35, height: r * 1.35), gold);
-      canvas.restore();
-    }
-    canvas.drawCircle(c, r * 0.32, gold);
-    canvas.drawCircle(c, r * 0.12, Paint()..color = const Color(0xFFF1D594));
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
 }
 
 class _PageLinesPainter extends CustomPainter {
@@ -113,7 +97,7 @@ class _PageLinesPainter extends CustomPainter {
     final p = Paint()
       ..color = const Color(0x22000000)
       ..strokeWidth = 0.6;
-    for (var x = s.width - 2.0; x > s.width - 10; x -= 2) {
+    for (var x = 2.0; x < 10; x += 2) {
       canvas.drawLine(Offset(x, 4), Offset(x, s.height - 4), p);
     }
   }
