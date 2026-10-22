@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 
 import '../l10n/basic_translations.dart';
 import '../models/completion_goal_session.dart';
@@ -19,6 +18,7 @@ import 'completion_goal_werd_list.dart';
 import 'feedback/talib_skeleton.dart';
 import 'khatm/khatm_goal_card_3d.dart';
 import 'khatm/khatm_sheet_parts.dart';
+import '../utils/digits.dart';
 
 /// (content_type, book_ref, label, total_units) — the fixed set of
 /// content this planner currently knows how to track. Add a row here when
@@ -423,11 +423,11 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
                               controller: durationController,
                               textAlign: TextAlign.center,
                               keyboardType: TextInputType.number,
-                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              inputFormatters: [const AnyDigitsFormatter()],
                               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
                               decoration: const InputDecoration(isDense: true, border: InputBorder.none),
                               onChanged: (v) {
-                                final parsed = int.tryParse(v);
+                                final parsed = parseAnyDigits(v);
                                 if (parsed != null && parsed >= 1) setSheetState(() => durationDays = parsed);
                               },
                             ),
@@ -975,7 +975,7 @@ class _GoalCardState extends State<_GoalCard> {
       };
 
   void _confirmPosition() {
-    final parsed = int.tryParse(_pageController.text.trim());
+    final parsed = parseAnyDigits(_pageController.text);
     // An empty/unparsable/negative entry is silently ignored — same
     // no-crash-on-bad-input treatment as the wizard's duration field.
     if (parsed != null && parsed >= 0) widget.onRecordProgress(parsed);
@@ -1057,7 +1057,7 @@ class _GoalCardState extends State<_GoalCard> {
           TextField(
             controller: _pageController,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: [const AnyDigitsFormatter()],
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
               isDense: true,

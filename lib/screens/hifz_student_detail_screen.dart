@@ -7,6 +7,7 @@ import '../services/hifz_export_service.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
+import '../utils/digits.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -85,7 +86,7 @@ class _HifzStudentDetailScreenState extends State<HifzStudentDetailScreen> {
       id: _student.id,
       name: nameCtrl.text.trim(),
       guardianPhone: phoneCtrl.text.trim(),
-      age: int.tryParse(ageCtrl.text.trim()),
+      age: parseAnyDigits(ageCtrl.text),
       progress: progressCtrl.text.trim(),
       dateAdded: _student.dateAdded,
     );

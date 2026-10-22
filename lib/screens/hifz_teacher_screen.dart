@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/hijri_date.dart';
 import 'hifz_student_detail_screen.dart';
 import '../widgets/loading_view.dart';
+import '../utils/digits.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -102,7 +103,7 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
       id: existing?.id,
       name: nameCtrl.text.trim(),
       guardianPhone: phoneCtrl.text.trim(),
-      age: int.tryParse(ageCtrl.text.trim()),
+      age: parseAnyDigits(ageCtrl.text),
       progress: progressCtrl.text.trim(),
       dateAdded: existing?.dateAdded ?? hijriDateStringForDate(DateTime.now()),
     );

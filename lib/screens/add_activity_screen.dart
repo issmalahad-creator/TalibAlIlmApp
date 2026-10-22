@@ -6,6 +6,7 @@ import '../repositories/activity_repository.dart';
 import '../services/language_preference_service.dart';
 import '../utils/hijri_date.dart';
 import '../widgets/feedback/talib_action_button.dart';
+import '../utils/digits.dart';
 
 class AddActivityScreen extends StatefulWidget {
   final ActivityEntry? existing;
@@ -58,7 +59,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
       date: _hijriDateLabel,
       title: _titleCtrl.text.trim(),
       beneficiaries: _category.hasBeneficiaries
-          ? int.tryParse(_beneficiariesCtrl.text.trim())
+          ? parseAnyDigits(_beneficiariesCtrl.text)
           : null,
       notes: _notesCtrl.text.trim(),
     );

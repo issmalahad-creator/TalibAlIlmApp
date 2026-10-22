@@ -18,6 +18,7 @@ import '../utils/study_annotation_anchor.dart';
 import '../widgets/annotated_page_text.dart';
 import '../widgets/audio_reader_view.dart';
 import 'turath_book_search_screen.dart';
+import '../utils/digits.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -621,7 +622,7 @@ class _TurathReaderScreenState extends State<TurathReaderScreen> {
         content: TextField(controller: controller, keyboardType: TextInputType.number, textAlign: TextAlign.center),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(basicText('cancel_action', lang))),
-          TextButton(onPressed: () => Navigator.pop(context, int.tryParse(controller.text)), child: Text(basicText('go_action', lang))),
+          TextButton(onPressed: () => Navigator.pop(context, parseAnyDigits(controller.text)), child: Text(basicText('go_action', lang))),
         ],
       ),
     );

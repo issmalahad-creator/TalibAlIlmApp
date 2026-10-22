@@ -6,6 +6,7 @@ import '../services/language_preference_service.dart';
 import '../utils/month.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/premium_modal.dart';
+import '../utils/digits.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -87,9 +88,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
     if (result != true || titleCtrl.text.trim().isEmpty) return;
 
-    final target = int.tryParse(targetCtrl.text.trim()) ?? 1;
+    final target = parseAnyDigits(targetCtrl.text) ?? 1;
     if (isEdit) {
-      final current = int.tryParse(currentCtrl.text.trim()) ?? existing.current;
+      final current = parseAnyDigits(currentCtrl.text) ?? existing.current;
       await _repo.update(existing.id!, title: titleCtrl.text.trim(), target: target, current: current);
     } else {
       await _repo.add(Goal(title: titleCtrl.text.trim(), target: target, month: currentMonth()));
