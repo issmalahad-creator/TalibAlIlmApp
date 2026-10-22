@@ -6,6 +6,7 @@ import '../l10n/basic_translations.dart';
 import '../repositories/mushaf_layout_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../widgets/mushaf/mushaf_chrome_style.dart';
+import '../utils/digits.dart';
 
 /// The reader's own search — by text («البقرة 255» or any words, no tashkeel)
 /// or by number (page / juzʼ / ḥizb). Pops with the **MushafDatabase** page to
@@ -45,15 +46,8 @@ class _MushafSearchScreenState extends State<MushafSearchScreen> {
 
   /// «١٢» or «12» → 12.
   static int? _number(String q) {
-    const eastern = '٠١٢٣٤٥٦٧٨٩';
-    const persian = '۰۱۲۳۴۵۶۷۸۹';
-    final w = q.trim().split('').map((c) {
-      final i = eastern.indexOf(c);
-      if (i >= 0) return '$i';
-      final j = persian.indexOf(c);
-      return j >= 0 ? '$j' : c;
-    }).join();
-    return RegExp(r'^\d{1,3}$').hasMatch(w) ? int.parse(w) : null;
+    final n = parseAnyDigits(q);
+    return n != null && n < 1000 ? n : null;
   }
 
   void _onChanged(String v) {

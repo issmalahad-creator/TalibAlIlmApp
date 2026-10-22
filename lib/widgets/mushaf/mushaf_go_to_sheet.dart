@@ -5,6 +5,7 @@ import '../../data/quran_surahs.dart';
 import '../../l10n/basic_translations.dart';
 import '../../repositories/mushaf_layout_repository.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/digits.dart';
 import 'mushaf_chrome_style.dart';
 
 /// «انتقل إلى»: pick a page, juzʼ or ḥizb and see where it lands before
@@ -58,6 +59,8 @@ class _GoToSheetState extends State<_GoToSheet> {
         _juzStart = m[1];
         _hizbStart = m[2];
       });
+    }).catchError((Object _) {
+      // No preview, but the page number still works.
     });
   }
 
@@ -118,7 +121,7 @@ class _GoToSheetState extends State<_GoToSheet> {
   }
 
   void _onTyped(String s) {
-    final v = int.tryParse(s.trim());
+    final v = parseAnyDigits(s);
     if (s.trim().isEmpty) {
       setState(() => _invalid = false);
       return;
@@ -232,7 +235,8 @@ class _GoToSheetState extends State<_GoToSheet> {
               TextField(
                 controller: _field,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(3)],
+                inputFormatters: [const AnyDigitsFormatter(), LengthLimitingTextInputFormatter(3)],
+                textInputAction: TextInputAction.go,
                 textAlign: TextAlign.center,
                 onChanged: _onTyped,
                 onSubmitted: (_) => _go(),
