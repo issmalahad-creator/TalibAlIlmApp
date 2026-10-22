@@ -179,5 +179,6 @@ void main() {
     expect(total, greaterThan(60000));
     // the precise majority is coloured; skips are the honest, tracked gap
     expect(direct, greaterThan(total * 0.7));
-  });
+    // ~26 s alone; the 30 s default timed it out under a loaded full run
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }

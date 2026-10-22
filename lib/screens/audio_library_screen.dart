@@ -134,7 +134,8 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                 const SizedBox(height: 16),
                 ...audioSeries.map((s) => _SeriesCard(
                       titleAr: s.titleAr,
-                      subtitleAr: '${s.authorAr} · ${s.categoryAr}',
+                      subtitleAr: '${s.authorAr}  –  ${s.categoryAr}',
+                      videoId: s.firstVideoId,
                       descriptionAr: s.descriptionAr,
                       onTap: () => Navigator.push(
                         context,
@@ -158,6 +159,7 @@ class _AudioLibraryScreenState extends State<AudioLibraryScreen> {
                         titleAr: c.titleAr,
                         subtitleAr: c.playlistId != null ? basicText('playlist_subtitle_label', lang) : basicText('single_video_subtitle_label', lang),
                         descriptionAr: null,
+                        videoId: c.videoId,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -189,12 +191,16 @@ class _SeriesCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onDelete;
 
+  /// The series' first episode — its YouTube thumbnail becomes the cover.
+  final String? videoId;
+
   const _SeriesCard({
     required this.titleAr,
     required this.subtitleAr,
     required this.descriptionAr,
     required this.onTap,
     this.onDelete,
+    this.videoId,
   });
 
   @override
@@ -207,13 +213,14 @@ class _SeriesCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.divider),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
           children: [
-            const Icon(Icons.podcasts_outlined, color: AppColors.primaryDark),
-            const SizedBox(width: 10),
+            _SeriesCover3D(videoId: videoId),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,6 +239,72 @@ class _SeriesCard extends StatelessWidget {
               IconButton(icon: const Icon(Icons.delete_outline, size: 18), onPressed: onDelete),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The series as a boxed set seen at an angle: the first episode's YouTube
+/// thumbnail as the front, a dark spine, a play mark. Falls back to a
+/// plain cover offline or for a playlist-only custom series.
+class _SeriesCover3D extends StatelessWidget {
+  final String? videoId;
+  const _SeriesCover3D({required this.videoId});
+
+  @override
+  Widget build(BuildContext context) {
+    const w = 78.0, h = 58.0;
+    final fallback = Container(
+      color: AppColors.primaryLight,
+      child: const Icon(Icons.podcasts_outlined, color: AppColors.primaryDark),
+    );
+    return Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.002)
+        ..rotateY(0.38),
+      child: SizedBox(
+        width: w + 6,
+        height: h + 4,
+        child: Stack(children: [
+          // the box's depth behind the front
+          Positioned(
+            left: 6,
+            top: 4,
+            child: Container(
+              width: w,
+              height: h,
+              decoration: BoxDecoration(
+                color: const Color(0xFF2B2B2B),
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.28), blurRadius: 10, offset: const Offset(4, 6))],
+              ),
+            ),
+          ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              width: w,
+              height: h,
+              child: Stack(fit: StackFit.expand, children: [
+                videoId == null
+                    ? fallback
+                    : Image.network(
+                        'https://i.ytimg.com/vi/$videoId/mqdefault.jpg',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => fallback,
+                      ),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
+                    child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ]),
       ),
     );
   }
