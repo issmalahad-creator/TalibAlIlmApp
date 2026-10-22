@@ -1480,6 +1480,10 @@ class _MushafSemanticReaderScreenState
                 contentTypeFilter: 'quran_reading',
                 showStripeAndPercent: true,
                 currentPageHint: _current,
+                onOpenPage: (page) {
+                  Navigator.pop(sheetContext);
+                  _jumpToPage(page);
+                },
               ),
             ),
           ],

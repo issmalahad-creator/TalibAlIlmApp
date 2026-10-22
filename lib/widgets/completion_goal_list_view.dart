@@ -17,6 +17,7 @@ import 'circular_percent_gauge.dart';
 import 'completion_goal_session_editor.dart';
 import 'completion_goal_werd_list.dart';
 import 'feedback/talib_skeleton.dart';
+import 'khatm/khatm_goal_card_3d.dart';
 import 'khatm/khatm_sheet_parts.dart';
 
 /// (content_type, book_ref, label, total_units) — the fixed set of
@@ -583,6 +584,9 @@ Future<void> openEditGoalSheet(BuildContext context, CompletionGoal goal, {VoidC
   final nameController = TextEditingController(text: goal.name ?? '');
   bool reminderEnabled = goal.reminderEnabled;
   TimeOfDay reminderTime = TimeOfDay(hour: goal.reminderHour ?? 20, minute: goal.reminderMinute ?? 0);
+  final isMushaf = _isPageBasedGoal(goal.contentType);
+  var coverStyle = await MushafCoverPrefs.get(goal.id);
+  if (!context.mounted) return;
 
   await showModalBottomSheet(
     context: context,
@@ -622,6 +626,18 @@ Future<void> openEditGoalSheet(BuildContext context, CompletionGoal goal, {VoidC
                   ),
               ],
             ),
+            if (isMushaf) ...[
+              const SizedBox(height: 16),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                for (final st in MushafCoverStyle.values)
+                  MushafCoverChoice(
+                    color: kKhatmTabColors[(selectedColorIndex ?? 0) % kKhatmTabColors.length],
+                    style: st,
+                    selected: coverStyle == st,
+                    onTap: () => setSheetState(() => coverStyle = st),
+                  ),
+              ]),
+            ],
             const SizedBox(height: 16),
             Text(basicText('khatm_name_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
             const SizedBox(height: 4),
@@ -655,6 +671,7 @@ Future<void> openEditGoalSheet(BuildContext context, CompletionGoal goal, {VoidC
                   reminderHour: reminderTime.hour,
                   reminderMinute: reminderTime.minute,
                 );
+                if (isMushaf) await MushafCoverPrefs.set(goal.id, coverStyle);
                 if (context.mounted) Navigator.pop(context);
                 onSaved?.call();
               },
@@ -705,7 +722,17 @@ class CompletionGoalListView extends StatefulWidget {
   /// no live reader context) just leaves every card's field blank.
   final int? currentPageHint;
 
-  const CompletionGoalListView({super.key, this.contentTypeFilter, this.showStripeAndPercent = false, this.currentPageHint});
+  /// Opens the muṣḥaf on a page («تابع القراءة» on a Quran khatma). Null
+  /// hides that button (e.g. no reader to open from here).
+  final ValueChanged<int>? onOpenPage;
+
+  const CompletionGoalListView({
+    super.key,
+    this.contentTypeFilter,
+    this.showStripeAndPercent = false,
+    this.currentPageHint,
+    this.onOpenPage,
+  });
 
   @override
   State<CompletionGoalListView> createState() => CompletionGoalListViewState();
@@ -716,6 +743,7 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
   final _notificationService = NotificationService();
   List<CompletionGoalStatus> _statuses = [];
   bool _loading = true;
+  Map<int, MushafCoverStyle> _covers = const {};
 
   @override
   void initState() {
@@ -739,8 +767,10 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
       statuses.sort((a, b) => a.goal.id.compareTo(b.goal.id));
     }
     await _syncReminders(statuses);
+    final covers = await MushafCoverPrefs.getAll(statuses.map((s) => s.goal.id));
     if (!mounted) return;
     setState(() {
+      _covers = covers;
       _statuses = statuses;
       _loading = false;
     });
@@ -852,6 +882,24 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
       child: Column(
         children: [
           for (var i = 0; i < _statuses.length; i++)
+            if (_isPageBasedGoal(_statuses[i].goal.contentType))
+              KhatmGoalCard3D(
+                key: ValueKey('khatm3d-${_statuses[i].goal.id}'),
+                status: _statuses[i],
+                color: kKhatmTabColors[(_statuses[i].goal.colorIndex ?? i) % kKhatmTabColors.length],
+                coverStyle: _covers[_statuses[i].goal.id] ?? MushafCoverStyle.shamsa,
+                title: _GoalTitle(goal: _statuses[i].goal),
+                currentPageHint: widget.currentPageHint,
+                onOpenPage: _statuses[i].goal.contentType == 'quran_reading' ? widget.onOpenPage : null,
+                onRecordProgress: (page) => _recordProgress(_statuses[i], page),
+                onEdit: () => openEditGoalSheet(context, _statuses[i].goal, onSaved: reload),
+                onWerdList: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => CompletionGoalWerdList(goal: _statuses[i].goal)),
+                ),
+                onReschedule: () => _reschedule(_statuses[i]),
+                onDelete: () => _confirmAndDelete(_statuses[i]),
+              )
+            else
             _GoalCard(
               status: _statuses[i],
               // grain 3.1 — an explicit `color_index` chosen at creation
