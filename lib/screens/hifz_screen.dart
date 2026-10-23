@@ -10,6 +10,7 @@ import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 import '../widgets/hifz/juz_shelf_3d.dart';
 import '../widgets/loading_view.dart';
+import '../utils/calendar_days.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -82,7 +83,7 @@ class _HifzScreenState extends State<HifzScreen> {
   }
 
   String _dayBefore(String hijriDate) {
-    final dt = gregorianFromHijriDateTime(hijriDate, null).subtract(const Duration(days: 1));
+    final dt = addCalendarDays(gregorianFromHijriDateTime(hijriDate, null), -1);
     return hijriDateStringForDate(dt);
   }
 

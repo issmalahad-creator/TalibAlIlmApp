@@ -6,6 +6,7 @@ import '../utils/month.dart';
 import 'completion_goal_repository.dart';
 import 'daily_session_repository.dart';
 import 'memorization_repository.dart';
+import '../utils/calendar_days.dart';
 
 class JourneyPlan {
   final String level; // 'beginner' | 'intermediate' | 'advanced'
@@ -200,7 +201,7 @@ class JourneyPlanRepository {
   int _daysBetween(String hijriFrom, String hijriTo) {
     final from = gregorianFromHijriDateTime(hijriFrom, null);
     final to = gregorianFromHijriDateTime(hijriTo, null);
-    return to.difference(from).inDays;
+    return calendarDaysBetween(from, to);
   }
 
   String _addDays(String hijriDate, int days) {

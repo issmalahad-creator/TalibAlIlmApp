@@ -17,6 +17,8 @@
 /// without real specialist review.
 library;
 
+import '../utils/calendar_days.dart';
+
 class SalahLesson {
   final String titleAr;
   final String bodyAr;
@@ -84,7 +86,7 @@ final List<SalahLesson> allSalahLessons = [
 /// list cycling predictably is easier to trust than an opaque "smart" pick.
 SalahLesson todaysSalahMission() {
   final now = DateTime.now();
-  final dayOfYear = now.difference(DateTime(now.year, 1, 1)).inDays;
+  final dayOfYear = calendarDaysBetween(DateTime(now.year, 1, 1), now);
   return allSalahLessons[dayOfYear % allSalahLessons.length];
 }
 

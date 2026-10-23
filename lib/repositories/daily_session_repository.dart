@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../db/database_helper.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
+import '../utils/calendar_days.dart';
 
 class DailySessionStatus {
   final bool didReading;
@@ -102,7 +103,7 @@ class DailySessionRepository {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final lastDay = DateTime(last.year, last.month, last.day);
-    return today.difference(lastDay).inDays.clamp(0, 100000);
+    return calendarDaysBetween(lastDay, today).clamp(0, 100000);
   }
 
   Future<void> markStep({

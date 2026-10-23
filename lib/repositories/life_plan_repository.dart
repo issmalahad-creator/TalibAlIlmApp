@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../data/life_plan_seed.dart';
 import '../db/database_helper.dart';
 import '../models/life_plan.dart';
+import '../utils/calendar_days.dart';
 
 /// «مُحرّك الحياة» — L1 (`docs/LIFE_ENGINE.md`). The continuous daily engine
 /// over `life_pillars` / `life_slots` / `life_day_slots` (migration v55).
@@ -74,9 +75,7 @@ class LifePlanRepository {
   Future<int> dayIndex([DateTime? on]) async {
     final start = await startDate();
     final d = on ?? DateTime.now();
-    return DateTime(d.year, d.month, d.day)
-        .difference(DateTime(start.year, start.month, start.day))
-        .inDays;
+    return calendarDaysBetween(start, d);
   }
 
   // ── structure ────────────────────────────────────────────────────────

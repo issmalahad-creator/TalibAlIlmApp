@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../db/database_helper.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
+import '../utils/calendar_days.dart';
 
 enum ReviewQuality { excellent, good, needsReview }
 
@@ -57,7 +58,7 @@ class MemorizationUnit {
     if (memorizedDate == null) return HifzCategory.notStarted;
     final memorized = gregorianFromHijriDateTime(memorizedDate!, null);
     final today = asOf ?? DateTime.now();
-    final ageDays = DateTime(today.year, today.month, today.day).difference(DateTime(memorized.year, memorized.month, memorized.day)).inDays;
+    final ageDays = calendarDaysBetween(memorized, today);
     if (ageDays <= 0) return HifzCategory.sabaq;
     if (ageDays <= 15) return HifzCategory.sabqi;
     return HifzCategory.manzil;
@@ -464,7 +465,7 @@ class MemorizationRepository {
     var longest = 1;
     var current = 1;
     for (var i = 1; i < days.length; i++) {
-      final gap = days[i].difference(days[i - 1]).inDays;
+      final gap = calendarDaysBetween(days[i - 1], days[i]);
       if (gap == 1) {
         current++;
         longest = current > longest ? current : longest;
