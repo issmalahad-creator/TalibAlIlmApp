@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/location_problem_view.dart';
 import '../utils/digits.dart';
+import '../widgets/prayer/sun_arc_3d.dart';
 
 /// "أوقات الصلاة" — QURAN_COMPANION_ROADMAP.md Phase 9. Shows today's six
 /// prayers computed offline (once a location is available) via the
@@ -224,7 +225,29 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        // the day as the sun's path, the next prayer raised in gold
+        SunArc3D(
+          times: [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha].map((d) => d.toLocal()).toList(),
+          labels: [
+            basicText('prayer_fajr', lang),
+            basicText('prayer_sunrise', lang),
+            basicText('prayer_dhuhr', lang),
+            basicText('prayer_asr', lang),
+            basicText('prayer_maghrib', lang),
+            basicText('prayer_isha', lang),
+          ],
+          nextIndex: switch (next) {
+            Prayer.fajr || Prayer.fajrAfter => 0,
+            Prayer.sunrise => 1,
+            Prayer.dhuhr => 2,
+            Prayer.asr => 3,
+            Prayer.maghrib => 4,
+            Prayer.isha || Prayer.ishaBefore => 5,
+          },
+          now: DateTime.now(),
+        ),
+        const SizedBox(height: 8),
         _PrayerRow(label: basicText('prayer_fajr', lang), time: t.fajr, active: current == Prayer.fajr),
         _PrayerRow(label: basicText('prayer_sunrise', lang), time: t.sunrise, active: false),
         _PrayerRow(label: basicText('prayer_dhuhr', lang), time: t.dhuhr, active: current == Prayer.dhuhr),
