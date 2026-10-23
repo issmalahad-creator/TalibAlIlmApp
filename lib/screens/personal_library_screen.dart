@@ -8,6 +8,7 @@ import '../services/personal_library_service.dart';
 import '../theme/app_theme.dart';
 import 'book_viewer_screen.dart';
 import '../widgets/feedback/talib_skeleton.dart';
+import '../widgets/library/book_3d.dart';
 
 /// "مكتبتي" — a student-organized personal library. Top level shows
 /// sections/folders the student created themselves (plus a fixed
@@ -288,7 +289,7 @@ class _PersonalLibraryScreenState extends State<PersonalLibraryScreen> {
         .map((pb) => Card(
               margin: const EdgeInsets.only(bottom: 10),
               child: ListTile(
-                leading: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary),
+                leading: Book3D(title: pb.title, height: 44),
                 title: Text(pb.title, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text(_categoryNameFor(pb.categoryId), style: const TextStyle(fontSize: 11)),
                 onTap: () => _openBook(pb),
@@ -390,7 +391,7 @@ class _PersonalLibraryScreenState extends State<PersonalLibraryScreen> {
                   .map((pb) => Card(
                         margin: const EdgeInsets.only(bottom: 10),
                         child: ListTile(
-                          leading: const Icon(Icons.picture_as_pdf_rounded, color: AppColors.primary),
+                          leading: Book3D(title: pb.title, height: 44),
                           title: Text(pb.title, maxLines: 1, overflow: TextOverflow.ellipsis),
                           onTap: () => _openBook(pb),
                           trailing: IconButton(

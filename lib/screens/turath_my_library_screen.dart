@@ -7,6 +7,7 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'turath_book_screen.dart';
 import 'turath_reader_screen.dart';
+import '../widgets/library/book_3d.dart';
 
 /// "مكتبتي" — spec items 10-11 (favorites, last-read position) plus 12
 /// (notes), all in one place with three real tabs rather than three
@@ -97,7 +98,7 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
-            leading: Icon(f.isBook ? Icons.auto_stories_outlined : Icons.bookmark_outline, color: AppColors.primary),
+            leading: f.isBook ? Book3D(title: f.bookName, height: 44) : const Icon(Icons.bookmark_outline, color: AppColors.primary),
             title: Text(f.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.w700)),
             subtitle: f.isBook ? null : Text('ص ${f.pageNumber}', textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
             onTap: () => f.isBook
@@ -121,7 +122,7 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
           child: ListTile(
-            leading: const Icon(Icons.history_rounded, color: AppColors.primary),
+            leading: Book3D(title: r.bookName, height: 44),
             title: Text(r.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.w700)),
             subtitle: Text('${basicText('turath_last_read_label', lang)} ${r.pageNumber}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: r.bookId, bookName: r.bookName, pageNumber: r.pageNumber))).then((_) => _load()),

@@ -14,6 +14,7 @@ import 'turath_my_library_screen.dart';
 import 'turath_quotes_screen.dart';
 import 'turath_reader_screen.dart';
 import 'turath_study_notebook_screen.dart';
+import '../widgets/library/book_3d.dart';
 
 /// "📚 المكتبة التراثية" — real search entry point. Category browsing lives
 /// in [TurathCategoriesScreen] (a real, complete, vertical list of all 40
@@ -207,6 +208,7 @@ class _ResultCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
+        leading: Book3D(title: result.bookName, height: 44),
         title: Text(result.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.w700)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
