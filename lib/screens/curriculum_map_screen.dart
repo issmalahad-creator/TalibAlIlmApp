@@ -9,6 +9,7 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import 'adhkar_screen.dart';
+import 'application_screen.dart';
 import 'audio_library_screen.dart';
 import 'hadith_screen.dart';
 import 'madarij_screen.dart';
@@ -92,6 +93,11 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
         break;
       case 'madarij':
         screen = const MadarijScreen();
+        break;
+      // «فهم التفسير وتطبيقه» — had a live state but no screen, so tapping it
+      // (even as «أنت هنا») only showed «قريبًا»
+      case 'application':
+        screen = const ApplicationScreen();
         break;
     }
     if (screen == null) {

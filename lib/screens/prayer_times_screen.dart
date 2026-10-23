@@ -7,6 +7,9 @@ import '../services/language_preference_service.dart';
 import '../services/location_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/location_problem_view.dart';
+import '../utils/digits.dart';
+import '../widgets/prayer/sun_arc_3d.dart';
 
 /// "أوقات الصلاة" — QURAN_COMPANION_ROADMAP.md Phase 9. Shows today's six
 /// prayers computed offline (once a location is available) via the
@@ -97,9 +100,17 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             const SizedBox(height: 20),
             FilledButton(
               onPressed: () async {
-                final lat = double.tryParse(latController.text.trim());
-                final lng = double.tryParse(lngController.text.trim());
-                if (lat == null || lng == null) return;
+                // Arabic keyboards type ٣٠٫٠٤ — normalise digits and the
+                // Arabic decimal comma before parsing, and reject impossible values.
+                double? read(TextEditingController c) =>
+                    double.tryParse(latinDigits(c.text.trim()).replaceAll('٫', '.').replaceAll(',', '.'));
+                final lat = read(latController);
+                final lng = read(lngController);
+                if (lat == null || lng == null || lat.abs() > 90 || lng.abs() > 180) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(basicText('location_invalid_coords', lang))));
+                  return;
+                }
                 await _locationService.setManualLocation(lat, lng);
                 if (context.mounted) Navigator.pop(context);
                 _load();
@@ -168,7 +179,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       body: _loading
           ? AppLoadingView(icon: Icons.access_time_outlined, message: basicText('calculating_prayer_times_message', lang))
           : _noLocation
-              ? _NoLocationView(onManualEntry: _showManualLocationSheet, onRetry: _load)
+              ? LocationProblemView(problem: _locationService.lastProblem, service: _locationService, onRetry: _load)
               : _buildTimes(lang),
     ),
     );
@@ -188,7 +199,20 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-            child: Text(basicText('manual_location_used_banner', lang), style: const TextStyle(fontSize: 11.5, color: AppColors.primaryDark)),
+            child: Row(children: [
+              Expanded(
+                child: Text(basicText('manual_location_used_banner', lang),
+                    style: const TextStyle(fontSize: 11.5, color: AppColors.primaryDark)),
+              ),
+              TextButton.icon(
+                onPressed: () async {
+                  await _locationService.clearManualLocation();
+                  _load();
+                },
+                icon: const Icon(Icons.my_location_rounded, size: 16),
+                label: Text(basicText('use_my_gps_location', lang), style: const TextStyle(fontSize: 12)),
+              ),
+            ]),
           ),
         Container(
           padding: const EdgeInsets.all(16),
@@ -201,7 +225,29 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
+        // the day as the sun's path, the next prayer raised in gold
+        SunArc3D(
+          times: [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha].map((d) => d.toLocal()).toList(),
+          labels: [
+            basicText('prayer_fajr', lang),
+            basicText('prayer_sunrise', lang),
+            basicText('prayer_dhuhr', lang),
+            basicText('prayer_asr', lang),
+            basicText('prayer_maghrib', lang),
+            basicText('prayer_isha', lang),
+          ],
+          nextIndex: switch (next) {
+            Prayer.fajr || Prayer.fajrAfter => 0,
+            Prayer.sunrise => 1,
+            Prayer.dhuhr => 2,
+            Prayer.asr => 3,
+            Prayer.maghrib => 4,
+            Prayer.isha || Prayer.ishaBefore => 5,
+          },
+          now: DateTime.now(),
+        ),
+        const SizedBox(height: 8),
         _PrayerRow(label: basicText('prayer_fajr', lang), time: t.fajr, active: current == Prayer.fajr),
         _PrayerRow(label: basicText('prayer_sunrise', lang), time: t.sunrise, active: false),
         _PrayerRow(label: basicText('prayer_dhuhr', lang), time: t.dhuhr, active: current == Prayer.dhuhr),
@@ -225,10 +271,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       Prayer.dhuhr => 'prayer_dhuhr',
       Prayer.asr => 'prayer_asr',
       Prayer.maghrib => 'prayer_maghrib',
-      Prayer.isha => 'prayer_isha',
-      _ => null,
+      Prayer.isha || Prayer.ishaBefore => 'prayer_isha',
+      // after Isha adhan_dart names tomorrow's Fajr «fajrAfter»
+      Prayer.fajrAfter => 'prayer_fajr',
     };
-    if (key == null) return basicText('next_prayer_generic', lang);
     return '${basicText(key, lang)} ${basicText('next_prayer_suffix', lang)}';
   }
 
@@ -362,39 +408,6 @@ class _PrayerRow extends StatelessWidget {
   }
 }
 
-class _NoLocationView extends StatelessWidget {
-  final VoidCallback onManualEntry;
-  final VoidCallback onRetry;
-  const _NoLocationView({required this.onManualEntry, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final lang = LanguagePreferenceService.currentLanguage;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.location_off_outlined, size: 44, color: AppColors.textMuted),
-            const SizedBox(height: 12),
-            Text(basicText('no_location_title', lang), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
-            const SizedBox(height: 6),
-            Text(
-              basicText('no_location_desc', lang),
-              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            FilledButton(onPressed: onRetry, child: Text(basicText('retry_action', lang))),
-            const SizedBox(height: 10),
-            OutlinedButton(onPressed: onManualEntry, child: Text(basicText('enter_location_manually_action', lang))),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 /// Bordered selectable option button — Ismail's 2026-08-16 decorative-
 /// features request (roadmap §4.34 point 3), replacing this screen's

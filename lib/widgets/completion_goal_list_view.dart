@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 
 import '../l10n/basic_translations.dart';
 import '../models/completion_goal_session.dart';
@@ -17,6 +16,9 @@ import 'circular_percent_gauge.dart';
 import 'completion_goal_session_editor.dart';
 import 'completion_goal_werd_list.dart';
 import 'feedback/talib_skeleton.dart';
+import 'khatm/khatm_goal_card_3d.dart';
+import 'khatm/khatm_sheet_parts.dart';
+import '../utils/digits.dart';
 
 /// (content_type, book_ref, label, total_units) — the fixed set of
 /// content this planner currently knows how to track. Add a row here when
@@ -122,6 +124,7 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   // saved if the user leaves it untouched — only an explicitly emptied
   // field falls back to the auto-derived label.
   int? selectedColorIndex;
+  var coverStyle = MushafCoverStyle.shamsa;
   final nameController = TextEditingController(
     text: '${basicText('khatm_default_name_prefix', lang)} - ${formatDateForDisplay(hijriDateStringForDate(DateTime.now()))}',
   );
@@ -158,321 +161,414 @@ Future<void> openNewCompletionGoalSheet(BuildContext context, {VoidCallback? onC
   TimeOfDay reminderTime = const TimeOfDay(hour: 20, minute: 0);
 
   if (!context.mounted) return;
+
+  // Ready-made plans for a Quran khatma — whole muṣḥaf, N days.
+  const presets = <(int days, String key)>[
+    (7, 'khatm_preset_week'),
+    (30, 'khatm_preset_month'),
+    (60, 'khatm_preset_2months'),
+    (90, 'khatm_preset_3months'),
+  ];
+  bool presetActive(int days) => isQuranRange(selected.$1) && durationDays == days && juzRange == const RangeValues(1, 30);
+
+  Future<void> create(BuildContext context) async {
+    final (contentType, bookRef, _, totalUnits) = selected;
+    final typedName = nameController.text.trim();
+    int? startUnit;
+    int? endUnit;
+    if (isQuranRange(contentType)) {
+      final startJuz = juzRange.start.round();
+      final endJuz = juzRange.end.round();
+      final layoutRepo = MushafLayoutRepository();
+      startUnit = await layoutRepo.pageForJuz(startJuz);
+      // No juz 31 to derive the end from — the last mushaf page is a known
+      // constant, not another pageForJuz() call.
+      if (endJuz == 30) {
+        endUnit = 604;
+      } else {
+        final nextJuzStart = await layoutRepo.pageForJuz(endJuz + 1);
+        endUnit = nextJuzStart == null ? null : nextJuzStart - 1;
+      }
+      // A half-resolved range is worse than none — fall back to the full
+      // mushaf rather than storing a mismatched start/end pair.
+      if (startUnit == null || endUnit == null) {
+        startUnit = null;
+        endUnit = null;
+      }
+    }
+    if (!context.mounted) return;
+    // §2.3.7أ — "لا يُسمَح بالحفظ ما لم يتساويا بالضبط" (backstop; the
+    // session editor keeps it true for every ordinary edit).
+    if (sessionsEnabled && sessions.isNotEmpty) {
+      final distributed = sessions.fold<int>(0, (sum, s) => sum + s.units);
+      final target = estimatedDailyTarget();
+      if (distributed != target) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${basicText('khatm_distributed_label', lang)}: $distributed ${basicText('khatm_of_label', lang)} $target')),
+        );
+        return;
+      }
+    }
+    // The live summary at the top of the sheet replaced the old confirm
+    // dialog — the numbers are on screen the whole time.
+    final created = await repo.create(
+      contentType: contentType,
+      bookRef: bookRef,
+      totalUnits: totalUnits,
+      targetDate: hijriDateStringForDate(DateTime.now().add(Duration(days: durationDays < 1 ? 1 : durationDays))),
+      name: typedName.isEmpty ? null : typedName,
+      colorIndex: selectedColorIndex,
+      startUnit: startUnit,
+      endUnit: endUnit,
+      reminderEnabled: reminderEnabled,
+      reminderHour: reminderTime.hour,
+      reminderMinute: reminderTime.minute,
+    );
+    if (sessionsEnabled && sessions.isNotEmpty) {
+      await repo.replaceSessions(created.id, sessions);
+    }
+    await MushafCoverPrefs.set(created.id, coverStyle);
+    if (context.mounted) Navigator.pop(context);
+    onCreated?.call();
+  }
+
   await showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    backgroundColor: Colors.transparent,
     builder: (context) => StatefulBuilder(
-      builder: (context, setSheetState) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
-        // §2.3 field 8 pushed the wizard's total height (color+name+range+
-        // tahzeeb+duration+reminder+create button) past the screen when the
-        // keyboard is up for a text field near the bottom (confirmed live —
-        // a real, if small, RenderFlex overflow) — SingleChildScrollView,
-        // not a taller sheet: the fields don't need to shrink, only scroll.
-        child: SingleChildScrollView(child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(basicText('new_completion_plan_title', lang), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                for (var i = 0; i < kKhatmTabColors.length; i++)
-                  GestureDetector(
-                    onTap: () => setSheetState(() => selectedColorIndex = i),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(radius: 14, backgroundColor: kKhatmTabColors[i]),
-                        const SizedBox(height: 4),
-                        Container(
-                          width: 20,
-                          height: 2,
-                          color: selectedColorIndex == i ? AppColors.primary : Colors.transparent,
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(basicText('khatm_name_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-            const SizedBox(height: 4),
-            TextField(controller: nameController),
-            const SizedBox(height: 16),
-            if (lockedContentType == null)
-              DropdownButton<(String, String?, String, int)>(
-                isExpanded: true,
-                value: selected,
-                items: allOptions
-                    .map((o) => DropdownMenuItem(value: o, child: Text(_resolveOptionLabel(o.$3, lang), overflow: TextOverflow.ellipsis)))
-                    .toList(),
-                onChanged: (v) => setSheetState(() => selected = v!),
-              ),
-            if (lockedContentType == null && personalOptions.isEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  basicText('add_library_book_hint', lang),
-                  style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
-                ),
-              ),
-            if (isQuranRange(selected.$1)) ...[
-              const SizedBox(height: 16),
-              Text(
-                '${basicText('khatm_range_field_label', lang)}: ${basicText('juz_label', lang)} ${juzRange.start.round()} → ${basicText('juz_label', lang)} ${juzRange.end.round()}',
-                style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-              ),
-              RangeSlider(
-                min: 1,
-                max: 30,
-                divisions: 29,
-                labels: RangeLabels('${juzRange.start.round()}', '${juzRange.end.round()}'),
-                values: juzRange,
-                onChanged: (v) => setSheetState(() => juzRange = v),
-              ),
-              Row(
+      builder: (context, setSheetState) {
+        final accent = kKhatmTabColors[selectedColorIndex ?? 0];
+        final days = durationDays < 1 ? 1 : durationDays;
+        final perDay = estimatedDailyTarget();
+        final unit = isQuranRange(selected.$1) ? basicText('page_label', lang) : basicText('khatm_unit_generic', lang);
+        final endDate = formatDateForDisplay(hijriDateStringForDate(DateTime.now().add(Duration(days: days))));
+
+        void setDays(int d) {
+          durationDays = d.clamp(1, 3650);
+          durationController.text = '$durationDays';
+        }
+
+        return Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.92),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          decoration: const BoxDecoration(
+            color: Color(0xFFF7F3EC),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(basicText('khatm_tahzeeb_toggle_label', lang), style: const TextStyle(fontSize: 13)),
-                      value: tahzeebEnabled,
-                      onChanged: (v) => setSheetState(() {
-                        tahzeebEnabled = v;
-                        // A convenience fill, not a lock — both stay
-                        // freely editable afterward (per instruction).
-                        if (v) {
-                          juzRange = const RangeValues(1, 30);
-                          durationDays = 7;
-                          durationController.text = '7';
-                        }
-                      }),
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(2)),
                     ),
                   ),
-                  IconButton(
-                    tooltip: basicText('khatm_tahzeeb_info_tooltip', lang),
-                    icon: const Icon(Icons.info_outline, size: 20),
-                    onPressed: () => showDialog<void>(
-                      context: context,
-                      builder: (dialogContext) => AlertDialog(
-                        title: Text(basicText('khatm_tahzeeb_toggle_label', lang)),
-                        // Verbatim hadith citation + scholarly framing —
-                        // kept Arabic-only regardless of app language, same
-                        // as the classical book titles in
-                        // `_fixedGoalOptions`: real quoted/classical
-                        // content, not translatable UI chrome.
-                        content: const SingleChildScrollView(child: Text(_kTahzeebInfoText, style: TextStyle(fontSize: 13, height: 1.6))),
-                        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(basicText('onboarding_close', lang)))],
+                  const SizedBox(height: 12),
+                  // ── hero: the 3D muṣḥaf + the live summary ─────────────
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      gradient: LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [Color.lerp(accent, Colors.white, 0.86)!, Color.lerp(accent, Colors.white, 0.66)!],
+                      ),
+                      boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.25), blurRadius: 22, offset: const Offset(0, 10))],
+                    ),
+                    child: Row(children: [
+                      KhatmBook3D(color: accent, style: coverStyle, turn: '$durationDays-$selectedColorIndex-${coverStyle.index}'),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(basicText('new_completion_plan_title', lang),
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textMuted)),
+                          const SizedBox(height: 4),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: Text(
+                              '$perDay $unit',
+                              key: ValueKey(perDay),
+                              style: const TextStyle(fontSize: 30, height: 1.1, fontWeight: FontWeight.w900, color: AppColors.textDark),
+                            ),
+                          ),
+                          Text(basicText('khatm_per_day', lang),
+                              style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                          const SizedBox(height: 8),
+                          Row(children: [
+                            const Icon(Icons.flag_rounded, size: 15, color: AppColors.textMuted),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text('${basicText('khatm_confirm_end_label', lang)}: $endDate',
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                            ),
+                          ]),
+                        ]),
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(height: 14),
+                  if (lockedContentType == null)
+                    KhatmSection(
+                      icon: Icons.auto_stories_rounded,
+                      title: basicText('khatm_what_label', lang),
+                      child: DropdownButton<(String, String?, String, int)>(
+                        isExpanded: true,
+                        underline: const SizedBox.shrink(),
+                        value: selected,
+                        items: allOptions
+                            .map((o) => DropdownMenuItem(value: o, child: Text(_resolveOptionLabel(o.$3, lang), overflow: TextOverflow.ellipsis)))
+                            .toList(),
+                        onChanged: (v) => setSheetState(() => selected = v!),
+                      ),
+                    ),
+                  if (isQuranRange(selected.$1)) ...[
+                    // ── ready-made plans ─────────────────────────────────
+                    SizedBox(
+                      height: 92,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        clipBehavior: Clip.none,
+                        children: [
+                          for (final (d, key) in presets) ...[
+                            KhatmPresetCard(
+                              big: '$d',
+                              label: basicText(key, lang),
+                              selected: presetActive(d),
+                              accent: accent,
+                              onTap: () => setSheetState(() {
+                                juzRange = const RangeValues(1, 30);
+                                setDays(d);
+                                tahzeebEnabled = d == 7;
+                              }),
+                            ),
+                            const SizedBox(width: 10),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    KhatmSection(
+                      icon: Icons.layers_rounded,
+                      title: '${basicText('khatm_range_field_label', lang)}: ${basicText('juz_label', lang)} ${juzRange.start.round()} – ${juzRange.end.round()}',
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(activeTrackColor: accent, thumbColor: accent, trackHeight: 5),
+                          child: RangeSlider(
+                            min: 1,
+                            max: 30,
+                            divisions: 29,
+                            labels: RangeLabels('${juzRange.start.round()}', '${juzRange.end.round()}'),
+                            values: juzRange,
+                            onChanged: (v) => setSheetState(() => juzRange = v),
+                          ),
+                        ),
+                        Row(children: [
+                          Expanded(
+                            child: SwitchListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(basicText('khatm_tahzeeb_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+                              value: tahzeebEnabled,
+                              onChanged: (v) => setSheetState(() {
+                                tahzeebEnabled = v;
+                                // A convenience fill, not a lock.
+                                if (v) {
+                                  juzRange = const RangeValues(1, 30);
+                                  setDays(7);
+                                }
+                              }),
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: basicText('khatm_tahzeeb_info_tooltip', lang),
+                            icon: const Icon(Icons.info_outline, size: 20),
+                            onPressed: () => showDialog<void>(
+                              context: context,
+                              builder: (dialogContext) => AlertDialog(
+                                title: Text(basicText('khatm_tahzeeb_toggle_label', lang)),
+                                content: const SingleChildScrollView(child: Text(_kTahzeebInfoText, style: TextStyle(fontSize: 13, height: 1.6))),
+                                actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(basicText('onboarding_close', lang)))],
+                              ),
+                            ),
+                          ),
+                        ]),
+                      ]),
+                    ),
+                  ],
+                  if (lockedContentType == null && personalOptions.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(basicText('add_library_book_hint', lang), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    ),
+                  // ── length in days: a big stepper ────────────────────────
+                  KhatmSection(
+                    icon: Icons.calendar_month_rounded,
+                    title: basicText('khatm_duration_field_label', lang),
+                    child: Row(children: [
+                      _RoundStep(icon: Icons.remove_rounded, onTap: durationDays > 1 ? () => setSheetState(() => setDays(durationDays - 1)) : null),
+                      Expanded(
+                        child: Column(children: [
+                          SizedBox(
+                            width: 110,
+                            child: TextField(
+                              controller: durationController,
+                              textAlign: TextAlign.center,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [const AnyDigitsFormatter()],
+                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
+                              decoration: const InputDecoration(isDense: true, border: InputBorder.none),
+                              onChanged: (v) {
+                                final parsed = parseAnyDigits(v);
+                                if (parsed != null && parsed >= 1) setSheetState(() => durationDays = parsed);
+                              },
+                            ),
+                          ),
+                          Text(basicText('khatm_days_unit', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                        ]),
+                      ),
+                      _RoundStep(icon: Icons.add_rounded, onTap: () => setSheetState(() => setDays(durationDays + 1))),
+                    ]),
+                  ),
+                  // ── identity: colour + name ──────────────────────────────
+                  KhatmSection(
+                    icon: Icons.palette_outlined,
+                    title: basicText('khatm_name_field_label', lang),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                        for (var i = 0; i < kKhatmTabColors.length; i++)
+                          KhatmColorCoin(
+                            color: kKhatmTabColors[i],
+                            selected: (selectedColorIndex ?? 0) == i,
+                            onTap: () => setSheetState(() => selectedColorIndex = i),
+                          ),
+                      ]),
+                      const SizedBox(height: 14),
+                      // «تصميم الغلاف» — the person picks their muṣḥaf
+                      Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                        for (final st in MushafCoverStyle.values)
+                          MushafCoverChoice(
+                            color: accent,
+                            style: st,
+                            selected: coverStyle == st,
+                            onTap: () => setSheetState(() => coverStyle = st),
+                          ),
+                      ]),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: nameController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: true,
+                          fillColor: const Color(0xFFF7F3EC),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                        ),
+                      ),
+                    ]),
+                  ),
+                  // ── rhythm: sessions + reminder ──────────────────────────
+                  KhatmSection(
+                    icon: Icons.notifications_active_outlined,
+                    title: basicText('khatm_rhythm_label', lang),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      SwitchListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(basicText('khatm_session_distribution_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+                        value: sessionsEnabled,
+                        onChanged: (v) => setSheetState(() {
+                          sessionsEnabled = v;
+                          sessions = const [];
+                        }),
+                      ),
+                      if (sessionsEnabled)
+                        CompletionGoalSessionEditor(
+                          key: ValueKey(estimatedDailyTarget()),
+                          dailyTarget: estimatedDailyTarget(),
+                          onChanged: (next) => sessions = next,
+                        ),
+                      SwitchListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(basicText('khatm_reminder_toggle_label', lang), style: const TextStyle(fontSize: 13)),
+                        value: reminderEnabled,
+                        onChanged: (v) => setSheetState(() => reminderEnabled = v),
+                      ),
+                      if (reminderEnabled)
+                        ListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.access_time, size: 20),
+                          title: Text(basicText('khatm_reminder_time_label', lang), style: const TextStyle(fontSize: 13)),
+                          trailing: Text(reminderTime.format(context), style: const TextStyle(fontWeight: FontWeight.w800)),
+                          onTap: () async {
+                            final picked = await showTimePicker(context: context, initialTime: reminderTime);
+                            if (picked != null) setSheetState(() => reminderTime = picked);
+                          },
+                        ),
+                    ]),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    height: 56,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: LinearGradient(colors: [Color.lerp(accent, Colors.black, 0.1)!, accent]),
+                        boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.45), blurRadius: 18, offset: const Offset(0, 8))],
+                      ),
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () => create(context),
+                          child: Center(
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              const Icon(Icons.auto_awesome_rounded, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(basicText('create_plan_action', lang),
+                                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+                            ]),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-            ],
-            const SizedBox(height: 12),
-            Text(basicText('khatm_duration_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: durationDays > 1
-                      ? () => setSheetState(() {
-                            durationDays--;
-                            durationController.text = '$durationDays';
-                          })
-                      : null,
-                ),
-                SizedBox(
-                  width: 72,
-                  child: TextField(
-                    controller: durationController,
-                    textAlign: TextAlign.center,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
-                    decoration: const InputDecoration(isDense: true, contentPadding: EdgeInsets.symmetric(vertical: 8)),
-                    // A value < 1 (or an empty/unparsable field, since
-                    // digitsOnly already blocks "-") is silently ignored —
-                    // durationDays just keeps its last valid value rather
-                    // than crashing or accepting a bad plan length.
-                    onChanged: (v) {
-                      final parsed = int.tryParse(v);
-                      if (parsed != null && parsed >= 1) {
-                        setSheetState(() => durationDays = parsed);
-                      }
-                    },
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: () => setSheetState(() {
-                    durationDays++;
-                    durationController.text = '$durationDays';
-                  }),
-                ),
-              ],
             ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(basicText('khatm_session_distribution_toggle_label', lang), style: const TextStyle(fontSize: 13)),
-              value: sessionsEnabled,
-              onChanged: (v) => setSheetState(() {
-                sessionsEnabled = v;
-                sessions = const [];
-              }),
-            ),
-            if (sessionsEnabled)
-              CompletionGoalSessionEditor(
-                // A fresh estimate — and a fresh pattern-choice screen —
-                // every time the range/duration changes; see
-                // `estimatedDailyTarget()`'s own doc comment for why a
-                // session list can't silently survive that.
-                key: ValueKey(estimatedDailyTarget()),
-                dailyTarget: estimatedDailyTarget(),
-                onChanged: (next) => sessions = next,
-              ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(basicText('khatm_reminder_toggle_label', lang), style: const TextStyle(fontSize: 13)),
-              value: reminderEnabled,
-              onChanged: (v) => setSheetState(() => reminderEnabled = v),
-            ),
-            if (reminderEnabled)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.access_time, size: 20),
-                title: Text(basicText('khatm_reminder_time_label', lang), style: const TextStyle(fontSize: 13)),
-                trailing: Text(reminderTime.format(context), style: const TextStyle(fontWeight: FontWeight.w700)),
-                onTap: () async {
-                  final picked = await showTimePicker(context: context, initialTime: reminderTime);
-                  if (picked != null) setSheetState(() => reminderTime = picked);
-                },
-              ),
-            const SizedBox(height: 20),
-            FilledButton(
-              onPressed: () async {
-                final (contentType, bookRef, _, totalUnits) = selected;
-                final typedName = nameController.text.trim();
-                int? startUnit;
-                int? endUnit;
-                if (isQuranRange(contentType)) {
-                  final startJuz = juzRange.start.round();
-                  final endJuz = juzRange.end.round();
-                  final layoutRepo = MushafLayoutRepository();
-                  startUnit = await layoutRepo.pageForJuz(startJuz);
-                  // No juz 31 to derive the end from — the last mushaf page
-                  // is a known constant, not another pageForJuz() call.
-                  if (endJuz == 30) {
-                    endUnit = 604;
-                  } else {
-                    final nextJuzStart = await layoutRepo.pageForJuz(endJuz + 1);
-                    endUnit = nextJuzStart == null ? null : nextJuzStart - 1;
-                  }
-                  // A half-resolved range (one lookup failed) is worse than
-                  // none — fall back to the full mushaf rather than storing
-                  // a mismatched start/end pair.
-                  if (startUnit == null || endUnit == null) {
-                    startUnit = null;
-                    endUnit = null;
-                  }
-                }
-                // §2.3 field 9 — a pre-save summary, computed with the exact
-                // same math `repo.create` itself uses (`effectiveTotalUnits`/
-                // `dailyTarget`) so the numbers shown here never drift from
-                // what actually gets saved.
-                final days = durationDays < 1 ? 1 : durationDays;
-                final targetDate = hijriDateStringForDate(DateTime.now().add(Duration(days: days)));
-                final effectiveTotalUnits = (startUnit != null && endUnit != null) ? (endUnit - startUnit + 1) : totalUnits;
-                final previewGoal = CompletionGoal(
-                  id: 0,
-                  contentType: contentType,
-                  bookRef: bookRef,
-                  totalUnits: effectiveTotalUnits,
-                  startDate: hijriDateStringForDate(DateTime.now()),
-                  targetDate: targetDate,
-                  dailyTarget: effectiveTotalUnits / days,
-                  status: 'active',
-                  name: typedName.isEmpty ? null : typedName,
-                );
-                if (!context.mounted) return;
-                // §2.3.7أ — "لا يُسمَح بالحفظ ما لم يتساويا بالضبط". The
-                // editor's own rebalancing keeps this true by construction
-                // for every ordinary edit; this is only a backstop for the
-                // one edge it can't fully absorb (a session pushed high
-                // enough that the last session's clamp-at-zero can't take
-                // the whole difference back out).
-                if (sessionsEnabled && sessions.isNotEmpty) {
-                  final distributed = sessions.fold<int>(0, (sum, s) => sum + s.units);
-                  final target = estimatedDailyTarget();
-                  if (distributed != target) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${basicText('khatm_distributed_label', lang)}: $distributed ${basicText('khatm_of_label', lang)} $target')),
-                    );
-                    return;
-                  }
-                }
-                final reminderSummary = reminderEnabled ? reminderTime.format(context) : basicText('reminder_off_label', lang);
-                final confirmed = await showDialog<bool>(
-                  context: context,
-                  builder: (dialogContext) => AlertDialog(
-                    title: Text(basicText('khatm_confirm_dialog_title', lang)),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(previewGoal.displayLabelFor(lang), style: const TextStyle(fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 10),
-                        Text('${basicText('khatm_confirm_start_label', lang)}: ${formatDateForDisplay(previewGoal.startDate)}'),
-                        Text('${basicText('khatm_confirm_end_label', lang)}: ${formatDateForDisplay(targetDate)}'),
-                        Text('${basicText('khatm_confirm_daily_label', lang)}: ${previewGoal.dailyTarget.toStringAsFixed(1)} ${previewGoal.unitLabel}'),
-                        Text('${basicText('khatm_reminder_toggle_label', lang)}: $reminderSummary'),
-                        const SizedBox(height: 12),
-                        Text(basicText('khatm_confirm_question', lang)),
-                      ],
-                    ),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: Text(basicText('cancel_action', lang))),
-                      FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: Text(basicText('create_plan_action', lang))),
-                    ],
-                  ),
-                );
-                if (confirmed != true) return;
-                final created = await repo.create(
-                  contentType: contentType,
-                  bookRef: bookRef,
-                  totalUnits: totalUnits,
-                  targetDate: hijriDateStringForDate(DateTime.now().add(Duration(days: durationDays < 1 ? 1 : durationDays))),
-                  name: typedName.isEmpty ? null : typedName,
-                  colorIndex: selectedColorIndex,
-                  startUnit: startUnit,
-                  endUnit: endUnit,
-                  reminderEnabled: reminderEnabled,
-                  reminderHour: reminderTime.hour,
-                  reminderMinute: reminderTime.minute,
-                );
-                if (sessionsEnabled && sessions.isNotEmpty) {
-                  await repo.replaceSessions(created.id, sessions);
-                }
-                if (context.mounted) Navigator.pop(context);
-                onCreated?.call();
-              },
-              child: Text(basicText('create_plan_action', lang)),
-            ),
-          ],
-        )),
-      ),
+          ),
+        );
+      },
     ),
   );
+}
+
+class _RoundStep extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  const _RoundStep({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: const Color(0xFFF7F3EC),
+        shape: const CircleBorder(),
+        elevation: onTap == null ? 0 : 2,
+        shadowColor: Colors.black26,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(padding: const EdgeInsets.all(12), child: Icon(icon, color: onTap == null ? Colors.black26 : AppColors.textDark)),
+        ),
+      );
 }
 
 /// §2.6 — the goal-identity edit (✎) mini-dialog: colour + name + reminder
@@ -488,6 +584,9 @@ Future<void> openEditGoalSheet(BuildContext context, CompletionGoal goal, {VoidC
   final nameController = TextEditingController(text: goal.name ?? '');
   bool reminderEnabled = goal.reminderEnabled;
   TimeOfDay reminderTime = TimeOfDay(hour: goal.reminderHour ?? 20, minute: goal.reminderMinute ?? 0);
+  final isMushaf = _isPageBasedGoal(goal.contentType);
+  var coverStyle = await MushafCoverPrefs.get(goal.id);
+  if (!context.mounted) return;
 
   await showModalBottomSheet(
     context: context,
@@ -527,6 +626,18 @@ Future<void> openEditGoalSheet(BuildContext context, CompletionGoal goal, {VoidC
                   ),
               ],
             ),
+            if (isMushaf) ...[
+              const SizedBox(height: 16),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+                for (final st in MushafCoverStyle.values)
+                  MushafCoverChoice(
+                    color: kKhatmTabColors[(selectedColorIndex ?? 0) % kKhatmTabColors.length],
+                    style: st,
+                    selected: coverStyle == st,
+                    onTap: () => setSheetState(() => coverStyle = st),
+                  ),
+              ]),
+            ],
             const SizedBox(height: 16),
             Text(basicText('khatm_name_field_label', lang), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
             const SizedBox(height: 4),
@@ -560,6 +671,7 @@ Future<void> openEditGoalSheet(BuildContext context, CompletionGoal goal, {VoidC
                   reminderHour: reminderTime.hour,
                   reminderMinute: reminderTime.minute,
                 );
+                if (isMushaf) await MushafCoverPrefs.set(goal.id, coverStyle);
                 if (context.mounted) Navigator.pop(context);
                 onSaved?.call();
               },
@@ -610,7 +722,17 @@ class CompletionGoalListView extends StatefulWidget {
   /// no live reader context) just leaves every card's field blank.
   final int? currentPageHint;
 
-  const CompletionGoalListView({super.key, this.contentTypeFilter, this.showStripeAndPercent = false, this.currentPageHint});
+  /// Opens the muṣḥaf on a page («تابع القراءة» on a Quran khatma). Null
+  /// hides that button (e.g. no reader to open from here).
+  final ValueChanged<int>? onOpenPage;
+
+  const CompletionGoalListView({
+    super.key,
+    this.contentTypeFilter,
+    this.showStripeAndPercent = false,
+    this.currentPageHint,
+    this.onOpenPage,
+  });
 
   @override
   State<CompletionGoalListView> createState() => CompletionGoalListViewState();
@@ -621,6 +743,7 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
   final _notificationService = NotificationService();
   List<CompletionGoalStatus> _statuses = [];
   bool _loading = true;
+  Map<int, MushafCoverStyle> _covers = const {};
 
   @override
   void initState() {
@@ -644,8 +767,10 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
       statuses.sort((a, b) => a.goal.id.compareTo(b.goal.id));
     }
     await _syncReminders(statuses);
+    final covers = await MushafCoverPrefs.getAll(statuses.map((s) => s.goal.id));
     if (!mounted) return;
     setState(() {
+      _covers = covers;
       _statuses = statuses;
       _loading = false;
     });
@@ -757,6 +882,24 @@ class CompletionGoalListViewState extends State<CompletionGoalListView> {
       child: Column(
         children: [
           for (var i = 0; i < _statuses.length; i++)
+            if (_isPageBasedGoal(_statuses[i].goal.contentType))
+              KhatmGoalCard3D(
+                key: ValueKey('khatm3d-${_statuses[i].goal.id}'),
+                status: _statuses[i],
+                color: kKhatmTabColors[(_statuses[i].goal.colorIndex ?? i) % kKhatmTabColors.length],
+                coverStyle: _covers[_statuses[i].goal.id] ?? MushafCoverStyle.shamsa,
+                title: _GoalTitle(goal: _statuses[i].goal),
+                currentPageHint: widget.currentPageHint,
+                onOpenPage: _statuses[i].goal.contentType == 'quran_reading' ? widget.onOpenPage : null,
+                onRecordProgress: (page) => _recordProgress(_statuses[i], page),
+                onEdit: () => openEditGoalSheet(context, _statuses[i].goal, onSaved: reload),
+                onWerdList: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => CompletionGoalWerdList(goal: _statuses[i].goal)),
+                ),
+                onReschedule: () => _reschedule(_statuses[i]),
+                onDelete: () => _confirmAndDelete(_statuses[i]),
+              )
+            else
             _GoalCard(
               status: _statuses[i],
               // grain 3.1 — an explicit `color_index` chosen at creation
@@ -832,7 +975,7 @@ class _GoalCardState extends State<_GoalCard> {
       };
 
   void _confirmPosition() {
-    final parsed = int.tryParse(_pageController.text.trim());
+    final parsed = parseAnyDigits(_pageController.text);
     // An empty/unparsable/negative entry is silently ignored — same
     // no-crash-on-bad-input treatment as the wizard's duration field.
     if (parsed != null && parsed >= 0) widget.onRecordProgress(parsed);
@@ -914,7 +1057,7 @@ class _GoalCardState extends State<_GoalCard> {
           TextField(
             controller: _pageController,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: [const AnyDigitsFormatter()],
             style: const TextStyle(fontSize: 13),
             decoration: InputDecoration(
               isDense: true,

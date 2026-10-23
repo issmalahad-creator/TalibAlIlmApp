@@ -52,12 +52,17 @@ Future<Object?> showWordKnowledgeSurface(
   return _show(context, child: _WordSurface(selection: selection, lang: lang));
 }
 
+/// [openTranslation] opens on the «الترجمة» tab instead of «التفسير» — the
+/// reader's ayah menu offers both as separate entries.
 Future<Object?> showAyahKnowledgeSurface(
   BuildContext context, {
   required QuranSelection selection,
   required String lang,
+  bool openTranslation = false,
 }) {
-  return _show(context, child: _AyahSurface(selection: selection, lang: lang));
+  return _show(context,
+      child: _AyahSurface(
+          selection: selection, lang: lang, openTranslation: openTranslation));
 }
 
 Future<Object?> _show(BuildContext context, {required Widget child}) {
@@ -605,7 +610,9 @@ class _WordSurfaceState extends State<_WordSurface> {
 class _AyahSurface extends StatefulWidget {
   final QuranSelection selection;
   final String lang;
-  const _AyahSurface({required this.selection, required this.lang});
+  final bool openTranslation;
+  const _AyahSurface(
+      {required this.selection, required this.lang, this.openTranslation = false});
 
   @override
   State<_AyahSurface> createState() => _AyahSurfaceState();
@@ -619,7 +626,8 @@ class _AyahSurfaceState extends State<_AyahSurface> {
   final _corpusRepo = QuranCorpusRepository();
   KnowledgeResult? _result;
   String? _ayahText;
-  _AyahSeg _seg = _AyahSeg.tafsir;
+  late _AyahSeg _seg =
+      widget.openTranslation ? _AyahSeg.translation : _AyahSeg.tafsir;
   bool _hasAsbab = false;
 
   int get surah => widget.selection.surah;
@@ -649,9 +657,9 @@ class _AyahSurfaceState extends State<_AyahSurface> {
   /// when that's the tab the user was on). Deep reading never happens
   /// inside the surface.
   void _openAyahPage({int? bookId}) {
-    Navigator.pop(context);
-    Navigator.push(
-      context,
+    // The sheet's context dies with pop — keep its navigator first.
+    final nav = Navigator.of(context)..pop();
+    nav.push(
       MaterialPageRoute(
         builder: (_) => AyahStudyScreen(
           surah: surah,
@@ -873,9 +881,9 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           lang: lang,
           onOpenFull: _openAyahPage,
           onTopicTap: (id, name) {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
+            // The sheet's context dies with pop — keep its navigator first.
+            final nav = Navigator.of(context)..pop();
+            nav.push(
               MaterialPageRoute(
                 builder: (_) => TopicIndexScreen(topicId: id, title: name),
               ),
@@ -893,9 +901,9 @@ class _AyahSurfaceState extends State<_AyahSurface> {
               alignment: Alignment.centerRight,
               child: TextButton.icon(
                 onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
+                  // The sheet's context dies with pop — keep its navigator first.
+                  final nav = Navigator.of(context)..pop();
+                  nav.push(
                     MaterialPageRoute(
                       builder: (_) =>
                           AyahStudyScreen(surah: surah, ayah: ayah),
@@ -958,9 +966,9 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           onTap: tier == null
               ? null
               : () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
+                  // The sheet's context dies with pop — keep its navigator first.
+                  final nav = Navigator.of(context)..pop();
+                  nav.push(
                     MaterialPageRoute(
                         builder: (_) => TajweedTierScreen(tier: tier)),
                   );
@@ -1013,9 +1021,9 @@ class _AyahSurfaceState extends State<_AyahSurface> {
           Expanded(
             child: FilledButton.icon(
               onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
+                // The sheet's context dies with pop — keep its navigator first.
+                final nav = Navigator.of(context)..pop();
+                nav.push(
                   MaterialPageRoute(
                     builder: (_) =>
                         AyahNotebookScreen(surah: surah, ayah: ayah),
@@ -1036,18 +1044,18 @@ class _AyahSurfaceState extends State<_AyahSurface> {
             tooltip: basicText('usul_tree_title', lang),
             icon: const Icon(Icons.account_tree_outlined, color: _kGold),
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
+              // The sheet's context dies with pop — keep its navigator first.
+              final nav = Navigator.of(context)..pop();
+              nav.push(
                 MaterialPageRoute(builder: (_) => UsulTreeScreen(surah: surah, ayah: ayah)),
               );
             },
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
+              // The sheet's context dies with pop — keep its navigator first.
+              final nav = Navigator.of(context)..pop();
+              nav.push(
                 MaterialPageRoute(
                   builder: (_) => IrabViewScreen(surah: surah, ayah: ayah),
                 ),

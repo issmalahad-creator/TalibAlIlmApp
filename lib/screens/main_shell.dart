@@ -18,7 +18,10 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
 
-  void _goToTab(int i) => setState(() => _index = i);
+  void _goToTab(int i) {
+    if (i == 0 && _index != 0) homeRefreshTick.value++;
+    setState(() => _index = i);
+  }
 
   late final _tabs = [
     const HomeScreen(),

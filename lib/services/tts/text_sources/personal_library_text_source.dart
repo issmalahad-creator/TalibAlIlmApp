@@ -76,7 +76,8 @@ class PersonalLibraryTextSource implements ReadableTextSource {
     if (await file.exists() && await file.length() > 0) return file;
 
     await file.parent.create(recursive: true);
-    final response = await http.get(Uri.parse(pdfUrl!));
+    // a dead connection must fail, not hang the audio reader forever
+    final response = await http.get(Uri.parse(pdfUrl!)).timeout(const Duration(minutes: 3));
     if (response.statusCode != 200) {
       throw StateError('تعذّر تنزيل "$bookTitle" (HTTP ${response.statusCode})');
     }

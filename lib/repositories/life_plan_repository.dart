@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../data/life_plan_seed.dart';
 import '../db/database_helper.dart';
 import '../models/life_plan.dart';
+import '../utils/calendar_days.dart';
 
 /// «مُحرّك الحياة» — L1 (`docs/LIFE_ENGINE.md`). The continuous daily engine
 /// over `life_pillars` / `life_slots` / `life_day_slots` (migration v55).
@@ -74,9 +75,7 @@ class LifePlanRepository {
   Future<int> dayIndex([DateTime? on]) async {
     final start = await startDate();
     final d = on ?? DateTime.now();
-    return DateTime(d.year, d.month, d.day)
-        .difference(DateTime(start.year, start.month, start.day))
-        .inDays;
+    return calendarDaysBetween(start, d);
   }
 
   // ── structure ────────────────────────────────────────────────────────
@@ -686,13 +685,45 @@ class LifePlanRepository {
 
   /// Average whole‑day percent over the last [days] days ending today.
   Future<double> rollingAverage(int days) async {
+    if (days <= 0) return 0;
     final now = DateTime.now();
+    final byDate = await _dayTotals(ymd(addCalendarDays(now, -(days - 1))), ymd(now));
     var sum = 0.0;
     for (var i = 0; i < days; i++) {
-      final d = now.subtract(Duration(days: i));
-      sum += (await progress(ymd(d))).percent;
+      sum += byDate[ymd(addCalendarDays(now, -i))]?.percent ?? 0.0;
     }
-    return days == 0 ? 0 : sum / days;
+    return sum / days;
+  }
+
+  /// Per date in `[from, to]`: the same whole‑day percent and done count
+  /// [progress] gives (each current slot clamped to 0..1, rows of deleted
+  /// slots ignored), in ONE query — [rollingAverage] and [streak] used to
+  /// call [progress] once per day, several thousand queries for a user a
+  /// year in.
+  Future<Map<String, ({double percent, int doneCount})>> _dayTotals(String from, String to) async {
+    final all = await slots();
+    if (all.isEmpty) return {};
+    final live = {for (final s in all) s.slotNo};
+    final db = await _db;
+    final rows = await db.query('life_day_slots',
+        columns: ['date', 'slot_no', 'done', 'progress'],
+        where: 'date BETWEEN ? AND ?',
+        whereArgs: [from, to]);
+    final sum = <String, double>{};
+    final done = <String, int>{};
+    for (final r in rows) {
+      if (!live.contains((r['slot_no'] as num).toInt())) continue;
+      final p = ((r['progress'] as num?)?.toDouble() ??
+              (((r['done'] as num?)?.toInt() ?? 0) == 1 ? 1.0 : 0.0))
+          .clamp(0.0, 1.0);
+      final d = r['date'] as String;
+      sum[d] = (sum[d] ?? 0) + p;
+      if (p >= 1.0) done[d] = (done[d] ?? 0) + 1;
+    }
+    return {
+      for (final d in sum.keys)
+        d: (percent: (sum[d]! / all.length).clamp(0.0, 1.0), doneCount: done[d] ?? 0),
+    };
   }
 
   /// Consecutive days (ending today, or yesterday if today is still empty)
@@ -705,13 +736,13 @@ class LifePlanRepository {
     final gracePerWeek =
         int.tryParse(await meta('grace_per_week') ?? '') ?? 1;
     final now = DateTime.now();
+    final byDate = await _dayTotals(ymd(addCalendarDays(now, -400)), ymd(now));
     final startIdx =
-        (await progress(ymd(now))).doneCount > 0 ? 0 : 1; // skip an empty today
+        (byDate[ymd(now)]?.doneCount ?? 0) > 0 ? 0 : 1; // skip an empty today
     var count = 0;
     final graceDates = <int>[];
     for (var i = startIdx; i < 400; i++) {
-      final d = now.subtract(Duration(days: i));
-      final pct = (await progress(ymd(d))).percent;
+      final pct = byDate[ymd(addCalendarDays(now, -i))]?.percent ?? 0.0;
       if (pct >= threshold) {
         count++;
         continue;

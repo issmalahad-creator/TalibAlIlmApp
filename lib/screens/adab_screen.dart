@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../data/adab_lessons_seed.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// "باب الأدب" — Ismail's request 2026-08-15. Two curated lesson sets:
 /// character/manners, and the value of staying close to the Quran daily.
@@ -13,15 +20,15 @@ class AdabScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('باب الأدب')),
+      appBar: AppBar(title: Text(_t('x_adab_title'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('حسن الخلق والأدب', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+          Text(_t('x_adab_khuluq'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           ...adabLessonsSeed.map((l) => _LessonCard(lesson: l)),
           const SizedBox(height: 24),
-          const Text('قيمة القرب من القرآن', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+          Text(_t('x_adab_quran'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
           const SizedBox(height: 10),
           ...quranVirtueLessonsSeed.map((l) => _LessonCard(lesson: l)),
         ],

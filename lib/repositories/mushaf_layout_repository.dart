@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
@@ -135,6 +136,110 @@ class MushafLayoutRepository {
     ''', [juz]);
     final p = rows.isEmpty ? null : rows.first['p'];
     return p == null ? null : (p as num).toInt();
+  }
+
+  /// The MushafDatabase page a ḥizb (1..60) starts on — via
+  /// `quran_ayat.hizb_number` (Tanzil quarters, v39), like [pageForJuz].
+  Future<int?> pageForHizb(int hizb) async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT MIN(mw.page) AS p
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE qa.hizb_number = ?
+    ''', [hizb]);
+    final p = rows.isEmpty ? null : rows.first['p'];
+    return p == null ? null : (p as num).toInt();
+  }
+
+  /// Every surah's first MushafDatabase page in one query (the index list).
+  Future<Map<int, int>> surahStartPages() async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+        'SELECT surah, MIN(page) AS p FROM mushaf_words GROUP BY surah');
+    return {
+      for (final r in rows)
+        (r['surah'] as num).toInt(): (r['p'] as num).toInt(),
+    };
+  }
+
+  /// The ayat on a MushafDatabase page, in reading order.
+  Future<List<({int surah, int ayah})>> ayatOnPage(int page) async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT surah, ayah, MIN(word_order) AS o FROM mushaf_words
+      WHERE page = ? GROUP BY surah, ayah ORDER BY o
+    ''', [page]);
+    return [for (final r in rows) (surah: (r['surah'] as num).toInt(), ayah: (r['ayah'] as num).toInt())];
+  }
+
+  /// The 240 rubʿ al-ḥizb boundaries `(surah, ayah)` in muṣḥaf order, from
+  /// the bundled Tanzil `QuranData.HizbQaurter` (the same source the ḥizb
+  /// numbers came from). Parsed once.
+  static List<(int, int)>? _quarters;
+  Future<List<(int, int)>> _quarterBoundaries() async {
+    if (_quarters != null) return _quarters!;
+    final raw = await rootBundle.loadString('assets/quran/quran-data.js');
+    final start = raw.indexOf('QuranData.HizbQaurter = [');
+    final block = raw.substring(start, raw.indexOf('];', start));
+    return _quarters = [
+      for (final m in RegExp(r'\[\s*(\d+)\s*,\s*(\d+)\s*\]').allMatches(block))
+        (int.parse(m.group(1)!), int.parse(m.group(2)!)),
+    ];
+  }
+
+  /// The pages a juzʼ's 8 quarters start on (rubʿ 1..8; 4 = ½ ḥizb… 5 =
+  /// second ḥizb), resolved by ayah → MushafDatabase page.
+  Future<List<int>> quarterStartPages(int juz) async {
+    final q = await _quarterBoundaries();
+    final out = <int>[];
+    for (var i = (juz - 1) * 8; i < juz * 8 && i < q.length; i++) {
+      final p = await pageForAyah(q[i].$1, q[i].$2);
+      if (p != null) out.add(p);
+    }
+    return out;
+  }
+
+  /// The first few words of a page as printed (its «مطلع»), for previews.
+  Future<String> openingWords(int page, {int count = 4}) async {
+    final db = await _db;
+    final rows = await db.query('mushaf_words',
+        columns: ['text_uthmani'],
+        where: "page = ? AND word_type = 'text'",
+        whereArgs: [page],
+        orderBy: 'word_order',
+        limit: count);
+    return rows.map((r) => r['text_uthmani'] as String).join(' ');
+  }
+
+  /// Every ḥizb's (1..60) first MushafDatabase page in one query.
+  Future<Map<int, int>> hizbStartPages() async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT qa.hizb_number AS h, MIN(mw.page) AS p
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE qa.hizb_number IS NOT NULL
+      GROUP BY qa.hizb_number
+    ''');
+    return {
+      for (final r in rows) (r['h'] as num).toInt(): (r['p'] as num).toInt(),
+    };
+  }
+
+  /// Every juzʼ's first MushafDatabase page in one query (the index list).
+  Future<Map<int, int>> juzStartPages() async {
+    final db = await _db;
+    final rows = await db.rawQuery('''
+      SELECT qa.juz_number AS j, MIN(mw.page) AS p
+      FROM mushaf_words mw
+      JOIN quran_ayat qa ON qa.surah = mw.surah AND qa.ayah = mw.ayah
+      WHERE qa.juz_number IS NOT NULL
+      GROUP BY qa.juz_number
+    ''');
+    return {
+      for (final r in rows) (r['j'] as num).toInt(): (r['p'] as num).toInt(),
+    };
   }
 
   /// The page a `(surah, ayah)` reference should open on. Falls back to the

@@ -54,6 +54,7 @@ description: >-
 | `docs/quran/QURAN_WORD_ALIGNMENT_REPORT.md` | تقرير مطابقة Tanzil↔MushafDatabase | تقرير منجَز |
 | `docs/quran/MUSHAF_RECTO_VERSO_DIAGNOSIS.md` | تشخيص وجهي الصفحة | تقرير |
 | `docs/quran/QURAN_UNIFIED_READER_P0_STATUS.md` | حالة القارئ الموحَّد P0 | تقرير حالة |
+| `docs/quran/READER_WORK_MAP.md` | خريطة عمل شاشة القراءة ب3 (R1–R8: الوضعان، التكبير، نافذة الآية، القائمة، الفهرس/البحث، آخر صفحة، التصفح التلقائي، العلامات الملوّنة، لون المصحف، تكرار الآية، «املأ الصفحة») — ما أُنجز وما التالي | خريطة عمل حيّة |
 | `docs/MUSHAF_DATABASE_INTEGRATION_DESIGN.md` | تصميم دمج MushafDatabase | تصميم |
 | `docs/MUSHAF_SEMANTIC_LAYER.md` | الطبقة الدلالية فوق هندسة المصحف | تصميم |
 
@@ -77,6 +78,7 @@ description: >-
 | `docs/QURAN_DATA_VALIDATION.md` | قواعد تحقّق بيانات التعلّم | ملحق |
 | `docs/quran/QURAN_DATA_VERIFICATION_TASKS.md` | نتائج فحص التراخيص | تقرير |
 | `docs/quran/USUL_TAFSIR_TREE.md` | شجرة أصول التفسير للآية (التمهير): عقد = `knowledge_concepts`، أجوبة الآية = `knowledge_facts`، الجديد فقط `knowledge_relations`؛ يصحّح `docs/ISLAMIC_KNOWLEDGE_GRAPH_PLAN.md` | تصميم مُعتمَد المبدأ (2026-09-26)، لم يُبنَ |
+| `docs/KNOWLEDGE_TREE_ZAD_PLAN.md` | شجرة العلم المتصلة (زاد المستقنع + بلوغ المرام): عقدة ← سلسلة (متن، شرح، دليل، آية، أقوال، درس) + المداخل والمخارج من الآية/الحديث؛ يوسّع جداول شجرة الأصول ويعمّم `UsulTreeScreen` إلى `KnowledgeTree3D`؛ و§8 قائمة 2D→3D للتطبيق | خطة فقط (2026-10-22)، تبدأ بـش0 |
 | `docs/quran/KNOWLEDGE.md` | خريطة متطلَّب→نموذج→مصدر حقيقة لكل نوع ميزة (R-1..R-17) | مرجعيّة أساسية |
 
 ### الأخلاق والآداب (AKHLAQ) — نظام تدريب كامل

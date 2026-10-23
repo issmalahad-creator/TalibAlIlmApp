@@ -40,6 +40,7 @@ class _ArabicReadingLessonScreenState extends State<ArabicReadingLessonScreen> {
     final key = 'reading_${h.nameAr}';
     if (_learned.contains(key)) return;
     await _repo.markLearned(key);
+    if (!mounted) return;
     setState(() => _learned = {..._learned, key});
   }
 

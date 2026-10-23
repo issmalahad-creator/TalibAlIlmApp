@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 import '../db/database_helper.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
+import '../utils/calendar_days.dart';
 
 enum ReviewQuality { excellent, good, needsReview }
 
@@ -57,7 +58,7 @@ class MemorizationUnit {
     if (memorizedDate == null) return HifzCategory.notStarted;
     final memorized = gregorianFromHijriDateTime(memorizedDate!, null);
     final today = asOf ?? DateTime.now();
-    final ageDays = DateTime(today.year, today.month, today.day).difference(DateTime(memorized.year, memorized.month, memorized.day)).inDays;
+    final ageDays = calendarDaysBetween(memorized, today);
     if (ageDays <= 0) return HifzCategory.sabaq;
     if (ageDays <= 15) return HifzCategory.sabqi;
     return HifzCategory.manzil;
@@ -72,6 +73,27 @@ class MemorizationRepository {
   static const _stationDays = [1, 3, 7, 14, 30, 60];
   static const _establishedRotationDays = 30;
   static const _needsReviewFallbackStation = 2;
+
+  /// The memorization unit holding (surah, ayah). Units are numbered by the
+  /// legacy `quran_ayat.page_number` pages, which don't line up with the
+  /// MushafDatabase pages the reader shows — so the reader resolves a page
+  /// to its unit through the page's first ayah, never by page number.
+  Future<int?> unitForAyah(int surah, int ayah) async {
+    final db = await DatabaseHelper.instance.database;
+    final key = surah * 1000 + ayah;
+    final rows = await db.rawQuery(
+      'SELECT id FROM memorization_units '
+      'WHERE surah_start * 1000 + ayah_start <= ? AND surah_end * 1000 + ayah_end >= ? LIMIT 1',
+      [key, key],
+    );
+    return rows.isEmpty ? null : rows.first['id'] as int;
+  }
+
+  Future<bool> isMemorized(int unitId) async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.query('memorization_progress', where: 'unit_id = ?', whereArgs: [unitId], limit: 1);
+    return rows.isNotEmpty;
+  }
 
   /// Marks a page as newly memorized today — starts it at station 1.
   Future<void> markMemorized(int unitId) async {
@@ -443,7 +465,7 @@ class MemorizationRepository {
     var longest = 1;
     var current = 1;
     for (var i = 1; i < days.length; i++) {
-      final gap = days[i].difference(days[i - 1]).inDays;
+      final gap = calendarDaysBetween(days[i - 1], days[i]);
       if (gap == 1) {
         current++;
         longest = current > longest ? current : longest;

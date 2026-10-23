@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../models/book_of_month.dart';
 import '../models/reading_record.dart';
 import '../repositories/book_repository.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 class QuizScreen extends StatefulWidget {
   final BookOfMonth book;
@@ -27,7 +34,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> _submit() async {
     if (_answers.any((a) => a == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى الإجابة على جميع الأسئلة')),
+        SnackBar(content: Text(_t('qz_answer_all'))),
       );
       return;
     }
@@ -46,6 +53,7 @@ class _QuizScreenState extends State<QuizScreen> {
         takenAt: DateTime.now().toIso8601String(),
       ),
     );
+    if (!mounted) return;
     setState(() {
       _submitted = true;
       _scorePercent = score;
@@ -56,7 +64,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget build(BuildContext context) {
     if (_submitted) {
       return Scaffold(
-        appBar: AppBar(title: const Text('نتيجة الاختبار')),
+        appBar: AppBar(title: Text(_t('qz_result'))),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -68,13 +76,13 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'نتيجتك: $_scorePercent%',
+                _t('qz_your_score').replaceAll('{n}', '$_scorePercent'),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('عودة'),
+                child: Text(_t('qz_back')),
               ),
             ],
           ),
@@ -83,7 +91,7 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('اختبار: ${widget.book.title}')),
+      appBar: AppBar(title: Text(_t('qz_book_quiz').replaceAll('{t}', widget.book.title))),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: widget.book.quiz.length,
@@ -125,7 +133,7 @@ class _QuizScreenState extends State<QuizScreen> {
           padding: const EdgeInsets.all(12),
           child: FilledButton(
             onPressed: _submit,
-            child: const Text('إرسال الإجابات'),
+            child: Text(_t('qz_submit')),
           ),
         ),
       ),

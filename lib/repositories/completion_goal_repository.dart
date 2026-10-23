@@ -6,6 +6,7 @@ import '../models/completion_goal_session.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 import 'mushaf_layout_repository.dart';
+import '../utils/calendar_days.dart';
 
 class CompletionGoal {
   final int id;
@@ -542,6 +543,6 @@ class CompletionGoalRepository {
   int _daysBetween(String hijriFrom, String hijriTo) {
     final from = gregorianFromHijriDateTime(hijriFrom, null);
     final to = gregorianFromHijriDateTime(hijriTo, null);
-    return to.difference(from).inDays;
+    return calendarDaysBetween(from, to);
   }
 }

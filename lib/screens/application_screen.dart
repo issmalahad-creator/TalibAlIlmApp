@@ -7,6 +7,10 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "التطبيق 🌱" — Phase 3 of QURAN_COMPANION_ROADMAP.md section 4.8. A
 /// short, concrete lesson from a surah the student has actually memorized,
 /// self-reported as applied — never graded, never verified.
@@ -60,7 +64,7 @@ class _ApplicationScreenState extends State<ApplicationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('التطبيق')),
+      appBar: AppBar(title: Text(_t('ql_block_application'))),
       body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage)) : _buildBody(),
     );
   }
@@ -68,11 +72,11 @@ class _ApplicationScreenState extends State<ApplicationScreen> {
   Widget _buildBody() {
     final lesson = _lesson;
     if (lesson == null) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Text(
-            'لا توجد دروس تطبيقية متاحة بعد لما حفظته — تُضاف تدريجيًا لسور جديدة',
+            _t('x_app_none'),
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textMuted),
           ),
@@ -99,7 +103,7 @@ class _ApplicationScreenState extends State<ApplicationScreen> {
                       child: Text(lesson.valueTag, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
                     ),
                     const Spacer(),
-                    Text('سورة ${_surahNames[lesson.surah] ?? lesson.surah}', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                    Text('${_t('surah_word')} ${_surahNames[lesson.surah] ?? lesson.surah}', style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -109,15 +113,15 @@ class _ApplicationScreenState extends State<ApplicationScreen> {
           ),
           const SizedBox(height: 16),
           if (_appliedToday)
-            const Text('طبّقت درسًا اليوم بالفعل 🌱', textAlign: TextAlign.center, style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.w700))
+            Text(_t('x_app_done_today'), textAlign: TextAlign.center, style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.w700))
           else ...[
             TextField(
               controller: _reflectionController,
               maxLines: 2,
-              decoration: const InputDecoration(hintText: 'كيف طبّقتها؟ (اختياري)', isDense: true),
+              decoration: InputDecoration(hintText: _t('x_app_how'), isDense: true),
             ),
             const SizedBox(height: 10),
-            FilledButton.icon(onPressed: _apply, icon: const Icon(Icons.check), label: const Text('طبّقتها اليوم')),
+            FilledButton.icon(onPressed: _apply, icon: const Icon(Icons.check), label: Text(_t('x_app_applied'))),
           ],
         ],
       ),

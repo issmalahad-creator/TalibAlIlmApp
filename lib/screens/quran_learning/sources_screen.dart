@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/basic_translations.dart';
 import '../../repositories/quran_corpus_repository.dart';
 import '../../services/language_preference_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/open_link.dart';
 
 /// Phase 80 / QC5a — «عن المصادر». Every dataset, book and edition the app
 /// bundles, with its attribution and licence. Licence-mandatory for the
@@ -61,10 +61,7 @@ class _SourcesScreenState extends State<SourcesScreen> {
   }
 
   Future<void> _open(String url) async {
-    final uri = Uri.tryParse(url);
-    if (uri != null) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
+    await openLink(context, url);
   }
 
   @override

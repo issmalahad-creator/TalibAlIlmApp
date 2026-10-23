@@ -9,6 +9,10 @@ import 'tajweed_resources_screen.dart';
 import 'tajweed_tier_screen.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "التجويد" — QURAN_COMPANION_ROADMAP.md Phase 11. Three tiers, each a
 /// full lesson set from day one (unlike the Arabic curriculum's phased
 /// build) — basic (makharij + noon sakinah rules), intermediate (meem
@@ -43,14 +47,14 @@ class _TajweedScreenState extends State<TajweedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('التجويد')),
+      appBar: AppBar(title: Text(_t('ql_domain_tajweed'))),
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                const Text(
-                  'ثلاثة مستويات — من مخارج الحروف الأساسية إلى أنواع المدّ وأحكام الوقف',
+                Text(
+                  _t('x_tajweed_sub'),
                   style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
                 ),
                 const SizedBox(height: 16),
@@ -73,7 +77,7 @@ class _TajweedScreenState extends State<TajweedScreen> {
                           const SizedBox(height: 6),
                           Text(tier.descriptionAr, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                           const SizedBox(height: 10),
-                          Text('$learnedCount من ${tier.rules.length}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                          Text(_t('x_n_of_total').replaceAll('{n}', '$learnedCount').replaceAll('{total}', '${tier.rules.length}'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
                         ],
                       ),
                     ),
@@ -83,7 +87,7 @@ class _TajweedScreenState extends State<TajweedScreen> {
                 OutlinedButton.icon(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TajweedResourcesScreen())),
                   icon: const Icon(Icons.menu_book_outlined),
-                  label: const Text('مصادر موصى بها للدراسة الأعمق'),
+                  label: Text(_t('x_resources_deeper')),
                 ),
               ],
             ),

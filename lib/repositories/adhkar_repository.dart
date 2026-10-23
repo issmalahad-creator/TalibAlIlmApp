@@ -34,7 +34,32 @@ class AdhkarItem {
   final String text;
   final String? footnote;
   final int repeatCount;
-  AdhkarItem({required this.id, required this.text, this.footnote, required this.repeatCount});
+
+  /// Morning/evening chapter only: 'both' | 'morning' | 'evening' (null
+  /// for every other chapter), and the evening wording when it differs.
+  final String? timeOfDay;
+  final String? eveningText;
+  AdhkarItem({required this.id, required this.text, this.footnote, required this.repeatCount, this.timeOfDay, this.eveningText});
+
+  static AdhkarItem fromRow(Map<String, Object?> r) => AdhkarItem(
+        id: r['id'] as int,
+        text: r['text'] as String,
+        footnote: r['footnote'] as String?,
+        repeatCount: r['repeat_count'] as int,
+        timeOfDay: r['time_of_day'] as String?,
+        eveningText: r['evening_text'] as String?,
+      );
+
+  /// This dhikr as read in [session] ('morning' | 'evening'), or null when
+  /// it isn't part of that session (e.g. «أعوذ بكلمات الله التامات» is
+  /// evening-only). Items outside the morning/evening chapter pass through.
+  AdhkarItem? forSession(String session) {
+    final when = timeOfDay;
+    if (when == null) return this;
+    if (when != 'both' && when != session) return null;
+    if (session != 'evening' || eveningText == null) return this;
+    return AdhkarItem(id: id, text: eveningText!, footnote: footnote, repeatCount: repeatCount, timeOfDay: timeOfDay, eveningText: eveningText);
+  }
 }
 
 /// Hisn al-Muslim daily adhkar — QURAN_COMPANION_ROADMAP.md Phase 5هـ. A
@@ -60,14 +85,7 @@ class AdhkarRepository {
   Future<List<AdhkarItem>> itemsFor(int categoryId) async {
     final db = await DatabaseHelper.instance.database;
     final rows = await db.query('adhkar_items', where: 'category_id = ?', whereArgs: [categoryId], orderBy: 'item_order');
-    return rows
-        .map((r) => AdhkarItem(
-              id: r['id'] as int,
-              text: r['text'] as String,
-              footnote: r['footnote'] as String?,
-              repeatCount: r['repeat_count'] as int,
-            ))
-        .toList();
+    return rows.map(AdhkarItem.fromRow).toList();
   }
 
   /// Fetches specific items by id, regardless of category — powers
@@ -79,14 +97,7 @@ class AdhkarRepository {
     final db = await DatabaseHelper.instance.database;
     final placeholders = List.filled(ids.length, '?').join(',');
     final rows = await db.query('adhkar_items', where: 'id IN ($placeholders)', whereArgs: ids);
-    return rows
-        .map((r) => AdhkarItem(
-              id: r['id'] as int,
-              text: r['text'] as String,
-              footnote: r['footnote'] as String?,
-              repeatCount: r['repeat_count'] as int,
-            ))
-        .toList();
+    return rows.map(AdhkarItem.fromRow).toList();
   }
 
   Future<bool> isCompletedToday(int categoryId) async {

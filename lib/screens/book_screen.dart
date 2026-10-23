@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/basic_translations.dart';
 import '../models/book_content.dart';
@@ -22,6 +21,7 @@ import 'personal_library_screen.dart';
 import 'quiz_screen.dart';
 import 'reading_stats_screen.dart';
 import '../widgets/loading_view.dart';
+import '../utils/open_link.dart';
 
 /// Books, their quizzes, and any extra materials — all fetched live from
 /// the Telegram-controlled content feed. Books accumulate (each `كتاب:`
@@ -43,7 +43,12 @@ class _BookScreenState extends State<BookScreen> {
   final _hiddenBooksService = HiddenBooksService();
   final _downloadService = DownloadedFileService();
   final _libraryService = PersonalLibraryService();
-  final _lang = LanguagePreferenceService.currentLanguage;
+  // Read live: these tabs stay mounted in MainShell's IndexedStack, so a
+  // value captured once never followed a language change in settings.
+  String get _lang => LanguagePreferenceService.currentLanguage;
+  void _onLanguage() {
+    if (mounted) setState(() {});
+  }
 
   BookContentFeed _feed = BookContentFeed.empty;
   Set<String> _hiddenIds = {};
@@ -67,20 +72,26 @@ class _BookScreenState extends State<BookScreen> {
   }
   List<BookEntry> get _hiddenBooks => _feed.books.where((b) => _hiddenIds.contains(b.id)).toList();
 
+  /// Looked up in the unfiltered list: when the search hid the selected
+  /// book this used to fall back to the first match, showing book B's title
+  /// with book A's progress and quiz — and the slider then wrote A's value
+  /// onto B.
   BookEntry? get _selectedBook {
-    final visible = _visibleBooks;
-    if (visible.isEmpty) return null;
-    return visible.firstWhere((b) => b.id == _selectedBookId, orElse: () => visible.first);
+    final shown = _feed.books.where((b) => !_hiddenIds.contains(b.id)).toList();
+    if (shown.isEmpty) return null;
+    return shown.firstWhere((b) => b.id == _selectedBookId, orElse: () => shown.first);
   }
 
   @override
   void initState() {
     super.initState();
+    LanguagePreferenceService.languageNotifier.addListener(_onLanguage);
     _load();
   }
 
   @override
   void dispose() {
+    LanguagePreferenceService.languageNotifier.removeListener(_onLanguage);
     _bookSearchController.dispose();
     super.dispose();
   }
@@ -121,6 +132,7 @@ class _BookScreenState extends State<BookScreen> {
 
   Future<void> _hideBook(BookEntry book) async {
     await _hiddenBooksService.hide(book.id);
+    if (!mounted) return;
     setState(() => _hiddenIds = {..._hiddenIds, book.id});
     if (_selectedBookId == book.id) {
       final visible = _visibleBooks;
@@ -132,6 +144,7 @@ class _BookScreenState extends State<BookScreen> {
 
   Future<void> _unhideBook(BookEntry book) async {
     await _hiddenBooksService.unhide(book.id);
+    if (!mounted) return;
     setState(() => _hiddenIds = {..._hiddenIds}..remove(book.id));
   }
 
@@ -231,11 +244,7 @@ class _BookScreenState extends State<BookScreen> {
 
   Future<void> _openContentItem(ContentItem item) async {
     if (!item.isPdf) {
-      final uri = Uri.parse(item.url);
-      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(basicText('cannot_open_file', _lang))));
-      }
+      await openLink(context, item.url);
       return;
     }
     await _downloadAndOpenPdf(url: item.url, title: item.title, cacheKey: item.url);
@@ -595,9 +604,11 @@ class _VoicePlayButtonState extends State<_VoicePlayButton> {
   Future<void> _toggle() async {
     if (_playing) {
       await _player.pause();
+      if (!mounted) return;
       setState(() => _playing = false);
     } else {
       await _player.play(UrlSource(widget.url));
+      if (!mounted) return;
       setState(() => _playing = true);
     }
   }

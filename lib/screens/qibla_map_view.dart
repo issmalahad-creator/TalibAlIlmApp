@@ -1,11 +1,18 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
 
 import '../theme/app_theme.dart';
 import 'qibla_screen.dart' show kaabaLatitude, kaabaLongitude;
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// "المرئية" — Qibla-on-a-map view (Ismail's request 2026-08-16, after
 /// seeing a reference app's map mode). Uses OpenStreetMap tiles via
@@ -68,7 +75,7 @@ class QiblaMapView extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(color: AppColors.surfaceCard, borderRadius: BorderRadius.circular(AppRadius.sm), boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)]),
-            child: Text('المسافة إلى الكعبة: ${distanceKm.toStringAsFixed(0)} كم', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+            child: Text(_t('x_distance_kaaba').replaceAll('{km}', distanceKm.toStringAsFixed(0)), textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
           ),
         ),
       ],

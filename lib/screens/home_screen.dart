@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
 import '../data/quran_surahs.dart';
 import '../models/activity_entry.dart';
@@ -59,6 +60,9 @@ import '../widgets/enable_reminders_card.dart';
 import '../widgets/feedback/talib_navigation.dart';
 import '../widgets/feedback/talib_pressable.dart';
 
+/// Bumped by [MainShell] when the user comes back to the Home tab.
+final homeRefreshTick = ValueNotifier<int>(0);
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -92,10 +96,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    homeRefreshTick.addListener(_onReturn);
     _load();
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    homeRefreshTick.removeListener(_onReturn);
+    super.dispose();
+  }
+
+  /// Back on Home from another tab: goals / activities may have changed
+  /// there (Home stays mounted in MainShell's IndexedStack, so it showed
+  /// the old ring and lists until a manual pull-to-refresh).
+  void _onReturn() => _load(full: false);
+
+  Future<void> _load({bool full = true}) async {
     final entries = await _activityRepo.forMonth(currentMonth());
     final goals = await _goalRepo.forMonth(currentMonth());
     final profile = await _profileRepo.get();
@@ -112,6 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _reviewDueCount = reviewDue.length;
       _loading = false;
     });
+    if (!full) return;
     // Home has real content on screen — let deferred startup work begin.
     BootScheduler.instance.markHomeReady();
     // Best-effort, non-blocking: the banner is a nice-to-have and must never
@@ -162,8 +179,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ? TalibSkeleton(semanticLabel: basicText('home_loading_message', lang), child: const SkeletonHome())
           : RefreshIndicator(
               onRefresh: _load,
+              // Built once, kept alive: a lazy ListView disposed each card as
+              // it scrolled away and re-created it on the way back — every
+              // card loads its data in initState and starts at height 0, so
+              // the page jumped up and down while scrolling (Ismail's phone,
+              // 2026-10-13). ~17 sections; building them all is cheap.
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                scrollCacheExtent: const ScrollCacheExtent.pixels(100000),
                 children: [
                   _GreetingHeader(
                     name: _fullName.isEmpty ? basicText('default_user_name', lang) : _fullName,
@@ -289,7 +313,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       label: basicText('mosques_title', lang),
                       color: NavColors.green,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MosquesScreen()))
-                          .then((_) => setState(() => _mosqueRefreshTick++)),
+                          .then((_) {
+                        if (mounted) setState(() => _mosqueRefreshTick++);
+                      }),
                     ),
                         ]),
                       ],

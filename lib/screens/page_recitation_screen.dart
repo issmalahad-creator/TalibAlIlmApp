@@ -104,11 +104,13 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
 
     final ok = await _engine.initialize();
     if (!ok) {
+      if (!mounted) return;
       setState(() => _status = _Status.permissionDenied);
       return;
     }
     final arabicLocales = await _engine.availableArabicLocaleIds();
 
+    if (!mounted) return;
     setState(() => _status = _Status.listening);
     await _engine.startListening(
       localeId: arabicLocales.isNotEmpty ? arabicLocales.first : null,
@@ -195,6 +197,7 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
   Future<void> _stopManually() async {
     await _engine.stopListening();
     if (_allSaidWords.isEmpty) {
+      if (!mounted) return;
       setState(() => _status = _Status.idle);
       return;
     }

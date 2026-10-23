@@ -1,6 +1,5 @@
 import 'package:adhan_dart/adhan_dart.dart' show Prayer, PrayerTimes;
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/basic_translations.dart';
 import '../../models/mosque.dart';
@@ -12,6 +11,7 @@ import '../../theme/app_theme.dart';
 import 'mosque_common.dart';
 import 'mosque_content_list_screen.dart';
 import 'mosque_gallery_screen.dart';
+import '../../utils/open_link.dart';
 
 /// **The** mosque page. One reusable template, an instance per [mosqueId].
 /// It never hardcodes a mosque's name, sections, content or icons — all of
@@ -211,10 +211,8 @@ class _Header extends StatelessWidget {
               if (mosque.hasGeo)
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => launchUrl(
-                        Uri.parse(
-                            'https://www.google.com/maps/search/?api=1&query=${mosque.lat},${mosque.lng}'),
-                        mode: LaunchMode.externalApplication),
+                    onPressed: () => openLink(
+                        context, 'https://www.google.com/maps/search/?api=1&query=${mosque.lat},${mosque.lng}'),
                     icon: const Icon(Icons.directions_outlined, size: 16),
                     label: Text(basicText('mosque_directions', lang)),
                   ),
@@ -224,7 +222,7 @@ class _Header extends StatelessWidget {
               if ((mosque.phone ?? '').isNotEmpty)
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => launchUrl(Uri.parse('tel:${mosque.phone}')),
+                    onPressed: () => openLink(context, 'tel:${mosque.phone}'),
                     icon: const Icon(Icons.call_outlined, size: 16),
                     label: Text(basicText('mosque_contact', lang)),
                   ),

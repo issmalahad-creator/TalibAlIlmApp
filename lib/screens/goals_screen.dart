@@ -6,6 +6,7 @@ import '../services/language_preference_service.dart';
 import '../utils/month.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/premium_modal.dart';
+import '../utils/digits.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -16,7 +17,12 @@ class GoalsScreen extends StatefulWidget {
 
 class _GoalsScreenState extends State<GoalsScreen> {
   final _repo = GoalRepository();
-  final _lang = LanguagePreferenceService.currentLanguage;
+  // Read live: these tabs stay mounted in MainShell's IndexedStack, so a
+  // value captured once never followed a language change in settings.
+  String get _lang => LanguagePreferenceService.currentLanguage;
+  void _onLanguage() {
+    if (mounted) setState(() {});
+  }
   List<Goal> _goals = [];
   bool _loading = true;
   String? _error;
@@ -24,7 +30,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   void initState() {
     super.initState();
+    LanguagePreferenceService.languageNotifier.addListener(_onLanguage);
     _load();
+  }
+
+  @override
+  void dispose() {
+    LanguagePreferenceService.languageNotifier.removeListener(_onLanguage);
+    super.dispose();
   }
 
   // 2026-08-17 (Ismail: goals screen not working even in Arabic, no
@@ -87,9 +100,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
     if (result != true || titleCtrl.text.trim().isEmpty) return;
 
-    final target = int.tryParse(targetCtrl.text.trim()) ?? 1;
+    final target = parseAnyDigits(targetCtrl.text) ?? 1;
     if (isEdit) {
-      final current = int.tryParse(currentCtrl.text.trim()) ?? existing.current;
+      final current = parseAnyDigits(currentCtrl.text) ?? existing.current;
       await _repo.update(existing.id!, title: titleCtrl.text.trim(), target: target, current: current);
     } else {
       await _repo.add(Goal(title: titleCtrl.text.trim(), target: target, month: currentMonth()));

@@ -159,7 +159,8 @@ class TurathCatalogSync {
           .get(Uri.parse(_manifestUrl), headers: {'Accept': 'application/json'})
           .timeout(const Duration(seconds: 25));
       if (resp.statusCode != 200) return const CatalogSyncResult('offline');
-      final json = jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>;
+      // the whole catalog (~8.6k books, MBs of JSON) — off the UI isolate
+      final json = await compute(_decodeJsonBytes, resp.bodyBytes);
 
       final remoteVersion = json['version'] as int? ?? 0;
       // `forced` only skips the age gate above -- a same-or-older version is
@@ -404,3 +405,6 @@ class TurathCatalogSync {
 /// Off the UI isolate: the bundled catalog is thousands of books.
 Map<String, dynamic> _decodeGzJson(List<int> gz) =>
     jsonDecode(utf8.decode(gzip.decode(gz))) as Map<String, dynamic>;
+
+Map<String, dynamic> _decodeJsonBytes(List<int> bytes) =>
+    jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;

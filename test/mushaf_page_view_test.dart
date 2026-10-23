@@ -147,6 +147,41 @@ void main() {
     expect(longPressed!.wordIndex, 1);
   });
 
+  testWidgets(
+      'long-press on a word or a medallion fires onAyahLongPress with the '
+      'whole ayah and its on-screen rect', (tester) async {
+    final hits = <(int, int, Rect)>[];
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: SizedBox(
+          width: kMushafViewBoxWidth,
+          height: kMushafViewBoxHeight,
+          child: MushafPageView(
+            layout: _layout(),
+            onAyahLongPress: (s, a, r) => hits.add((s, a, r)),
+          ),
+        ),
+      ),
+    ));
+    final topLeft = tester.getTopLeft(find.byType(MushafPageView));
+
+    // word 2 of 2:6 (box 240,40,50,20) → ayah 2:6
+    await tester.longPressAt(topLeft + _toWidget(_layout(), _size, const Offset(265, 50)));
+    await tester.pump();
+    // the 2:6 medallion (box 220,42,14,16) → ayah 2:6 too
+    await tester.longPressAt(topLeft + _toWidget(_layout(), _size, const Offset(227, 50)));
+    await tester.pump();
+    // 2:7 on the second line
+    await tester.longPressAt(topLeft + _toWidget(_layout(), _size, const Offset(320, 90)));
+    await tester.pump();
+
+    expect([for (final h in hits) (h.$1, h.$2)], [(2, 6), (2, 6), (2, 7)]);
+    // the 2:6 rect covers both of its words, in global coordinates
+    final r = hits.first.$3;
+    expect(r.contains(topLeft + _toWidget(_layout(), _size, const Offset(320, 50))), isTrue);
+    expect(r.contains(topLeft + _toWidget(_layout(), _size, const Offset(265, 50))), isTrue);
+  });
+
   testWidgets('a tap in empty space resolves to nothing', (tester) async {
     var tapped = false;
     await tester.pumpWidget(MaterialApp(

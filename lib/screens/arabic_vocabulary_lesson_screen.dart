@@ -47,6 +47,7 @@ class _ArabicVocabularyLessonScreenState extends State<ArabicVocabularyLessonScr
     final key = 'vocab_${w.wordAr}';
     if (_learned.contains(key)) return;
     await _repo.markLearned(key);
+    if (!mounted) return;
     setState(() => _learned = {..._learned, key});
   }
 

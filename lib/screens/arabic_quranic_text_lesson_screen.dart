@@ -40,6 +40,7 @@ class _ArabicQuranicTextLessonScreenState extends State<ArabicQuranicTextLessonS
     final key = 'quranic_text_${a.ayahNumber}_${a.textAr}';
     if (_learned.contains(key)) return;
     await _repo.markLearned(key);
+    if (!mounted) return;
     setState(() => _learned = {..._learned, key});
   }
 

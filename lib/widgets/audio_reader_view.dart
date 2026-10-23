@@ -10,12 +10,19 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../services/tts/audio_reader_controller.dart';
 import '../services/tts/text_sources/readable_text_source.dart';
 import '../theme/app_theme.dart';
 import '../services/packs/content_pack_engine.dart';
 import 'packs/pack_ui.dart';
 import '../services/tts/tts_voice_registry.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 class AudioReaderView extends StatefulWidget {
   const AudioReaderView({super.key, required this.source, required this.voiceId});
@@ -114,7 +121,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
           // رسالة صديقة للمستخدم — لا نص استثناء تقني خام (docs/audio-reader/
           // AUDIO_100_ROADMAP.md §7.1). التفصيل التقني في debugPrint للمطوّر
           // فقط، لا في واجهة المستخدم.
-          'تعذّر توليد الصوت لهذه الفقرة. تحقّق من المساحة المتاحة على الجهاز وحاول مجددًا.',
+          _t('ar_gen_failed'),
           textAlign: TextAlign.center,
           style: const TextStyle(color: AppColors.textDark),
         ),
@@ -127,7 +134,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
       );
     }
     if (_controller.state == AudioReaderPlaybackState.finished) {
-      return const Text('انتهى الاستماع لهذه الوحدة.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted));
+      return Text(_t('ar_finished'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted));
     }
     return Container(
       padding: const EdgeInsets.all(14),
@@ -151,7 +158,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Text(
-        minutes <= 1 ? 'أقل من دقيقة متبقّية تقريبًا' : '~$minutes دقيقة متبقّية',
+        minutes <= 1 ? _t('ar_less_minute') : _t('ar_minutes_left').replaceAll('{n}', '$minutes'),
         textAlign: TextAlign.center,
         style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
       ),
@@ -162,7 +169,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
     final on = _controller.autoAdvancePage;
     return IconButton(
       icon: Icon(on ? Icons.playlist_play : Icons.playlist_play_outlined, color: on ? AppColors.primary : null),
-      tooltip: on ? 'الانتقال التلقائي للصفحة التالية: مفعَّل' : 'الانتقال التلقائي للصفحة التالية: متوقّف',
+      tooltip: on ? _t('ar_autonext_on') : _t('ar_autonext_off'),
       onPressed: () => _controller.autoAdvancePage = !on,
     );
   }
@@ -171,14 +178,12 @@ class _AudioReaderViewState extends State<AudioReaderView> {
     final active = _controller.sleepTimerDuration != null;
     return PopupMenuButton<Duration?>(
       icon: Icon(active ? Icons.bedtime : Icons.bedtime_outlined, color: active ? AppColors.primary : null),
-      tooltip: 'مؤقّت النوم',
+      tooltip: _t('ar_sleep_timer'),
       onSelected: _controller.setSleepTimer,
-      itemBuilder: (context) => const [
-        PopupMenuItem(value: Duration(minutes: 5), child: Text('5 دقائق')),
-        PopupMenuItem(value: Duration(minutes: 15), child: Text('15 دقيقة')),
-        PopupMenuItem(value: Duration(minutes: 30), child: Text('30 دقيقة')),
-        PopupMenuItem(value: Duration(minutes: 60), child: Text('60 دقيقة')),
-        PopupMenuItem(value: null, child: Text('إيقاف المؤقّت')),
+      itemBuilder: (context) => [
+        for (final m in const [5, 15, 30, 60])
+          PopupMenuItem(value: Duration(minutes: m), child: Text(_t('ar_n_minutes').replaceAll('{n}', '$m'))),
+        PopupMenuItem(value: null, child: Text(_t('ar_timer_off'))),
       ],
     );
   }
@@ -189,7 +194,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
   Widget _buildClearCacheButton() {
     return IconButton(
       icon: const Icon(Icons.cleaning_services_outlined),
-      tooltip: 'مسح ذاكرة الصوت المؤقتة',
+      tooltip: _t('ar_clear_cache'),
       onPressed: _showClearCacheDialog,
     );
   }
@@ -198,22 +203,21 @@ class _AudioReaderViewState extends State<AudioReaderView> {
     final sizeBytes = await _controller.cacheSizeBytes();
     if (!mounted) return;
     final sizeMb = sizeBytes / (1024 * 1024);
-    final sizeLabel = sizeMb < 0.1 ? 'أقل من 0.1' : sizeMb.toStringAsFixed(1);
+    final sizeLabel = sizeMb < 0.1 ? _t('ar_lt_01') : sizeMb.toStringAsFixed(1);
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('مسح ذاكرة الصوت المؤقتة'),
+        title: Text(_t('ar_clear_cache')),
         content: Text(
           sizeBytes == 0
-              ? 'لا يوجد صوت مخزَّن مؤقّتًا حاليًا.'
-              : 'الحجم الحالي: $sizeLabel م.ب.\n'
-                  'سيُعاد توليد أي فقرة تُستمَع إليها لاحقًا من جديد (لا فقدان دائم — فقط وقت انتظار إضافي عند أول استماع تالٍ).',
+              ? _t('ar_cache_empty')
+              : _t('ar_cache_body').replaceAll('{mb}', sizeLabel),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: Text(_t('cancel_action'))),
           if (sizeBytes > 0)
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('مسح')),
+            TextButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(_t('ar_clear'))),
         ],
       ),
     );
@@ -221,7 +225,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
     if (confirmed == true) {
       await _controller.clearCache();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم مسح ذاكرة الصوت المؤقتة.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('ar_cache_cleared'))));
     }
   }
 
@@ -236,7 +240,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
       spacing: 4,
       runSpacing: 4,
       children: [
-        const Text('السرعة:', style: TextStyle(color: AppColors.textMuted)),
+        Text(_t('ar_speed'), style: const TextStyle(color: AppColors.textMuted)),
         for (final s in const [0.75, 1.0, 1.25, 1.5])
           ChoiceChip(
             label: Text('${s}x'),
@@ -259,7 +263,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
       children: [
         IconButton(
           icon: const Icon(Icons.skip_previous),
-          tooltip: 'الفقرة السابقة',
+          tooltip: _t('ar_prev_para'),
           onPressed: hasPrevious ? _controller.previousParagraph : null,
         ),
         IconButton(
@@ -278,7 +282,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
                 ? Icons.refresh_rounded
                 : (isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled),
           ),
-          tooltip: hasError ? 'إعادة المحاولة' : null,
+          tooltip: hasError ? _t('feedback_retry') : null,
           onPressed: hasError ? _controller.retry : (isPlaying ? _controller.pause : _controller.resume),
         ),
         IconButton(
@@ -287,7 +291,7 @@ class _AudioReaderViewState extends State<AudioReaderView> {
         ),
         IconButton(
           icon: const Icon(Icons.skip_next),
-          tooltip: 'الفقرة التالية',
+          tooltip: _t('ar_next_para'),
           onPressed: hasNext ? _controller.nextParagraph : null,
         ),
       ],

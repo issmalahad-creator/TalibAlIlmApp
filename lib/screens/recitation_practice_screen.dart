@@ -97,6 +97,7 @@ class _RecitationPracticeScreenState extends State<RecitationPracticeScreen> {
 
     final ok = await _engine.initialize();
     if (!ok) {
+      if (!mounted) return;
       setState(() => _status = _Status.permissionDenied);
       return;
     }
@@ -109,6 +110,7 @@ class _RecitationPracticeScreenState extends State<RecitationPracticeScreen> {
     // fall back to the device's default locale instead of blocking outright
     // -- a real listen attempt is a better test than a locale-list lookup.
     final arabicLocales = await _engine.availableArabicLocaleIds();
+    if (!mounted) return;
     setState(() => _status = _Status.listening);
     await _engine.startListening(
       localeId: arabicLocales.isNotEmpty ? arabicLocales.first : null,

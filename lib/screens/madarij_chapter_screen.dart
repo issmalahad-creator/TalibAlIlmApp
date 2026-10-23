@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../repositories/madarij_repository.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 class MadarijChapterScreen extends StatefulWidget {
   final MadarijSection section;
@@ -23,6 +30,7 @@ class _MadarijChapterScreenState extends State<MadarijChapterScreen> {
 
   Future<void> _markRead() async {
     await _repo.markRead(widget.section.id);
+    if (!mounted) return;
     setState(() => _readDone = true);
   }
 
@@ -37,9 +45,9 @@ class _MadarijChapterScreenState extends State<MadarijChapterScreen> {
           Text(s.text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, height: 1.9)),
           const SizedBox(height: 20),
           if (!_readDone)
-            FilledButton.icon(onPressed: _markRead, icon: const Icon(Icons.check), label: const Text('قرأته'))
+            FilledButton.icon(onPressed: _markRead, icon: const Icon(Icons.check), label: Text(_t('x_read_it')))
           else
-            const Text('قرأت هذا المقطع 🌱', textAlign: TextAlign.center, style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+            Text(_t('x_read_section'), textAlign: TextAlign.center, style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
         ],
       ),
     );

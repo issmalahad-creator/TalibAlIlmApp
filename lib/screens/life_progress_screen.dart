@@ -5,6 +5,7 @@ import '../models/life_plan.dart';
 import '../repositories/life_plan_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/calendar_days.dart';
 
 /// «مُحرّك الحياة» — L3 · «التقدّم» (`docs/LIFE_ENGINE.md`).
 ///
@@ -53,7 +54,7 @@ class _LifeProgressScreenState extends State<LifeProgressScreen> {
     final heat = <({DateTime date, double pct})>[];
     for (var d = DateTime(start.year, start.month, start.day);
         !d.isAfter(DateTime.now());
-        d = d.add(const Duration(days: 1))) {
+        d = addCalendarDays(d, 1)) {
       heat.add((date: d, pct: pcts[LifePlanRepository.ymd(d)] ?? 0.0));
     }
     if (!mounted) return;

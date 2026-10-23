@@ -7,6 +7,10 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// Curated lesson library for "إقامة الصلاة" — browsable by category,
 /// mark-as-read tracking (reading/reflection material, no quiz — same
 /// pattern as Zad al-Ma'ad/Madarij elsewhere in this app).
@@ -40,13 +44,14 @@ class _SalahLibraryScreenState extends State<SalahLibraryScreen> {
   Future<void> _toggle(String key) async {
     if (_read.contains(key)) return;
     await _repo.markLessonRead(key);
+    if (!mounted) return;
     setState(() => _read = {..._read, key});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('مكتبة إقامة الصلاة')),
+      appBar: AppBar(title: Text(_t('x_salah_library'))),
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_lesson', LanguagePreferenceService.currentLanguage))
           : ListView(

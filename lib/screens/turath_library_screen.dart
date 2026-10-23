@@ -14,6 +14,7 @@ import 'turath_my_library_screen.dart';
 import 'turath_quotes_screen.dart';
 import 'turath_reader_screen.dart';
 import 'turath_study_notebook_screen.dart';
+import '../widgets/library/book_3d.dart';
 
 /// "📚 المكتبة التراثية" — real search entry point. Category browsing lives
 /// in [TurathCategoriesScreen] (a real, complete, vertical list of all 40
@@ -35,6 +36,11 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
   _SearchStatus _status = _SearchStatus.idle;
   TurathSearchResults? _results;
 
+  /// Bumped on every new query: a slow answer to an older query (or one
+  /// that lands after the box was cleared) is dropped instead of
+  /// overwriting what the user is looking at now.
+  int _gen = 0;
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -44,6 +50,7 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
 
   void _onQueryChanged(String query) {
     _debounce?.cancel();
+    _gen++;
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       setState(() => _status = _SearchStatus.idle);
@@ -55,16 +62,17 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
   }
 
   Future<void> _runSearch(String query) async {
+    final gen = ++_gen;
     setState(() => _status = _SearchStatus.loading);
     try {
       final results = await _repo.search(query);
-      if (!mounted) return;
+      if (!mounted || gen != _gen) return;
       setState(() {
         _results = results;
         _status = results.results.isEmpty ? _SearchStatus.empty : _SearchStatus.success;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || gen != _gen) return;
       setState(() => _status = _SearchStatus.error);
     }
   }
@@ -200,6 +208,7 @@ class _ResultCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
+        leading: Book3D(title: result.bookName, height: 44),
         title: Text(result.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.w700)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

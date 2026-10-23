@@ -1,11 +1,14 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 import 'completion_goal_repository.dart';
 import 'daily_session_repository.dart';
 import 'memorization_repository.dart';
+import '../utils/calendar_days.dart';
 
 class JourneyPlan {
   final String level; // 'beginner' | 'intermediate' | 'advanced'
@@ -171,9 +174,11 @@ class JourneyPlanRepository {
     String? advisory;
     if (recentDifficulties.length == _advisoryTrendLength) {
       if (recentDifficulties.every((d) => d == 'hard')) {
-        advisory = 'آخر $_advisoryTrendLength جلسات كانت صعبة عليك — قد يفيدك تخفيف الوتيرة قليلًا.';
+        advisory = basicText('journey_advisory_hard', LanguagePreferenceService.currentLanguage)
+            .replaceAll('{n}', '$_advisoryTrendLength');
       } else if (recentDifficulties.every((d) => d == 'easy')) {
-        advisory = 'آخر $_advisoryTrendLength جلسات كانت سهلة عليك — لو أردت، يمكنك تكثيف الوتيرة.';
+        advisory = basicText('journey_advisory_easy', LanguagePreferenceService.currentLanguage)
+            .replaceAll('{n}', '$_advisoryTrendLength');
       }
     }
 
@@ -200,7 +205,7 @@ class JourneyPlanRepository {
   int _daysBetween(String hijriFrom, String hijriTo) {
     final from = gregorianFromHijriDateTime(hijriFrom, null);
     final to = gregorianFromHijriDateTime(hijriTo, null);
-    return to.difference(from).inDays;
+    return calendarDaysBetween(from, to);
   }
 
   String _addDays(String hijriDate, int days) {

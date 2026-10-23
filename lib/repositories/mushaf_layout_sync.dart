@@ -123,8 +123,8 @@ class MushafLayoutSync {
   Future<MushafSyncResult> _seedFromAsset(Database db) async {
     try {
       final bytes = await rootBundle.load(_assetPath);
-      final jsonText = utf8.decode(gzip.decode(bytes.buffer.asUint8List()));
-      final layout = jsonDecode(jsonText) as Map<String, dynamic>;
+      // 2.4 MB gz → 10 MB JSON: never on the UI isolate (lightweight rules §2).
+      final layout = await compute(_parseLayoutAsset, bytes.buffer.asUint8List());
       final v = validate(layout);
       if (!v.ok) {
         debugPrint('MushafLayoutSync: bundled asset failed validation, not seeding. $v');
@@ -489,6 +489,12 @@ class MushafLayoutSync {
     return true;
   }
 }
+
+/// Runs in a background isolate (`compute`): gunzip + parse the bundled
+/// `mushaf_layout.json.gz` (~10 MB of JSON — seconds of jank on a phone if
+/// done on the UI isolate, at first launch and after every layout bump).
+Map<String, dynamic> _parseLayoutAsset(Uint8List gz) =>
+    jsonDecode(utf8.decode(gzip.decode(gz))) as Map<String, dynamic>;
 
 /// Runs in a background isolate (`compute`): gunzip + parse
 /// `mushaf_glyphs.json.gz`, and re-emit `(assetVersion, {page: wordsJson})`.

@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/mushaf_layout.dart';
+import 'mushaf/line_spread.dart';
 import 'mushaf/mushaf_page_cache.dart';
 import 'mushaf/screen_transform.dart';
 
@@ -55,6 +57,12 @@ class MushafPageView extends StatelessWidget {
   /// Long-press on a word (future shortcut, e.g. ayah panel / notebook).
   final void Function(MushafWord word)? onWordLongPress;
 
+  /// Long-press on a word body or a verse-end medallion → that whole ayah,
+  /// with the global rect of its boxes on this page (where the reader
+  /// anchors its ayah menu). Geometry only — the reader decides what opens.
+  /// Takes precedence over [onWordLongPress] when both are set.
+  final void Function(int surah, int ayah, Rect globalRect)? onAyahLongPress;
+
   /// When set, the (monochrome) MushafDatabase art is re-inked in this
   /// colour via `BlendMode.srcIn` — used for night reading. Null = the art's
   /// own black.
@@ -87,6 +95,11 @@ class MushafPageView extends StatelessWidget {
   /// safe `false` default.
   final bool coverFit;
 
+  /// «املأ الصفحة» — spread the 15 lines evenly down the whole area with
+  /// the text filling the width ([LineSpreadTransform]); the opening pages
+  /// 1–2 (their own decorated layout) keep the uniform fit. Opt-in.
+  final bool spreadLines;
+
   const MushafPageView({
     super.key,
     required this.layout,
@@ -95,11 +108,13 @@ class MushafPageView extends StatelessWidget {
     this.onWordTap,
     this.onAyaMarkTap,
     this.onWordLongPress,
+    this.onAyahLongPress,
     this.artInk,
     this.wordCaption,
     this.tajweed = false,
     this.onBackgroundTap,
     this.coverFit = false,
+    this.spreadLines = false,
   });
 
   @override
@@ -144,8 +159,17 @@ class MushafPageView extends StatelessWidget {
         final scale = t.scale;
         final dx = t.offset.dx;
         final dy = t.offset.dy;
+        final spread = (spreadLines && r != null && r.w > 0 && layout.page > 2)
+            ? LineSpreadTransform.fit(
+                rect: Rect.fromLTWH(r.x, r.y, r.w, r.h), available: Size(maxW, maxH))
+            : null;
 
-        Offset toLocalViewBox(Offset widgetLocal) => t.toViewBox(widgetLocal);
+        Offset toLocalViewBox(Offset widgetLocal) =>
+            spread?.toViewBox(widgetLocal) ?? t.toViewBox(widgetLocal);
+        Rect toScreen(MushafBox b) {
+          final vb = Rect.fromLTWH(b.x, b.y, b.w, b.h);
+          return spread?.toScreen(vb) ?? t.toScreen(vb);
+        }
 
         void handleTap(Offset widgetLocal) {
           if (onWordTap == null && onAyaMarkTap == null && onBackgroundTap == null) return;
@@ -165,8 +189,25 @@ class MushafPageView extends StatelessWidget {
         }
 
         void handleLongPress(Offset widgetLocal) {
-          if (onWordLongPress == null) return;
           final p = toLocalViewBox(widgetLocal);
+          if (onAyahLongPress != null) {
+            final mark = layout.ayaMarkAtPoint(p.dx, p.dy);
+            final w = mark == null ? layout.wordAtPoint(p.dx, p.dy) : null;
+            final key = mark != null
+                ? (surah: mark.surah, ayah: mark.ayah)
+                : (w != null ? (surah: w.surah, ayah: w.ayah) : null);
+            if (key == null) return;
+            final boxes = layout.ayahBoxes(key.surah, key.ayah);
+            var local = Rect.fromCenter(center: widgetLocal, width: 1, height: 1);
+            if (boxes.isNotEmpty) {
+              local = boxes.map(toScreen).reduce((a, b) => a.expandToInclude(b));
+            }
+            final box = context.findRenderObject() as RenderBox?;
+            final origin = box?.localToGlobal(Offset.zero) ?? Offset.zero;
+            onAyahLongPress!(key.surah, key.ayah, local.shift(origin));
+            return;
+          }
+          if (onWordLongPress == null) return;
           final w = layout.wordAtPoint(p.dx, p.dy);
           if (w != null) onWordLongPress!.call(w);
         }
@@ -186,22 +227,31 @@ class MushafPageView extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.hardEdge,
               children: [
-                Positioned(
-                  left: dx,
-                  top: dy,
-                  width: vbW * scale,
-                  height: vbH * scale,
-                  child: _PageArt(
-                      page: layout.page, artInk: artInk, tajweed: tajweed),
-                ),
+                if (spread != null)
+                  Positioned.fill(
+                    child: _SpreadArt(
+                      page: layout.page,
+                      artInk: artInk,
+                      tajweed: tajweed,
+                      spread: spread,
+                      vbSize: Size(vbW, vbH),
+                    ),
+                  )
+                else
+                  Positioned(
+                    left: dx,
+                    top: dy,
+                    width: vbW * scale,
+                    height: vbH * scale,
+                    child: _PageArt(
+                        page: layout.page, artInk: artInk, tajweed: tajweed),
+                  ),
                 // Selection Layer — premium highlight over the art, never
                 // touches the SVG, never darkens the glyph ink.
                 Positioned.fill(
                   child: _SelectionOverlay(
-                    wordBox: selectedWord?.box,
-                    ayahBoxes: ayahBoxes,
-                    scale: scale,
-                    offset: Offset(dx, dy),
+                    wordRect: selectedWord == null ? null : toScreen(selectedWord!.box),
+                    ayahRects: [for (final b in ayahBoxes) toScreen(b)],
                   ),
                 ),
                 // QC7 — the on-page ṣarf/iʿrāb label, in the gap above the
@@ -209,10 +259,8 @@ class MushafPageView extends StatelessWidget {
                 if (selectedWord != null &&
                     (wordCaption?.trim().isNotEmpty ?? false))
                   _WordCaption(
-                    box: selectedWord!.box,
+                    word: toScreen(selectedWord!.box),
                     text: wordCaption!.trim(),
-                    scale: scale,
-                    offset: Offset(dx, dy),
                     available: Size(maxW, maxH),
                   ),
               ],
@@ -235,16 +283,10 @@ const Color _kGold = Color(0xFFD9A441);
 /// §3: word = gold fill 0.10–0.14 + 1px gold stroke, grow-in 180ms; ayah =
 /// calmer per-line fill 0.06–0.08, no stroke.
 class _SelectionOverlay extends StatefulWidget {
-  final MushafBox? wordBox;
-  final List<MushafBox> ayahBoxes;
-  final double scale;
-  final Offset offset;
-  const _SelectionOverlay({
-    required this.wordBox,
-    required this.ayahBoxes,
-    required this.scale,
-    required this.offset,
-  });
+  /// On-screen rects (already through the page's mapping).
+  final Rect? wordRect;
+  final List<Rect> ayahRects;
+  const _SelectionOverlay({required this.wordRect, required this.ayahRects});
 
   @override
   State<_SelectionOverlay> createState() => _SelectionOverlayState();
@@ -259,7 +301,7 @@ class _SelectionOverlayState extends State<_SelectionOverlay>
   late final Animation<double> _t =
       CurvedAnimation(parent: _c, curve: Curves.easeOutCubic);
 
-  bool get _hasSelection => widget.wordBox != null || widget.ayahBoxes.isNotEmpty;
+  bool get _hasSelection => widget.wordRect != null || widget.ayahRects.isNotEmpty;
 
   @override
   void initState() {
@@ -270,12 +312,13 @@ class _SelectionOverlayState extends State<_SelectionOverlay>
   @override
   void didUpdateWidget(_SelectionOverlay old) {
     super.didUpdateWidget(old);
-    final was = old.wordBox != null || old.ayahBoxes.isNotEmpty;
+    final was = old.wordRect != null || old.ayahRects.isNotEmpty;
     if (_hasSelection && !was) {
       _c.forward(from: 0);
     } else if (_hasSelection &&
-        (old.wordBox?.x != widget.wordBox?.x ||
-            old.wordBox?.y != widget.wordBox?.y)) {
+        old.wordRect != null &&
+        widget.wordRect != null &&
+        old.wordRect != widget.wordRect) {
       _c.forward(from: 0); // moved to a new word → replay grow-in
     } else if (!_hasSelection && was) {
       _c.reverse();
@@ -295,10 +338,8 @@ class _SelectionOverlayState extends State<_SelectionOverlay>
         animation: _t,
         builder: (context, _) => CustomPaint(
           painter: _SelectionPainter(
-            wordBox: widget.wordBox,
-            ayahBoxes: widget.ayahBoxes,
-            scale: widget.scale,
-            offset: widget.offset,
+            wordRect: widget.wordRect,
+            ayahRects: widget.ayahRects,
             t: _t.value,
           ),
         ),
@@ -308,43 +349,32 @@ class _SelectionOverlayState extends State<_SelectionOverlay>
 }
 
 class _SelectionPainter extends CustomPainter {
-  final MushafBox? wordBox;
-  final List<MushafBox> ayahBoxes;
-  final double scale;
-  final Offset offset;
+  final Rect? wordRect;
+  final List<Rect> ayahRects;
   final double t; // 0..1 entrance
 
   _SelectionPainter({
-    required this.wordBox,
-    required this.ayahBoxes,
-    required this.scale,
-    required this.offset,
+    required this.wordRect,
+    required this.ayahRects,
     required this.t,
   });
-
-  Rect _rect(MushafBox b, double grow) => Rect.fromLTWH(
-        offset.dx + b.x * scale - grow,
-        offset.dy + b.y * scale - grow,
-        b.w * scale + grow * 2,
-        b.h * scale + grow * 2,
-      );
 
   @override
   void paint(Canvas canvas, Size size) {
     // Ayah — calm, per line, no stroke.
-    if (ayahBoxes.isNotEmpty) {
+    if (ayahRects.isNotEmpty) {
       final fill = Paint()..color = _kGold.withValues(alpha: 0.07 * t);
-      for (final b in ayahBoxes) {
+      for (final b in ayahRects) {
         canvas.drawRRect(
-          RRect.fromRectAndRadius(_rect(b, 1.5), const Radius.circular(3)),
+          RRect.fromRectAndRadius(b.inflate(1.5), const Radius.circular(3)),
           fill,
         );
       }
     }
     // Word — gold wash + thin gold stroke, scales in about its centre.
-    final wb = wordBox;
+    final wb = wordRect;
     if (wb != null) {
-      final r = _rect(wb, 1.5);
+      final r = wb.inflate(1.5);
       final s = 0.96 + 0.04 * t;
       canvas.save();
       canvas.translate(r.center.dx, r.center.dy);
@@ -365,12 +395,17 @@ class _SelectionPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SelectionPainter o) =>
-      o.wordBox?.x != wordBox?.x ||
-      o.wordBox?.y != wordBox?.y ||
-      o.ayahBoxes != ayahBoxes ||
-      o.scale != scale ||
-      o.offset != offset ||
+      o.wordRect != wordRect ||
+      !_sameRects(o.ayahRects, ayahRects) ||
       o.t != t;
+
+  static bool _sameRects(List<Rect> a, List<Rect> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -382,25 +417,22 @@ class _SelectionPainter extends CustomPainter {
 /// translucent card with a hairline gold edge — it sits clear of the glyph
 /// ink and never affects the hit-test.
 class _WordCaption extends StatelessWidget {
-  final MushafBox box;
+  /// The word's on-screen rect (through the page's mapping).
+  final Rect word;
   final String text;
-  final double scale;
-  final Offset offset;
   final Size available;
   const _WordCaption({
-    required this.box,
+    required this.word,
     required this.text,
-    required this.scale,
-    required this.offset,
     required this.available,
   });
 
   @override
   Widget build(BuildContext context) {
-    final wx = offset.dx + box.x * scale;
-    final wy = offset.dy + box.y * scale;
-    final ww = box.w * scale;
-    final wh = box.h * scale;
+    final wx = word.left;
+    final wy = word.top;
+    final ww = word.width;
+    final wh = word.height;
     const chipH = 20.0;
     const gap = 4.0;
     double top = wy - gap - chipH;
@@ -553,5 +585,118 @@ class _PageArtState extends State<_PageArt> {
     // placeholder, never a hard blank and never a text reconstruction.
     return ColoredBox(
         color: ink == null ? const Color(0xFFFFFDF7) : Colors.transparent);
+  }
+}
+
+/// [MushafPageView.spreadLines]: the page drawn as 17 pieces — the header,
+/// the page number and each of the 15 lines from its own SVG group
+/// ([splitMushafSvg]) — each placed by the [LineSpreadTransform]. Nothing
+/// is clipped and no glyph is scaled differently from its neighbours.
+/// Falls back to the whole page if the art can't be split.
+class _SpreadArt extends StatefulWidget {
+  final int page;
+  final Color? artInk;
+  final bool tajweed;
+  final LineSpreadTransform spread;
+  final Size vbSize;
+  const _SpreadArt({
+    required this.page,
+    required this.artInk,
+    required this.tajweed,
+    required this.spread,
+    required this.vbSize,
+  });
+
+  @override
+  State<_SpreadArt> createState() => _SpreadArtState();
+}
+
+typedef _Pieces = ({String header, String footer, List<String> lines});
+
+class _SpreadArtState extends State<_SpreadArt> {
+  /// Split pages, small LRU — the split runs once per page (off the UI
+  /// isolate) and a turn back to a recent page is instant.
+  static final _memo = <String, _Pieces?>{};
+  static const _memoCap = 8;
+
+  _Pieces? _pieces;
+  bool _failed = false;
+
+  String get _key => '${widget.page}|${widget.tajweed}|${widget.artInk?.toARGB32()}';
+
+  String get _baseInkHex {
+    final ink = widget.artInk;
+    if (ink == null) return '#000000';
+    return '#${(ink.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(_SpreadArt old) {
+    super.didUpdateWidget(old);
+    if (old.page != widget.page ||
+        old.tajweed != widget.tajweed ||
+        old.artInk?.toARGB32() != widget.artInk?.toARGB32()) {
+      _pieces = null;
+      _failed = false;
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final key = _key;
+    if (_memo.containsKey(key)) {
+      final hit = _memo.remove(key);
+      _memo[key] = hit; // refresh LRU order
+      setState(() {
+        _pieces = hit;
+        _failed = hit == null;
+      });
+      return;
+    }
+    final svg = await MushafPageCache.instance
+        .load(widget.page, tajweed: widget.tajweed, baseInkHex: _baseInkHex);
+    final pieces = svg == null ? null : await compute(splitMushafSvg, svg);
+    _memo[key] = pieces;
+    while (_memo.length > _memoCap) {
+      _memo.remove(_memo.keys.first);
+    }
+    if (!mounted || key != _key) return;
+    setState(() {
+      _pieces = pieces;
+      _failed = pieces == null;
+    });
+    MushafPageCache.instance.preloadAround(widget.page);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = _pieces;
+    final sp = widget.spread;
+    final vb = widget.vbSize;
+    if (p == null) {
+      return _failed
+          ? _PageArt(page: widget.page, artInk: widget.artInk, tajweed: widget.tajweed)
+          : const SizedBox.shrink();
+    }
+    final ink = widget.artInk;
+    final filter = (ink == null || widget.tajweed) ? null : ColorFilter.mode(ink, BlendMode.srcIn);
+    Widget piece(String svg, Offset at, double scale) => Positioned(
+          left: at.dx,
+          top: at.dy,
+          width: vb.width * scale,
+          height: vb.height * scale,
+          child: SvgPicture.string(svg, fit: BoxFit.fill, colorFilter: filter),
+        );
+    return Stack(clipBehavior: Clip.hardEdge, children: [
+      piece(p.header, sp.headerOffset, sp.outerScale),
+      for (var i = 0; i < p.lines.length; i++) piece(p.lines[i], sp.lineOrigin(i), sp.scale),
+      piece(p.footer, sp.footerOffset, sp.outerScale),
+    ]);
   }
 }

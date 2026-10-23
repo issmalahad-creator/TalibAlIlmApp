@@ -45,6 +45,7 @@ class _ArabicAlphabetLessonScreenState extends State<ArabicAlphabetLessonScreen>
     if (_learned.contains(key)) return;
     await _repo.markLearned(key);
     final newLearned = {..._learned, key};
+    if (!mounted) return;
     setState(() => _learned = newLearned);
 
     final allDone = arabicAlphabet.every((l) => newLearned.contains('alphabet_${l.letter}'));

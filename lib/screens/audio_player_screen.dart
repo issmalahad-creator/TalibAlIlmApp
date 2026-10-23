@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../l10n/basic_translations.dart';
@@ -12,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/feedback/talib_action_button.dart';
 import '../widgets/loading_view.dart';
+import '../utils/open_link.dart';
 
 const _reflectionPromptKeys = [
   'reflection_prompt_1',
@@ -76,6 +76,11 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   bool _loadingReflections = true;
   bool _resumedFromSaved = false;
 
+  /// The cued video refused to play inside the app (removed, private, or
+  /// its owner disabled embedding) — shown as a clear card with «افتح في
+  /// يوتيوب» instead of a silent black box.
+  YoutubeError _playError = YoutubeError.none;
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +88,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       params: const YoutubePlayerParams(showFullscreenButton: true),
     );
     _valueSub = _controller.stream.listen((value) {
+      if (value.error != _playError && mounted) setState(() => _playError = value.error);
       final meta = value.metaData;
       if (meta.videoId.isEmpty) return;
       if (meta.videoId != _currentVideoId) {
@@ -96,20 +102,32 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     _saveTimer = Timer.periodic(const Duration(seconds: 15), (_) => _persistProgress());
   }
 
+  /// Cues the series. Every step is guarded: a playlist the embedded
+  /// player can't read (it used to throw before the list loaded, which
+  /// aborted this whole method — «الفيديوهات لا تأتي للسلسلة») now falls
+  /// back to the series' first episode, so something always plays.
   Future<void> _cueContent() async {
     if (widget.playlistId != null) {
       setState(() => _loadingEpisodes = true);
-      await _controller.cuePlaylist(list: [widget.playlistId!]);
+      try {
+        await _controller.cuePlaylist(list: [widget.playlistId!], listType: ListType.playlist);
+      } catch (_) {}
       await _loadEpisodeList();
     }
     final resume = await _repo.resumePointFor(widget.seriesId);
-    if (resume != null) {
-      _resumedFromSaved = true;
-      await _setCurrentVideo(resume.videoId);
-      await _controller.cueVideoById(videoId: resume.videoId, startSeconds: resume.positionSeconds.toDouble());
-    } else if (widget.playlistId == null && widget.videoId != null) {
-      await _setCurrentVideo(widget.videoId!);
-      await _controller.cueVideoById(videoId: widget.videoId!);
+    try {
+      if (resume != null) {
+        _resumedFromSaved = true;
+        await _setCurrentVideo(resume.videoId);
+        await _controller.cueVideoById(videoId: resume.videoId, startSeconds: resume.positionSeconds.toDouble());
+      } else if (_episodeIds.isNotEmpty) {
+        await _setCurrentVideo(_episodeIds.first);
+      } else if (widget.videoId != null) {
+        await _setCurrentVideo(widget.videoId!);
+        await _controller.cueVideoById(videoId: widget.videoId!);
+      }
+    } catch (_) {
+      // the card below still offers «افتح في يوتيوب» for _currentVideoId
     }
   }
 
@@ -133,8 +151,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   /// via `getPlaylist()`, but it can take a moment after `cuePlaylist` to
   /// populate — short retry loop rather than a fixed guessed delay.
   Future<void> _loadEpisodeList() async {
-    for (var attempt = 0; attempt < 10; attempt++) {
-      final list = await _controller.playlist;
+    for (var attempt = 0; attempt < 12; attempt++) {
+      List<String> list;
+      try {
+        list = await _controller.playlist;
+      } catch (_) {
+        list = const [];
+      }
       if (list.isNotEmpty) {
         if (!mounted) return;
         setState(() {
@@ -150,6 +173,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   }
 
   Future<void> _playEpisode(String videoId) async {
+    if (_playError != YoutubeError.none) setState(() => _playError = YoutubeError.none);
     await _setCurrentVideo(videoId);
     await _controller.cueVideoById(videoId: videoId);
   }
@@ -258,14 +282,14 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     await _loadReflections();
   }
 
-  Future<void> _openPlaylistInYoutube() async {
-    await launchUrl(Uri.parse(widget.youtubeUrl), mode: LaunchMode.externalApplication);
+  Future<void> _openPlaylistInYoutube() => _openYoutube(Uri.parse(widget.youtubeUrl));
+
+  Future<void> _openEpisodeInYoutube() {
+    final id = _currentVideoId ?? widget.videoId;
+    return _openYoutube(Uri.parse(id != null ? 'https://www.youtube.com/watch?v=$id' : widget.youtubeUrl));
   }
 
-  Future<void> _openEpisodeInYoutube() async {
-    if (_currentVideoId == null) return;
-    await launchUrl(Uri.parse('https://www.youtube.com/watch?v=$_currentVideoId'), mode: LaunchMode.externalApplication);
-  }
+  Future<void> _openYoutube(Uri uri) => openLink(context, uri.toString());
 
   @override
   void dispose() {
@@ -295,6 +319,30 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           YoutubePlayer(controller: _controller),
+          if (_playError != YoutubeError.none)
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF4E5),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFF0B45B)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.info_outline_rounded, color: Color(0xFFB7791F)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(basicText('youtube_embed_blocked', lang),
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 6),
+                FilledButton(
+                  onPressed: _openEpisodeInYoutube,
+                  style: FilledButton.styleFrom(backgroundColor: const Color(0xFFCC0000)),
+                  child: Text(basicText('youtube_open_short', lang)),
+                ),
+              ]),
+            ),
           const SizedBox(height: 10),
           if (widget.authorAr != null)
             Text(widget.authorAr!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),

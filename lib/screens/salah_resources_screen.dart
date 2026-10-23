@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 import '../data/salah_content.dart';
 import '../theme/app_theme.dart';
+
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
 
 /// External book recommendations for learners who want scholar-authored
 /// depth beyond this app's own library — citation only, no bundled or
@@ -12,12 +19,12 @@ class SalahResourcesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('مصادر موصى بها')),
+      appBar: AppBar(title: Text(_t('x_recommended'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text(
-            'مكتبة هذا التطبيق تعطيك أساسًا عمليًا لإقامة الصلاة. للتعمق أكثر، هذه كتب موثوقة يُنصح بها:',
+          Text(
+            _t('x_salah_res_intro'),
             style: TextStyle(fontSize: 12.5, color: AppColors.textMuted),
           ),
           const SizedBox(height: 16),
@@ -30,7 +37,7 @@ class SalahResourcesScreen extends StatelessWidget {
                   children: [
                     Text(r.titleAr, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 6),
-                    Text('المؤلف: ${r.authorAr}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text(_t('x_author').replaceAll('{a}', r.authorAr), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
                     Text(r.noteAr, style: const TextStyle(fontSize: 12.5, height: 1.6)),
                   ],

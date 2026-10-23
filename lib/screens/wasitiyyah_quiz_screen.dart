@@ -11,6 +11,10 @@ import '../services/spaced_repetition_engine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "اختبر نفسك" for Al-Wasitiyyah — "ما المقطع التالي؟", the same
 /// continuation mechanic as the Quran quiz since this is a continuous
 /// treatise too, scoped to the student's memorized sections.
@@ -78,14 +82,14 @@ class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
       );
     }
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(knewIt ? 'أحسنت 🌱' : 'لا بأس — راجعه اليوم')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(knewIt ? _t('mq_good') : _t('qz_review_today'))));
     _loadQuestion();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('اختبر نفسك — الواسطية')),
+      appBar: AppBar(title: Text(_t('qz_wasit_title'))),
       body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quiz', LanguagePreferenceService.currentLanguage)) : _buildBody(),
     );
   }
@@ -94,10 +98,10 @@ class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
     final current = _current;
     final next = _next;
     if (current == null || next == null) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text('احفظ مقطعًا واحدًا على الأقل حتى يبني التطبيق لك سؤالًا', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted)),
+          padding: const EdgeInsets.all(24),
+          child: Text(_t('qz_wasit_need'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
         ),
       );
     }
@@ -113,10 +117,10 @@ class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
             child: Text(current.text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, height: 1.8)),
           ),
           const SizedBox(height: 16),
-          const Text('ما المقطع التالي؟', style: TextStyle(fontWeight: FontWeight.w700)),
+          Text(_t('qz_next_passage'), style: const TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           if (!_revealed)
-            OutlinedButton(onPressed: () => setState(() => _revealed = true), child: const Text('أظهر الإجابة'))
+            OutlinedButton(onPressed: () => setState(() => _revealed = true), child: Text(_t('qz_show_answer')))
           else ...[
             Container(
               padding: const EdgeInsets.all(20),
@@ -126,9 +130,9 @@ class _WasitiyyahQuizScreenState extends State<WasitiyyahQuizScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(child: OutlinedButton(onPressed: () => _selfReport(false), child: const Text('أحتاج مراجعة'))),
+                Expanded(child: OutlinedButton(onPressed: () => _selfReport(false), child: Text(_t('mq_need_review')))),
                 const SizedBox(width: 8),
-                Expanded(child: FilledButton(onPressed: () => _selfReport(true), child: const Text('كنت أعرفه'))),
+                Expanded(child: FilledButton(onPressed: () => _selfReport(true), child: Text(_t('qz_knew_it')))),
               ],
             ),
           ],

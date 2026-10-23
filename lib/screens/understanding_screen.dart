@@ -8,6 +8,10 @@ import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
 
+/// This screen's strings — `basicText` in the current app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
+
+
 /// "الفهم" — Phase 3 of QURAN_COMPANION_ROADMAP.md. Shows the tafsir for a
 /// memorized-but-not-yet-understood page and lets the student mark
 /// "فهمت" — deliberately separate from memorization status (see section 1's
@@ -81,6 +85,7 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
     if (_queue.isEmpty) return;
     await _repo.markUnderstood(_queue.first, notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim());
     _notesController.clear();
+    if (!mounted) return;
     setState(() => _queue = _queue.skip(1).toList());
     await _loadCurrent();
   }
@@ -88,7 +93,7 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الفهم')),
+      appBar: AppBar(title: Text(_t('step_understanding_title'))),
       body: _loading ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage)) : _buildBody(),
     );
   }
@@ -96,11 +101,11 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
   Widget _buildBody() {
     final unit = _currentUnit;
     if (unit == null) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(24),
           child: Text(
-            'لا توجد صفحات محفوظة بانتظار الفهم حاليًا — احفظ صفحة جديدة أولًا، أو أحسنت إن كنت فهمت كل ما حفظته 🌱',
+            _t('x_understanding_none'),
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColors.textMuted),
           ),
@@ -114,9 +119,9 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('باقي ${_queue.length} صفحة', style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+          Text(_t('x_pages_left').replaceAll('{n}', '${_queue.length}'), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
           const SizedBox(height: 8),
-          Text('صفحة ${unit['id']} — سورة ${_surahNames[surahStart] ?? surahStart}',
+          Text(_t('x_page_from_surah').replaceAll('{p}', '${unit['id']}').replaceAll('{s}', '${_surahNames[surahStart] ?? surahStart}'),
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           const SizedBox(height: 12),
           Expanded(
@@ -136,10 +141,10 @@ class _UnderstandingScreenState extends State<UnderstandingScreen> {
           TextField(
             controller: _notesController,
             maxLines: 2,
-            decoration: const InputDecoration(hintText: 'ملاحظتك الخاصة (اختياري)', isDense: true),
+            decoration: InputDecoration(hintText: _t('x_private_note'), isDense: true),
           ),
           const SizedBox(height: 10),
-          FilledButton.icon(onPressed: _markUnderstood, icon: const Icon(Icons.check), label: const Text('فهمتها')),
+          FilledButton.icon(onPressed: _markUnderstood, icon: const Icon(Icons.check), label: Text(_t('x_understood'))),
         ],
       ),
     );
