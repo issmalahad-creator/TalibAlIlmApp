@@ -35,6 +35,11 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
   _SearchStatus _status = _SearchStatus.idle;
   TurathSearchResults? _results;
 
+  /// Bumped on every new query: a slow answer to an older query (or one
+  /// that lands after the box was cleared) is dropped instead of
+  /// overwriting what the user is looking at now.
+  int _gen = 0;
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -44,6 +49,7 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
 
   void _onQueryChanged(String query) {
     _debounce?.cancel();
+    _gen++;
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       setState(() => _status = _SearchStatus.idle);
@@ -55,16 +61,17 @@ class _TurathLibraryScreenState extends State<TurathLibraryScreen> {
   }
 
   Future<void> _runSearch(String query) async {
+    final gen = ++_gen;
     setState(() => _status = _SearchStatus.loading);
     try {
       final results = await _repo.search(query);
-      if (!mounted) return;
+      if (!mounted || gen != _gen) return;
       setState(() {
         _results = results;
         _status = results.results.isEmpty ? _SearchStatus.empty : _SearchStatus.success;
       });
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || gen != _gen) return;
       setState(() => _status = _SearchStatus.error);
     }
   }

@@ -60,6 +60,9 @@ import '../widgets/enable_reminders_card.dart';
 import '../widgets/feedback/talib_navigation.dart';
 import '../widgets/feedback/talib_pressable.dart';
 
+/// Bumped by [MainShell] when the user comes back to the Home tab.
+final homeRefreshTick = ValueNotifier<int>(0);
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -93,10 +96,22 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    homeRefreshTick.addListener(_onReturn);
     _load();
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    homeRefreshTick.removeListener(_onReturn);
+    super.dispose();
+  }
+
+  /// Back on Home from another tab: goals / activities may have changed
+  /// there (Home stays mounted in MainShell's IndexedStack, so it showed
+  /// the old ring and lists until a manual pull-to-refresh).
+  void _onReturn() => _load(full: false);
+
+  Future<void> _load({bool full = true}) async {
     final entries = await _activityRepo.forMonth(currentMonth());
     final goals = await _goalRepo.forMonth(currentMonth());
     final profile = await _profileRepo.get();
@@ -113,6 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _reviewDueCount = reviewDue.length;
       _loading = false;
     });
+    if (!full) return;
     // Home has real content on screen — let deferred startup work begin.
     BootScheduler.instance.markHomeReady();
     // Best-effort, non-blocking: the banner is a nice-to-have and must never
