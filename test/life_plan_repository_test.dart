@@ -111,6 +111,34 @@ void main() {
     expect(mom['jobs'], 0.0); // slot 13 untouched
   });
 
+  test('batched rolling average and streak match progress() day by day', () async {
+    // a mixed 20 days: full, partial and empty days, plus a row for a slot
+    // that no longer exists (must be ignored, as progress() ignores it)
+    final now = DateTime.now();
+    for (var i = 0; i < 20; i++) {
+      final d = LifePlanRepository.ymd(now.subtract(Duration(days: i)));
+      final n = i % 3 == 0 ? 23 : (i % 3 == 1 ? 9 : 0);
+      for (var k = 1; k <= n; k++) {
+        await repo.setSlotDone(d, k, true);
+      }
+    }
+    final db = await DatabaseHelper.instance.database;
+    await db.insert('life_day_slots', {'date': today, 'slot_no': 999, 'done': 1});
+
+    Future<double> slowAverage(int days) async {
+      var sum = 0.0;
+      for (var i = 0; i < days; i++) {
+        sum += (await repo.progress(LifePlanRepository.ymd(now.subtract(Duration(days: i))))).percent;
+      }
+      return sum / days;
+    }
+
+    for (final w in [1, 7, 20, 30]) {
+      expect(await repo.rollingAverage(w), closeTo(await slowAverage(w), 1e-9), reason: 'window $w');
+    }
+    expect(await repo.streak(), greaterThan(0));
+  });
+
   test('dayPercents batches a date range in one pass', () async {
     final now = DateTime.now();
     final d1 = LifePlanRepository.ymd(now.subtract(const Duration(days: 1)));
