@@ -1,6 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../db/database_helper.dart';
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import '../utils/hijri_date.dart';
 import '../utils/month.dart';
 import 'completion_goal_repository.dart';
@@ -172,9 +174,11 @@ class JourneyPlanRepository {
     String? advisory;
     if (recentDifficulties.length == _advisoryTrendLength) {
       if (recentDifficulties.every((d) => d == 'hard')) {
-        advisory = 'آخر $_advisoryTrendLength جلسات كانت صعبة عليك — قد يفيدك تخفيف الوتيرة قليلًا.';
+        advisory = basicText('journey_advisory_hard', LanguagePreferenceService.currentLanguage)
+            .replaceAll('{n}', '$_advisoryTrendLength');
       } else if (recentDifficulties.every((d) => d == 'easy')) {
-        advisory = 'آخر $_advisoryTrendLength جلسات كانت سهلة عليك — لو أردت، يمكنك تكثيف الوتيرة.';
+        advisory = basicText('journey_advisory_easy', LanguagePreferenceService.currentLanguage)
+            .replaceAll('{n}', '$_advisoryTrendLength');
       }
     }
 

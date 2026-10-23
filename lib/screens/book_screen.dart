@@ -72,10 +72,14 @@ class _BookScreenState extends State<BookScreen> {
   }
   List<BookEntry> get _hiddenBooks => _feed.books.where((b) => _hiddenIds.contains(b.id)).toList();
 
+  /// Looked up in the unfiltered list: when the search hid the selected
+  /// book this used to fall back to the first match, showing book B's title
+  /// with book A's progress and quiz — and the slider then wrote A's value
+  /// onto B.
   BookEntry? get _selectedBook {
-    final visible = _visibleBooks;
-    if (visible.isEmpty) return null;
-    return visible.firstWhere((b) => b.id == _selectedBookId, orElse: () => visible.first);
+    final shown = _feed.books.where((b) => !_hiddenIds.contains(b.id)).toList();
+    if (shown.isEmpty) return null;
+    return shown.firstWhere((b) => b.id == _selectedBookId, orElse: () => shown.first);
   }
 
   @override
