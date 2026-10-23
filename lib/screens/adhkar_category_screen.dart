@@ -19,6 +19,7 @@ import '../utils/month.dart';
 import '../widgets/celebration_overlay.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/notification_permission_sheet.dart';
+import '../widgets/hour_picker.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -177,17 +178,18 @@ class _AdhkarCategoryScreenState extends State<AdhkarCategoryScreen> {
   /// any adhkar category, not just the 3 fixed morning/evening/sleep
   /// slots, directly from the category's own reading screen.
   Future<void> _addReminder() async {
-    final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 8, minute: 0));
+    // reminders are stored by the hour: don't offer minutes we'd drop
+    final picked = await showHourPicker(context, initialHour: 8);
     if (picked == null || !mounted) return;
     await ensureNotificationPermission(context, NotificationReason.adhkar);
-    await CustomAdhkarReminderRepository().add(widget.category.id, picked.hour);
+    await CustomAdhkarReminderRepository().add(widget.category.id, picked);
     await NotificationService().scheduleCustomAdhkarReminder(
       categoryId: widget.category.id,
       categoryTitle: widget.category.title,
-      hour: picked.hour,
+      hour: picked,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_reminder_added').replaceAll('{h}', '${picked.hour}'))));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(_t('adc_reminder_added').replaceAll('{h}', '$picked'))));
   }
 
   @override

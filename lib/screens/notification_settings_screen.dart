@@ -13,6 +13,7 @@ import '../services/quiet_hours_prefs.dart';
 import '../theme/app_theme.dart';
 import 'notification_diagnostics_screen.dart';
 import '../widgets/notification_permission_sheet.dart';
+import '../widgets/hour_picker.dart';
 
 const _categoryLabelKeys = {
   'morning': ('notif_cat_morning_title', 'notif_cat_morning_hint'),
@@ -190,15 +191,16 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }
 
   Future<void> _pickQuietWindow() async {
-    final start = await showTimePicker(context: context, initialTime: TimeOfDay(hour: _quietStart, minute: 0));
+    final lang = LanguagePreferenceService.currentLanguage;
+    final start = await showHourPicker(context, initialHour: _quietStart, title: basicText('quiet_hours_from', lang));
     if (start == null || !mounted) return;
-    final end = await showTimePicker(context: context, initialTime: TimeOfDay(hour: _quietEnd, minute: 0));
+    final end = await showHourPicker(context, initialHour: _quietEnd, title: basicText('quiet_hours_to', lang));
     if (end == null) return;
-    await _quietHoursPrefs.setWindow(start.hour, end.hour);
+    await _quietHoursPrefs.setWindow(start, end);
     if (!mounted) return;
     setState(() {
-      _quietStart = start.hour;
-      _quietEnd = end.hour;
+      _quietStart = start;
+      _quietEnd = end;
     });
     await _apply();
   }
@@ -222,11 +224,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       ),
     );
     if (category == null || !mounted) return;
-    final picked = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 8, minute: 0));
+    final picked = await showHourPicker(context, initialHour: 8);
     if (picked == null || !mounted) return;
     await ensureNotificationPermission(context, NotificationReason.adhkar);
-    await _customRepo.add(category.id, picked.hour);
-    await _notifications.scheduleCustomAdhkarReminder(categoryId: category.id, categoryTitle: category.title, hour: picked.hour);
+    await _customRepo.add(category.id, picked);
+    await _notifications.scheduleCustomAdhkarReminder(categoryId: category.id, categoryTitle: category.title, hour: picked);
     _load();
   }
 
@@ -249,14 +251,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   }
 
   Future<void> _pickHour(String category) async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: _customHours[category] ?? 6, minute: 0),
-    );
+    final picked = await showHourPicker(context, initialHour: _customHours[category] ?? 6);
     if (picked == null) return;
-    await _prefs.setCustomHour(category, picked.hour);
+    await _prefs.setCustomHour(category, picked);
     if (!mounted) return;
-    setState(() => _customHours[category] = picked.hour);
+    setState(() => _customHours[category] = picked);
     await _apply();
   }
 
