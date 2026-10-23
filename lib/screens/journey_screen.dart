@@ -372,8 +372,10 @@ class _DashboardView extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 FilledButton.icon(
+                  // memorizing changes today's page and mastery: reload on return
                   onPressed: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => QuranBrowseScreen(highlightUnitId: nextUnit.id))),
+                          context, MaterialPageRoute(builder: (_) => QuranBrowseScreen(highlightUnitId: nextUnit.id)))
+                      .then((_) => onChanged()),
                   icon: const Icon(Icons.play_arrow, size: 18),
                   label: Text(basicText('start_memorizing_button', lang)),
                 ),
@@ -405,9 +407,11 @@ class _DashboardView extends StatelessWidget {
             children: [
               const Icon(Icons.insights_outlined, size: 15, color: AppColors.primaryDark),
               const SizedBox(width: 6),
-              Text(
-                '${basicText('review_success_rate_prefix', lang)}: ${status.reviewSuccessRate!.toStringAsFixed(0)}% ${basicText('excellent_good_label', lang)}',
-                style: const TextStyle(fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.w700),
+              Expanded(
+                child: Text(
+                  '${basicText('review_success_rate_prefix', lang)}: ${status.reviewSuccessRate!.toStringAsFixed(0)}% ${basicText('excellent_good_label', lang)}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),

@@ -227,7 +227,12 @@ class _AyahNotebookScreenState extends State<AyahNotebookScreen> {
                 ],
                 if ((e.topic ?? '').isNotEmpty) ...[
                   const SizedBox(width: 6),
-                  Text('· ${e.topic}', style: const TextStyle(fontSize: 10, color: AppColors.primary)),
+                  // free text from the add sheet: never let it overflow the row
+                  Flexible(
+                    child: Text('· ${e.topic}',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10, color: AppColors.primary)),
+                  ),
                 ],
                 const Spacer(),
                 _entryMenu(e, lang),

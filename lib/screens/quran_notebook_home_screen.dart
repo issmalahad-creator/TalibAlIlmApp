@@ -232,7 +232,12 @@ class _QuranNotebookHomeScreenState extends State<QuranNotebookHomeScreen> {
                       style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted)),
                   if ((e.topic ?? '').isNotEmpty) ...[
                     const SizedBox(width: 6),
-                    Text('· ${e.topic}', style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                    // free text from the add sheet: never let it overflow the row
+                    Flexible(
+                      child: Text('· ${e.topic}',
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 10, color: AppColors.textMuted)),
+                    ),
                   ],
                 ],
               ),

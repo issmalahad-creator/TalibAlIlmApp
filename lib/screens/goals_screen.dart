@@ -17,7 +17,12 @@ class GoalsScreen extends StatefulWidget {
 
 class _GoalsScreenState extends State<GoalsScreen> {
   final _repo = GoalRepository();
-  final _lang = LanguagePreferenceService.currentLanguage;
+  // Read live: these tabs stay mounted in MainShell's IndexedStack, so a
+  // value captured once never followed a language change in settings.
+  String get _lang => LanguagePreferenceService.currentLanguage;
+  void _onLanguage() {
+    if (mounted) setState(() {});
+  }
   List<Goal> _goals = [];
   bool _loading = true;
   String? _error;
@@ -25,7 +30,14 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   void initState() {
     super.initState();
+    LanguagePreferenceService.languageNotifier.addListener(_onLanguage);
     _load();
+  }
+
+  @override
+  void dispose() {
+    LanguagePreferenceService.languageNotifier.removeListener(_onLanguage);
+    super.dispose();
   }
 
   // 2026-08-17 (Ismail: goals screen not working even in Arabic, no

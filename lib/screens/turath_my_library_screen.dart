@@ -101,8 +101,8 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
             title: Text(f.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.w700)),
             subtitle: f.isBook ? null : Text('ص ${f.pageNumber}', textDirection: TextDirection.rtl, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
             onTap: () => f.isBook
-                ? Navigator.push(context, MaterialPageRoute(builder: (_) => TurathBookScreen(bookId: f.bookId, bookName: f.bookName)))
-                : Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: f.bookId, bookName: f.bookName, pageNumber: f.pageNumber!))),
+                ? Navigator.push(context, MaterialPageRoute(builder: (_) => TurathBookScreen(bookId: f.bookId, bookName: f.bookName))).then((_) => _load())
+                : Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: f.bookId, bookName: f.bookName, pageNumber: f.pageNumber!))).then((_) => _load()),
           ),
         );
       },
@@ -124,7 +124,7 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
             leading: const Icon(Icons.history_rounded, color: AppColors.primary),
             title: Text(r.bookName, textDirection: TextDirection.rtl, style: const TextStyle(fontFamily: 'Amiri', fontWeight: FontWeight.w700)),
             subtitle: Text('${basicText('turath_last_read_label', lang)} ${r.pageNumber}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: r.bookId, bookName: r.bookName, pageNumber: r.pageNumber))),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: r.bookId, bookName: r.bookName, pageNumber: r.pageNumber))).then((_) => _load()),
           ),
         );
       },
@@ -172,7 +172,7 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
                 ),
               ],
             ),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: n.bookId, bookName: n.bookName, pageNumber: n.pageNumber))),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TurathReaderScreen(bookId: n.bookId, bookName: n.bookName, pageNumber: n.pageNumber))).then((_) => _load()),
           ),
         );
       },

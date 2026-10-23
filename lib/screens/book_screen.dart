@@ -43,7 +43,12 @@ class _BookScreenState extends State<BookScreen> {
   final _hiddenBooksService = HiddenBooksService();
   final _downloadService = DownloadedFileService();
   final _libraryService = PersonalLibraryService();
-  final _lang = LanguagePreferenceService.currentLanguage;
+  // Read live: these tabs stay mounted in MainShell's IndexedStack, so a
+  // value captured once never followed a language change in settings.
+  String get _lang => LanguagePreferenceService.currentLanguage;
+  void _onLanguage() {
+    if (mounted) setState(() {});
+  }
 
   BookContentFeed _feed = BookContentFeed.empty;
   Set<String> _hiddenIds = {};
@@ -76,11 +81,13 @@ class _BookScreenState extends State<BookScreen> {
   @override
   void initState() {
     super.initState();
+    LanguagePreferenceService.languageNotifier.addListener(_onLanguage);
     _load();
   }
 
   @override
   void dispose() {
+    LanguagePreferenceService.languageNotifier.removeListener(_onLanguage);
     _bookSearchController.dispose();
     super.dispose();
   }

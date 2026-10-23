@@ -168,7 +168,15 @@ class _PersonalLibraryScreenState extends State<PersonalLibraryScreen> {
         if (_loading) {
           return Scaffold(appBar: AppBar(title: Text(basicText('personal_library_title', lang))), body: TalibSkeleton(semanticLabel: basicText('loading_book', lang), child: const SkeletonCardList(leading: true, leadingSize: 56)));
         }
-        return _openCategoryId == null ? _buildFolderList() : _buildCategoryBooks();
+        // System back inside a folder returns to the folder list (it used to
+        // close the whole library — only the AppBar arrow knew about folders).
+        return PopScope(
+          canPop: _openCategoryId == null,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) setState(() => _openCategoryId = null);
+          },
+          child: _openCategoryId == null ? _buildFolderList() : _buildCategoryBooks(),
+        );
       },
     );
   }
