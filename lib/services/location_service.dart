@@ -48,17 +48,20 @@ class LocationService {
 
   Future<AppCoordinates?> currentLocation({bool mayAskPermission = true}) async {
     lastProblem = null;
-    final gps = await _tryGps(mayAskPermission: mayAskPermission);
-    if (gps != null) {
-      await _cacheLocation(gps.latitude, gps.longitude);
-      return gps;
-    }
-
     final prefs = await SharedPreferences.getInstance();
+    // A location the user chose (typed, or picked as a city) wins over GPS
+    // until they clear it — it used to be read only when GPS failed, so on
+    // a phone with working GPS «أدخل موقعك يدويًا» silently did nothing.
     final manualLat = prefs.getDouble(_latKey);
     final manualLng = prefs.getDouble(_lngKey);
     if (manualLat != null && manualLng != null) {
       return AppCoordinates(latitude: manualLat, longitude: manualLng, isManual: true);
+    }
+
+    final gps = await _tryGps(mayAskPermission: mayAskPermission);
+    if (gps != null) {
+      await _cacheLocation(gps.latitude, gps.longitude);
+      return gps;
     }
 
     final cachedLat = prefs.getDouble(_cachedLatKey);
@@ -131,7 +134,9 @@ class LocationService {
     await prefs.setDouble(_cachedLngKey, lng);
   }
 
+  /// Throws [ArgumentError] outside ±90 / ±180.
   Future<void> setManualLocation(double lat, double lng) async {
+    if (lat.abs() > 90 || lng.abs() > 180) throw ArgumentError('lat/lng out of range');
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_latKey, lat);
     await prefs.setDouble(_lngKey, lng);
