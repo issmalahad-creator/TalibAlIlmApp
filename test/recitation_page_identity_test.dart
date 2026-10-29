@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
+import 'package:talib_alilm_app/repositories/mistake_log_repository.dart';
 import 'package:talib_alilm_app/repositories/mushaf_layout_sync.dart';
 import 'package:talib_alilm_app/repositories/recitation_repository.dart';
 import 'package:talib_alilm_app/utils/recitation_alignment.dart';
@@ -63,5 +64,30 @@ void main() {
     expect(mistakes.single['ayah'], 2);
     expect(mistakes.single['status'], 'missing');
     expect(mistakes.single['word_index'], words[6].wordIndex);
+  });
+
+  test('ت5: one log — recitation mistakes and self-rated reviews, by muṣḥaf page then ayah', () async {
+    final db = await DatabaseHelper.instance.database;
+    await db.delete('recitation_mistakes');
+    await db.delete('recitation_sessions');
+    final repo = RecitationRepository();
+    final words = await repo.pageWords(300);
+    final statuses = List<RecitationWordStatus?>.filled(words.length, RecitationWordStatus.correct);
+    statuses[2] = RecitationWordStatus.wrong;
+    final said = List<String?>.filled(words.length, null)..[2] = 'شيء';
+    await repo.recordPageResult(words: words, statuses: statuses, said: said, extras: {(18, 56): 2});
+
+    // A self-rated «يحتاج مراجعة» on the unit that starts with al-Kahf 54.
+    await db.insert('memorization_units', {'id': 9999, 'surah_start': 18, 'ayah_start': 54, 'surah_end': 18, 'ayah_end': 61});
+    await db.insert('mistake_log', {'unit_id': 9999, 'note': 'تردّدت في أولها', 'logged_date': '9999-01-01'});
+
+    final pages = await MistakeLogRepository().pages();
+    expect(pages.map((p) => p.page), [300]);
+    final page = pages.single;
+    expect(page.pageLevel.single.kind, MistakeKind.selfRated);
+    expect(page.byAyah[(18, words[2].ayah)]!.single.kind, MistakeKind.substitution);
+    expect(page.byAyah[(18, words[2].ayah)]!.single.said, 'شيء');
+    expect(page.byAyah[(18, 56)]!.any((e) => e.kind == MistakeKind.addition && e.count == 2), isTrue);
+    expect(page.total, 3);
   });
 }

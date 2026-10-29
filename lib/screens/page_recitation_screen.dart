@@ -26,7 +26,11 @@ import 'recitation_mistakes_screen.dart';
 /// Word-level only (correct / missing / wrong / extra). No tajwīd judgement.
 class PageRecitationScreen extends StatefulWidget {
   final int pageNumber;
-  const PageRecitationScreen({super.key, required this.pageNumber});
+
+  /// Recite only this ayah of the page (the log's repair card: re-recite the
+  /// exact spot, not the whole page).
+  final ({int surah, int ayah})? onlyAyah;
+  const PageRecitationScreen({super.key, required this.pageNumber, this.onlyAyah});
 
   @override
   State<PageRecitationScreen> createState() => _PageRecitationScreenState();
@@ -490,7 +494,7 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
       onPressed: switch (_status) {
         _Status.initializing || _Status.scoring || _Status.loading => null,
         _Status.listening => _stopManually,
-        _ => () => _start(),
+        _ => () => widget.onlyAyah == null || _result != null ? _start() : _redoAyah(widget.onlyAyah!.surah, widget.onlyAyah!.ayah),
       },
       icon: Icon(listening ? Icons.stop_rounded : Icons.mic_rounded),
       label: Text(listening ? basicText('recitation_stop_action', lang) : basicText('recitation_start_action', lang)),

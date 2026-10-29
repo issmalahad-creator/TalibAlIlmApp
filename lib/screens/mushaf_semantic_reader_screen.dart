@@ -67,7 +67,11 @@ class MushafSemanticReaderScreen extends StatefulWidget {
   /// (`mushaf_last_page`), page 1 on a first run.
   final int? initialPage;
 
-  const MushafSemanticReaderScreen({super.key, this.initialPage});
+  /// An ayah to light up on arrival (e.g. from «سجل الأخطاء»); cleared by the
+  /// first tap on the page.
+  final ({int surah, int ayah})? focusAyah;
+
+  const MushafSemanticReaderScreen({super.key, this.initialPage, this.focusAyah});
 
   @override
   State<MushafSemanticReaderScreen> createState() =>
@@ -146,6 +150,9 @@ class _MushafSemanticReaderScreenState
   /// The ayah under the long-press menu — highlighted while it is open.
   ({int surah, int ayah})? _menuAyah;
 
+  /// [MushafSemanticReaderScreen.focusAyah] until the first tap.
+  late ({int surah, int ayah})? _focusAyah = widget.focusAyah;
+
 
   static const _nightPrefKey = 'quran_reading_night_mode';
   static const _reciterPrefKey = 'quran_reading_reciter';
@@ -192,7 +199,10 @@ class _MushafSemanticReaderScreenState
   /// visible on every screen open (not persisted — this is "get the chrome
   /// out of my way right now for this reading", not a saved preference).
   bool _chromeVisible = true;
-  void _toggleChrome() => setState(() => _chromeVisible = !_chromeVisible);
+  void _toggleChrome() => setState(() {
+        _focusAyah = null;
+        _chromeVisible = !_chromeVisible;
+      });
 
   @override
   void initState() {
@@ -458,6 +468,40 @@ class _MushafSemanticReaderScreenState
 
   // ── timed reading session ────────────────────────────────────────
 
+  /// «سمّع» (ت6): one entry for recitation — this page, or the mistakes log
+  /// (whose ayat re-recite just that ayah) — instead of two overlapping rows.
+  Future<void> _openReciteSheet(String lang) async {
+    final page = _current;
+    final pick = await showModalBottomSheet<int>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.mic_none_rounded),
+              title: Text(basicText('recite_page_action', lang)),
+              subtitle: Text('${basicText('page_label', lang)} $page'),
+              onTap: () => Navigator.pop(ctx, 0),
+            ),
+            ListTile(
+              leading: const Icon(Icons.history_edu_outlined),
+              title: Text(basicText('recitation_mistakes_title', lang)),
+              onTap: () => Navigator.pop(ctx, 1),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || pick == null) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => pick == 0 ? PageRecitationScreen(pageNumber: page) : const RecitationMistakesScreen(),
+      ),
+    );
+  }
+
   Future<void> _openSessionSheet(String lang) async {
     if (_sessionTimer != null) {
       setState(() {
@@ -590,6 +634,7 @@ class _MushafSemanticReaderScreenState
 
   void _onWord(MushafWord w) {
     setState(() {
+      _focusAyah = null;
       _selWord = w;
       _selMark = null;
       _selWordCaption = null;
@@ -1307,14 +1352,8 @@ class _MushafSemanticReaderScreenState
                   div,
                   tile(
                     Icons.mic_none_rounded,
-                    basicText('recite_page_action', lang),
-                    () => go(PageRecitationScreen(pageNumber: _current)),
-                  ),
-                  div,
-                  tile(
-                    Icons.history_edu_outlined,
-                    basicText('recitation_mistakes_title', lang),
-                    () => go(const RecitationMistakesScreen()),
+                    basicText('recite_menu', lang),
+                    () => then(() => _openReciteSheet(lang)),
                   ),
                   div,
                   tile(
@@ -2254,6 +2293,7 @@ class _MushafSemanticReaderScreenState
         selectedAyah:
             _playingAyah ??
             _menuAyah ??
+            _focusAyah ??
             (_selMark == null || _selMark!.page != page
                 ? null
                 : (surah: _selMark!.surah, ayah: _selMark!.ayah)),
