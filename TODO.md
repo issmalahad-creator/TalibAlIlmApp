@@ -4,6 +4,8 @@ Last updated: 2026-09-27. **Work top to bottom, one unchecked item at a time.** 
 
 > **2026-10-10 — queued, not started:** the daily-companion waves w1–w8 (dark theme + design system → «what now» dashboard + worship tracking → «my adhkar» + tasbih → prayer/calendar/Friday → share cards + global search → Names of Allah + knowledge map → widgets/PDF → seasons/audio), in [`docs/COMPANION_SPEC.md`](docs/COMPANION_SPEC.md). They start only after ب3 (reader) is closed on Ismail's phone, one wave per phase.
 
+> **2026-10-29 — إسماعيل أذن بثلاث خطط بالترتيب:** (1) إعادة بناء التسميع وسجل الأخطاء [`docs/memorization/RECITATION_REBUILD_PLAN.md`](docs/memorization/RECITATION_REBUILD_PLAN.md) — **✅ ت0–ت3 كود** (⏳ الهاتف) ثم ت4–ت6؛ (2) معمارية جدول الحفظ [`docs/memorization/HIFZ_SCHEDULE_ARCHITECTURE.md`](docs/memorization/HIFZ_SCHEDULE_ARCHITECTURE.md)؛ (3) شجرة «بلوغ المرام» [`docs/KNOWLEDGE_TREE_ZAD_PLAN.md`](docs/KNOWLEDGE_TREE_ZAD_PLAN.md). واحدة بعد الأخرى.
+
 ## 🧭 الخطة الرئيسية حتى نهاية المشروع (2026-09-27) — المرجع الوحيد لـ«ما التالي؟»
 
 **القاعدة (إسماعيل 2026-09-27):** «نعمل بشكل متسلسل ومنتظم ودون تشتت، لا نهتم بجهة وندع جهة». مرحلة واحدة فقط في كل وقت، من الأعلى للأسفل. لا تبدأ مرحلة قبل أن يتحقق **شرط انتهاء** السابقة (بناء + `flutter analyze` نظيف + اختبارات المرحلة + تحقق على هاتف إسماعيل حين يمسّ الواجهة). الطلب الجديد يُضاف إلى مكانه في هذه القائمة، ولا يقطع المرحلة الجارية إلا إن كان عطلًا يمنع الاستخدام.

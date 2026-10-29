@@ -2,36 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/basic_translations.dart';
-import '../repositories/quran_reading_repository.dart';
 import '../repositories/recitation_repository.dart';
 import '../services/language_preference_service.dart';
-import '../services/mushaf_page_layout.dart';
 import '../services/platform_speech_recognition_engine.dart';
 import '../services/speech_recognition_engine.dart';
 import '../theme/app_theme.dart';
 import '../utils/recitation_alignment.dart';
+import '../utils/recitation_text.dart';
 import 'recitation_mistakes_screen.dart';
 
-/// Continuous, whole-page "تسميع" (76.3-redesign, Ismail 2026-08-28: "لا
-/// أريد آية بآية ... المشكلة الكبيرة جدًا الصفحة نفسها"). Replaces the
-/// single-ayah stop-and-score model with one continuous listening session
-/// across an entire Mushaf page: the student recites naturally, ayah after
-/// ayah, and the page's own words light up live as they're recognized —
-/// no per-ayah button presses.
+/// Continuous, whole-page «تسميع» — rebuilt per
+/// `docs/memorization/RECITATION_REBUILD_PLAN.md` (ت0–ت3):
 ///
-/// Reuses the exact same word layout the real reading screen uses
-/// (`flattenAyatToWords`/`packWordsIntoLines`, `mushaf_page_layout.dart`)
-/// so this looks and paginates like the actual page, and the exact same
-/// alignment/persistence engine as the single-ayah screen
-/// (`alignRecitation`, `RecitationRepository`) — a page is just a longer
-/// word sequence to that engine, not a different problem.
+/// * the page's words are the reader's own Madinah-muṣḥaf page
+///   (`mushaf_words`, by line), not the old Tanzil page (ت3);
+/// * both sides are compared as plain keys, waqf signs are skipped, and the
+///   isti'ādha/basmala said before reciting is not counted (ت1);
+/// * each pause commits only the words that segment really covered — the rest
+///   of the page stays pending, and the session waits for the student until
+///   they press Stop (ت2);
+/// * what is saved is exactly what was shown (ت2).
 ///
-/// Scope, stated plainly (matches 76.3-redesign-verdict in TODO.md): word-
-/// level mistakes only (missing/wrong/extra), no tajweed or letter-level
-/// grading. Live position tracking is a real but approximate estimate from
-/// re-aligning the in-progress partial transcript each update — it is
-/// finalized (and only then persisted) once the recognizer reports a
-/// finished pause-segment.
+/// Word-level only (correct / missing / wrong / extra). No tajwīd judgement.
 class PageRecitationScreen extends StatefulWidget {
   final int pageNumber;
   const PageRecitationScreen({super.key, required this.pageNumber});
@@ -40,28 +32,35 @@ class PageRecitationScreen extends StatefulWidget {
   State<PageRecitationScreen> createState() => _PageRecitationScreenState();
 }
 
-enum _Status { loading, idle, initializing, listening, scoring, done, permissionDenied, error }
+enum _Status { loading, empty, idle, initializing, listening, scoring, done, permissionDenied, noRecognizer, error }
+
+const _correctColor = Color(0xFF1F7A4D);
+const _missingColor = Color(0xFFB5651D);
+const _wrongColor = Color(0xFFC0392B);
 
 class _PageRecitationScreenState extends State<PageRecitationScreen> {
-  final _repo = QuranReadingRepository();
-  final _recitationRepo = RecitationRepository();
+  final _repo = RecitationRepository();
   final SpeechRecognitionEngine _engine = PlatformSpeechRecognitionEngine();
 
-  List<QuranAyahText> _ayat = [];
-  List<MushafWord> _flatWords = [];
-
-  /// One committed (final, persisted-on-finish) status per word in
-  /// [_flatWords] -- null means "not reached yet".
+  List<RecitationWord> _words = [];
   List<RecitationWordStatus?> _statuses = [];
-  int _committedCount = 0;
-  final List<String> _allSaidWords = [];
+  List<String?> _said = [];
+  final Map<(int, int), int> _extras = {};
 
-  /// Live, uncommitted preview of the in-progress pause-segment -- recomputed
-  /// on every partial-result callback, never persisted on its own.
+  /// Words before this index are committed; the student continues from here.
+  int _cursor = 0;
+
+  /// The listening run covers `[_runStart, _runEnd)`: the whole page, or a
+  /// single ayah after «أعِد هذه الآية».
+  int _runStart = 0;
+  int _runEnd = 0;
+  bool _anySaid = false;
+
+  /// Live, uncommitted preview of the current pause-segment.
   List<String> _liveWords = [];
   List<RecitationWordResult> _liveResult = [];
-  int _liveCursor = 0;
 
+  bool _hidden = true;
   _Status _status = _Status.loading;
   PageRecitationResult? _result;
   String? _errorMessage;
@@ -73,14 +72,13 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
   }
 
   Future<void> _load() async {
-    final ayat = await _repo.ayatForPage(widget.pageNumber);
+    final words = await _repo.pageWords(widget.pageNumber);
     if (!mounted) return;
-    final flat = flattenAyatToWords(ayat);
     setState(() {
-      _ayat = ayat;
-      _flatWords = flat;
-      _statuses = List<RecitationWordStatus?>.filled(flat.length, null);
-      _status = _Status.idle;
+      _words = words;
+      _statuses = List<RecitationWordStatus?>.filled(words.length, null);
+      _said = List<String?>.filled(words.length, null);
+      _status = words.isEmpty ? _Status.empty : _Status.idle;
     });
   }
 
@@ -90,41 +88,45 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
     super.dispose();
   }
 
-  Future<void> _start() async {
+  List<String> get _remaining => [for (var k = _cursor; k < _runEnd; k++) _words[k].text];
+
+  Future<void> _start({int from = 0, int? to}) async {
     setState(() {
       _status = _Status.initializing;
       _result = null;
-      _committedCount = 0;
-      _allSaidWords.clear();
-      _statuses = List<RecitationWordStatus?>.filled(_flatWords.length, null);
+      _cursor = from;
+      _runStart = from;
+      _runEnd = to ?? _words.length;
+      _anySaid = false;
+      for (var k = from; k < _runEnd; k++) {
+        _statuses[k] = null;
+        _said[k] = null;
+      }
+      if (from == 0) _extras.clear();
       _liveWords = [];
       _liveResult = [];
-      _liveCursor = 0;
     });
 
-    final ok = await _engine.initialize();
-    if (!ok) {
-      if (!mounted) return;
-      setState(() => _status = _Status.permissionDenied);
+    final readiness = await _engine.prepare();
+    if (!mounted) return;
+    if (readiness != RecognizerReadiness.ready) {
+      setState(() => _status = readiness == RecognizerReadiness.permissionDenied ? _Status.permissionDenied : _Status.noRecognizer);
       return;
     }
-    final arabicLocales = await _engine.availableArabicLocaleIds();
-
+    final arabic = await _engine.availableArabicLocaleIds();
     if (!mounted) return;
     setState(() => _status = _Status.listening);
     await _engine.startListening(
-      localeId: arabicLocales.isNotEmpty ? arabicLocales.first : null,
-      // Segment bounds, not session bounds (see SpeechRecognitionEngine's
-      // doc comment) -- short pauseFor so ayah-to-ayah gaps are caught
-      // promptly, generous listenFor as a per-segment safety cap.
-      listenFor: const Duration(seconds: 25),
-      pauseFor: const Duration(seconds: 3),
+      // Some phones list no Arabic locale yet recognize it fine online: ask
+      // for Saudi Arabic explicitly rather than the phone's own language.
+      localeId: arabic.isNotEmpty ? arabic.first : 'ar_SA',
+      // A breath between ayat must not end anything (ت2): segments close on
+      // a 6 s silence and the engine reopens the next one by itself.
+      listenFor: const Duration(seconds: 60),
+      pauseFor: const Duration(seconds: 6),
       onError: (message, permanent) {
         if (!mounted) return;
         if (!permanent) {
-          // Transient (e.g. a pre-speech silence timeout) -- the engine is
-          // already restarting the segment on its own; just clear any
-          // stale partial text so the UI doesn't show leftover words.
           setState(() {
             _liveWords = [];
             _liveResult = [];
@@ -137,71 +139,103 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
         });
       },
       onPartialResult: (text) {
-        if (!mounted || _committedCount >= _flatWords.length) return;
-        final words = text.trim().isEmpty ? <String>[] : text.trim().split(RegExp(r'\s+'));
-        final remaining = _flatWords.sublist(_committedCount).map((w) => w.text).toList();
-        final live = alignRecitation(expectedWords: remaining, saidWords: words);
-        var advance = 0;
-        for (final w in live.words) {
-          if (w.status == RecitationWordStatus.missing) break;
-          advance++;
-        }
+        if (!mounted || _cursor >= _runEnd) return;
+        final said = _withoutOpening(splitRecitedTranscript(text));
+        final live = alignRecitationSegment(expectedWords: _remaining, saidWords: said);
         setState(() {
-          _liveWords = words;
+          _liveWords = said;
           _liveResult = live.words;
-          _liveCursor = _committedCount + advance;
         });
       },
-      onFinalResult: (text) => _commitSegment(text),
+      onFinalResult: _commitSegment,
     );
   }
 
-  Future<void> _commitSegment(String text) async {
-    if (!mounted) return;
-    final saidWords = text.trim().isEmpty ? <String>[] : text.trim().split(RegExp(r'\s+'));
-    if (saidWords.isEmpty) return; // pure silence segment -- nothing to commit, keep listening
+  /// The isti'ādha and the basmala said before starting are not part of the
+  /// page (ت1, cause #3) — except on al-Fātiḥa, where the basmala is ayah 1.
+  List<String> _withoutOpening(List<String> said) {
+    if (_cursor != _runStart || _anySaid) return said;
+    var out = said;
+    for (final formula in const ['اعوذ بالله من الشيطان الرجيم', 'بسم الله الرحمن الرحيم']) {
+      final f = formula.split(' ');
+      final firstExpected = _cursor < _words.length ? recitationKey(_words[_cursor].text) : '';
+      if (formula.startsWith('بسم') && firstExpected == 'بسم') continue;
+      var k = 0;
+      while (k < f.length && k < out.length && recitationWordsMatch(f[k], out[k])) {
+        k++;
+      }
+      // Drop only a complete formula, or one still being said (a prefix of
+      // a partial result) — never a lone «الله» that begins a real ayah.
+      if (k == f.length || (k == out.length && k >= 2)) out = out.sublist(k);
+    }
+    return out;
+  }
 
-    final remaining = _flatWords.sublist(_committedCount).map((w) => w.text).toList();
-    final segment = alignRecitation(expectedWords: remaining, saidWords: saidWords);
-    final hasMistake = segment.words.any((w) => w.status != RecitationWordStatus.correct) || segment.extraWordCount > 0;
+  Future<void> _commitSegment(String text) async {
+    if (!mounted || _status != _Status.listening) return;
+    final said = _withoutOpening(splitRecitedTranscript(text));
+    if (said.isEmpty) return;
+    final segment = alignRecitationSegment(expectedWords: _remaining, saidWords: said);
+    final hasMistake = segment.words.any((w) => w.status != RecitationWordStatus.correct);
     if (hasMistake) HapticFeedback.mediumImpact();
 
     setState(() {
-      for (var k = 0; k < segment.words.length; k++) {
-        _statuses[_committedCount + k] = segment.words[k].status;
+      _anySaid = true;
+      for (var k = 0; k < segment.consumed; k++) {
+        _statuses[_cursor + k] = segment.words[k].status;
+        _said[_cursor + k] = segment.words[k].saidWord;
       }
-      _committedCount += segment.words.length;
-      _allSaidWords.addAll(saidWords);
+      if (segment.extraWordCount > 0 && segment.consumed > 0) {
+        final w = _words[_cursor + segment.consumed - 1];
+        _extras[(w.surah, w.ayah)] = (_extras[(w.surah, w.ayah)] ?? 0) + segment.extraWordCount;
+      }
+      _cursor += segment.consumed;
       _liveWords = [];
       _liveResult = [];
-      _liveCursor = _committedCount;
     });
 
-    if (_committedCount >= _flatWords.length) {
-      await _finish();
-    }
+    if (_cursor >= _runEnd) await _finish();
   }
 
   Future<void> _finish() async {
     await _engine.stopListening();
     if (!mounted) return;
     setState(() => _status = _Status.scoring);
-    final result = await _recitationRepo.recordPageAttempt(ayat: _ayat, mode: 'recite', saidWords: _allSaidWords);
+    // Save this run only (a redone ayah is a new attempt); show the whole page.
+    await _repo.recordPageResult(
+      words: _words,
+      statuses: [for (var k = 0; k < _words.length; k++) k >= _runStart && k < _runEnd ? _statuses[k] : null],
+      said: _said,
+      extras: {
+        for (final e in _extras.entries)
+          if (_words.sublist(_runStart, _runEnd).any((w) => (w.surah, w.ayah) == e.key)) e.key: e.value,
+      },
+    );
     if (!mounted) return;
     setState(() {
-      _result = result;
+      _result = RecitationRepository.slicePage(words: _words, statuses: _statuses, said: _said, extras: _extras);
       _status = _Status.done;
+      _liveWords = [];
+      _liveResult = [];
     });
   }
 
   Future<void> _stopManually() async {
     await _engine.stopListening();
-    if (_allSaidWords.isEmpty) {
+    if (_cursor == _runStart) {
       if (!mounted) return;
-      setState(() => _status = _Status.idle);
+      setState(() => _status = _result == null ? _Status.idle : _Status.done);
       return;
     }
     await _finish();
+  }
+
+  void _redoAyah(int surah, int ayah) {
+    final from = _words.indexWhere((w) => w.surah == surah && w.ayah == ayah);
+    if (from < 0) return;
+    final to = _words.lastIndexWhere((w) => w.surah == surah && w.ayah == ayah) + 1;
+    _extras.remove((surah, ayah));
+    _start(from: from, to: to);
   }
 
   @override
@@ -210,91 +244,173 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(title: Text('${basicText('recitation_practice_title', lang)} — ${basicText('page_label', lang)} ${widget.pageNumber}')),
-        body: _status == _Status.loading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(18), child: _buildPageText())),
-                  _buildStatusBar(lang),
-                  Padding(padding: const EdgeInsets.fromLTRB(18, 0, 18, 18), child: _buildActionButton(lang)),
-                ],
+        appBar: AppBar(
+          title: Text('${basicText('recitation_practice_title', lang)} — ${basicText('page_label', lang)} ${widget.pageNumber}'),
+          actions: [
+            if (_words.isNotEmpty)
+              IconButton(
+                tooltip: basicText('recitation_hide_text', lang),
+                icon: Icon(_hidden ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                onPressed: () => setState(() => _hidden = !_hidden),
               ),
+          ],
+        ),
+        body: switch (_status) {
+          _Status.loading => const Center(child: CircularProgressIndicator()),
+          _Status.empty => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(basicText('recitation_no_page_words', lang), textAlign: TextAlign.center),
+              ),
+            ),
+          _ => Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(14, 18, 14, 18),
+                    child: Column(children: [_buildPage(), if (_status == _Status.done) _buildAyahResults(lang)]),
+                  ),
+                ),
+                _buildStatusBar(lang),
+                Padding(padding: const EdgeInsets.fromLTRB(18, 0, 18, 18), child: _buildActionButton(lang)),
+              ],
+            ),
+        },
       ),
     );
   }
 
-  Widget _buildPageText() {
-    final lines = packWordsIntoLines(words: _flatWords, maxWidth: MediaQuery.of(context).size.width - 36, fontSize: 21, fontFamily: 'AmiriQuran');
-    var index = 0;
+  /// The page as printed: the muṣḥaf's own 15 lines, one row each.
+  Widget _buildPage() {
     final rows = <Widget>[];
-    for (final line in lines) {
+    var k = 0;
+    while (k < _words.length) {
+      final line = _words[k].line;
       final spans = <InlineSpan>[];
-      for (final word in line.words) {
-        spans.add(_wordSpan(word, index));
+      while (k < _words.length && _words[k].line == line) {
+        spans.add(_wordSpan(k));
+        final endsAyah = k + 1 >= _words.length || _words[k + 1].ayah != _words[k].ayah || _words[k + 1].surah != _words[k].surah;
+        if (endsAyah) {
+          spans.add(TextSpan(
+            text: ' ﴿${_eastern(_words[k].ayah)}﴾',
+            style: const TextStyle(fontFamily: 'AmiriQuran', fontSize: 15, color: AppColors.textMuted),
+          ));
+        }
         spans.add(const TextSpan(text: ' '));
-        index++;
+        k++;
       }
-      rows.add(RichText(textAlign: TextAlign.center, textDirection: TextDirection.rtl, text: TextSpan(children: spans)));
-      rows.add(const SizedBox(height: 6));
+      rows.add(FittedBox(
+        fit: BoxFit.scaleDown,
+        child: RichText(textDirection: TextDirection.rtl, text: TextSpan(children: spans)),
+      ));
+      rows.add(const SizedBox(height: 4));
     }
     return Column(children: rows);
   }
 
-  InlineSpan _wordSpan(MushafWord word, int index) {
-    const base = TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.0, color: AppColors.textDark);
+  static String _eastern(int n) => n.toString().split('').map((d) => '٠١٢٣٤٥٦٧٨٩'[int.parse(d)]).join();
 
-    if (index < _committedCount) {
-      final status = _statuses[index];
+  InlineSpan _wordSpan(int index) {
+    const base = TextStyle(fontFamily: 'AmiriQuran', fontSize: 21, height: 2.0, color: AppColors.textDark);
+    final word = _words[index].text;
+    final status = _statuses[index];
+
+    if (status != null) {
       final color = switch (status) {
-        RecitationWordStatus.correct => const Color(0xFF1F7A4D),
-        RecitationWordStatus.missing => const Color(0xFFB5651D),
-        RecitationWordStatus.wrong => const Color(0xFFC0392B),
-        null => AppColors.textDark,
+        RecitationWordStatus.correct => _correctColor,
+        RecitationWordStatus.missing => _missingColor,
+        RecitationWordStatus.wrong => _wrongColor,
       };
-      final wrong = status == RecitationWordStatus.wrong;
       return TextSpan(
-        text: word.text,
+        text: word,
         style: base.copyWith(
           color: color,
           fontWeight: FontWeight.w700,
-          decoration: wrong ? TextDecoration.underline : null,
+          decoration: status == RecitationWordStatus.correct ? null : TextDecoration.underline,
           decorationStyle: TextDecorationStyle.wavy,
           decorationColor: color,
         ),
       );
     }
 
-    // Not committed yet -- either the live tentative preview, the current
-    // word (next expected), or genuinely not reached.
-    final liveIdx = index - _committedCount;
-    if (_liveWords.isNotEmpty && liveIdx < _liveResult.length && _liveResult[liveIdx].status != RecitationWordStatus.missing) {
-      final status = _liveResult[liveIdx].status;
-      final color = status == RecitationWordStatus.correct ? const Color(0xFF1F7A4D) : const Color(0xFFC0392B);
-      return TextSpan(text: word.text, style: base.copyWith(color: color.withValues(alpha: 0.55), fontWeight: FontWeight.w700));
+    final liveIdx = index - _cursor;
+    if (_status == _Status.listening && liveIdx >= 0 && liveIdx < _liveResult.length) {
+      final live = _liveResult[liveIdx].status;
+      final color = live == RecitationWordStatus.correct ? _correctColor : _wrongColor;
+      return TextSpan(text: word, style: base.copyWith(color: color.withValues(alpha: 0.55), fontWeight: FontWeight.w700));
     }
-    if (index == _liveCursor && _status == _Status.listening) {
+    if (_status == _Status.listening && index == _cursor + _liveResult.length) {
       return TextSpan(
-        text: word.text,
-        style: base.copyWith(
-          color: AppColors.primary,
-          fontWeight: FontWeight.w800,
-          backgroundColor: AppColors.primary.withValues(alpha: 0.14),
-        ),
+        text: _hidden ? '•••' : word,
+        style: base.copyWith(color: AppColors.primary, fontWeight: FontWeight.w800, backgroundColor: AppColors.primary.withValues(alpha: 0.14)),
       );
     }
-    return TextSpan(text: word.text, style: base.copyWith(color: AppColors.textMuted.withValues(alpha: 0.65)));
+    // Recite from memory: words not reached yet are covered.
+    if (_hidden && index >= _cursor && _status != _Status.done) {
+      return TextSpan(text: word, style: base.copyWith(color: AppColors.textMuted.withValues(alpha: 0.08)));
+    }
+    return TextSpan(text: word, style: base.copyWith(color: AppColors.textMuted.withValues(alpha: 0.65)));
   }
 
-  // Real Android SpeechRecognizer error codes (verified against the real
-  // speech_to_text plugin source) mapped to honest, non-technical Arabic
-  // messages -- never a raw error code shown to the student.
+  /// One row per recited ayah: complete, or what went wrong, and a one-tap
+  /// «أعِد هذه الآية».
+  Widget _buildAyahResults(String lang) {
+    final r = _result;
+    if (r == null) return const SizedBox.shrink();
+    final notReached = _statuses.where((s) => s == null).length;
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final a in r.ayat)
+            Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                dense: true,
+                leading: Icon(
+                  _ayahOk(a) ? Icons.check_circle_rounded : Icons.error_outline_rounded,
+                  color: _ayahOk(a) ? _correctColor : _wrongColor,
+                ),
+                title: Text('﴿${_eastern(a.ayah)}﴾  ${_ayahLabel(a, lang)}'),
+                trailing: _ayahOk(a)
+                    ? null
+                    : TextButton(onPressed: () => _redoAyah(a.surah, a.ayah), child: Text(basicText('recitation_redo_ayah', lang))),
+              ),
+            ),
+          if (notReached > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                basicText('recitation_not_reached', lang).replaceAll('{n}', '$notReached'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static bool _ayahOk(AyahRecitationSlice a) => a.result.correctCount == a.result.totalExpected && a.result.extraWordCount == 0;
+
+  String _ayahLabel(AyahRecitationSlice a, String lang) {
+    if (a.result.correctCount < a.result.totalExpected) return basicText('recitation_ayah_has_mistake', lang);
+    if (a.result.extraWordCount > 0) return basicText('recitation_ayah_has_extra', lang);
+    return basicText('recitation_ayah_perfect', lang);
+  }
+
+  // Real Android SpeechRecognizer error codes mapped to honest messages —
+  // never a raw error code shown to the student.
   String _friendlyError(String? code, String lang) {
     switch (code) {
       case 'error_permission':
+      case 'error_insufficient_permissions':
         return basicText('recitation_mic_permission_denied', lang);
       case 'error_network':
       case 'error_network_timeout':
+      case 'error_server':
+      case 'error_server_disconnected':
         return basicText('recitation_network_error', lang);
       case 'error_language_not_supported':
       case 'error_language_unavailable':
@@ -304,6 +420,16 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
     }
   }
 
+  Widget _message(String text, {bool retry = false, String lang = 'ar'}) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: Column(
+          children: [
+            Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
+            if (retry) TextButton(onPressed: () => _start(from: _cursor, to: _runEnd > _cursor ? _runEnd : null), child: Text(basicText('retry_action', lang))),
+          ],
+        ),
+      );
+
   Widget _buildStatusBar(String lang) {
     switch (_status) {
       case _Status.listening:
@@ -312,10 +438,7 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
           child: Column(
             children: [
               Text(basicText('recitation_listening_status', lang), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
-              // Real, visible proof the microphone is actually capturing
-              // speech (real device bug found 2026-08-29, Ismail: "لا يدخل
-              // الصوت" -- with no visible transcript there was no way to
-              // tell audio capture from a silently-stalled session).
+              Text(basicText('recitation_pause_hint', lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
               if (_liveWords.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
@@ -330,15 +453,11 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
           ),
         );
       case _Status.error:
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Column(
-            children: [
-              Text(_friendlyError(_errorMessage, lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
-              TextButton(onPressed: _start, child: Text(basicText('retry_action', lang))),
-            ],
-          ),
-        );
+        return _message(_friendlyError(_errorMessage, lang), retry: true, lang: lang);
+      case _Status.permissionDenied:
+        return _message(basicText('recitation_mic_permission_denied', lang), retry: true, lang: lang);
+      case _Status.noRecognizer:
+        return _message(basicText('recitation_no_recognizer', lang), retry: true, lang: lang);
       case _Status.scoring:
         return const Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator());
       case _Status.done:
@@ -349,7 +468,7 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
           child: Column(
             children: [
               Text('${basicText('recitation_score_label', lang)}: $percent%', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-              if (r.ayat.any((a) => a.result.correctCount < a.result.totalExpected || a.result.extraWordCount > 0))
+              if (r.ayat.any((a) => !_ayahOk(a)))
                 TextButton(
                   onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecitationMistakesScreen())),
                   child: Text(basicText('recitation_mistakes_title', lang)),
@@ -357,14 +476,10 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
             ],
           ),
         );
-      case _Status.permissionDenied:
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Text(basicText('recitation_mic_permission_denied', lang), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
-        );
       case _Status.idle:
       case _Status.initializing:
       case _Status.loading:
+      case _Status.empty:
         return const SizedBox.shrink();
     }
   }
@@ -375,12 +490,12 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
       onPressed: switch (_status) {
         _Status.initializing || _Status.scoring || _Status.loading => null,
         _Status.listening => _stopManually,
-        _ => _start,
+        _ => () => _start(),
       },
       icon: Icon(listening ? Icons.stop_rounded : Icons.mic_rounded),
       label: Text(listening ? basicText('recitation_stop_action', lang) : basicText('recitation_start_action', lang)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: listening ? const Color(0xFFC0392B) : AppColors.primary,
+        backgroundColor: listening ? _wrongColor : AppColors.primary,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 16),
       ),

@@ -59,8 +59,18 @@ class PlatformSpeechRecognitionEngine implements SpeechRecognitionEngine {
   bool get isListening => _speech.isListening;
 
   @override
+  Future<RecognizerReadiness> prepare() async {
+    if (await initialize()) return RecognizerReadiness.ready;
+    // initialize() is false both when the permission is refused and when no
+    // recognition service exists (needs the <queries> entry for
+    // android.speech.RecognitionService on Android 11+ to even be seen).
+    final granted = await _speech.hasPermission;
+    return granted ? RecognizerReadiness.noRecognizer : RecognizerReadiness.permissionDenied;
+  }
+
+  @override
   Future<bool> initialize() async {
-    if (_initialized) return _speech.isAvailable;
+    if (_initialized && _speech.isAvailable) return true;
     _initialized = await _speech.initialize(onError: (e) => _handleError(e.errorMsg));
     return _initialized;
   }
@@ -85,9 +95,14 @@ class PlatformSpeechRecognitionEngine implements SpeechRecognitionEngine {
     if (!_initialized) return [];
     final locales = await _speech.locales();
     // Real Arabic locale IDs (ar_SA, ar_EG, etc.) all start with "ar_" —
-    // don't hardcode one specific country's locale, accept any Arabic.
-    return locales.where((l) => l.localeId.toLowerCase().startsWith('ar')).map((l) => l.localeId).toList();
+    // don't hardcode one specific country's locale, accept any Arabic, but
+    // put Saudi Arabic first: it is the closest to Quranic recitation (ت0).
+    final ids = locales.where((l) => l.localeId.toLowerCase().startsWith('ar')).map((l) => l.localeId).toList();
+    ids.sort((a, b) => (_isSaudi(b) ? 1 : 0) - (_isSaudi(a) ? 1 : 0));
+    return ids;
   }
+
+  static bool _isSaudi(String id) => id.toLowerCase().replaceAll('-', '_') == 'ar_sa';
 
   @override
   Future<void> startListening({

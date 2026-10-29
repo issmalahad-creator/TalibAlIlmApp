@@ -9,7 +9,15 @@
 /// engine (TODO.md 76.3b — real Whisper-Quran LoRA fine-tunes exist,
 /// verified 2026-08-26) without touching any screen or matching code, only
 /// this file plus whichever class implements it next.
+/// Why recitation can or cannot start on this device (ت0) — each case gets
+/// its own honest message instead of always blaming the microphone.
+enum RecognizerReadiness { ready, permissionDenied, noRecognizer }
+
 abstract class SpeechRecognitionEngine {
+  /// [initialize] plus the reason when it fails: the microphone permission
+  /// was refused, or the phone has no speech-recognition service at all.
+  Future<RecognizerReadiness> prepare();
+
   /// Must succeed before [startListening] can be used. Requests the
   /// microphone permission natively as part of initializing.
   Future<bool> initialize();
