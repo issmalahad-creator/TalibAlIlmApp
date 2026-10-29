@@ -1,0 +1,280 @@
+// SCRATCH TEMPLATE — copy to test/zz_tour.dart, run, then move it OUT of test/.
+// flutter test test/zz_tour.dart --dart-define=OUT=<dir> --dart-define=NOTO=<font dir>
+// Renders every no-argument screen (+ MainShell, reader p50) at 400x860 and
+// 360x740 @130% text, writes PNGs and _log.txt (errors per screen, plugin noise filtered).
+// Regenerate the screen list when screens are added (grep 'const XScreen({super.key});').
+// SCRATCH — not committed.
+import 'dart:convert';
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:talib_alilm_app/db/database_helper.dart';
+import 'package:talib_alilm_app/repositories/mushaf_layout_sync.dart';
+import 'package:talib_alilm_app/screens/mushaf_semantic_reader_screen.dart';
+import 'package:talib_alilm_app/screens/main_shell.dart';
+import 'package:talib_alilm_app/theme/app_theme.dart';
+import 'package:talib_alilm_app/services/quran_import_service.dart';
+import 'package:talib_alilm_app/repositories/milestone_repository.dart';
+import 'package:talib_alilm_app/screens/activities_screen.dart' show ActivitiesScreen;
+import 'package:talib_alilm_app/screens/adab_screen.dart' show AdabScreen;
+import 'package:talib_alilm_app/screens/adhkar_quiz_screen.dart' show AdhkarQuizScreen;
+import 'package:talib_alilm_app/screens/adhkar_screen.dart' show AdhkarScreen;
+import 'package:talib_alilm_app/screens/akhlaq/akhlaq_home_screen.dart' show AkhlaqHomeScreen;
+import 'package:talib_alilm_app/screens/akhlaq/akhlaq_profile_screen.dart' show AkhlaqProfileScreen;
+import 'package:talib_alilm_app/screens/application_screen.dart' show ApplicationScreen;
+import 'package:talib_alilm_app/screens/arabic_alphabet_lesson_screen.dart' show ArabicAlphabetLessonScreen;
+import 'package:talib_alilm_app/screens/arabic_curriculum_screen.dart' show ArabicCurriculumScreen;
+import 'package:talib_alilm_app/screens/arabic_grammar_lesson_screen.dart' show ArabicGrammarLessonScreen;
+import 'package:talib_alilm_app/screens/arabic_quranic_text_lesson_screen.dart' show ArabicQuranicTextLessonScreen;
+import 'package:talib_alilm_app/screens/arabic_reading_lesson_screen.dart' show ArabicReadingLessonScreen;
+import 'package:talib_alilm_app/screens/arabic_resources_screen.dart' show ArabicResourcesScreen;
+import 'package:talib_alilm_app/screens/arabic_vocabulary_lesson_screen.dart' show ArabicVocabularyLessonScreen;
+import 'package:talib_alilm_app/screens/audio_library_screen.dart' show AudioLibraryScreen;
+import 'package:talib_alilm_app/screens/book_screen.dart' show BookScreen;
+import 'package:talib_alilm_app/screens/certificates_screen.dart' show CertificatesScreen;
+import 'package:talib_alilm_app/screens/command_center_screen.dart' show CommandCenterScreen;
+import 'package:talib_alilm_app/screens/companion_chat_screen.dart' show CompanionChatScreen;
+import 'package:talib_alilm_app/screens/completion_goals_screen.dart' show CompletionGoalsScreen;
+import 'package:talib_alilm_app/screens/curriculum_map_screen.dart' show CurriculumMapScreen;
+import 'package:talib_alilm_app/screens/daily_session_screen.dart' show DailySessionScreen;
+import 'package:talib_alilm_app/screens/daily_tasks_screen.dart' show DailyTasksScreen;
+import 'package:talib_alilm_app/screens/goals_screen.dart' show GoalsScreen;
+import 'package:talib_alilm_app/screens/guided_session_screen.dart' show GuidedSessionScreen;
+import 'package:talib_alilm_app/screens/hadith_quiz_screen.dart' show HadithQuizScreen;
+import 'package:talib_alilm_app/screens/hadith_screen.dart' show HadithScreen;
+import 'package:talib_alilm_app/screens/hifz_schedule_screen.dart' show HifzScheduleScreen;
+import 'package:talib_alilm_app/screens/hifz_screen.dart' show HifzScreen;
+import 'package:talib_alilm_app/screens/hifz_teacher_screen.dart' show HifzTeacherScreen;
+import 'package:talib_alilm_app/screens/home_screen.dart' show HomeScreen;
+import 'package:talib_alilm_app/screens/journey_screen.dart' show JourneyScreen;
+import 'package:talib_alilm_app/screens/knowledge_review_screen.dart' show KnowledgeReviewScreen;
+import 'package:talib_alilm_app/screens/life_plan_edit_screen.dart' show LifePlanEditScreen;
+import 'package:talib_alilm_app/screens/life_progress_screen.dart' show LifeProgressScreen;
+import 'package:talib_alilm_app/screens/life_weekly_review_screen.dart' show LifeWeeklyReviewScreen;
+import 'package:talib_alilm_app/screens/madarij_screen.dart' show MadarijScreen;
+import 'package:talib_alilm_app/screens/memorization_quiz_screen.dart' show MemorizationQuizScreen;
+import 'package:talib_alilm_app/screens/mission_screen.dart' show MissionScreen;
+import 'package:talib_alilm_app/screens/mosque/mosques_screen.dart' show MosquesScreen;
+import 'package:talib_alilm_app/screens/new_muslim_guide_screen.dart' show NewMuslimGuideScreen;
+import 'package:talib_alilm_app/screens/notification_diagnostics_screen.dart' show NotificationDiagnosticsScreen;
+import 'package:talib_alilm_app/screens/notification_settings_screen.dart' show NotificationSettingsScreen;
+import 'package:talib_alilm_app/screens/personal_accountability_screen.dart' show PersonalAccountabilityScreen;
+import 'package:talib_alilm_app/screens/personal_library_screen.dart' show PersonalLibraryScreen;
+import 'package:talib_alilm_app/screens/prayer_times_screen.dart' show PrayerTimesScreen;
+import 'package:talib_alilm_app/screens/profile_screen.dart' show ProfileScreen;
+import 'package:talib_alilm_app/screens/qibla_screen.dart' show QiblaScreen;
+import 'package:talib_alilm_app/screens/quran_learning/sources_screen.dart' show SourcesScreen;
+import 'package:talib_alilm_app/screens/quran_notebook_home_screen.dart' show QuranNotebookHomeScreen;
+import 'package:talib_alilm_app/screens/quran_search_screen.dart' show QuranSearchScreen;
+import 'package:talib_alilm_app/screens/reading_stats_screen.dart' show ReadingStatsScreen;
+import 'package:talib_alilm_app/screens/recitation_mistakes_screen.dart' show RecitationMistakesScreen;
+import 'package:talib_alilm_app/screens/review_screen.dart' show ReviewScreen;
+import 'package:talib_alilm_app/screens/salah_assessment_screen.dart' show SalahAssessmentScreen;
+import 'package:talib_alilm_app/screens/salah_library_screen.dart' show SalahLibraryScreen;
+import 'package:talib_alilm_app/screens/salah_resources_screen.dart' show SalahResourcesScreen;
+import 'package:talib_alilm_app/screens/salah_stories_screen.dart' show SalahStoriesScreen;
+import 'package:talib_alilm_app/screens/salah_tracker_screen.dart' show SalahTrackerScreen;
+import 'package:talib_alilm_app/screens/support_screen.dart' show SupportScreen;
+import 'package:talib_alilm_app/screens/tahfeez_session_setup_screen.dart' show TahfeezSessionSetupScreen;
+import 'package:talib_alilm_app/screens/tajweed_resources_screen.dart' show TajweedResourcesScreen;
+import 'package:talib_alilm_app/screens/tajweed_screen.dart' show TajweedScreen;
+import 'package:talib_alilm_app/screens/tasbih_screen.dart' show TasbihScreen;
+import 'package:talib_alilm_app/screens/time_awareness_screen.dart' show TimeAwarenessScreen;
+import 'package:talib_alilm_app/screens/turath_benefits_screen.dart' show TurathBenefitsScreen;
+import 'package:talib_alilm_app/screens/turath_categories_screen.dart' show TurathCategoriesScreen;
+import 'package:talib_alilm_app/screens/turath_library_screen.dart' show TurathLibraryScreen;
+import 'package:talib_alilm_app/screens/turath_my_library_screen.dart' show TurathMyLibraryScreen;
+import 'package:talib_alilm_app/screens/turath_quotes_screen.dart' show TurathQuotesScreen;
+import 'package:talib_alilm_app/screens/understanding_screen.dart' show UnderstandingScreen;
+import 'package:talib_alilm_app/screens/wasitiyyah_quiz_screen.dart' show WasitiyyahQuizScreen;
+import 'package:talib_alilm_app/screens/wasitiyyah_screen.dart' show WasitiyyahScreen;
+import 'package:talib_alilm_app/screens/wird_screen.dart' show WirdScreen;
+import 'package:talib_alilm_app/screens/worship_coach_screen.dart' show WorshipCoachScreen;
+import 'package:talib_alilm_app/screens/zad_almaad_screen.dart' show ZadAlMaadScreen;
+
+const out = String.fromEnvironment('OUT', defaultValue: '/tmp/preview');
+
+Future<void> _font(String family, List<String> files) async {
+  final l = FontLoader(family);
+  for (final f in files) {
+    l.addFont(Future.value(ByteData.sublistView(File(f).readAsBytesSync())));
+  }
+  await l.load();
+}
+
+Future<void> _shot(WidgetTester t, String name) async {
+  await t.runAsync(() async {
+    final boundary = find.byType(RepaintBoundary).evaluate().first.renderObject as RenderRepaintBoundary;
+    final img = await boundary.toImage(pixelRatio: 1.5);
+    final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
+    Directory(out).createSync(recursive: true);
+    File('$out/$name.png').writeAsBytesSync(bytes!.buffer.asUint8List());
+  });
+}
+
+Future<void> _settle(WidgetTester t, [int n = 8]) async {
+  for (var i = 0; i < n; i++) {
+    await t.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 250)));
+    await t.pump(const Duration(milliseconds: 150));
+  }
+}
+
+Widget _app(Widget home, [double scale = 1.0]) => RepaintBoundary(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: buildAppTheme(),
+        builder: (c, w) => Directionality(textDirection: TextDirection.rtl, child: MediaQuery(data: MediaQuery.of(c).copyWith(textScaler: TextScaler.linear(scale)), child: w!)),
+        home: home,
+      ),
+    );
+
+
+final screens = <(String, Widget Function())>[
+  ('MainShell', () => const MainShell()),
+  ('Reader_p50', () => const MushafSemanticReaderScreen(initialPage: 50)),
+  ('ActivitiesScreen', () => const ActivitiesScreen()),
+  ('AdabScreen', () => const AdabScreen()),
+  ('AdhkarQuizScreen', () => const AdhkarQuizScreen()),
+  ('AdhkarScreen', () => const AdhkarScreen()),
+  ('AkhlaqHomeScreen', () => const AkhlaqHomeScreen()),
+  ('AkhlaqProfileScreen', () => const AkhlaqProfileScreen()),
+  ('ApplicationScreen', () => const ApplicationScreen()),
+  ('ArabicAlphabetLessonScreen', () => const ArabicAlphabetLessonScreen()),
+  ('ArabicCurriculumScreen', () => const ArabicCurriculumScreen()),
+  ('ArabicGrammarLessonScreen', () => const ArabicGrammarLessonScreen()),
+  ('ArabicQuranicTextLessonScreen', () => const ArabicQuranicTextLessonScreen()),
+  ('ArabicReadingLessonScreen', () => const ArabicReadingLessonScreen()),
+  ('ArabicResourcesScreen', () => const ArabicResourcesScreen()),
+  ('ArabicVocabularyLessonScreen', () => const ArabicVocabularyLessonScreen()),
+  ('AudioLibraryScreen', () => const AudioLibraryScreen()),
+  ('BookScreen', () => const BookScreen()),
+  ('CertificatesScreen', () => const CertificatesScreen()),
+  ('CommandCenterScreen', () => const CommandCenterScreen()),
+  ('CompanionChatScreen', () => const CompanionChatScreen()),
+  ('CompletionGoalsScreen', () => const CompletionGoalsScreen()),
+  ('CurriculumMapScreen', () => const CurriculumMapScreen()),
+  ('DailySessionScreen', () => const DailySessionScreen()),
+  ('DailyTasksScreen', () => const DailyTasksScreen()),
+  ('GoalsScreen', () => const GoalsScreen()),
+  ('GuidedSessionScreen', () => const GuidedSessionScreen()),
+  ('HadithQuizScreen', () => const HadithQuizScreen()),
+  ('HadithScreen', () => const HadithScreen()),
+  ('HifzScheduleScreen', () => const HifzScheduleScreen()),
+  ('HifzScreen', () => const HifzScreen()),
+  ('HifzTeacherScreen', () => const HifzTeacherScreen()),
+  ('HomeScreen', () => const HomeScreen()),
+  ('JourneyScreen', () => const JourneyScreen()),
+  ('KnowledgeReviewScreen', () => const KnowledgeReviewScreen()),
+  ('LifePlanEditScreen', () => const LifePlanEditScreen()),
+  ('LifeProgressScreen', () => const LifeProgressScreen()),
+  ('LifeWeeklyReviewScreen', () => const LifeWeeklyReviewScreen()),
+  ('MadarijScreen', () => const MadarijScreen()),
+  ('MemorizationQuizScreen', () => const MemorizationQuizScreen()),
+  ('MissionScreen', () => const MissionScreen()),
+  ('MosquesScreen', () => const MosquesScreen()),
+  ('NewMuslimGuideScreen', () => const NewMuslimGuideScreen()),
+  ('NotificationDiagnosticsScreen', () => const NotificationDiagnosticsScreen()),
+  ('NotificationSettingsScreen', () => const NotificationSettingsScreen()),
+  ('PersonalAccountabilityScreen', () => const PersonalAccountabilityScreen()),
+  ('PersonalLibraryScreen', () => const PersonalLibraryScreen()),
+  ('PrayerTimesScreen', () => const PrayerTimesScreen()),
+  ('ProfileScreen', () => const ProfileScreen()),
+  ('QiblaScreen', () => const QiblaScreen()),
+  ('QuranNotebookHomeScreen', () => const QuranNotebookHomeScreen()),
+  ('QuranSearchScreen', () => const QuranSearchScreen()),
+  ('ReadingStatsScreen', () => const ReadingStatsScreen()),
+  ('RecitationMistakesScreen', () => const RecitationMistakesScreen()),
+  ('ReviewScreen', () => const ReviewScreen()),
+  ('SalahAssessmentScreen', () => const SalahAssessmentScreen()),
+  ('SalahLibraryScreen', () => const SalahLibraryScreen()),
+  ('SalahResourcesScreen', () => const SalahResourcesScreen()),
+  ('SalahStoriesScreen', () => const SalahStoriesScreen()),
+  ('SalahTrackerScreen', () => const SalahTrackerScreen()),
+  ('SourcesScreen', () => const SourcesScreen()),
+  ('SupportScreen', () => const SupportScreen()),
+  ('TahfeezSessionSetupScreen', () => const TahfeezSessionSetupScreen()),
+  ('TajweedResourcesScreen', () => const TajweedResourcesScreen()),
+  ('TajweedScreen', () => const TajweedScreen()),
+  ('TasbihScreen', () => const TasbihScreen()),
+  ('TimeAwarenessScreen', () => const TimeAwarenessScreen()),
+  ('TurathBenefitsScreen', () => const TurathBenefitsScreen()),
+  ('TurathCategoriesScreen', () => const TurathCategoriesScreen()),
+  ('TurathLibraryScreen', () => const TurathLibraryScreen()),
+  ('TurathMyLibraryScreen', () => const TurathMyLibraryScreen()),
+  ('TurathQuotesScreen', () => const TurathQuotesScreen()),
+  ('UnderstandingScreen', () => const UnderstandingScreen()),
+  ('WasitiyyahQuizScreen', () => const WasitiyyahQuizScreen()),
+  ('WasitiyyahScreen', () => const WasitiyyahScreen()),
+  ('WirdScreen', () => const WirdScreen()),
+  ('WorshipCoachScreen', () => const WorshipCoachScreen()),
+  ('ZadAlMaadScreen', () => const ZadAlMaadScreen())
+];
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
+  final log = StringBuffer();
+
+  setUpAll(() async {
+    final m = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    for (final ch in ['xyz.luan/audioplayers.global', 'xyz.luan/audioplayers', 'plugin.csdcorp.com/speech_to_text', 'dexterous.com/flutter/local_notifications', 'flutter.baseflow.com/permissions/methods', 'flutter.baseflow.com/geolocator', 'hemanthraj/flutter_compass', 'dev.fluttercommunity.plus/connectivity', 'wakelock_plus', 'flutter_timezone']) {
+      m.setMockMethodCallHandler(MethodChannel(ch), (_) async => null);
+    }
+    DatabaseHelper.databaseName = 'talib_tour.db';
+    final dbFile = File(p.join('.dart_tool', 'sqflite_common_ffi', 'databases', DatabaseHelper.databaseName));
+    if (dbFile.existsSync()) dbFile.deleteSync();
+    final gz = File(p.join('assets', 'mushaf', 'mushaf_layout.json.gz'));
+    await MushafLayoutSync().ingestFromJson(jsonDecode(utf8.decode(gzip.decode(gz.readAsBytesSync()))) as Map<String, dynamic>);
+    try { await QuranImportService().importIfNeeded(includeLegacyTafsir: false); } catch (e) { log.writeln('SEED quranImport: $e'); }
+    try { await MilestoneRepository().seedIfNeeded(); } catch (e) { log.writeln('SEED milestones: $e'); }
+    await _font('Amiri', ['assets/fonts/Amiri-Regular.ttf', 'assets/fonts/Amiri-Bold.ttf']);
+    // The UI font is 'Tahoma' (not bundled — the phone falls back to its
+    // system Arabic font). Without a real font every letter is a wide box and
+    // the overflow check reports false alarms. Download Noto Sans Arabic first:
+    // raw.githubusercontent.com/notofonts/notofonts.github.io/main/fonts/NotoSansArabic/hinted/ttf/NotoSansArabic-{Regular,Bold}.ttf
+    const noto = String.fromEnvironment('NOTO', defaultValue: '/tmp/fonts');
+    await _font('Tahoma', ['$noto/NotoSansArabic-Regular.ttf', '$noto/NotoSansArabic-Bold.ttf']);
+    await _font('AmiriQuran', ['assets/fonts/AmiriQuran-Regular.ttf']);
+    await _font('MaterialIcons', ['/root/sdk/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf']);
+  });
+
+  tearDownAll(() => File('$out/_log.txt').writeAsStringSync(log.toString()));
+
+  for (final (tag, size, scale) in const [('n', Size(400, 860), 1.0), ('s', Size(360, 740), 1.3)]) {
+  for (final (name, build) in screens) {
+    testWidgets('$tag $name', (t) async {
+      SharedPreferences.setMockInitialValues({});
+      t.view.physicalSize = size;
+      t.view.devicePixelRatio = 1;
+      final errors = <String>[];
+      final prev = FlutterError.onError;
+      FlutterError.onError = (d) {
+        final m = d.exceptionAsString().split(String.fromCharCode(10)).first;
+        if (!m.contains('MissingPluginException')) errors.add(m);
+      };
+      try {
+        await t.pumpWidget(_app(build(), scale));
+        await _settle(t, 12);
+        await _shot(t, '${tag}_$name');
+      } catch (e) {
+        errors.add('THROW: $e'.split(String.fromCharCode(10)).first);
+      }
+      FlutterError.onError = prev;
+      final ex = t.takeException();
+      if (ex != null && !'$ex'.contains('MissingPluginException')) errors.add('EXC: $ex'.split(String.fromCharCode(10)).first);
+      log.writeln('== $tag $name: ${errors.isEmpty ? 'ok' : errors.toSet().join(' | ')}');
+      await t.pumpWidget(const SizedBox());
+      await _settle(t, 2);
+    }, timeout: const Timeout(Duration(minutes: 2)));
+  }
+  }
+}
