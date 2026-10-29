@@ -42,6 +42,7 @@ import 'mushaf_search_screen.dart';
 import 'page_hifz_session_screen.dart';
 import 'page_recitation_screen.dart';
 import 'quran_notebook_home_screen.dart';
+import 'hifz_schedule_screen.dart';
 import 'recitation_mistakes_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
 import 'quran_learning/knowledge_surface.dart';
@@ -1360,6 +1361,12 @@ class _MushafSemanticReaderScreenState
                     Icons.checklist_rounded,
                     basicText('hz3_menu', lang),
                     () => go(PageHifzSessionScreen(page: _current)),
+                  ),
+                  div,
+                  tile(
+                    Icons.calendar_month_outlined,
+                    basicText('hs_title', lang),
+                    () => go(const HifzScheduleScreen()),
                   ),
                   header('mushaf_section_features'),
                   tile(
