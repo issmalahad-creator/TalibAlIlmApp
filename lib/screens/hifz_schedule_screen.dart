@@ -6,6 +6,9 @@ import '../repositories/mushaf_layout_repository.dart';
 import '../services/hifz/schedule_generator.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/calendar_days.dart';
+import '../utils/date_display.dart';
+import '../utils/hijri_date.dart';
 import 'page_hifz_session_screen.dart';
 
 /// This screen's strings — `basicText` in the current app language.
@@ -33,6 +36,12 @@ class _HifzScheduleScreenState extends State<HifzScheduleScreen> {
   HifzPlanChoice? _choice;
   HifzSchedule? _schedule;
 
+  // ح4: live progress against the plan, and the two re-plans offered when
+  // the student is behind (computed only then).
+  HifzProgress? _progress;
+  (HifzPlanChoice, HifzSchedule)? _catchUp;
+  (HifzPlanChoice, HifzSchedule)? _keepPace;
+
   // chooser state
   HifzDirection _direction = HifzDirection.hybrid;
   HifzTimeline _timeline = HifzTimeline.months24;
@@ -50,11 +59,25 @@ class _HifzScheduleScreenState extends State<HifzScheduleScreen> {
     final choice = await _repo.choice();
     final memorized = await _repo.memorizedSurahs();
     HifzSchedule? schedule;
-    if (choice != null) schedule = await _repo.schedule(choice);
+    HifzProgress? progress;
+    (HifzPlanChoice, HifzSchedule)? catchUp, keepPace;
+    if (choice != null) {
+      schedule = await _repo.schedule(choice);
+      progress = await _repo.progress(choice, schedule);
+      if (progress.lagDays > 0) {
+        final a = await _repo.replan(choice, schedule, keepPace: false);
+        final b = await _repo.replan(choice, schedule, keepPace: true);
+        catchUp = (a, await _repo.schedule(a));
+        keepPace = (b, await _repo.schedule(b));
+      }
+    }
     if (!mounted) return;
     setState(() {
       _choice = choice;
       _schedule = schedule;
+      _progress = progress;
+      _catchUp = catchUp;
+      _keepPace = keepPace;
       _memorized = memorized;
       _loading = false;
     });
@@ -75,11 +98,22 @@ class _HifzScheduleScreenState extends State<HifzScheduleScreen> {
       timeline: _timeline,
       start: DateTime(now.year, now.month, now.day),
       memorizedSurahs: _skipMemorized ? _memorized : const {},
+      memorizedUnits: _skipMemorized ? await _repo.memorizedUnits() : const {},
     );
+    if (!mounted) return;
     setState(() => _loading = true);
     await _repo.save(c);
     await _load();
   }
+
+  Future<void> _adopt(HifzPlanChoice c) async {
+    setState(() => _loading = true);
+    await _repo.save(c);
+    await _load();
+  }
+
+  /// A calendar date in the student's calendar and language.
+  static String _date(DateTime d) => formatDateForDisplay(hijriDateStringForDate(d));
 
   Future<void> _changePlan() async {
     await _repo.clear();
@@ -253,13 +287,20 @@ class _HifzScheduleScreenState extends State<HifzScheduleScreen> {
           _t('hs_day_of').replaceAll('{d}', '${dayNo.clamp(1, s.days.length)}').replaceAll('{t}', '${s.days.length}'),
           style: const TextStyle(color: AppColors.textMuted),
         ),
+        Text(
+          _t('hs_khatm_on').replaceAll('{date}', _date(addCalendarDays(c.start, s.days.length - 1))),
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 12.5),
+        ),
         const SizedBox(height: 12),
+        if (_progress != null) _progressCard(_progress!),
         if (today == null)
           Text(_t('hs_plan_over'))
         else
           _todayCard(today),
         const SizedBox(height: 16),
         for (var k = 0; k < tables; k++) _table(s, k, dayNo, k == currentTable),
+        if (_progress != null && _progress!.byDay.isNotEmpty)
+          Text(_t('hs_status_note'), style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5)),
         const SizedBox(height: 8),
         Text(_t('hs_honest_note'), style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5)),
       ],
@@ -353,6 +394,57 @@ class _HifzScheduleScreenState extends State<HifzScheduleScreen> {
     );
   }
 
+  static Widget _statusMark(DayProgress? p) => switch (p) {
+        DayProgress.done => const Icon(Icons.check_circle_rounded, size: 16, color: AppColors.primary),
+        DayProgress.partial => const Icon(Icons.timelapse_rounded, size: 16, color: Color(0xFFB5651D)),
+        DayProgress.missed => const Icon(Icons.radio_button_unchecked_rounded, size: 16, color: Color(0xFFC0392B)),
+        null => const SizedBox.shrink(),
+      };
+
+  /// Behind → two kind choices with their real numbers; ahead → a word of
+  /// encouragement; on track → nothing (ح4). Never a penalty or a streak.
+  Widget _progressCard(HifzProgress p) {
+    String pages(double lines) => (lines / HifzScheduleRepository.linesPerPage).toStringAsFixed(1);
+    if (p.lagDays < 0) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Text(_t('hs_ahead').replaceAll('{n}', '${-p.lagDays}'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+      );
+    }
+    final a = _catchUp, b = _keepPace;
+    if (p.lagDays == 0 || a == null || b == null) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4E5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF0D3A8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(_t('hs_behind').replaceAll('{n}', '${p.lagDays}'), style: const TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: () => _adopt(a.$1),
+            child: Text(_t('hs_catch_up').replaceAll('{p}', pages(a.$2.linesPerDay)), textAlign: TextAlign.center),
+          ),
+          const SizedBox(height: 6),
+          OutlinedButton(
+            onPressed: () => _adopt(b.$1),
+            child: Text(
+              _t('hs_keep_pace')
+                  .replaceAll('{p}', pages(b.$2.linesPerDay))
+                  .replaceAll('{date}', _date(addCalendarDays(b.$1.start, b.$2.days.length - 1))),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _table(HifzSchedule s, int k, int dayNo, bool current) {
     final days = s.days.sublist(k * 30, ((k + 1) * 30).clamp(0, s.days.length));
     return Card(
@@ -376,6 +468,7 @@ class _HifzScheduleScreenState extends State<HifzScheduleScreen> {
                     width: 38,
                     child: Text('${d.day}', style: TextStyle(fontWeight: FontWeight.w700, color: d.day < dayNo ? AppColors.textMuted : AppColors.textDark)),
                   ),
+                  SizedBox(width: 22, child: _statusMark(_progress?.byDay[d.day])),
                   Expanded(
                     child: Text(
                       _dayLabel(d),

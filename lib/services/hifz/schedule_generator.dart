@@ -69,12 +69,15 @@ class DayPlan {
 class HifzSchedule {
   final List<DayPlan> days;
 
+  /// The ayat this plan memorizes, in its order (memorized ones left out).
+  final List<AyahLines> sequence;
+
   /// Lines of new memorization per new day — the solved `q`.
   final double linesPerDay;
 
   /// Days the new memorization itself takes (before the khatm phase).
   final int scheduleDays;
-  const HifzSchedule({required this.days, required this.linesPerDay, required this.scheduleDays});
+  const HifzSchedule({required this.days, required this.linesPerDay, required this.scheduleDays, this.sequence = const []});
 
   int count(DayKind k) => days.where((d) => d.kind == k).length;
 }
@@ -216,6 +219,11 @@ HifzSchedule generateSchedule({
   if (seq.isEmpty) {
     return HifzSchedule(days: _khatmPhase(1, finalDays), linesPerDay: 0, scheduleDays: 0);
   }
+  if (total - finalDays < 1) {
+    // No time left before the khatm phase: one portion a day at the pace of
+    // finishing in a week, so a late re-plan still gives a usable list.
+    return generateScheduleAtPace(mushafOrder: mushafOrder, direction: direction, linesPerDay: _sum(seq) / 6, finalPhaseDays: finalDays, alreadyMemorized: alreadyMemorized);
+  }
 
   // Smallest q (to 0.1 line) whose layout fits before the khatm phase.
   final budget = total - finalDays;
@@ -234,7 +242,84 @@ HifzSchedule generateSchedule({
     days: [...days, ..._khatmPhase(days.length + 1, total - days.length)],
     linesPerDay: q,
     scheduleDays: days.length,
+    sequence: seq,
   );
+}
+
+double _sum(List<AyahLines> seq) => seq.fold<double>(0, (t, a) => t + a.lines);
+
+/// The plan at a fixed daily amount (lines) — «أبقِ وتيرتي» (ح4): the load
+/// stays what the student can carry and the khatm date moves instead.
+HifzSchedule generateScheduleAtPace({
+  required List<AyahLines> mushafOrder,
+  required HifzDirection direction,
+  required double linesPerDay,
+  required int finalPhaseDays,
+  Set<(int, int)> alreadyMemorized = const {},
+}) {
+  final seq = [
+    for (final a in orderAyat(mushafOrder, direction))
+      if (!alreadyMemorized.contains((a.surah, a.ayah))) a,
+  ];
+  final q = linesPerDay < 0.5 ? 0.5 : linesPerDay;
+  final days = seq.isEmpty ? <DayPlan>[] : _layout(seq, q);
+  return HifzSchedule(
+    days: [...days, ..._khatmPhase(days.length + 1, finalPhaseDays)],
+    linesPerDay: q,
+    scheduleDays: days.length,
+    sequence: seq,
+  );
+}
+
+enum DayProgress { done, partial, missed }
+
+/// Where the student really is against the plan (ح4), from the ayat they
+/// have actually memorized.
+class HifzProgress {
+  /// Past new-portion days → done / partial / missed.
+  final Map<int, DayProgress> byDay;
+
+  /// Ayat of [HifzSchedule.sequence] planned before today.
+  final int planned;
+
+  /// Ayat memorized contiguously from the start of the sequence.
+  final int frontier;
+
+  /// New-portion days between where the student is and where the plan
+  /// expected them today: > 0 behind, < 0 ahead.
+  final int lagDays;
+  const HifzProgress({required this.byDay, required this.planned, required this.frontier, required this.lagDays});
+}
+
+HifzProgress measureProgress(HifzSchedule s, Set<(int, int)> memorized, int dayNumber) {
+  final index = {for (var k = 0; k < s.sequence.length; k++) (s.sequence[k].surah, s.sequence[k].ayah): k};
+  final byDay = <int, DayProgress>{};
+  var planned = 0;
+  final newDays = <(int, int, int)>[]; // (day, first index, last index)
+  for (final d in s.days) {
+    if (d.kind != DayKind.newPortion) continue;
+    final a = index[d.from]!, b = index[d.to]!;
+    newDays.add((d.day, a, b));
+    if (d.day >= dayNumber) continue;
+    planned = b + 1;
+    var have = 0;
+    for (var k = a; k <= b; k++) {
+      final x = s.sequence[k];
+      if (memorized.contains((x.surah, x.ayah))) have++;
+    }
+    final n = b - a + 1;
+    byDay[d.day] = have == n ? DayProgress.done : (have == 0 ? DayProgress.missed : DayProgress.partial);
+  }
+  var frontier = 0;
+  while (frontier < s.sequence.length && memorized.contains((s.sequence[frontier].surah, s.sequence[frontier].ayah))) {
+    frontier++;
+  }
+  // Portions the plan expected by today, minus portions the student has
+  // fully covered (contiguously from the start).
+  final expected = newDays.where((d) => d.$1 < dayNumber).length;
+  final covered = newDays.where((d) => d.$3 < frontier).length;
+  final lag = expected - covered;
+  return HifzProgress(byDay: byDay, planned: planned, frontier: frontier, lagDays: lag);
 }
 
 /// Each ayah's share of text lines on the real muṣḥaf: every word of a line

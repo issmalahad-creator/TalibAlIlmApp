@@ -9,34 +9,68 @@ import '../services/hifz/schedule_generator.dart';
 import '../utils/calendar_days.dart';
 import 'hifz_repository.dart';
 
-/// The student's chosen hifz plan (ح2 of
+/// The student's chosen hifz plan (ح2/ح4 of
 /// `docs/memorization/HIFZ_SCHEDULE_ARCHITECTURE.md`). Only the choice is
 /// stored — the days themselves are always generated from it (§5.1).
+///
+/// What was already memorized when the plan began (or was re-planned) is a
+/// **snapshot** ([memorizedSurahs], [memorizedUnits]), so the days don't
+/// shift under the student as they memorize; live progress is measured
+/// against them separately ([HifzScheduleRepository.progress]).
 class HifzPlanChoice {
   final HifzDirection direction;
   final HifzTimeline timeline;
   final DateTime start;
 
-  /// Surahs already memorized when the plan was made (from «حفظي»); their
-  /// ayat are not scheduled again.
+  /// The khatm date the plan aims at (deadline mode).
+  final DateTime end;
+
+  /// Lines per day, when the student chose «أبقِ وتيرتي» (ح4): the load is
+  /// fixed and the end moves. Null = deadline mode.
+  final double? pace;
+
+  /// Surahs memorized in «حفظي» at [start].
   final Set<int> memorizedSurahs;
-  const HifzPlanChoice({required this.direction, required this.timeline, required this.start, this.memorizedSurahs = const {}});
+
+  /// Pages («حفظتُها» in ٣×٣, `memorization_progress`) memorized at [start].
+  final Set<int> memorizedUnits;
+
+  HifzPlanChoice({
+    required this.direction,
+    required this.timeline,
+    required this.start,
+    DateTime? end,
+    this.pace,
+    this.memorizedSurahs = const {},
+    this.memorizedUnits = const {},
+  }) : end = end ?? addCalendarDays(start, timeline.totalDays - 1);
+
+  static String _ymd(DateTime d) => '${d.year}-${d.month}-${d.day}';
+  static DateTime _parse(String s) {
+    final d = s.split('-').map(int.parse).toList();
+    return DateTime(d[0], d[1], d[2]);
+  }
 
   Map<String, Object> toJson() => {
         'direction': direction.name,
         'timeline': timeline.name,
-        'start': '${start.year}-${start.month}-${start.day}',
+        'start': _ymd(start),
+        'end': _ymd(end),
+        'pace': ?pace,
         'memorized': memorizedSurahs.toList(),
+        'units': memorizedUnits.toList(),
       };
 
   static HifzPlanChoice? fromJson(Map<String, dynamic> j) {
     try {
-      final d = (j['start'] as String).split('-').map(int.parse).toList();
       return HifzPlanChoice(
         direction: HifzDirection.values.byName(j['direction'] as String),
         timeline: HifzTimeline.values.byName(j['timeline'] as String),
-        start: DateTime(d[0], d[1], d[2]),
+        start: _parse(j['start'] as String),
+        end: j['end'] == null ? null : _parse(j['end'] as String),
+        pace: (j['pace'] as num?)?.toDouble(),
         memorizedSurahs: {for (final s in j['memorized'] as List) s as int},
+        memorizedUnits: {for (final s in (j['units'] as List?) ?? const []) s as int},
       );
     } catch (_) {
       return null;
@@ -45,6 +79,17 @@ class HifzPlanChoice {
 
   /// 1-based day of the plan today (0 before it starts).
   int dayNumber(DateTime today) => calendarDaysBetween(start, today) + 1;
+
+  /// Days from [start] to [end], inclusive.
+  int get totalDays => calendarDaysBetween(start, end) + 1;
+
+  /// The khatm phase, shortened in proportion when a re-plan leaves less time.
+  int get finalPhaseDays {
+    final full = timeline.finalPhaseDays;
+    if (totalDays >= timeline.totalDays) return full;
+    final scaled = (full * totalDays / timeline.totalDays).round();
+    return scaled < 7 ? 7 : scaled;
+  }
 }
 
 class _GenArgs {
@@ -52,11 +97,15 @@ class _GenArgs {
   final HifzDirection direction;
   final HifzTimeline timeline;
   final Set<(int, int)> skip;
-  const _GenArgs(this.ayat, this.direction, this.timeline, this.skip);
+  final int? totalDays;
+  final int? finalDays;
+  final double? pace;
+  const _GenArgs(this.ayat, this.direction, this.timeline, this.skip, {this.totalDays, this.finalDays, this.pace});
 }
 
-HifzSchedule _generate(_GenArgs a) =>
-    generateSchedule(mushafOrder: a.ayat, direction: a.direction, timeline: a.timeline, alreadyMemorized: a.skip);
+HifzSchedule _generate(_GenArgs a) => a.pace != null
+    ? generateScheduleAtPace(mushafOrder: a.ayat, direction: a.direction, linesPerDay: a.pace!, finalPhaseDays: a.finalDays ?? a.timeline.finalPhaseDays, alreadyMemorized: a.skip)
+    : generateSchedule(mushafOrder: a.ayat, direction: a.direction, timeline: a.timeline, alreadyMemorized: a.skip, totalDays: a.totalDays, finalPhaseDays: a.finalDays);
 
 Map<HifzTimeline, double> _estimate(_GenArgs a) => {
       for (final t in HifzTimeline.values)
@@ -110,20 +159,75 @@ class HifzScheduleRepository {
   /// Surahs marked memorized in «حفظي».
   Future<Set<int>> memorizedSurahs() => HifzRepository().memorizedSurahNumbers();
 
-  Set<(int, int)> _skip(List<AyahLines> ayat, Set<int> surahs) => {
-        for (final a in ayat)
-          if (surahs.contains(a.surah)) (a.surah, a.ayah),
-      };
+  /// Pages with a `memorization_progress` row — «حفظتُها» in ٣×٣ (read-only).
+  Future<Set<int>> memorizedUnits() async {
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery('SELECT unit_id FROM memorization_progress');
+    return {for (final r in rows) (r['unit_id'] as num).toInt()};
+  }
+
+  /// The ayat covered by [surahs] and by the pages [units].
+  Future<Set<(int, int)>> _ayatOf(List<AyahLines> ayat, Set<int> surahs, Set<int> units) async {
+    final out = <(int, int)>{
+      for (final a in ayat)
+        if (surahs.contains(a.surah)) (a.surah, a.ayah),
+    };
+    if (units.isEmpty) return out;
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT surah_start, ayah_start, surah_end, ayah_end FROM memorization_units WHERE id IN (${List.filled(units.length, '?').join(',')})',
+      units.toList(),
+    );
+    final index = {for (var k = 0; k < ayat.length; k++) (ayat[k].surah, ayat[k].ayah): k};
+    for (final r in rows) {
+      final a = index[((r['surah_start'] as num).toInt(), (r['ayah_start'] as num).toInt())];
+      final b = index[((r['surah_end'] as num).toInt(), (r['ayah_end'] as num).toInt())];
+      if (a == null || b == null) continue;
+      for (var k = a; k <= b; k++) {
+        out.add((ayat[k].surah, ayat[k].ayah));
+      }
+    }
+    return out;
+  }
 
   Future<HifzSchedule> schedule(HifzPlanChoice c) async {
     final ayat = await ayahLines();
-    return compute(_generate, _GenArgs(ayat, c.direction, c.timeline, _skip(ayat, c.memorizedSurahs)));
+    final skip = await _ayatOf(ayat, c.memorizedSurahs, c.memorizedUnits);
+    return compute(
+      _generate,
+      _GenArgs(ayat, c.direction, c.timeline, skip, totalDays: c.totalDays, finalDays: c.finalPhaseDays, pace: c.pace),
+    );
+  }
+
+  /// Where the student really is today (ح4): every ayah memorized so far —
+  /// pages from ٣×٣ and surahs from «حفظي» — against the plan's days.
+  Future<HifzProgress> progress(HifzPlanChoice c, HifzSchedule s) async {
+    final ayat = await ayahLines();
+    final live = await _ayatOf(ayat, await memorizedSurahs(), await memorizedUnits());
+    return measureProgress(s, live, c.dayNumber(DateTime.now()));
+  }
+
+  /// A fresh plan from today over what is still left, never a penalty (ح4,
+  /// `12-RESEARCH-BACKED-ADDENDUM.md` §c): «أدرِك» keeps the khatm date
+  /// (more per day), «أبقِ وتيرتي» keeps today's load (the date moves).
+  Future<HifzPlanChoice> replan(HifzPlanChoice c, HifzSchedule s, {required bool keepPace}) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return HifzPlanChoice(
+      direction: c.direction,
+      timeline: c.timeline,
+      start: today,
+      end: keepPace || !c.end.isAfter(today) ? null : c.end,
+      pace: keepPace ? (c.pace ?? s.linesPerDay) : null,
+      memorizedSurahs: await memorizedSurahs(),
+      memorizedUnits: await memorizedUnits(),
+    );
   }
 
   /// Lines per day each timeline would need — for the plan chooser.
   Future<Map<HifzTimeline, double>> estimates(HifzDirection direction, Set<int> memorizedSurahs) async {
     final ayat = await ayahLines();
-    return compute(_estimate, _GenArgs(ayat, direction, HifzTimeline.months24, _skip(ayat, memorizedSurahs)));
+    return compute(_estimate, _GenArgs(ayat, direction, HifzTimeline.months24, await _ayatOf(ayat, memorizedSurahs, const {})));
   }
 
   /// A surah's name for display.

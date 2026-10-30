@@ -112,4 +112,49 @@ void main() {
     final khatm = s.days.where((d) => d.kind == DayKind.khatmCycle).map((d) => d.ref).toList();
     expect(khatm.first, 30);
   });
+
+  group('ح4 progress and re-planning', () {
+    late HifzSchedule plan;
+    setUp(() => plan = generateSchedule(mushafOrder: _ayat, direction: HifzDirection.reverse, timeline: HifzTimeline.months24));
+
+    Set<(int, int)> firstN(int n) => {for (final a in plan.sequence.take(n)) (a.surah, a.ayah)};
+    int endOfPortion(int k) {
+      final idx = {for (var i = 0; i < plan.sequence.length; i++) (plan.sequence[i].surah, plan.sequence[i].ayah): i};
+      return idx[plan.days.where((d) => d.kind == DayKind.newPortion).elementAt(k).to]! + 1;
+    }
+
+    test('on track: every past portion done, no lag', () {
+      // Day 10 has 8 new days before it (days 1–9 minus day 7, the weekly one).
+      final p = measureProgress(plan, firstN(endOfPortion(7)), 10);
+      expect(p.lagDays, 0);
+      expect(p.byDay.values.every((v) => v == DayProgress.done), isTrue);
+      expect(p.byDay.containsKey(7), isFalse); // weekly day is not graded
+    });
+
+    test('behind: three portions short, the last ones missed', () {
+      final p = measureProgress(plan, firstN(endOfPortion(4)), 10);
+      expect(p.lagDays, 3);
+      expect(p.byDay[9], DayProgress.missed);
+      expect(p.byDay[1], DayProgress.done);
+    });
+
+    test('half a portion is partial; ahead is negative lag', () {
+      final half = firstN(endOfPortion(0) + (endOfPortion(1) - endOfPortion(0)) ~/ 2);
+      expect(measureProgress(plan, half, 3).byDay[2], DayProgress.partial);
+      expect(measureProgress(plan, firstN(endOfPortion(5)), 3).lagDays, lessThan(0));
+    });
+
+    test('keep-pace re-plan keeps the daily load and moves the end', () {
+      final done = firstN(endOfPortion(4));
+      final atPace = generateScheduleAtPace(mushafOrder: _ayat, direction: HifzDirection.reverse, linesPerDay: plan.linesPerDay, finalPhaseDays: 70, alreadyMemorized: done);
+      expect(atPace.linesPerDay, plan.linesPerDay);
+      expect(atPace.days.first.from, (plan.sequence[endOfPortion(4)].surah, plan.sequence[endOfPortion(4)].ayah));
+      expect(atPace.scheduleDays, greaterThan(plan.scheduleDays - 9));
+    });
+
+    test('a re-plan with no time left still yields a usable list', () {
+      final late = generateSchedule(mushafOrder: _ayat, direction: HifzDirection.reverse, timeline: HifzTimeline.months24, totalDays: 5, finalPhaseDays: 7);
+      expect(late.scheduleDays, greaterThan(0));
+    });
+  });
 }
