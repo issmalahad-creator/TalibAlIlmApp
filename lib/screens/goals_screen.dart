@@ -7,6 +7,8 @@ import '../utils/month.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/premium_modal.dart';
 import '../utils/digits.dart';
+import '../widgets/app_empty_view.dart';
+import '../theme/app_theme.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -123,7 +125,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('${basicText('nav_goals', _lang)} ${monthLabel(currentMonth())}')),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(basicText('nav_goals', _lang)),
+            Text(monthLabel(currentMonth()), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+          ],
+        ),
+      ),
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', _lang))
           : _error != null
@@ -143,7 +154,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   ),
                 )
               : _goals.isEmpty
-              ? Center(child: Text(basicText('no_goals_yet', _lang)))
+              ? AppEmptyView(icon: Icons.flag_outlined, message: basicText('no_goals_yet', _lang))
               : ListView.builder(
                   itemCount: _goals.length,
                   itemBuilder: (context, i) {

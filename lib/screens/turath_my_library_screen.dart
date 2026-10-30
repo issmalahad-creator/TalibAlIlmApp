@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import 'turath_book_screen.dart';
 import 'turath_reader_screen.dart';
 import '../widgets/library/book_3d.dart';
+import '../widgets/app_empty_view.dart';
 
 /// "مكتبتي" — spec items 10-11 (favorites, last-read position) plus 12
 /// (notes), all in one place with three real tabs rather than three
@@ -88,7 +89,7 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
 
   Widget _buildFavorites(String lang) {
     if (_favorites!.isEmpty) {
-      return Center(child: Text(basicText('turath_no_favorites_empty', lang), style: const TextStyle(color: AppColors.textMuted)));
+      return AppEmptyView(icon: Icons.bookmark_border_rounded, message: basicText('turath_no_favorites_empty', lang));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -112,7 +113,7 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
 
   Widget _buildRecent(String lang) {
     if (_recent!.isEmpty) {
-      return Center(child: Text(basicText('turath_no_recent_empty', lang), style: const TextStyle(color: AppColors.textMuted)));
+      return AppEmptyView(icon: Icons.history_rounded, message: basicText('turath_no_recent_empty', lang));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -134,7 +135,7 @@ class _TurathMyLibraryScreenState extends State<TurathMyLibraryScreen> {
 
   Widget _buildNotes(String lang) {
     if (_notes!.isEmpty) {
-      return Center(child: Text(basicText('turath_no_notes_empty', lang), style: const TextStyle(color: AppColors.textMuted)));
+      return AppEmptyView(icon: Icons.sticky_note_2_outlined, message: basicText('turath_no_notes_empty', lang));
     }
     return ListView.builder(
       padding: const EdgeInsets.all(16),

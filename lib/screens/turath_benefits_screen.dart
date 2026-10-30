@@ -6,6 +6,7 @@ import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import 'turath_reader_screen.dart';
+import '../widgets/app_empty_view.dart';
 
 /// "فوائدي" (spec item 14: "دفتر الفوائد") — standalone learning takeaways
 /// the student writes for themselves, optionally citing a source. Unlike
@@ -92,7 +93,7 @@ class _TurathBenefitsScreenState extends State<TurathBenefitsScreen> {
         body: _benefits == null
             ? const Center(child: CircularProgressIndicator())
             : _benefits!.isEmpty
-                ? Center(child: Text(basicText('turath_no_benefits_empty', lang), style: const TextStyle(color: AppColors.textMuted)))
+                ? AppEmptyView(icon: Icons.lightbulb_outline_rounded, message: basicText('turath_no_benefits_empty', lang))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _benefits!.length,

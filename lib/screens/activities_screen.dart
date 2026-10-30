@@ -8,6 +8,7 @@ import '../utils/month.dart';
 import '../widgets/category_pill.dart';
 import 'add_activity_screen.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/app_empty_view.dart';
 
 class ActivitiesScreen extends StatefulWidget {
   const ActivitiesScreen({super.key});
@@ -47,11 +48,21 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
     return ValueListenableBuilder<String>(
       valueListenable: LanguagePreferenceService.languageNotifier,
       builder: (context, lang, _) => Scaffold(
-      appBar: AppBar(title: Text('${basicText('activities_title_word', lang)} ${monthLabel(currentMonth())}')),
+      appBar: AppBar(
+        // Title, then the month beneath it smaller — one line crowded on small phones (tour ج3).
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(basicText('activities_title_word', lang)),
+            Text(monthLabel(currentMonth()), style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+          ],
+        ),
+      ),
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
           : _entries.isEmpty
-              ? Center(child: Text(basicText('no_activities_yet', lang), style: const TextStyle(color: AppColors.textMuted)))
+              ? AppEmptyView(icon: Icons.event_note_outlined, message: basicText('no_activities_yet', lang))
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                   itemCount: _entries.length,

@@ -9,6 +9,8 @@ import '../services/language_preference_service.dart';
 import '../services/spaced_repetition_engine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/app_empty_view.dart';
+import 'adhkar_screen.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -95,11 +97,11 @@ class _AdhkarQuizScreenState extends State<AdhkarQuizScreen> {
   Widget _buildBody() {
     final item = _item;
     if (item == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(_t('qz_adhkar_need'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
-        ),
+      return AppEmptyView(
+        icon: Icons.wb_twilight_outlined,
+        message: _t('qz_adhkar_need'),
+        actionLabel: _t('empty_start_memorizing'),
+        onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
       );
     }
 
