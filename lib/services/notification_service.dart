@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../l10n/basic_translations.dart';
 import '../repositories/adhkar_repository.dart';
 import '../repositories/life_plan_repository.dart';
+import '../models/medication.dart';
 import '../repositories/medication_repository.dart';
 import '../repositories/prayer_times_repository.dart';
 import 'adhkar_notification_prefs.dart';
@@ -271,10 +272,13 @@ class NotificationService {
       const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
       await _plugin.initialize(
         settings: const InitializationSettings(android: androidInit),
-        onDidReceiveNotificationResponse: (response) {
+        onDidReceiveNotificationResponse: (response) async {
+          // «أخذتها» pressed while the app is alive: record it, don't navigate.
+          if (await handleMedicationAction(response)) return;
           final payload = response.payload;
           if (payload != null) onNotificationTap?.call(payload);
         },
+        onDidReceiveBackgroundNotificationResponse: medicationActionInBackground,
       );
 
       // No permission is requested here (NOTIFICATIONS_ARCHITECTURE.md N1):
@@ -955,6 +959,8 @@ class NotificationService {
         importance: Importance.high,
         priority: Priority.high,
         category: AndroidNotificationCategory.reminder,
+        // Recorded silently (the app stays closed); the alarm is dismissed.
+        actions: [AndroidNotificationAction(kMedTakenActionId, '✓ ${_t('med_took_it')}')],
       ),
     );
     for (final r in reminders) {
@@ -965,7 +971,8 @@ class NotificationService {
         scheduledDate: tz.TZDateTime.from(r.fireAt, tz.local),
         notificationDetails: details,
         androidScheduleMode: exact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
-        payload: 'meds',
+        // `meds:<doseId>` — the tap opens «علاجاتي», the action marks this dose.
+        payload: 'meds:${r.doseId}',
       );
     }
   }
@@ -1091,4 +1098,28 @@ class NotificationService {
     );
   }
 
+}
+
+/// The «أخذتها» button on a medicine alarm.
+const kMedTakenActionId = 'med_taken';
+
+/// Marks the dose a «أخذتها» press refers to. True when [response] was that
+/// action (handled, nothing else to do), false for an ordinary tap.
+Future<bool> handleMedicationAction(NotificationResponse response) async {
+  if (response.actionId != kMedTakenActionId) return false;
+  final doseId = medDoseIdFromPayload(response.payload);
+  if (doseId != null) await MedicationRepository().setDoseStatus(doseId, MedDoseStatus.taken);
+  return true;
+}
+
+/// The same when the app is closed: Android starts a background isolate just
+/// for this callback, so it must be a top-level entry point.
+@pragma('vm:entry-point')
+Future<void> medicationActionInBackground(NotificationResponse response) async {
+  try {
+    await handleMedicationAction(response);
+  } catch (_) {
+    // Nothing to show from a background isolate; the dose stays pending and
+    // the person can still mark it in «علاجاتي».
+  }
 }

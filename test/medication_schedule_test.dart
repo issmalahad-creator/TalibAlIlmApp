@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -7,6 +8,7 @@ import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/models/medication.dart';
 import 'package:talib_alilm_app/repositories/medication_repository.dart';
 import 'package:talib_alilm_app/services/medication_schedule.dart';
+import 'package:talib_alilm_app/services/notification_service.dart';
 
 /// «علاجاتي» — the dose calculator, the reminder window and the repository.
 void main() {
@@ -76,6 +78,13 @@ void main() {
     expect(plan.first.id, kMedReminderIdBase);
   });
 
+  test('payload carries the dose id for «أخذتها»', () {
+    expect(medDoseIdFromPayload('meds:42'), 42);
+    expect(medDoseIdFromPayload('meds'), isNull);
+    expect(medDoseIdFromPayload('prayer_times'), isNull);
+    expect(medDoseIdFromPayload(null), isNull);
+  });
+
   group('MedicationRepository', () {
     TestWidgetsFlutterBinding.ensureInitialized();
     sqfliteFfiInit();
@@ -119,6 +128,25 @@ void main() {
       await repo.deleteCourse(id);
       expect(await repo.course(id), isNull);
       expect(await repo.courses(), isEmpty);
+    });
+
+    test('«أخذتها» on the alarm marks exactly that dose; a plain tap does not', () async {
+      final soon = DateTime.now().add(const Duration(hours: 1));
+      final id = await repo.saveCourse(MedCourse(name: 'Cipro', mode: MedScheduleMode.interval, intervalHours: 12, durationDays: 2, startAt: soon));
+      final doses = (await repo.course(id))!.doses;
+      NotificationResponse r(String? action) => NotificationResponse(
+            notificationResponseType: action == null ? NotificationResponseType.selectedNotification : NotificationResponseType.selectedNotificationAction,
+            actionId: action,
+            payload: 'meds:${doses[1].id}',
+          );
+      expect(await handleMedicationAction(r(null)), isFalse);
+      expect((await repo.course(id))!.taken, 0);
+      expect(await handleMedicationAction(r(kMedTakenActionId)), isTrue);
+      final after = (await repo.course(id))!.doses;
+      expect(after[1].status, MedDoseStatus.taken);
+      expect(after[1].takenAt, isNotNull);
+      expect(after.where((d) => d.status == MedDoseStatus.taken).length, 1);
+      await repo.deleteCourse(id);
     });
   });
 }

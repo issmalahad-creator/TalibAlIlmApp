@@ -1,8 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:talib_alilm_app/l10n/basic_translations.dart';
 import 'package:talib_alilm_app/services/app_feature_registry.dart';
 import 'package:talib_alilm_app/services/companion_chat_session.dart';
 import 'package:talib_alilm_app/services/companion_navigation_registry.dart';
+import 'package:talib_alilm_app/services/drawer_prefs.dart';
 import 'package:talib_alilm_app/utils/arabic_normalize.dart';
 
 /// The side menu and the companion read one feature list — it must be
@@ -45,6 +47,28 @@ void main() {
     test('unknown text matches nothing', () {
       expect(open('xyzzy'), isNull);
       expect(open(''), isNull);
+    });
+  });
+
+  group('side menu shortcuts', () {
+    test('recent: newest first, no duplicates, at most 3', () {
+      expect(pushRecent(const [], 'qibla'), ['qibla']);
+      expect(pushRecent(const ['qibla', 'mushaf'], 'mushaf'), ['mushaf', 'qibla']);
+      expect(pushRecent(const ['a', 'b', 'c'], 'd'), ['d', 'a', 'b']);
+    });
+
+    test('pin toggles, survives, and ids that no longer exist are dropped', () async {
+      SharedPreferences.setMockInitialValues({'drawer_pinned': ['gone_feature', 'qibla']});
+      final prefs = DrawerPrefs();
+      expect(await prefs.pinned(), ['qibla']);
+      expect(await prefs.togglePin('medications'), isTrue);
+      expect(await prefs.pinned(), ['qibla', 'medications']);
+      expect(await prefs.togglePin('qibla'), isFalse);
+      expect(await prefs.pinned(), ['medications']);
+      await prefs.markOpened('mushaf');
+      await prefs.markOpened('adhkar');
+      await prefs.markOpened('mushaf');
+      expect(await prefs.recent(), ['mushaf', 'adhkar']);
     });
   });
 }

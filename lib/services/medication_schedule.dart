@@ -102,10 +102,18 @@ const kMedPresets = <MedPreset>[
 /// One queued reminder — plain data, strings pre-localized by the caller.
 class MedReminder {
   final int id;
+  final int doseId;
   final DateTime fireAt;
   final String title;
   final String body;
-  const MedReminder({required this.id, required this.fireAt, required this.title, required this.body});
+  const MedReminder({required this.id, this.doseId = 0, required this.fireAt, required this.title, required this.body});
+}
+
+/// The dose id in a `meds:<doseId>` notification payload (null for a bare
+/// `meds`, e.g. from a build before the «أخذتها» button).
+int? medDoseIdFromPayload(String? payload) {
+  if (payload == null || !payload.startsWith('meds:')) return null;
+  return int.tryParse(payload.substring(5));
 }
 
 /// The rolling reminder window: pending doses of courses with reminders on,
@@ -131,6 +139,7 @@ List<MedReminder> planMedicationReminders({
     for (var i = 0; i < picks.length && i < kMedReminderMax; i++)
       MedReminder(
         id: kMedReminderIdBase + i,
+        doseId: picks[i].$2.id ?? 0,
         fireAt: picks[i].$2.scheduledAt,
         title: title(picks[i].$1, picks[i].$2, picks[i].$3),
         body: body(picks[i].$1, picks[i].$2, picks[i].$3),
