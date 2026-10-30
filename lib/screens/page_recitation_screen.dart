@@ -3,12 +3,15 @@ import 'package:flutter/services.dart';
 
 import '../l10n/basic_translations.dart';
 import '../repositories/recitation_repository.dart';
+import '../models/mushaf_layout.dart';
+import '../repositories/mushaf_layout_repository.dart';
 import '../services/language_preference_service.dart';
 import '../services/platform_speech_recognition_engine.dart';
 import '../services/speech_recognition_engine.dart';
 import '../theme/app_theme.dart';
 import '../utils/recitation_alignment.dart';
 import '../utils/recitation_text.dart';
+import '../widgets/mushaf_page_view.dart';
 import 'recitation_mistakes_screen.dart';
 
 /// Continuous, whole-page «تسميع» — rebuilt per
@@ -65,6 +68,10 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
   List<RecitationWordResult> _liveResult = [];
 
   bool _hidden = true;
+
+  /// The real muṣḥaf page (ت4); null only if its layout isn't ready, then the
+  /// 15 lines are set in text instead.
+  MushafPageLayout? _layout;
   _Status _status = _Status.loading;
   PageRecitationResult? _result;
   String? _errorMessage;
@@ -77,8 +84,10 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
 
   Future<void> _load() async {
     final words = await _repo.pageWords(widget.pageNumber);
+    final layout = await MushafLayoutRepository().pageLayout(widget.pageNumber);
     if (!mounted) return;
     setState(() {
+      _layout = layout;
       _words = words;
       _statuses = List<RecitationWordStatus?>.filled(words.length, null);
       _said = List<String?>.filled(words.length, null);
@@ -284,8 +293,67 @@ class _PageRecitationScreenState extends State<PageRecitationScreen> {
     );
   }
 
-  /// The page as printed: the muṣḥaf's own 15 lines, one row each.
+  /// The real Madinah page with each word marked as it is judged (ت4):
+  /// green correct, amber skipped, red said differently — light fills like
+  /// the reader's own Selection Layer, a bar under each mistake — the next
+  /// word lit in gold, and, with «غطِّ المصحف», the words not reached yet
+  /// under a paper veil.
   Widget _buildPage() {
+    final layout = _layout;
+    if (layout == null) return _buildTextPage();
+    final marks = <(int, int, int), WordMark>{};
+    final covered = <(int, int, int)>{};
+    final listening = _status == _Status.listening;
+    for (var k = 0; k < _words.length; k++) {
+      final w = _words[k];
+      final status = _statuses[k];
+      final liveIdx = k - _cursor;
+      WordMark? mark;
+      if (status != null) {
+        mark = switch (status) {
+          RecitationWordStatus.correct => const WordMark(_correctColor, alpha: 0.12),
+          RecitationWordStatus.missing => const WordMark(_missingColor, underline: true, alpha: 0.14),
+          RecitationWordStatus.wrong => const WordMark(_wrongColor, underline: true, alpha: 0.14),
+        };
+      } else if (listening && liveIdx >= 0 && liveIdx < _liveResult.length) {
+        final ok = _liveResult[liveIdx].status == RecitationWordStatus.correct;
+        mark = WordMark(ok ? _correctColor : _wrongColor, alpha: 0.07);
+      } else if (listening && k == _cursor + _liveResult.length) {
+        mark = const WordMark(Color(0xFFD9A441), alpha: 0.14);
+      } else if (_hidden && k >= _cursor && _status != _Status.done) {
+        covered.addAll(w.keys);
+        continue;
+      }
+      if (mark != null) {
+        for (final key in w.keys) {
+          marks[key] = mark;
+        }
+      }
+    }
+    // Waqf signs aren't recited words, so they have no status of their own:
+    // they hide with the word they sit beside.
+    if (covered.isNotEmpty) {
+      for (final w in layout.words) {
+        final key = (w.surah, w.ayah, w.wordIndex);
+        if (marks.containsKey(key) || covered.contains(key)) continue;
+        if (covered.contains((w.surah, w.ayah, w.wordIndex - 1)) || covered.contains((w.surah, w.ayah, w.wordIndex + 1))) {
+          covered.add(key);
+        }
+      }
+    }
+    return LayoutBuilder(builder: (context, c) {
+      final r = layout.rect;
+      final ratio = (r != null && r.w > 0) ? (r.h / r.w) * 1.08 : 1.6;
+      return SizedBox(
+        width: c.maxWidth,
+        height: c.maxWidth * ratio,
+        child: MushafPageView(layout: layout, wordMarks: marks, coveredWords: covered, coverColor: AppColors.background),
+      );
+    });
+  }
+
+  /// Fallback when the page layout isn't ready: the 15 lines set in text.
+  Widget _buildTextPage() {
     final rows = <Widget>[];
     var k = 0;
     while (k < _words.length) {

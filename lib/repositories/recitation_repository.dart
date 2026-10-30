@@ -50,7 +50,18 @@ class RecitationWord {
   final int wordIndex;
   final int line;
   final String text;
-  const RecitationWord({required this.surah, required this.ayah, required this.wordIndex, required this.line, required this.text});
+
+  /// Muṣḥaf words this recited word covers: 2 when the layout's standalone
+  /// «وَ» was joined to it, else 1 (`wordIndex` is the first of them).
+  final int span;
+  const RecitationWord({required this.surah, required this.ayah, required this.wordIndex, required this.line, required this.text, this.span = 1});
+
+  /// The `(surah, ayah, wordIndex)` keys of the muṣḥaf words it covers.
+  Iterable<(int, int, int)> get keys sync* {
+    for (var k = 0; k < span; k++) {
+      yield (surah, ayah, wordIndex + k);
+    }
+  }
 }
 
 /// Backs "تسميع" (Phase 76.3) — stores every real recitation-practice
@@ -195,6 +206,7 @@ class RecitationRepository {
         wordIndex: (r['word_index'] as num).toInt() - (pendingWaw == null ? 0 : 1),
         line: (r['line'] as num).toInt(),
         text: (pendingWaw ?? '') + text,
+        span: pendingWaw == null ? 1 : 2,
       ));
       pendingWaw = null;
     }
