@@ -2277,6 +2277,9 @@ const Map<String, Map<String, String>> basicTranslations = {
   // ---- empty states (tour ج1–ج2) (13-language retrofit, 2026-10-10 audit)
   'empty_start_memorizing': {'ar': 'ابدأ الحفظ', 'en': 'Start memorizing', 'am': 'መሐፈዝ ጀምር', 'fr': 'Commencer à mémoriser', 'sw': 'Anza kuhifadhi', 'ur': 'حفظ شروع کریں', 'tr': 'Ezberlemeye başla', 'id': 'Mulai menghafal', 'bn': 'মুখস্থ শুরু করুন', 'ha': 'Fara haddacewa', 'so': 'Bilow xifdinta', 'fa': 'شروع حفظ', 'ms': 'Mula menghafaz'},
   'empty_open_mushaf': {'ar': 'افتح المصحف', 'en': 'Open the muṣḥaf', 'am': 'ሙስሐፉን ክፈት', 'fr': 'Ouvrir le moṣḥaf', 'sw': 'Fungua Msahafu', 'ur': 'مصحف کھولیں', 'tr': 'Mushafı aç', 'id': 'Buka mushaf', 'bn': 'মুসহাফ খুলুন', 'ha': 'Buɗe Mushafi', 'so': 'Fur Kitaabka', 'fa': 'باز کردن مصحف', 'ms': 'Buka mushaf'},
+  // ---- reader R5b (13-language retrofit, 2026-10-10 audit)
+  'mushaf_reciter_item': {'ar': 'القارئ: {name}', 'en': 'Reciter: {name}', 'am': 'ቃሪእ: {name}', 'fr': 'Récitateur : {name}', 'sw': 'Msomaji: {name}', 'ur': 'قاری: {name}', 'tr': 'Kari: {name}', 'id': 'Qari: {name}', 'bn': 'কারী: {name}', 'ha': 'Mai karatu: {name}', 'so': 'Akhriyaha: {name}', 'fa': 'قاری: {name}', 'ms': 'Qari: {name}'},
+  'mushaf_ayah_k_of_n': {'ar': 'آية {k} من {n}', 'en': 'Ayah {k} of {n}', 'am': 'አንቀጽ {k} ከ{n}', 'fr': 'Verset {k} sur {n}', 'sw': 'Aya {k} kati ya {n}', 'ur': 'آیت {k} از {n}', 'tr': 'Ayet {k}/{n}', 'id': 'Ayat {k} dari {n}', 'bn': 'আয়াত {k} / {n}', 'ha': 'Aya {k} cikin {n}', 'so': 'Aayadda {k} ee {n}', 'fa': 'آیه {k} از {n}', 'ms': 'Ayat {k} daripada {n}'},
   'mushaf_go_to_page': {
     'ar': 'اذهب إلى صفحة', 'en': 'Go to page', 'am': 'ወደ ገጽ ሂድ', 'fr': 'Aller à la page', 'sw': 'Nenda ukurasa',
     'ur': 'صفحہ پر جائیں', 'tr': 'Sayfaya git', 'id': 'Ke halaman', 'bn': 'পৃষ্ঠায় যান', 'ha': 'Je shafi',

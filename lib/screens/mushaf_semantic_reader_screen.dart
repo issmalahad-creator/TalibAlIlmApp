@@ -366,6 +366,9 @@ class _MushafSemanticReaderScreenState
   /// so «next/previous ayah» never leaves two recitation loops running.
   int _playGen = 0;
 
+  /// The listen bar's progress handle while being dragged (R5b), else null.
+  double? _seekDrag;
+
   Future<void> _playFrom(int start) async {
     final ayat = _pageAyat;
     if (ayat.isEmpty) return;
@@ -1040,6 +1043,17 @@ class _MushafSemanticReaderScreenState
           Icons.play_circle_fill_rounded,
           basicText('listen_ayah_action', lang),
         ),
+        // R5b: choose the reciter right here, then hear this ayah with them.
+        MushafAyahMenuItem(
+          'reciter',
+          Icons.record_voice_over_outlined,
+          basicText('mushaf_reciter_item', lang).replaceAll(
+            '{name}',
+            QuranAudioProviderRegistry.reciters()
+                .firstWhere((r) => r.id == _reciterId, orElse: () => QuranAudioProviderRegistry.reciters().first)
+                .nameAr,
+          ),
+        ),
         MushafAyahMenuItem(
           'fav',
           fav ? Icons.bookmark_remove_rounded : Icons.bookmark_rounded,
@@ -1078,6 +1092,10 @@ class _MushafSemanticReaderScreenState
         );
       case 'listen':
         _listenFrom(page, surah, ayah);
+      case 'reciter':
+        final before = _reciterId;
+        await _pickReciter(lang);
+        if (mounted && _reciterId != before) _listenFrom(page, surah, ayah);
       case 'fav':
         if (fav) {
           await quran.removeFavorite(surah, ayah);
@@ -1891,7 +1909,55 @@ class _MushafSemanticReaderScreenState
                       : AppColors.divider)),
         ),
         padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // R5b: where the recitation is on this page — drag to jump to
+            // any ayah; the counter reads «آية k من n».
+            if (ayat.length > 1)
+              Row(
+                children: [
+                  Expanded(
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 3,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                        activeTrackColor: AppColors.primary,
+                        thumbColor: AppColors.primary,
+                      ),
+                      child: Slider(
+                        min: 0,
+                        max: (ayat.length - 1).toDouble(),
+                        divisions: ayat.length - 1,
+                        value: (_seekDrag ?? _audioIdx.clamp(0, ayat.length - 1).toDouble()),
+                        onChanged: (v) => setState(() => _seekDrag = v),
+                        onChangeEnd: (v) {
+                          final i = v.round();
+                          setState(() => _seekDrag = null);
+                          if (i == _audioIdx) return;
+                          _audio.stop();
+                          if (_playing) {
+                            _playFrom(i);
+                          } else {
+                            setState(() => _audioIdx = i);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: Text(
+                      basicText('mushaf_ayah_k_of_n', lang)
+                          .replaceAll('{k}', '${(_seekDrag?.round() ?? _audioIdx.clamp(0, ayat.length - 1)) + 1}')
+                          .replaceAll('{n}', '${ayat.length}'),
+                      style: TextStyle(fontSize: 11, color: _night ? AppColors.textDarkNight : AppColors.textMuted),
+                    ),
+                  ),
+                ],
+              ),
+            Row(
           children: [
             IconButton(
               icon: const Icon(Icons.skip_previous_rounded),
@@ -1984,6 +2050,8 @@ class _MushafSemanticReaderScreenState
             IconButton(
               icon: const Icon(Icons.close_rounded),
               onPressed: _toggleAudioBar,
+            ),
+          ],
             ),
           ],
         ),
