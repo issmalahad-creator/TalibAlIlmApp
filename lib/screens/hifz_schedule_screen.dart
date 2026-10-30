@@ -83,6 +83,7 @@ class _HifzScheduleScreenState extends State<HifzScheduleScreen> {
 
   Future<void> _changePlan() async {
     await _repo.clear();
+    if (!mounted) return;
     setState(() {
       _choice = null;
       _schedule = null;

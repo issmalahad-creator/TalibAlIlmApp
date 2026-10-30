@@ -24,6 +24,7 @@ class _LifeProgressScreenState extends State<LifeProgressScreen> {
   final _repo = LifePlanRepository();
 
   bool _loading = true;
+  bool _failed = false;
   double _today = 0, _w7 = 0, _w30 = 0, _all = 0;
   int _streak = 0, _dayIndex = 0;
   List<LifePillar> _pillars = const [];
@@ -39,7 +40,25 @@ class _LifeProgressScreenState extends State<LifeProgressScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _failed = false;
+    });
+    try {
+      await _read();
+    } catch (e, st) {
+      // Any failed query used to leave the spinner turning forever.
+      debugPrint('LifeProgressScreen._load failed: $e\n$st');
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _failed = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _read() async {
     final di = await _repo.dayIndex();
     final start = await _repo.startDate();
     final pillars = await _repo.pillars();
@@ -83,7 +102,19 @@ class _LifeProgressScreenState extends State<LifeProgressScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
+          : _failed
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.error_outline_rounded, color: AppColors.textMuted, size: 36),
+                      const SizedBox(height: 8),
+                      Text(basicText('load_failed_prefix', lang), style: const TextStyle(color: AppColors.textMuted)),
+                      TextButton(onPressed: _load, child: Text(basicText('retry_action', lang))),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),

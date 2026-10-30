@@ -1,6 +1,7 @@
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
 import '../services/calendar_preference_service.dart';
 import 'hijri_date.dart';
 
@@ -16,14 +17,17 @@ String formatDateForDisplay(String hijriDate) {
   final day = int.tryParse(parts[2]);
   if (year == null || month == null || day == null) return hijriDate;
 
+  final lang = LanguagePreferenceService.currentLanguage;
   if (!CalendarPreferenceService.useGregorian) {
-    final h = HijriCalendar()
-      ..hYear = year
-      ..hMonth = month
-      ..hDay = day;
-    return '$day ${h.getLongMonthName()} $year هـ';
+    return '$day ${hijriMonthName(month, lang)} $year ${basicText('hijri_era_suffix', lang)}';
   }
 
   final gregorian = gregorianFromHijriDateTime(hijriDate, null);
-  return DateFormat('d MMMM yyyy', 'ar').format(gregorian);
+  // Gregorian month names come from intl, which only holds the locales the
+  // app's localization delegates loaded (not Hausa or Somali) — English then.
+  try {
+    return DateFormat('d MMMM yyyy', lang).format(gregorian);
+  } catch (_) {
+    return DateFormat('d MMMM yyyy', 'en').format(gregorian);
+  }
 }

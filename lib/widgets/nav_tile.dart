@@ -90,16 +90,18 @@ class NavGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 4,
+    // Each cell is as tall as its content: 6+6 padding, the 54 circle, a
+    // 6 gap and two label lines at the reader's text size. A fixed aspect
+    // ratio (0.78, then 0.74) kept overflowing once the label grew — with
+    // the text-size setting, or a longer translation (tour 2026-10-29 أ2).
+    final line = MediaQuery.textScalerOf(context).scale(10.5) * 1.6;
+    return GridView(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        mainAxisExtent: 12 + 54 + 6 + 2 * line,
+      ),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      // 2026-08-17: was 0.78 — a screenshot caught a hairline
-      // "BOTTOM OVERFLOWED BY 0.179 PIXELS" debug banner on tiles whose
-      // 2-line label is close to the cell's fixed height (translated
-      // labels can run a hair longer than the Arabic original). A touch
-      // more height per cell removes the margin-of-error entirely.
-      childAspectRatio: 0.74,
       children: [for (var i = 0; i < items.length; i++) NavTile(data: items[i], index: i + 1)],
     );
   }

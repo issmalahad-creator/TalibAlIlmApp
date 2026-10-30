@@ -1,5 +1,8 @@
 import 'package:hijri/hijri_calendar.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 void initHijriLocale() {
   HijriCalendar.setLocal('ar');
 }
@@ -51,12 +54,15 @@ String hijriMonthLabel(String monthKey) {
   if (parts.length != 2) return monthKey;
   final year = int.tryParse(parts[0]) ?? 0;
   final month = int.tryParse(parts[1]) ?? 1;
-  final h = HijriCalendar()
-    ..hYear = year
-    ..hMonth = month
-    ..hDay = 1;
-  return '${h.getLongMonthName()} $year';
+  return '${hijriMonthName(month)} $year';
 }
+
+/// The Hijri month's name in the app's language («جمادى الأولى» /
+/// «Jumada al-Ula» / «Cemaziyelevvel»…). The `hijri` package only knows
+/// Arabic and English and is locked to Arabic at startup, so every other
+/// language used to see Arabic month names.
+String hijriMonthName(int month, [String? lang]) =>
+    basicText('hijri_month_${month.clamp(1, 12)}', lang ?? LanguagePreferenceService.currentLanguage);
 
 /// Gregorian DateTime for 09:00 local time, [daysBefore] days before the end
 /// of the current Hijri month. Used to schedule the "report deadline is
