@@ -187,15 +187,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: AppColors.divider),
                   ),
-                  child: SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(basicText('gregorian_toggle_title', _lang), style: const TextStyle(fontSize: 13.5)),
-                    subtitle: Text(basicText('gregorian_toggle_subtitle', _lang), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
-                    value: _useGregorian,
-                    onChanged: (v) async {
-                      await CalendarPreferenceService.setUseGregorian(v);
-                      setState(() => _useGregorian = v);
-                    },
+                  // The tile's tap ripple paints on the nearest Material; without
+                  // this one it drew under the coloured box and never showed.
+                  child: Material(
+                    type: MaterialType.transparency,
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(basicText('gregorian_toggle_title', _lang), style: const TextStyle(fontSize: 13.5)),
+                      subtitle: Text(basicText('gregorian_toggle_subtitle', _lang), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                      value: _useGregorian,
+                      onChanged: (v) async {
+                        await CalendarPreferenceService.setUseGregorian(v);
+                        if (!mounted) return;
+                        setState(() => _useGregorian = v);
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),

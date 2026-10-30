@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../utils/month.dart';
 import 'add_task_screen.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/app_empty_view.dart';
 
 class DailyTasksScreen extends StatefulWidget {
   const DailyTasksScreen({super.key});
@@ -106,7 +107,7 @@ class _DailyTasksScreenState extends State<DailyTasksScreen> {
         body: _loading
             ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
             : _tasks.isEmpty
-                ? Center(child: Text(basicText('no_tasks_yet', lang), style: const TextStyle(color: AppColors.textMuted)))
+                ? AppEmptyView(icon: Icons.checklist_rounded, message: basicText('no_tasks_yet', lang))
                 : ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
                     children: [

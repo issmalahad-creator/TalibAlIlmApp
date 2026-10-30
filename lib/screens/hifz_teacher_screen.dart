@@ -10,6 +10,7 @@ import '../utils/hijri_date.dart';
 import 'hifz_student_detail_screen.dart';
 import '../widgets/loading_view.dart';
 import '../utils/digits.dart';
+import '../widgets/app_empty_view.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -159,7 +160,7 @@ class _HifzTeacherScreenState extends State<HifzTeacherScreen> {
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_quran', LanguagePreferenceService.currentLanguage))
           : _students.isEmpty
-              ? Center(child: Text(_t('hz_no_students')))
+              ? AppEmptyView(icon: Icons.groups_outlined, message: _t('hz_no_students'))
               : ListView(
                   padding: const EdgeInsets.only(top: 8),
                   children: [

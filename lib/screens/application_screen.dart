@@ -6,6 +6,8 @@ import '../repositories/application_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/app_empty_view.dart';
+import 'mushaf_semantic_reader_screen.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -72,15 +74,11 @@ class _ApplicationScreenState extends State<ApplicationScreen> {
   Widget _buildBody() {
     final lesson = _lesson;
     if (lesson == null) {
-      return Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            _t('x_app_none'),
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textMuted),
-          ),
-        ),
+      return AppEmptyView(
+        icon: Icons.volunteer_activism_outlined,
+        message: _t('x_app_none'),
+        actionLabel: _t('empty_open_mushaf'),
+        onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MushafSemanticReaderScreen())),
       );
     }
 

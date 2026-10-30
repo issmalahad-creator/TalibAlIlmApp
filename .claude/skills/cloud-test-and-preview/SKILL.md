@@ -81,6 +81,20 @@ What makes it render for real (each one cost a failed attempt):
 - Gestures: `t.startGesture` ×2 + `moveTo` = pinch; `t.fling(PageView)` = page
   turn; `t.longPressAt` = ayah menu.
 
+## 4b. The whole-app tour (2026-10-29)
+
+`tour_template.dart.txt` renders **every** no-argument screen (78) at two
+sizes — 400×860 and 360×740 with text at 130% — with the app's real theme
+and boot seeding, and logs each screen's errors (overflow, exceptions) to
+`_log.txt`. ~10 min. Results and lessons: `docs/TOUR_2026-10-29.md`.
+
+- **Load a real font for 'Tahoma'** (the theme's UI font, not bundled):
+  without it every letter is a wide test box and 9 screens falsely
+  "overflow". Noto Sans Arabic (Android's own) removed all but one.
+- `MissingPluginException` lines are environment noise (sensors, audio,
+  notifications) — the template filters them.
+- Contact sheets: PIL, 10 screens per image, to review by eye.
+
 ## 5. Measuring the mushaf art (python)
 
 `pip install svgelements`; `Group.union_bbox(shapes)` of a group's shapes

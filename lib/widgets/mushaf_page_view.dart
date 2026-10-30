@@ -100,6 +100,18 @@ class MushafPageView extends StatelessWidget {
   /// 1–2 (their own decorated layout) keep the uniform fit. Opt-in.
   final bool spreadLines;
 
+  /// Per-word marks over the art, keyed `(surah, ayah, wordIndex)` — the
+  /// recitation result (ت4). Light fills (≤ 0.15, like the Selection Layer)
+  /// so the ink stays fully readable; a mistake also gets a short bar
+  /// *under* the word, never over it.
+  final Map<(int, int, int), WordMark>? wordMarks;
+
+  /// Words hidden under a paper-coloured veil — «غطِّ المصحف» for reciting
+  /// from memory. The one deliberate exception to "nothing over the ink",
+  /// and only while the student keeps it on.
+  final Set<(int, int, int)>? coveredWords;
+  final Color coverColor;
+
   const MushafPageView({
     super.key,
     required this.layout,
@@ -115,6 +127,9 @@ class MushafPageView extends StatelessWidget {
     this.onBackgroundTap,
     this.coverFit = false,
     this.spreadLines = false,
+    this.wordMarks,
+    this.coveredWords,
+    this.coverColor = const Color(0xFFFBF2D9),
   });
 
   @override
@@ -246,6 +261,24 @@ class MushafPageView extends StatelessWidget {
                     child: _PageArt(
                         page: layout.page, artInk: artInk, tajweed: tajweed),
                   ),
+                if ((wordMarks?.isNotEmpty ?? false) || (coveredWords?.isNotEmpty ?? false))
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: _WordMarksPainter(
+                          marks: [
+                            for (final w in layout.words)
+                              if (wordMarks?[(w.surah, w.ayah, w.wordIndex)] case final m?) (toScreen(w.box), m),
+                          ],
+                          covers: [
+                            for (final w in layout.words)
+                              if (coveredWords?.contains((w.surah, w.ayah, w.wordIndex)) ?? false) toScreen(w.box),
+                          ],
+                          coverColor: coverColor,
+                        ),
+                      ),
+                    ),
+                  ),
                 // Selection Layer — premium highlight over the art, never
                 // touches the SVG, never darkens the glyph ink.
                 Positioned.fill(
@@ -270,6 +303,54 @@ class MushafPageView extends StatelessWidget {
       },
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Word marks (recitation result, ت4)
+// ─────────────────────────────────────────────────────────────────────────
+
+/// How one word is marked: its fill colour and whether it gets the bar
+/// under it (a mistake).
+class WordMark {
+  final Color color;
+  final bool underline;
+
+  /// Fill strength, capped at 0.15 over the ink (QURAN_PREMIUM_UI §3).
+  final double alpha;
+  const WordMark(this.color, {this.underline = false, this.alpha = 0.13});
+}
+
+class _WordMarksPainter extends CustomPainter {
+  final List<(Rect, WordMark)> marks;
+  final List<Rect> covers;
+  final Color coverColor;
+  _WordMarksPainter({required this.marks, required this.covers, required this.coverColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final (r, m) in marks) {
+      final box = RRect.fromRectAndRadius(r.inflate(1.5), const Radius.circular(3));
+      canvas.drawRRect(box, Paint()..color = m.color.withValues(alpha: m.alpha.clamp(0.0, 0.15)));
+      if (m.underline) {
+        final y = r.bottom + 2.5;
+        canvas.drawLine(
+          Offset(r.left + 1, y),
+          Offset(r.right - 1, y),
+          Paint()
+            ..color = m.color.withValues(alpha: 0.85)
+            ..strokeWidth = 2
+            ..strokeCap = StrokeCap.round,
+        );
+      }
+    }
+    final veil = Paint()..color = coverColor;
+    for (final r in covers) {
+      canvas.drawRRect(RRect.fromRectAndRadius(r.inflate(0.5), const Radius.circular(3)), veil);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_WordMarksPainter old) => true;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

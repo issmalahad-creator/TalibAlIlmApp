@@ -42,6 +42,7 @@ import 'mushaf_search_screen.dart';
 import 'page_hifz_session_screen.dart';
 import 'page_recitation_screen.dart';
 import 'quran_notebook_home_screen.dart';
+import 'hifz_schedule_screen.dart';
 import 'recitation_mistakes_screen.dart';
 import 'tahfeez_session_setup_screen.dart';
 import 'quran_learning/knowledge_surface.dart';
@@ -67,7 +68,11 @@ class MushafSemanticReaderScreen extends StatefulWidget {
   /// (`mushaf_last_page`), page 1 on a first run.
   final int? initialPage;
 
-  const MushafSemanticReaderScreen({super.key, this.initialPage});
+  /// An ayah to light up on arrival (e.g. from «سجل الأخطاء»); cleared by the
+  /// first tap on the page.
+  final ({int surah, int ayah})? focusAyah;
+
+  const MushafSemanticReaderScreen({super.key, this.initialPage, this.focusAyah});
 
   @override
   State<MushafSemanticReaderScreen> createState() =>
@@ -146,6 +151,9 @@ class _MushafSemanticReaderScreenState
   /// The ayah under the long-press menu — highlighted while it is open.
   ({int surah, int ayah})? _menuAyah;
 
+  /// [MushafSemanticReaderScreen.focusAyah] until the first tap.
+  late ({int surah, int ayah})? _focusAyah = widget.focusAyah;
+
 
   static const _nightPrefKey = 'quran_reading_night_mode';
   static const _reciterPrefKey = 'quran_reading_reciter';
@@ -192,7 +200,10 @@ class _MushafSemanticReaderScreenState
   /// visible on every screen open (not persisted — this is "get the chrome
   /// out of my way right now for this reading", not a saved preference).
   bool _chromeVisible = true;
-  void _toggleChrome() => setState(() => _chromeVisible = !_chromeVisible);
+  void _toggleChrome() => setState(() {
+        _focusAyah = null;
+        _chromeVisible = !_chromeVisible;
+      });
 
   @override
   void initState() {
@@ -355,6 +366,9 @@ class _MushafSemanticReaderScreenState
   /// so «next/previous ayah» never leaves two recitation loops running.
   int _playGen = 0;
 
+  /// The listen bar's progress handle while being dragged (R5b), else null.
+  double? _seekDrag;
+
   Future<void> _playFrom(int start) async {
     final ayat = _pageAyat;
     if (ayat.isEmpty) return;
@@ -457,6 +471,40 @@ class _MushafSemanticReaderScreenState
   }
 
   // ── timed reading session ────────────────────────────────────────
+
+  /// «سمّع» (ت6): one entry for recitation — this page, or the mistakes log
+  /// (whose ayat re-recite just that ayah) — instead of two overlapping rows.
+  Future<void> _openReciteSheet(String lang) async {
+    final page = _current;
+    final pick = await showModalBottomSheet<int>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.mic_none_rounded),
+              title: Text(basicText('recite_page_action', lang)),
+              subtitle: Text('${basicText('page_label', lang)} $page'),
+              onTap: () => Navigator.pop(ctx, 0),
+            ),
+            ListTile(
+              leading: const Icon(Icons.history_edu_outlined),
+              title: Text(basicText('recitation_mistakes_title', lang)),
+              onTap: () => Navigator.pop(ctx, 1),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || pick == null) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => pick == 0 ? PageRecitationScreen(pageNumber: page) : const RecitationMistakesScreen(),
+      ),
+    );
+  }
 
   Future<void> _openSessionSheet(String lang) async {
     if (_sessionTimer != null) {
@@ -590,6 +638,7 @@ class _MushafSemanticReaderScreenState
 
   void _onWord(MushafWord w) {
     setState(() {
+      _focusAyah = null;
       _selWord = w;
       _selMark = null;
       _selWordCaption = null;
@@ -994,6 +1043,17 @@ class _MushafSemanticReaderScreenState
           Icons.play_circle_fill_rounded,
           basicText('listen_ayah_action', lang),
         ),
+        // R5b: choose the reciter right here, then hear this ayah with them.
+        MushafAyahMenuItem(
+          'reciter',
+          Icons.record_voice_over_outlined,
+          basicText('mushaf_reciter_item', lang).replaceAll(
+            '{name}',
+            QuranAudioProviderRegistry.reciters()
+                .firstWhere((r) => r.id == _reciterId, orElse: () => QuranAudioProviderRegistry.reciters().first)
+                .nameAr,
+          ),
+        ),
         MushafAyahMenuItem(
           'fav',
           fav ? Icons.bookmark_remove_rounded : Icons.bookmark_rounded,
@@ -1032,6 +1092,10 @@ class _MushafSemanticReaderScreenState
         );
       case 'listen':
         _listenFrom(page, surah, ayah);
+      case 'reciter':
+        final before = _reciterId;
+        await _pickReciter(lang);
+        if (mounted && _reciterId != before) _listenFrom(page, surah, ayah);
       case 'fav':
         if (fav) {
           await quran.removeFavorite(surah, ayah);
@@ -1307,20 +1371,20 @@ class _MushafSemanticReaderScreenState
                   div,
                   tile(
                     Icons.mic_none_rounded,
-                    basicText('recite_page_action', lang),
-                    () => go(PageRecitationScreen(pageNumber: _current)),
-                  ),
-                  div,
-                  tile(
-                    Icons.history_edu_outlined,
-                    basicText('recitation_mistakes_title', lang),
-                    () => go(const RecitationMistakesScreen()),
+                    basicText('recite_menu', lang),
+                    () => then(() => _openReciteSheet(lang)),
                   ),
                   div,
                   tile(
                     Icons.checklist_rounded,
                     basicText('hz3_menu', lang),
                     () => go(PageHifzSessionScreen(page: _current)),
+                  ),
+                  div,
+                  tile(
+                    Icons.calendar_month_outlined,
+                    basicText('hs_title', lang),
+                    () => go(const HifzScheduleScreen()),
                   ),
                   header('mushaf_section_features'),
                   tile(
@@ -1345,6 +1409,7 @@ class _MushafSemanticReaderScreenState
                     _keepAwake,
                     (v) async {
                       await ScreenAwake.setEnabled(v);
+                      if (!mounted) return;
                       setState(() => _keepAwake = v);
                       setSheet(() {});
                     },
@@ -1844,7 +1909,55 @@ class _MushafSemanticReaderScreenState
                       : AppColors.divider)),
         ),
         padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // R5b: where the recitation is on this page — drag to jump to
+            // any ayah; the counter reads «آية k من n».
+            if (ayat.length > 1)
+              Row(
+                children: [
+                  Expanded(
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 3,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                        overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                        activeTrackColor: AppColors.primary,
+                        thumbColor: AppColors.primary,
+                      ),
+                      child: Slider(
+                        min: 0,
+                        max: (ayat.length - 1).toDouble(),
+                        divisions: ayat.length - 1,
+                        value: (_seekDrag ?? _audioIdx.clamp(0, ayat.length - 1).toDouble()),
+                        onChanged: (v) => setState(() => _seekDrag = v),
+                        onChangeEnd: (v) {
+                          final i = v.round();
+                          setState(() => _seekDrag = null);
+                          if (i == _audioIdx) return;
+                          _audio.stop();
+                          if (_playing) {
+                            _playFrom(i);
+                          } else {
+                            setState(() => _audioIdx = i);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(end: 8),
+                    child: Text(
+                      basicText('mushaf_ayah_k_of_n', lang)
+                          .replaceAll('{k}', '${(_seekDrag?.round() ?? _audioIdx.clamp(0, ayat.length - 1)) + 1}')
+                          .replaceAll('{n}', '${ayat.length}'),
+                      style: TextStyle(fontSize: 11, color: _night ? AppColors.textDarkNight : AppColors.textMuted),
+                    ),
+                  ),
+                ],
+              ),
+            Row(
           children: [
             IconButton(
               icon: const Icon(Icons.skip_previous_rounded),
@@ -1937,6 +2050,8 @@ class _MushafSemanticReaderScreenState
             IconButton(
               icon: const Icon(Icons.close_rounded),
               onPressed: _toggleAudioBar,
+            ),
+          ],
             ),
           ],
         ),
@@ -2254,6 +2369,7 @@ class _MushafSemanticReaderScreenState
         selectedAyah:
             _playingAyah ??
             _menuAyah ??
+            _focusAyah ??
             (_selMark == null || _selMark!.page != page
                 ? null
                 : (surah: _selMark!.surah, ayah: _selMark!.ayah)),

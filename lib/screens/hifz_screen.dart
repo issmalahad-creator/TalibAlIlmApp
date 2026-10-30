@@ -11,6 +11,7 @@ import '../utils/month.dart';
 import '../widgets/hifz/juz_shelf_3d.dart';
 import '../widgets/loading_view.dart';
 import '../utils/calendar_days.dart';
+import 'hifz_schedule_screen.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -131,7 +132,16 @@ class _HifzScreenState extends State<HifzScreen> {
         _search.trim().isEmpty ? quranSurahs : quranSurahs.where((s) => s.name.contains(_search.trim())).toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(_t('hz_title'))),
+      appBar: AppBar(
+        title: Text(_t('hz_title')),
+        actions: [
+          IconButton(
+            tooltip: _t('hs_title'),
+            icon: const Icon(Icons.calendar_month_outlined),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzScheduleScreen())),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

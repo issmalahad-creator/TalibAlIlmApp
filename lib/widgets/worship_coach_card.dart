@@ -57,8 +57,14 @@ class _WorshipCoachCardState extends State<WorshipCoachCard> {
               children: [
                 const Icon(Icons.self_improvement_rounded, size: 18, color: Colors.white),
                 const SizedBox(width: 6),
-                Text(status.stageLabel, style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w700)),
-                const Spacer(),
+                Expanded(
+                  child: Text(
+                    status.stageLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, color: Colors.white70, fontWeight: FontWeight.w700),
+                  ),
+                ),
                 const Icon(Icons.chevron_left_rounded, color: Colors.white70),
               ],
             ),
