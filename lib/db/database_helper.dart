@@ -42,7 +42,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     Future<Database> open() => openDatabase(
       path,
-      version: 72,
+      version: 73,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
@@ -125,6 +125,7 @@ class DatabaseHelper {
         await _createV70Tables(db);
         await _createV71Tables(db);
         await _createV72Tables(db);
+        await _createV73Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -209,6 +210,7 @@ class DatabaseHelper {
         if (oldVersion < 70) await _createV70Tables(db);
         if (oldVersion < 71) await _createV71Tables(db);
         if (oldVersion < 72) await _createV72Tables(db);
+        if (oldVersion < 73) await _createV73Tables(db);
       },
     );
 
@@ -2651,6 +2653,37 @@ class DatabaseHelper {
     await db.execute('ALTER TABLE adhkar_items ADD COLUMN time_of_day TEXT');
     await db.execute('ALTER TABLE adhkar_items ADD COLUMN evening_text TEXT');
     await syncAdhkarMorningEvening(db);
+  }
+
+  /// «علاجاتي» — medication courses and their generated doses
+  /// (`lib/models/medication.dart`). Doses are stored, not recomputed, so a
+  /// single dose can be moved or marked taken on its own.
+  Future<void> _createV73Tables(Database db) async {
+    await db.execute('''
+      CREATE TABLE med_courses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        dose_note TEXT NOT NULL DEFAULT '',
+        mode TEXT NOT NULL,
+        interval_hours INTEGER NOT NULL DEFAULT 8,
+        times_of_day TEXT NOT NULL DEFAULT '',
+        duration_days INTEGER NOT NULL,
+        start_at INTEGER NOT NULL,
+        reminders_on INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE med_doses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        course_id INTEGER NOT NULL REFERENCES med_courses(id) ON DELETE CASCADE,
+        seq INTEGER NOT NULL,
+        scheduled_at INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        taken_at INTEGER
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_med_doses_course ON med_doses(course_id, scheduled_at)');
   }
 
   static const adhkarMorningEveningTitle = 'أذكار الصباح والمساء';

@@ -3,22 +3,27 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/quran_surahs.dart';
+import '../l10n/basic_translations.dart';
 import '../repositories/adhkar_repository.dart';
 import '../repositories/completion_goal_repository.dart';
 import '../repositories/companion_memory_repository.dart';
 import '../repositories/journey_plan_repository.dart';
+import '../repositories/medication_repository.dart';
 import '../repositories/quran_reading_repository.dart';
 import '../repositories/quran_reading_session_repository.dart';
 import '../repositories/prayer_times_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../screens/adhkar_category_screen.dart';
+import '../screens/medications_screen.dart';
 import '../utils/arabic_normalize.dart';
 import '../utils/fuzzy_match.dart' as fuzzy;
 import 'companion_chat_engine.dart';
 import 'companion_context_tracker.dart';
+import 'app_feature_registry.dart';
 import 'companion_navigation_registry.dart';
 import 'language_preference_service.dart';
 import 'location_service.dart';
+import 'medication_schedule.dart';
 
 /// "اذا ضغط يفتح واذا لم اضغط... يكون طبيعي... ما يفتح تلقائي" (Ismail,
 /// 2026-08-18) — a reply can offer an "open the full screen" action, but
@@ -123,14 +128,21 @@ class CompanionChatSession {
   static const _tafsirTriggersOrdered = ['فسر لي', 'تفسير', 'اشرح', 'فسر'];
   static const _tafsirGenericRemainders = ['', 'ها', 'هذه الايه', 'هذه الآية', 'الايه', 'الآية', 'هذه', 'ايه', 'آية'];
 
-  static const _navigationTriggersOrderedAr = ['اذهب الى', 'خذني الى', 'وديني الى', 'افتح لي', 'روح الى', 'افتح', 'روح'];
+  static const _navigationTriggersOrderedAr = ['اذهب الى', 'خذني الى', 'وديني الى', 'افتح لي', 'روح الى', 'وين القى', 'وين اجد', 'اين اجد', 'ابي افتح', 'ابغى افتح', 'اريد فتح', 'افتح', 'روح', 'وين', 'اين'];
   // 2026-08-21 (universal language layer, batch 2): navigation/tafsir-source
   // commands used to only be checked for Arabic input (`effectiveLang !=
   // 'en'`), so an English-typing student lost these capabilities entirely —
   // not because the underlying data/logic was Arabic-only, just because
   // nobody had written the English trigger phrases yet. Added here rather
   // than removing the feature's language awareness.
-  static const _navigationTriggersOrderedEn = ['take me to', 'go to', 'open'];
+  static const _navigationTriggersOrderedEn = ['take me to', 'where is', 'show me', 'go to', 'open'];
+
+  // «متى دوائي؟» — the next dose from «علاجاتي», real data only.
+  static const _medKeywordsAr = ['دوائي', 'الدواء', 'دواء', 'علاجي', 'العلاج', 'الجرعة', 'جرعتي', 'الحبوب', 'المضاد', 'ادويتي'];
+  static const _medKeywordsEn = ['medicine', 'medication', 'my dose', 'next dose', 'pill'];
+  // «ماذا تستطيع؟» — every section of the app, from the same registry the side menu shows.
+  static const _featuresCuesAr = ['ماذا تستطيع', 'ايش تقدر', 'وش تقدر', 'ماذا تفعل', 'كل الاقسام', 'الاقسام', 'مزايا التطبيق', 'ماذا في التطبيق'];
+  static const _featuresCuesEn = ['what can you do', 'features', 'all sections', 'what is in the app'];
 
   static const _tafsirSourceCommandCuesAr = ['استخدم تفسير', 'غير التفسير', 'غيّر التفسير', 'اريد تفسير'];
   static const _tafsirSourceCommandCuesEn = ['use tafsir', 'change tafsir', 'switch tafsir'];
@@ -191,6 +203,16 @@ class CompanionChatSession {
     if (navigationReply != null) {
       await _memory.logMessage(trimmed, 'navigation');
       return navigationReply;
+    }
+
+    if (_matchesKeywords(trimmed, effectiveLang, _featuresCuesAr, _featuresCuesEn)) {
+      await _memory.logMessage(trimmed, 'features');
+      return CompanionChatReply(_featuresOverview(effectiveLang));
+    }
+
+    if (_matchesKeywords(trimmed, effectiveLang, _medKeywordsAr, _medKeywordsEn)) {
+      await _memory.logMessage(trimmed, 'medication');
+      return _medicationReply(effectiveLang);
     }
 
     if (_matchesKeywords(trimmed, effectiveLang, _prayerTimeKeywordsAr, _prayerTimeKeywordsEn)) {
@@ -295,14 +317,9 @@ class CompanionChatSession {
     if (remainder == null || remainder.trim().isEmpty) return null;
 
     final normalizedRemainder = _normalizeForNav(remainder);
-    for (final target in companionNavigationTargets) {
-      final matches = target.names.any((name) {
-        final normName = _normalizeForNav(name);
-        return normalizedRemainder.contains(normName) || normName.contains(normalizedRemainder);
-      });
-      if (!matches) continue;
-      return _navigateTo(target);
-    }
+    final targets = companionNavigationTargets;
+    final best = bestNavigationTarget(normalizedRemainder, targets, _normalizeForNav);
+    if (best != null) return _navigateTo(best);
 
     // Closest-match fallback — a typo in the feature name ("القبله" missing
     // its alef, say) shouldn't fail exact matching and then just give up.
@@ -311,7 +328,7 @@ class CompanionChatSession {
     // `companion_chat_engine.dart` uses for its own fuzzy matching) so a
     // single ambiguous short word can't misfire an unrelated navigation.
     final remainderWords = normalizedRemainder.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
-    for (final target in companionNavigationTargets) {
+    for (final target in targets) {
       final fuzzyMatches = target.names.any((name) {
         final nameWords = _normalizeForNav(name).split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
         return nameWords.isNotEmpty && remainderWords.every((rw) => nameWords.any((nw) => fuzzy.isFuzzyMatch(nw, rw)));
@@ -327,10 +344,38 @@ class CompanionChatSession {
     return null;
   }
 
+  Future<CompanionChatReply> _medicationReply(String lang) async {
+    final next = await MedicationRepository().nextDose(DateTime.now());
+    final open = basicText('companion_nav_open', lang).replaceAll('{name}', basicText('feat_medications', lang));
+    if (next == null) {
+      return CompanionChatReply(basicText('companion_med_none', lang), actionLabel: open, actionBuilder: (_) => const MedicationsScreen());
+    }
+    final (course, dose) = next;
+    final when = '${medDayLabel(dose.scheduledAt, lang)} ${medTimeOf(dose.scheduledAt)}';
+    final text = basicText('companion_med_next', lang)
+        .replaceAll('{name}', course.doseNote.isEmpty ? course.name : '${course.name} (${course.doseNote})')
+        .replaceAll('{when}', when)
+        .replaceAll('{left}', medCountdown(dose.scheduledAt, lang));
+    return CompanionChatReply(text, actionLabel: open, actionBuilder: (_) => const MedicationsScreen());
+  }
+
+  /// One line per section of the side menu, with a few of its features —
+  /// so «ماذا تستطيع؟» answers with what really exists.
+  String _featuresOverview(String lang) {
+    final b = StringBuffer(basicText('companion_features_intro', lang));
+    for (final g in AppFeatureGroup.values) {
+      final names = appFeatures.where((f) => f.group == g).map((f) => basicText(f.titleKey, lang)).toList();
+      b.write('\n• ${basicText('feat_group_${g.name}', lang)}: ${names.take(6).join('، ')}${names.length > 6 ? '…' : ''}');
+    }
+    b.write('\n\n${basicText('companion_features_hint', lang)}');
+    return b.toString();
+  }
+
   CompanionChatReply _navigateTo(CompanionNavigationTarget target) {
+    final lang = LanguagePreferenceService.currentLanguage;
     return CompanionChatReply(
-      'وجدت "${target.displayName}" — هل تفتحها؟',
-      actionLabel: 'افتح ${target.displayName}',
+      basicText('companion_nav_found', lang).replaceAll('{name}', target.displayName),
+      actionLabel: basicText('companion_nav_open', lang).replaceAll('{name}', target.displayName),
       actionBuilder: target.builder,
     );
   }
@@ -727,4 +772,36 @@ class CompanionChatSession {
 
   String _fallback(String lang) =>
       lang == 'en' ? 'I didn\'t quite understand that, but I\'m here.' : 'لم أفهم تمامًا، لكن أنا هنا.';
+}
+
+/// The most specific target for an already-normalized [query]: an exact
+/// name wins; otherwise the longest name found inside the query («افتح
+/// البحث في القران» → search, not the mushaf); otherwise the shortest name
+/// that contains the query («افتح الصلاة» → the shortest name holding it).
+/// Pure, so it is tested directly.
+CompanionNavigationTarget? bestNavigationTarget(
+  String query,
+  List<CompanionNavigationTarget> targets,
+  String Function(String) normalize,
+) {
+  if (query.trim().isEmpty) return null;
+  CompanionNavigationTarget? inside;
+  var insideLen = 0;
+  CompanionNavigationTarget? around;
+  var aroundLen = 1 << 30;
+  for (final t in targets) {
+    for (final raw in t.names) {
+      final n = normalize(raw);
+      if (n.isEmpty) continue;
+      if (n == query) return t;
+      if (query.contains(n) && n.length > insideLen) {
+        inside = t;
+        insideLen = n.length;
+      } else if (n.contains(query) && n.length < aroundLen) {
+        around = t;
+        aroundLen = n.length;
+      }
+    }
+  }
+  return inside ?? around;
 }

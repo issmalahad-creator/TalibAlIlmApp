@@ -35,6 +35,8 @@ import '../widgets/time_accountability_dashboard.dart';
 import '../widgets/worship_coach_card.dart';
 import 'akhlaq/akhlaq_home_screen.dart';
 import 'life_plan_screen.dart';
+import 'main_shell.dart' show mainShellScaffoldKey;
+import 'medications_screen.dart';
 import 'worship_coach_screen.dart';
 import 'add_task_screen.dart';
 import 'daily_tasks_screen.dart';
@@ -274,6 +276,12 @@ class _HomeScreenState extends State<HomeScreen> {
                             label: basicText('adhkar', lang),
                             color: NavColors.indigo,
                             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdhkarScreen())),
+                          ),
+                          NavTileData(
+                            icon: Icons.medication_outlined,
+                            label: basicText('med_title', lang),
+                            color: NavColors.coral,
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationsScreen())),
                           ),
                     NavTileData(
                       icon: Icons.mosque_outlined,
@@ -600,6 +608,11 @@ class _GreetingHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        IconButton(
+          onPressed: () => mainShellScaffoldKey.currentState?.openDrawer(),
+          icon: const Icon(Icons.menu_rounded, color: AppColors.primaryDark),
+          tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+        ),
         GestureDetector(
           onTap: onAvatarTap,
           child: CircleAvatar(

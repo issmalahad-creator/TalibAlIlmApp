@@ -8,12 +8,14 @@ import 'package:timezone/timezone.dart' as tz;
 import '../l10n/basic_translations.dart';
 import '../repositories/adhkar_repository.dart';
 import '../repositories/life_plan_repository.dart';
+import '../repositories/medication_repository.dart';
 import '../repositories/prayer_times_repository.dart';
 import 'adhkar_notification_prefs.dart';
 import 'companion_engine.dart';
 import 'language_preference_service.dart';
 import 'life_plan_notifications.dart';
 import 'location_service.dart';
+import 'medication_schedule.dart';
 import 'prayer_notification_prefs.dart';
 import 'notification_policy.dart';
 import 'quiet_hours_prefs.dart';
@@ -160,6 +162,13 @@ class NotificationService {
   static const _lifeChannelId = 'life_slots';
   static String get _lifeChannelName => _t('nch_life');
 
+  // «علاجاتي» — one alarm per upcoming dose, a rolling window of the next
+  // doses (id band 20000+, see medication_schedule.dart). High importance
+  // and exact when the OS allows it: a dose «كل 8 ساعات» is meant on time.
+  // Quiet hours deliberately do not apply to medicine.
+  static const _medChannelId = 'medication_reminders';
+  static String get _medChannelName => _t('nch_med');
+
   final _plugin = FlutterLocalNotificationsPlugin();
 
   static Future<void>? _initFuture;
@@ -217,6 +226,7 @@ class NotificationService {
       _timeLogChannelId: (_timeLogChannelName, _t('ncd_timelog')),
       _companionChannelId: (_companionChannelName, _t('ncd_companion')),
       _lifeChannelId: (_lifeChannelName, _t('life_notif_channel_desc')),
+      _medChannelId: (_medChannelName, _t('ncd_med')),
     };
     for (final c in existing) {
       final n = names[c.id];
@@ -914,6 +924,52 @@ class NotificationService {
   /// load / resume / midnight, so completed and past blocks drop out on the
   /// next pass. Reschedule-on-open is also what refreshes the copy after a
   /// language change.
+  /// Re-queues every «علاجاتي» reminder: clears the whole band, then
+  /// schedules the rolling window from [planMedicationReminders]. Called at
+  /// startup and after every change on the medication screens.
+  Future<void> scheduleMedicationReminders() async {
+    await _ensureInitialized();
+    if (!_ready) return;
+    for (var i = 0; i < kMedReminderMax; i++) {
+      await _plugin.cancel(id: kMedReminderIdBase + i);
+    }
+    final courses = await MedicationRepository().courses();
+    if (courses.isEmpty) return;
+    final lang = LanguagePreferenceService.currentLanguage;
+    final reminders = planMedicationReminders(
+      courses: courses,
+      now: DateTime.now(),
+      title: (c, d, total) => '💊 ${c.name}',
+      body: (c, d, total) {
+        final n = basicText('med_dose_n_of_total', lang).replaceAll('{n}', '${d.seq}').replaceAll('{total}', '$total');
+        return c.doseNote.trim().isEmpty ? n : '${c.doseNote.trim()} · $n';
+      },
+    );
+    if (reminders.isEmpty) return;
+    final exact = await exactAlarmsEnabled();
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        _medChannelId,
+        _medChannelName,
+        channelDescription: _t('ncd_med'),
+        importance: Importance.high,
+        priority: Priority.high,
+        category: AndroidNotificationCategory.reminder,
+      ),
+    );
+    for (final r in reminders) {
+      await _plugin.zonedSchedule(
+        id: r.id,
+        title: r.title,
+        body: r.body,
+        scheduledDate: tz.TZDateTime.from(r.fireAt, tz.local),
+        notificationDetails: details,
+        androidScheduleMode: exact ? AndroidScheduleMode.exactAllowWhileIdle : AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: 'meds',
+      );
+    }
+  }
+
   Future<void> scheduleLifePlanReminders() async {
     await _ensureInitialized();
     if (!_ready) return;

@@ -15,6 +15,7 @@ import 'screens/adhkar_screen.dart';
 import 'screens/completion_goals_screen.dart';
 import 'screens/knowledge_review_screen.dart';
 import 'screens/life_plan_screen.dart';
+import 'screens/medications_screen.dart';
 import 'screens/personal_library_screen.dart';
 import 'screens/prayer_times_screen.dart';
 import 'screens/quran_browse_screen.dart';
@@ -60,6 +61,7 @@ void _routeForPayload(String payload) {
     'reading' => const PersonalLibraryScreen(),
     'life' => const LifePlanScreen(),
     'life_note' => const LifePlanScreen(openNote: true),
+    'meds' => const MedicationsScreen(),
     _ => null,
   };
   if (screen != null) navigator.push(MaterialPageRoute(builder: (_) => screen));
@@ -188,6 +190,7 @@ class _TalibAlIlmAppState extends State<TalibAlIlmApp> with WidgetsBindingObserv
       _notificationService.scheduleTimeLogReminder,
       _notificationService.schedulePrayerTimeNotifications,
       _notificationService.scheduleLifePlanReminders,
+      _notificationService.scheduleMedicationReminders,
       _scheduleCustomAdhkarReminders,
       _scheduleCompanionCheckIn,
     ]) {

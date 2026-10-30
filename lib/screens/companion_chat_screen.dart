@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../l10n/basic_translations.dart';
 import '../services/language_preference_service.dart';
 import '../widgets/companion_chat_body.dart';
-import 'claude_chat_screen.dart';
 import 'companion_debug_screen.dart';
 import 'diagnostics_test_screen.dart';
 
@@ -32,11 +31,6 @@ class CompanionChatScreen extends StatelessWidget {
             tooltip: basicText('app_self_test_tooltip', lang),
             icon: const Icon(Icons.health_and_safety_outlined),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiagnosticsTestScreen())),
-          ),
-          IconButton(
-            tooltip: 'محادثة Claude (خاصة)',
-            icon: const Icon(Icons.auto_awesome_outlined),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClaudeChatScreen())),
           ),
         ],
       ),

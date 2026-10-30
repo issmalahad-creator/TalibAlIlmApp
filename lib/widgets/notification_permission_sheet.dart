@@ -8,7 +8,7 @@ import 'feedback/light_trail.dart';
 
 /// Why the app wants to notify — one sentence the user reads before any
 /// system dialog (docs/architecture/NOTIFICATIONS_ARCHITECTURE.md §3.3).
-enum NotificationReason { general, adhkar, task, prayer }
+enum NotificationReason { general, adhkar, task, prayer, medication }
 
 /// Ensures notifications are allowed, asking only in context:
 /// already allowed → true at once; otherwise a short sheet explains [reason]
@@ -40,8 +40,14 @@ Future<bool> ensureNotificationPermission(BuildContext context, NotificationReas
 /// the system «Alarms & reminders» screen on Android 12+, so it is explained
 /// first; without it prayer alerts still arrive, a few minutes late — said
 /// honestly rather than hidden.
-Future<bool> ensureExactAlarmsForPrayer(BuildContext context) async {
-  if (!await ensureNotificationPermission(context, NotificationReason.prayer)) return false;
+Future<bool> ensureExactAlarmsForPrayer(BuildContext context) => _ensureExactAlarms(context, NotificationReason.prayer, 'notif_exact_body');
+
+/// The same for «علاجاتي»: a dose every 8 hours is meant on time.
+Future<bool> ensureExactAlarmsForMedication(BuildContext context) =>
+    _ensureExactAlarms(context, NotificationReason.medication, 'notif_exact_body_med');
+
+Future<bool> _ensureExactAlarms(BuildContext context, NotificationReason reason, String bodyKey) async {
+  if (!await ensureNotificationPermission(context, reason)) return false;
   final service = NotificationService();
   if (await service.exactAlarmsEnabled()) return true;
   if (!context.mounted) return false;
@@ -49,7 +55,7 @@ Future<bool> ensureExactAlarmsForPrayer(BuildContext context) async {
     context,
     icon: Icons.alarm_on_outlined,
     title: 'notif_exact_title',
-    body: 'notif_exact_body',
+    body: bodyKey,
     action: 'notif_exact_open',
   );
   if (go != true) return false;

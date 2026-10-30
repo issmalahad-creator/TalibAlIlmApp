@@ -65,7 +65,7 @@ void main() {
   test('every priming string exists in all 13 languages', () {
     const keys = [
       'notif_perm_title', 'notif_perm_reason_general', 'notif_perm_reason_adhkar', 'notif_perm_reason_task',
-      'notif_perm_reason_prayer', 'notif_perm_allow', 'notif_perm_later', 'notif_perm_denied_hint',
+      'notif_perm_reason_prayer', 'notif_perm_reason_medication', 'notif_exact_body_med', 'notif_perm_allow', 'notif_perm_later', 'notif_perm_denied_hint',
       'notif_exact_title', 'notif_exact_body', 'notif_exact_open',
       'notif_invite_title', 'notif_invite_enable', 'notif_invite_later',
     ];
