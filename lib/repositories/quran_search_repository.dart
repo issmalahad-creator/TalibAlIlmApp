@@ -163,6 +163,7 @@ class QuranSearchRepository {
   Future<List<QuranSearchResult>> search(
     String query, {
     String tafsirSource = defaultTafsirSource,
+    bool exact = false,
   }) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
@@ -179,7 +180,49 @@ class QuranSearchRepository {
       }
     }
 
-    return _byText(trimmed, tafsirSource);
+    return _byText(trimmed, tafsirSource, exact: exact);
+  }
+
+  /// Whole-word match on normalized text: «علم» matches «علم» but not
+  /// «يعلمون». A multi-word query must appear as those whole words in a row.
+  static bool _hasWholeWords(String normalizedText, String normalizedQuery) =>
+      ' $normalizedText '.contains(' $normalizedQuery ');
+
+  /// Occurrences of [normalizedQuery] in [normalizedText] — substring or
+  /// whole-word.
+  static int _occurrences(String normalizedText, String normalizedQuery, {required bool exact}) {
+    if (normalizedQuery.isEmpty) return 0;
+    final hay = exact ? ' $normalizedText ' : normalizedText;
+    final needle = exact ? ' $normalizedQuery ' : normalizedQuery;
+    var n = 0;
+    for (var i = hay.indexOf(needle); i >= 0; i = hay.indexOf(needle, i + (exact ? needle.length - 1 : needle.length))) {
+      n++;
+    }
+    return n;
+  }
+
+  /// «السور · الآيات · تكرار الكلمة» for a text query over the WHOLE muṣḥaf
+  /// (the result list itself stops at 300 rows). Reads only the normalized
+  /// text of matching ayat.
+  Future<({int surahs, int ayat, int occurrences})> textCounts(String query, {bool exact = false}) async {
+    final normalized = normalizeArabicForSearch(query.trim());
+    if (normalized.isEmpty) return (surahs: 0, ayat: 0, occurrences: 0);
+    final db = await DatabaseHelper.instance.database;
+    final rows = await db.rawQuery(
+      'SELECT surah, text_normalized FROM quran_ayat WHERE text_normalized LIKE ?',
+      ['%$normalized%'],
+    );
+    final surahs = <int>{};
+    var ayat = 0, occ = 0;
+    for (final r in rows) {
+      final text = r['text_normalized'] as String;
+      final n = _occurrences(text, normalized, exact: exact);
+      if (n == 0) continue;
+      ayat++;
+      occ += n;
+      surahs.add(r['surah'] as int);
+    }
+    return (surahs: surahs.length, ayat: ayat, occurrences: occ);
   }
 
   static const _selectWithTafsir = '''
@@ -316,15 +359,37 @@ class QuranSearchRepository {
 
   Future<List<QuranSearchResult>> _byText(
     String query,
-    String tafsirSource,
-  ) async {
+    String tafsirSource, {
+    bool exact = false,
+  }) async {
     final normalized = normalizeArabicForSearch(query);
     final db = await DatabaseHelper.instance.database;
+    if (!exact) {
+      final rows = await db.rawQuery(
+        '$_selectWithTafsir WHERE q.text_normalized LIKE ? ORDER BY q.surah, q.ayah LIMIT 300',
+        [tafsirSource, '%$normalized%'],
+      );
+      return rows.map(_toResult).toList();
+    }
+    // Whole words: narrow with LIKE, then keep only real whole-word hits.
     final rows = await db.rawQuery(
-      '$_selectWithTafsir WHERE q.text_normalized LIKE ? ORDER BY q.surah, q.ayah LIMIT 300',
+      '$_selectWithTafsir WHERE q.text_normalized LIKE ? ORDER BY q.surah, q.ayah',
       [tafsirSource, '%$normalized%'],
     );
-    return rows.map(_toResult).toList();
+    final hits = <Map<String, Object?>>[];
+    final texts = await db.rawQuery(
+      'SELECT surah, ayah, text_normalized FROM quran_ayat WHERE text_normalized LIKE ?',
+      ['%$normalized%'],
+    );
+    final keep = {
+      for (final t in texts)
+        if (_hasWholeWords(t['text_normalized'] as String, normalized)) '${t['surah']}:${t['ayah']}',
+    };
+    for (final r in rows) {
+      if (keep.contains('${r['surah']}:${r['ayah']}')) hits.add(r);
+      if (hits.length == 300) break;
+    }
+    return hits.map(_toResult).toList();
   }
 
   /// "تخيل انه بحث عام... مثل اليوتيوب" (Ismail, 2026-08-18): `search()`

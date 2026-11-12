@@ -37,6 +37,10 @@ class _MushafSearchScreenState extends State<MushafSearchScreen> {
   bool _searching = false;
   bool _searched = false;
 
+  /// «بحث مطابق»: whole words only.
+  bool _exact = false;
+  ({int surahs, int ayat, int occurrences})? _counts;
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -61,6 +65,7 @@ class _MushafSearchScreenState extends State<MushafSearchScreen> {
       setState(() {
         _results = const [];
         _numbers = const [];
+        _counts = null;
         _searched = false;
       });
       return;
@@ -70,6 +75,7 @@ class _MushafSearchScreenState extends State<MushafSearchScreen> {
     if (n != null) {
       setState(() {
         _results = const [];
+        _counts = null;
         _searched = true;
         _numbers = [
           if (n >= 1 && n <= 604)
@@ -83,10 +89,15 @@ class _MushafSearchScreenState extends State<MushafSearchScreen> {
       return;
     }
     setState(() => _searching = true);
-    final r = await _search.search(q);
-    if (!mounted || _ctrl.text.trim() != q) return;
+    final exact = _exact;
+    final results = _search.search(q, exact: exact);
+    final counts = _search.textCounts(q, exact: exact);
+    final r = await results;
+    final c = await counts;
+    if (!mounted || _ctrl.text.trim() != q || _exact != exact) return;
     setState(() {
       _results = r;
+      _counts = r.length == 1 && c.ayat == 0 ? null : c; // a «البقرة 255» reference has no counts
       _numbers = const [];
       _searching = false;
       _searched = true;
@@ -162,10 +173,36 @@ class _MushafSearchScreenState extends State<MushafSearchScreen> {
             ]),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 8, 18, 4),
-            child: Text(basicText('mushaf_search_results', lang),
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: fg)),
+            padding: const EdgeInsets.fromLTRB(18, 8, 10, 0),
+            child: Row(children: [
+              Expanded(
+                child: Text(basicText('mushaf_search_results', lang),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: fg)),
+              ),
+              // «بحث مطابق» — whole words only («علم» not «يعلمون»).
+              Text(basicText('search_exact', lang), style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: fg)),
+              Checkbox(
+                value: _exact,
+                shape: const CircleBorder(),
+                activeColor: MushafChrome.gold,
+                onChanged: (v) {
+                  setState(() => _exact = v ?? false);
+                  _run(_ctrl.text);
+                },
+              ),
+            ]),
           ),
+          if (_counts != null && _results.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 0, 18, 6),
+              child: Text(
+                basicText('search_counts', lang)
+                    .replaceAll('{s}', mushafDigits(_counts!.surahs, lang))
+                    .replaceAll('{a}', mushafDigits(_counts!.ayat, lang))
+                    .replaceAll('{o}', mushafDigits(_counts!.occurrences, lang)),
+                style: TextStyle(fontSize: 13, color: fg.withValues(alpha: 0.75)),
+              ),
+            ),
           Expanded(child: _body(lang, night, fg)),
         ]),
       ),

@@ -1045,6 +1045,24 @@ class _GoalCardState extends State<_GoalCard> {
               color: status.pagesRemainingToday > 0 ? AppColors.primaryDark : AppColors.primary,
             ),
           ),
+          // «أتممت ورد اليوم» — one tap records today's portion (the position
+          // today's pace asks for), instead of typing a page number. Its own
+          // row, never beside the TextField below (see the note there).
+          if (status.pagesRemainingToday > 0) ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(minimumSize: const Size(0, 42)),
+              // Stored positions are absolute muṣḥaf pages; the status is
+              // relative to a ranged goal's start — convert back.
+              onPressed: () => widget.onRecordProgress(doneTodayPosition(
+                  currentPosition: status.currentPosition,
+                  pagesRemainingToday: status.pagesRemainingToday,
+                  totalUnits: g.totalUnits,
+                  startUnit: g.startUnit)),
+              icon: const Icon(Icons.task_alt_rounded, size: 18),
+              label: Text(basicText('khatm_done_today_action', lang)),
+            ),
+          ],
           const SizedBox(height: 10),
           // The save action lives as the field's own suffixIcon, not a
           // sibling FilledButton.tonal in the Row — a live render-tree dump

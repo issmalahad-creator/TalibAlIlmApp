@@ -114,6 +114,14 @@ class CompletionGoal {
       };
 }
 
+/// The absolute muṣḥaf page «أتممت ورد اليوم» records: today's expected
+/// position within the goal, converted back from the goal-relative status
+/// space to the absolute page `recordProgress` stores.
+int doneTodayPosition({required int currentPosition, required int pagesRemainingToday, required int totalUnits, int? startUnit}) {
+  final within = (currentPosition + pagesRemainingToday).clamp(0, totalUnits);
+  return startUnit != null ? within + startUnit - 1 : within;
+}
+
 enum ScheduleStatus { ahead, onTrack, behind }
 
 class CompletionGoalStatus {
