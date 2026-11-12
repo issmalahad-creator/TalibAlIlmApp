@@ -1,9 +1,29 @@
-import '../models/life_plan.dart';
+import 'package:talib_alilm_app/db/database_helper.dart';
+import 'package:talib_alilm_app/models/life_plan.dart';
 
-/// The seed of «مُحرّك الحياة» — read verbatim from Ismail's real Google
-/// Sheet «🚀 خطة الحياة الشاملة» (tabs `🎯 الأهداف` + `📅 الجدول اليومي`),
-/// 2026‑09‑04, via the `gviz` CSV endpoint. Editable in‑app afterwards;
-/// this is only the first fill of `life_pillars` / `life_slots`.
+/// A realistic, full plan for the Life Engine tests: 7 pillars + 23 slots,
+/// taken from Ismail's own sheet «🚀 خطة الحياة الشاملة» (2026‑09‑04).
+///
+/// It used to be the app's seed for EVERY user; since 2026‑11‑12 the app
+/// starts each user with an empty plan + general suggestions
+/// (`lib/data/life_plan_suggestions.dart`), and this lives only here.
+///
+/// [loadFixturePlan] replaces the plan's structure with it (ticks kept).
+Future<void> loadFixturePlan() async {
+  final db = await DatabaseHelper.instance.database;
+  await db.transaction((txn) async {
+    await txn.delete('life_pillars');
+    await txn.delete('life_slots');
+    final b = txn.batch();
+    for (final p in kLifePillars) {
+      b.insert('life_pillars', p.toRow());
+    }
+    for (final s in kLifeSlots) {
+      b.insert('life_slots', s.toRow());
+    }
+    await b.commit(noResult: true);
+  });
+}
 
 const List<LifePillar> kLifePillars = [
   LifePillar(

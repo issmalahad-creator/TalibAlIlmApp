@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/repositories/life_plan_repository.dart';
+
+import 'fixtures/life_plan_fixture.dart';
 import 'package:talib_alilm_app/screens/life_weekly_review_screen.dart';
 
 /// «مُحرّك الحياة» L5 — the «ملخص الأسبوع» screen must actually paint its
@@ -26,7 +28,8 @@ void main() {
         f.deleteSync();
       } catch (_) {}
     }
-    await LifePlanRepository().ensureSeeded();
+    await LifePlanRepository().ensureStarted();
+    await loadFixturePlan();
   });
 
   testWidgets('renders the week summary body (no blank / no overflow)',

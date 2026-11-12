@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../data/life_plan_suggestions.dart';
 import '../l10n/basic_translations.dart';
 import '../models/life_plan.dart';
 import '../repositories/life_plan_repository.dart';
@@ -11,6 +12,7 @@ import '../services/language_preference_service.dart';
 import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/motion.dart';
+import '../widgets/life_suggestion_picker.dart';
 import 'life_cycle_review_screen.dart';
 import 'life_day_note_sheet.dart';
 import 'life_plan_edit_screen.dart';
@@ -221,18 +223,14 @@ class _LifePlanScreenState extends State<LifePlanScreen>
           IconButton(
             tooltip: basicText('life_edit_plan', lang),
             icon: const Icon(Icons.tune_rounded),
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LifePlanEditScreen()),
-              );
-              if (mounted) _load(silent: true);
-            },
+            onPressed: _openEditor,
           ),
         ],
       ),
       body: _loading || prog == null
           ? const Center(child: CircularProgressIndicator())
+          : _pillars.isEmpty && _slots.isEmpty
+          ? _starter(lang)
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(
@@ -290,6 +288,45 @@ class _LifePlanScreenState extends State<LifePlanScreen>
             ),
     );
   }
+
+  // ── empty plan → «ابدأ خطتك» (2026‑11‑12) ───────────────────────────
+
+  Future<void> _openEditor() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LifePlanEditScreen()),
+    );
+    if (mounted) _load(silent: true);
+  }
+
+  /// The plan is empty (a new user) — every suggestion is still available.
+  Widget _starter(String lang) => ListView(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+        children: [
+          Text(basicText('life_start_title', lang),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text(basicText('life_start_body', lang),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textMuted, height: 1.6)),
+          const SizedBox(height: 16),
+          LifeSuggestionPicker(
+            packs: kLifeSuggestionPacks,
+            lang: lang,
+            onAdd: (packs) async {
+              await _repo.addSuggestions(packs, lang);
+              if (mounted) _load(silent: true);
+            },
+          ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: _openEditor,
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: Text(basicText('life_start_build_own', lang)),
+          ),
+        ],
+      );
 
   // ── L6-DYN #3 · MITs + tasks ─────────────────────────────────────────
 

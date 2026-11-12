@@ -4,6 +4,7 @@ import '../l10n/basic_translations.dart';
 import '../models/life_plan.dart';
 import '../repositories/life_plan_repository.dart';
 import '../services/language_preference_service.dart';
+import '../widgets/life_suggestion_picker.dart';
 
 /// «مُحرّك الحياة» — L6-DYN #1 · in-app authoring of the plan
 /// (`docs/LIFE_ENGINE.md` §7).
@@ -12,7 +13,7 @@ import '../services/language_preference_service.dart';
 /// drag-to-reorder list with add / edit / archive. Deletes are soft
 /// (`archived`) so past progress keeps its meaning; a custom row that was
 /// never used can be removed outright. An overflow menu reveals archived
-/// rows and can restore Ismail's original seed.
+/// rows and adds from the general suggestions (`life_plan_suggestions.dart`).
 ///
 /// Nothing here is bounded or sheet-dependent: it writes straight to the
 /// local `life_pillars` / `life_slots` tables via [LifePlanRepository].
@@ -213,31 +214,38 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
     await _load();
   }
 
-  // ── seed reset ───────────────────────────────────────────────────────
+  // ── add from suggestions (2026‑11‑12) ────────────────────────────────
 
-  Future<void> _resetToSeed() async {
-    final ok = await showDialog<bool>(
+  Future<void> _addFromSuggestions() async {
+    final packs = await _repo.availableSuggestions();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFFFBF6EE),
       builder: (c) => Directionality(
         textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(basicText('life_reset_plan', _lang)),
-          content: Text(basicText('life_reset_plan_confirm', _lang)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(c, false),
-              child: Text(basicText('cancel', _lang)),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(c, true),
-              child: Text(basicText('life_reset_plan_do', _lang)),
-            ),
-          ],
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(basicText('life_add_suggestions', _lang),
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 12),
+              LifeSuggestionPicker(
+                packs: packs,
+                lang: _lang,
+                onAdd: (chosen) async {
+                  await _repo.addSuggestions(chosen, _lang);
+                  if (c.mounted) Navigator.pop(c);
+                },
+              ),
+            ]),
+          ),
         ),
       ),
     );
-    if (ok != true) return;
-    await _repo.resetStructureToSeed();
     await _load();
   }
 
@@ -266,8 +274,8 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
                 onSelected: (v) {
                   if (v == 'archived') {
                     setState(() => _showArchived = !_showArchived);
-                  } else if (v == 'reset') {
-                    _resetToSeed();
+                  } else if (v == 'suggest') {
+                    _addFromSuggestions();
                   }
                 },
                 itemBuilder: (_) => [
@@ -278,8 +286,8 @@ class _LifePlanEditScreenState extends State<LifePlanEditScreen> {
                         : basicText('life_show_archived', lang)),
                   ),
                   PopupMenuItem(
-                    value: 'reset',
-                    child: Text(basicText('life_reset_plan', lang)),
+                    value: 'suggest',
+                    child: Text(basicText('life_add_suggestions', lang)),
                   ),
                 ],
               ),

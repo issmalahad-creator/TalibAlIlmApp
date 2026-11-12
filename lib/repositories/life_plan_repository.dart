@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-import '../data/life_plan_seed.dart';
+import '../data/life_plan_suggestions.dart';
 import '../db/database_helper.dart';
 import '../models/life_plan.dart';
 import '../utils/calendar_days.dart';
@@ -29,25 +29,23 @@ class LifePlanRepository {
 
   // ── seed / meta ──────────────────────────────────────────────────────
 
-  Future<void> ensureSeeded() async {
+  /// Starts the engine for a new user: the day count and the defaults —
+  /// and NO plan. Since 2026‑11‑12 every user starts with an empty plan and
+  /// picks from [kLifeSuggestionPacks] (or builds their own); an existing
+  /// install keeps whatever plan it already has.
+  Future<void> ensureStarted() async {
     final db = await _db;
-    final n = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM life_pillars'));
-    if ((n ?? 0) > 0) return;
-    await db.transaction((txn) async {
-      final b = txn.batch();
-      for (final p in kLifePillars) {
-        b.insert('life_pillars', p.toRow());
-      }
-      for (final s in kLifeSlots) {
-        b.insert('life_slots', s.toRow());
-      }
-      b.insert('life_meta', {'k': 'start_date', 'v': today()});
-      b.insert('life_meta', {'k': 'cycle_len', 'v': '90'});
-      b.insert('life_meta', {'k': 'streak_threshold', 'v': '0.6'});
-      b.insert('life_meta', {'k': 'grace_per_week', 'v': '1'});
-      await b.commit(noResult: true);
-    });
+    final b = db.batch();
+    for (final e in {
+      'start_date': today(),
+      'cycle_len': '90',
+      'streak_threshold': '0.6',
+      'grace_per_week': '1',
+    }.entries) {
+      b.insert('life_meta', {'k': e.key, 'v': e.value},
+          conflictAlgorithm: ConflictAlgorithm.ignore);
+    }
+    await b.commit(noResult: true);
   }
 
   Future<String?> meta(String key) async {
@@ -66,7 +64,7 @@ class LifePlanRepository {
   Future<DateTime> startDate() async {
     final s = await meta('start_date');
     if (s == null) {
-      await ensureSeeded();
+      await ensureStarted();
       return parseYmd((await meta('start_date')) ?? today());
     }
     return parseYmd(s);
@@ -81,7 +79,6 @@ class LifePlanRepository {
   // ── structure ────────────────────────────────────────────────────────
 
   Future<List<LifePillar>> pillars({bool includeArchived = false}) async {
-    await ensureSeeded();
     final db = await _db;
     final rows = await db.query('life_pillars',
         where: includeArchived ? null : 'archived = 0',
@@ -90,7 +87,6 @@ class LifePlanRepository {
   }
 
   Future<List<LifeSlot>> slots({bool includeArchived = false}) async {
-    await ensureSeeded();
     final db = await _db;
     final rows = await db.query('life_slots',
         where: includeArchived ? null : 'archived = 0',
@@ -159,10 +155,10 @@ class LifePlanRepository {
     }
   }
 
-  /// True only for a user-made pillar with no slot pointing at it and no
+  /// True only for a user-made (or suggestion-added) pillar with no slot pointing at it and no
   /// historical tick under any such slot — safe to remove outright.
   Future<bool> canHardDeletePillar(String key) async {
-    if (!key.startsWith('custom_')) return false;
+    if (!key.startsWith('custom_') && !key.startsWith('sug_')) return false;
     final db = await _db;
     final slotUse = Sqflite.firstIntValue(await db.rawQuery(
         'SELECT COUNT(*) FROM life_slots WHERE pillar_key = ?', [key]));
@@ -242,22 +238,53 @@ class LifePlanRepository {
     });
   }
 
-  /// Wipe the structure and re-seed Ismail's original 7 pillars + 23 slots.
-  /// Ticks are **kept** (they key on `date`+`slot_no`); any that no longer
-  /// match a live slot simply stop counting. Notes/meta untouched.
-  Future<void> resetStructureToSeed() async {
+  // ── suggestions (2026‑11‑12) ─────────────────────────────────────────
+
+  /// The suggestion packs not yet in the plan (a pack whose pillar is live
+  /// is hidden; an archived one may be added back).
+  Future<List<LifeSuggestionPack>> availableSuggestions() async {
+    final live = {for (final p in await pillars()) p.key};
+    return [
+      for (final s in kLifeSuggestionPacks)
+        if (!live.contains(s.key)) s,
+    ];
+  }
+
+  /// Add the chosen packs: each pillar (after the existing ones) and its
+  /// blocks (new ids, after the existing blocks, in time order). Packs
+  /// already live are skipped, so a double tap never duplicates.
+  Future<void> addSuggestions(Iterable<LifeSuggestionPack> packs, String lang) async {
+    final live = {for (final p in await pillars()) p.key};
+    final todo = [for (final p in packs) if (!live.contains(p.key)) p];
+    if (todo.isEmpty) return;
     final db = await _db;
     await db.transaction((txn) async {
-      await txn.delete('life_pillars');
-      await txn.delete('life_slots');
-      final b = txn.batch();
-      for (final p in kLifePillars) {
-        b.insert('life_pillars', p.toRow());
+      var pSort = (Sqflite.firstIntValue(
+                  await txn.rawQuery('SELECT MAX(sort) FROM life_pillars')) ??
+              -1) +
+          1;
+      var no = Sqflite.firstIntValue(
+              await txn.rawQuery('SELECT MAX(slot_no) FROM life_slots')) ??
+          0;
+      var sSort = (Sqflite.firstIntValue(
+                  await txn.rawQuery('SELECT MAX(sort) FROM life_slots')) ??
+              -1) +
+          1;
+      final newSlots = [for (final p in todo) ...p.slots(lang)]
+        ..sort((a, b) => a.startMin.compareTo(b.startMin));
+      for (final p in todo) {
+        await txn.insert('life_pillars', p.pillar(lang, sort: pSort++).toRow(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
-      for (final s in kLifeSlots) {
-        b.insert('life_slots', s.toRow());
+      for (final s in newSlots) {
+        final row = {
+          for (final e in s.toRow().entries)
+            if (_slotCols.contains(e.key)) e.key: e.value,
+        }
+          ..['slot_no'] = ++no
+          ..['sort'] = sSort++;
+        await txn.insert('life_slots', row);
       }
-      await b.commit(noResult: true);
     });
   }
 

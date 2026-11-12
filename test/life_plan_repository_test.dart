@@ -5,7 +5,10 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:talib_alilm_app/db/database_helper.dart';
 import 'package:talib_alilm_app/models/life_plan.dart';
+import 'package:talib_alilm_app/data/life_plan_suggestions.dart';
 import 'package:talib_alilm_app/repositories/life_plan_repository.dart';
+
+import 'fixtures/life_plan_fixture.dart';
 
 /// «مُحرّك الحياة» L1 — the continuous daily engine. No 90‑day ceiling:
 /// day index is unbounded, progress is rolling, the streak tolerates a miss.
@@ -35,12 +38,13 @@ void main() {
         f.deleteSync();
       } catch (_) {}
     }
-    await repo.ensureSeeded();
+    await repo.ensureStarted();
+    await loadFixturePlan();
   });
 
   setUp(clearTicks);
 
-  test('seeds 7 pillars + 23 slots from the real sheet', () async {
+  test('the fixture plan loads 7 pillars + 23 slots', () async {
     final pillars = await repo.pillars();
     final slots = await repo.slots();
     expect(pillars.map((e) => e.key),
@@ -265,7 +269,7 @@ void main() {
   // ── L6-DYN #1 — in-app authoring of the plan ──────────────────────────
 
   group('authoring', () {
-    setUp(() => repo.resetStructureToSeed());
+    setUp(loadFixturePlan);
 
     test('add / edit a custom pillar; new key never collides', () async {
       final k = await repo.newPillarKey();
@@ -362,19 +366,27 @@ void main() {
       expect((await repo.progress(today)).totalCount, 22);
     });
 
-    test('resetStructureToSeed restores 7 + 23 and keeps ticks', () async {
+    test('addSuggestions appends packs to an existing plan, never twice',
+        () async {
       await repo.setSlotDone(today, 2, true);
-      await repo.upsertPillar(LifePillar(
-          key: await repo.newPillarKey(), label: 'مؤقّت'));
-      await repo.setPillarArchived('quran', true);
-      await repo.resetStructureToSeed();
-      expect((await repo.pillars()).length, 7);
-      expect((await repo.slots()).length, 23);
-      expect((await repo.pillars()).any((p) => p.key == 'quran'), isTrue);
-      expect((await repo.pillars()).any((p) => p.key.startsWith('custom_')),
-          isFalse);
-      // the tick on slot 2 is still there (keys on date+slot_no)
-      expect((await repo.doneSlots(today)).contains(2), isTrue);
+      expect((await repo.availableSuggestions()).length,
+          kLifeSuggestionPacks.length);
+      final two = kLifeSuggestionPacks
+          .where((p) => p.key == 'sug_salah' || p.key == 'sug_sleep')
+          .toList();
+      await repo.addSuggestions(two, 'ar');
+      await repo.addSuggestions(two, 'ar'); // a double tap adds nothing
+      final pillars = await repo.pillars();
+      expect(pillars.length, 9);
+      expect(pillars.last.sort, greaterThan(pillars[6].sort)); // after mine
+      final slots = await repo.slots();
+      expect(slots.length, 23 + 3); // salah 2 blocks + sleep 1
+      final added = slots.where((s) => s.pillarKey?.startsWith('sug_') ?? false);
+      expect(added.map((s) => s.slotNo).every((n) => n > 23), isTrue);
+      expect(added.first.activity, contains('أذكار الصباح'));
+      expect((await repo.availableSuggestions()).length,
+          kLifeSuggestionPacks.length - 2);
+      expect((await repo.doneSlots(today)).contains(2), isTrue); // ticks kept
     });
   });
 
@@ -508,7 +520,7 @@ void main() {
 
   group('partial + quantity', () {
     setUp(() async {
-      await repo.resetStructureToSeed(); // tests here add slots
+      await loadFixturePlan(); // tests here add slots
       final db = await DatabaseHelper.instance.database;
       await db.delete('life_day_slots');
       await db.delete('life_tasks');
