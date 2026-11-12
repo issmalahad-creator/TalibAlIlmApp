@@ -177,6 +177,7 @@ class MushafLayoutRepository {
   /// the bundled Tanzil `QuranData.HizbQaurter` (the same source the ḥizb
   /// numbers came from). Parsed once.
   static List<(int, int)>? _quarters;
+  Future<List<(int, int)>> quarterBoundaries() => _quarterBoundaries();
   Future<List<(int, int)>> _quarterBoundaries() async {
     if (_quarters != null) return _quarters!;
     final raw = await rootBundle.loadString('assets/quran/quran-data.js');

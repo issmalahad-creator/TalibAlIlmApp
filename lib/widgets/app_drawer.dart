@@ -69,6 +69,21 @@ class _AppDrawerState extends State<AppDrawer> {
       ));
   }
 
+  /// A section card: warm paper tone, rounded, a soft edge.
+  // Material, not a decorated Container: the tiles' press ripple must show.
+  Widget _card(Widget child) => Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Material(
+          color: AppColors.surfaceCard,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: Color(0x1A8A6D2B)),
+          ),
+          child: child,
+        ),
+      );
+
   AppFeature? _byId(String id) => appFeatures.where((f) => f.id == id).firstOrNull;
 
   Widget _tile(AppFeature f, String lang) => _FeatureTile(
@@ -141,36 +156,44 @@ class _AppDrawerState extends State<AppDrawer> {
                           Navigator.pop(context);
                           Navigator.push(context, MaterialPageRoute(builder: builder));
                         }),
-                        _shortcutHeader(Icons.push_pin_outlined, basicText('drawer_pinned', lang)),
-                        if (_pinned.isEmpty)
-                          Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(16, 2, 16, 6),
-                            child: Text(basicText('drawer_pin_hint', lang), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
-                          )
-                        else
-                          for (final id in _pinned)
-                            if (_byId(id) case final f?) _tile(f, lang),
-                        if (_recent.isNotEmpty) ...[
-                          _shortcutHeader(Icons.history_rounded, basicText('drawer_recent', lang)),
-                          for (final id in _recent)
-                            if (_byId(id) case final f?) _tile(f, lang),
-                        ],
-                        const Divider(indent: 16, endIndent: 16),
+                        _card(Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                          _shortcutHeader(Icons.push_pin_outlined, basicText('drawer_pinned', lang)),
+                          if (_pinned.isEmpty)
+                            Padding(
+                              padding: const EdgeInsetsDirectional.fromSTEB(16, 2, 16, 8),
+                              child: Text(basicText('drawer_pin_hint', lang), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                            )
+                          else
+                            for (final id in _pinned)
+                              if (_byId(id) case final f?) _tile(f, lang),
+                          if (_recent.isNotEmpty) ...[
+                            _shortcutHeader(Icons.history_rounded, basicText('drawer_recent', lang)),
+                            for (final id in _recent)
+                              if (_byId(id) case final f?) _tile(f, lang),
+                          ],
+                          const SizedBox(height: 4),
+                        ])),
+                        // One card per section, as in printed-muṣḥaf apps: a
+                        // title, its icon, and its sections; tap the title to
+                        // fold it away.
                         for (final g in AppFeatureGroup.values)
-                          Theme(
-                            // No divider lines between sections — calmer list.
+                          _card(Theme(
+                            // No divider lines inside a card — calmer list.
                             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                             child: ExpansionTile(
                               key: PageStorageKey('drawer_${g.name}'),
                               initiallyExpanded: g == AppFeatureGroup.quran,
+                              shape: const Border(),
+                              collapsedShape: const Border(),
                               leading: Icon(_groupIcon(g), color: AppColors.primaryDark),
-                              title: Text(basicText('feat_group_${g.name}', lang), style: const TextStyle(fontWeight: FontWeight.w700)),
-                              childrenPadding: const EdgeInsetsDirectional.only(start: 12),
+                              title: Text(basicText('feat_group_${g.name}', lang), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+                              subtitle: Text('${appFeatures.where((f) => f.group == g).length}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
+                              childrenPadding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
                               children: [
                                 for (final f in appFeatures.where((f) => f.group == g)) _tile(f, lang),
                               ],
                             ),
-                          ),
+                          )),
                       ],
                     ),
             ),
@@ -200,9 +223,19 @@ class _FeatureTile extends StatelessWidget {
   const _FeatureTile({required this.f, required this.lang, required this.pinned, required this.onTap, required this.onLongPress});
 
   @override
-  Widget build(BuildContext context) => ListTile(
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Material(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          child: _tileBody(),
+        ),
+      );
+
+  Widget _tileBody() => ListTile(
         dense: true,
         visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         leading: Icon(f.icon, color: AppColors.primary, size: 22),
         title: Text(basicText(f.titleKey, lang), style: const TextStyle(fontSize: 14.5)),
         trailing: pinned ? const Icon(Icons.push_pin_rounded, size: 16, color: Color(0xFFD9A441)) : null,

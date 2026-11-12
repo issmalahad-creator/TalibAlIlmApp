@@ -50,13 +50,13 @@ class _TodayCardState extends State<TodayCard> {
   }
 
   static String _prayerKey(Prayer p) => switch (p) {
-        Prayer.fajr || Prayer.fajrAfter => 'prayer_fajr',
-        Prayer.sunrise => 'prayer_sunrise',
-        Prayer.dhuhr => 'prayer_dhuhr',
-        Prayer.asr => 'prayer_asr',
-        Prayer.maghrib => 'prayer_maghrib',
-        Prayer.isha || Prayer.ishaBefore => 'prayer_isha',
-      };
+    Prayer.fajr || Prayer.fajrAfter => 'prayer_fajr',
+    Prayer.sunrise => 'prayer_sunrise',
+    Prayer.dhuhr => 'prayer_dhuhr',
+    Prayer.asr => 'prayer_asr',
+    Prayer.maghrib => 'prayer_maghrib',
+    Prayer.isha || Prayer.ishaBefore => 'prayer_isha',
+  };
 
   Future<void> _load() async {
     final lang = LanguagePreferenceService.currentLanguage;
@@ -77,9 +77,15 @@ class _TodayCardState extends State<TodayCard> {
           at = t.timeForPrayer(next).toLocal();
         }
         if (at.isAfter(now)) {
-          lines.add(_TodayLine(Icons.access_time_rounded,
-              '${basicText(_prayerKey(next), lang)} ${medTimeOf(at)}', (_) => const PrayerTimesScreen(),
-              trailing: medCountdown(at, lang), urgent: at.difference(now).inMinutes <= 20));
+          lines.add(
+            _TodayLine(
+              Icons.access_time_rounded,
+              '${basicText(_prayerKey(next), lang)} ${medTimeOf(at)}',
+              (_) => const PrayerTimesScreen(),
+              trailing: medCountdown(at, lang),
+              urgent: at.difference(now).inMinutes <= 20,
+            ),
+          );
         }
       }
     } catch (_) {}
@@ -89,8 +95,15 @@ class _TodayCardState extends State<TodayCard> {
       if (dose != null) {
         final (course, d) = dose;
         if (d.scheduledAt.difference(now).inHours < 24) {
-          lines.add(_TodayLine(Icons.medication_outlined, '${course.name} ${medTimeOf(d.scheduledAt)}', (_) => const MedicationsScreen(),
-              trailing: medCountdown(d.scheduledAt, lang), urgent: d.isPending && d.scheduledAt.difference(now).inMinutes <= 15));
+          lines.add(
+            _TodayLine(
+              Icons.medication_outlined,
+              '${course.name} ${medTimeOf(d.scheduledAt)}',
+              (_) => const MedicationsScreen(),
+              trailing: medCountdown(d.scheduledAt, lang),
+              urgent: d.isPending && d.scheduledAt.difference(now).inMinutes <= 15,
+            ),
+          );
         }
       }
     } catch (_) {}
@@ -98,8 +111,13 @@ class _TodayCardState extends State<TodayCard> {
     try {
       final plan = await HifzScheduleRepository().choice().timeout(limit);
       if (plan != null && plan.dayNumber(now) >= 1) {
-        lines.add(_TodayLine(Icons.auto_stories_outlined,
-            basicText('today_hifz_day', lang).replaceAll('{n}', '${plan.dayNumber(now)}'), (_) => const HifzScheduleScreen()));
+        lines.add(
+          _TodayLine(
+            Icons.auto_stories_outlined,
+            basicText('today_hifz_day', lang).replaceAll('{n}', '${plan.dayNumber(now)}'),
+            (_) => const HifzScheduleScreen(),
+          ),
+        );
       }
     } catch (_) {}
 
@@ -126,33 +144,50 @@ class _TodayCardState extends State<TodayCard> {
   Widget build(BuildContext context) {
     final lang = LanguagePreferenceService.currentLanguage;
     final lines = _lines;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
-      decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(16)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 4),
-          child: Text(basicText('today_title', lang), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark)),
+    // Material (not a decorated Container) so each line's press ripple shows.
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      child: Material(
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(12, 0, 12, 4),
+                child: Text(
+                  basicText('today_title', lang),
+                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                ),
+              ),
+              if (lines == null)
+                const SizedBox(height: 28) // loading: the title is already there
+              else if (lines.isEmpty)
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 2, 12, 6),
+                  child: Text(basicText('today_nothing', lang), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
+                )
+              else
+                for (final l in lines)
+                  ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    leading: Icon(l.icon, color: l.urgent ? Colors.deepOrange : AppColors.primaryDark, size: 20),
+                    title: Text(
+                      l.text,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w600, color: l.urgent ? Colors.deepOrange : null),
+                    ),
+                    trailing: l.trailing == null ? null : Text(l.trailing!, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                    onTap: () => widget.onOpen(l.open),
+                  ),
+            ],
+          ),
         ),
-        if (lines == null)
-          const SizedBox(height: 28) // loading: the title is already there
-        else if (lines.isEmpty)
-          Padding(
-            padding: const EdgeInsetsDirectional.fromSTEB(12, 2, 12, 6),
-            child: Text(basicText('today_nothing', lang), style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted)),
-          )
-        else
-          for (final l in lines)
-            ListTile(
-              dense: true,
-              visualDensity: VisualDensity.compact,
-              leading: Icon(l.icon, color: l.urgent ? Colors.deepOrange : AppColors.primaryDark, size: 20),
-              title: Text(l.text, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.w600, color: l.urgent ? Colors.deepOrange : null)),
-              trailing: l.trailing == null ? null : Text(l.trailing!, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
-              onTap: () => widget.onOpen(l.open),
-            ),
-      ]),
+      ),
     );
   }
 }
