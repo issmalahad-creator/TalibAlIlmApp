@@ -74,6 +74,17 @@ it is a *separate dataset*, not a tweak.
 
 `SOURCE-BACKED` (multiple): ≈ **77,430 words**, ≈ **320,000 letters**, but
 every published count differs (77,000–80,000 words; 320k–330k letters)
+
+`VERIFIED` 2026-11-12 — what **our** text (Tanzil Uthmani, `quran_ayat`)
+holds, counted by `lib/services/mushaf_stats.dart` (pinned in
+`test/mushaf_stats_test.dart`): 6,236 ayat · **77,881** words (Uthmani rasm,
+space-delimited, signs and ornaments excluded — higher than the classic
+≈77,430 because the Uthmani spelling separates some words the "simple"
+text joins) · **327,514** letters (written rasm letters, no ḥarakāt, no
+dagger alif; ٱ counted as alif) · waqf signs: م 22, صلى 1,682, ج 1,972,
+قلى 603, ∴ 12 (6 places), لا 68 · sajdāt 15 · saktāt **5** (18:1, 36:52,
+69:28, 75:27, 83:14 — the small sīn *inside* «يبصط» 2:245 and «بصطة» 7:69
+means "read with sīn", not a sakta) · ۞ 199 marks.
 because "a word" and "a letter" are defined differently per method
 (connected particles, tashkīl, ḥurūf muqaṭṭaʿa, waqf marks).
 

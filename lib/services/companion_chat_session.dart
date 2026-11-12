@@ -9,12 +9,14 @@ import '../repositories/completion_goal_repository.dart';
 import '../repositories/companion_memory_repository.dart';
 import '../repositories/journey_plan_repository.dart';
 import '../repositories/medication_repository.dart';
+import '../repositories/mushaf_stats_repository.dart';
 import '../repositories/quran_reading_repository.dart';
 import '../repositories/quran_reading_session_repository.dart';
 import '../repositories/prayer_times_repository.dart';
 import '../repositories/quran_search_repository.dart';
 import '../screens/adhkar_category_screen.dart';
 import '../screens/medications_screen.dart';
+import '../screens/mushaf_stats_screen.dart';
 import '../utils/arabic_normalize.dart';
 import '../utils/fuzzy_match.dart' as fuzzy;
 import 'companion_chat_engine.dart';
@@ -205,6 +207,12 @@ class CompanionChatSession {
       return navigationReply;
     }
 
+    final statsReply = await _tryMushafStats(trimmed, effectiveLang);
+    if (statsReply != null) {
+      await _memory.logMessage(trimmed, 'mushaf_stats');
+      return statsReply;
+    }
+
     if (_matchesKeywords(trimmed, effectiveLang, _featuresCuesAr, _featuresCuesEn)) {
       await _memory.logMessage(trimmed, 'features');
       return CompanionChatReply(_featuresOverview(effectiveLang));
@@ -342,6 +350,61 @@ class CompanionChatSession {
     // navigation target). Only the final fallback says "لم أفهم" if truly
     // nothing matches anywhere.
     return null;
+  }
+
+  /// «كم عدد آيات البقرة؟» / «كم حرفًا في القرآن؟» — counted from the
+  /// muṣḥaf text by `MushafStatsRepository`, never from memory. Needs a
+  /// question word and a counted thing; a surah name narrows the scope.
+  Future<CompanionChatReply?> _tryMushafStats(String text, String lang) async {
+    final n = _normalizeForNav(text);
+    final asks = ['كم', 'عدد', 'how many', 'count'].any((q) => n.contains(_normalizeForNav(q)));
+    if (!asks) return null;
+    // «كم آية حفظت؟» is about the student's progress, not the muṣḥaf.
+    const personal = ['حفظت', 'حفظي', 'انجزت', 'راجعت', 'قرات', 'قرأت', 'ختمت', 'memorized', 'i read', 'did i', 'have i'];
+    if (personal.any((w) => n.contains(_normalizeForNav(w)))) return null;
+    final things = <String, List<String>>{
+      'ms_ayat': ['ايه', 'ايات', 'آية', 'آيات', 'ayah', 'verses', 'ayat'],
+      'ms_words': ['كلمه', 'كلمات', 'words'],
+      'ms_letters': ['حرف', 'حروف', 'احرف', 'letters'],
+      'ms_sajdat': ['سجده', 'سجدات', 'sajda'],
+      'ms_saktat': ['سكته', 'سكتات', 'sakta'],
+      'ms_waqf_total': ['وقف', 'وقوف', 'وقفات', 'waqf', 'pause'],
+    };
+    final asked = things.entries.where((e) => e.value.any((w) => n.contains(_normalizeForNav(w)))).map((e) => e.key).toList();
+    if (asked.isEmpty) return null;
+
+    // The longest surah name found in the question, if any.
+    StatsScope scope = StatsScope.all;
+    var best = 0;
+    for (final s in quranSurahs) {
+      final name = _normalizeForNav(s.name);
+      final bare = name.startsWith('ال') ? name.substring(2) : name;
+      if (bare.length >= 3 && n.contains(bare) && bare.length > best) {
+        best = bare.length;
+        scope = StatsScope(StatsScopeKind.surah, s.number);
+      }
+    }
+    final ScopedStats d;
+    try {
+      d = await MushafStatsRepository.instance.stats(scope);
+    } catch (_) {
+      return null;
+    }
+    int value(String key) => switch (key) {
+          'ms_ayat' => d.stats.ayat,
+          'ms_words' => d.stats.words,
+          'ms_letters' => d.stats.letters,
+          'ms_sajdat' => d.stats.sajdat.length,
+          'ms_saktat' => d.stats.saktat.length,
+          _ => d.stats.waqfTotal,
+        };
+    final where = scope.kind == StatsScopeKind.all ? basicText('ms_scope_all', lang) : quranSurahs[scope.value - 1].name;
+    final parts = asked.map((k) => '${basicText(k, lang)}: ${value(k)}').join(' · ');
+    return CompanionChatReply(
+      '$where — $parts\n${basicText('ms_companion_note', lang)}',
+      actionLabel: basicText('companion_nav_open', lang).replaceAll('{name}', basicText('feat_mushaf_stats', lang)),
+      actionBuilder: (_) => MushafStatsScreen(initialScope: scope),
+    );
   }
 
   Future<CompanionChatReply> _medicationReply(String lang) async {

@@ -26,6 +26,7 @@ import '../screens/madarij_screen.dart';
 import '../screens/medications_screen.dart';
 import '../screens/mosque/mosques_screen.dart';
 import '../screens/mushaf_semantic_reader_screen.dart';
+import '../screens/mushaf_stats_screen.dart';
 import '../screens/new_muslim_guide_screen.dart';
 import '../screens/notification_settings_screen.dart';
 import '../screens/personal_accountability_screen.dart';
@@ -90,6 +91,7 @@ final appFeatures = <AppFeature>[
   AppFeature('topics', AppFeatureGroup.quran, Icons.account_tree_outlined, const ['موضوعات القران', 'الموضوعات', 'فهرس المعرفة', 'topics', 'knowledge index'], (_) => const TopicIndexScreen()),
   AppFeature('journey', AppFeatureGroup.quran, Icons.route_outlined, const ['رحلتي', 'الرحلة', 'خطة الرحلة', 'journey', 'my journey'], (_) => const JourneyScreen()),
   AppFeature('daily_session', AppFeatureGroup.quran, Icons.wb_sunny_outlined, const ['جلسة اليوم', 'الجلسة اليومية', 'daily session', 'today session'], (_) => const DailySessionScreen()),
+  AppFeature('mushaf_stats', AppFeatureGroup.quran, Icons.analytics_outlined, const ['احصاءات المصحف', 'احصائيات القران', 'عدد الايات', 'عدد الكلمات', 'عدد الحروف', 'علامات الوقف', 'السكتات', 'mushaf statistics', 'quran stats'], (_) => const MushafStatsScreen()),
   AppFeature('sources', AppFeatureGroup.quran, Icons.verified_outlined, const ['عن المصادر', 'المصادر', 'sources'], (_) => const SourcesScreen()),
   // ---- العبادة
   AppFeature('prayer_times', AppFeatureGroup.worship, Icons.access_time_outlined, const ['مواقيت الصلاة', 'مواعيد الصلاة', 'اوقات الصلاة', 'الاذان', 'prayer times', 'adhan'], (_) => const PrayerTimesScreen()),
