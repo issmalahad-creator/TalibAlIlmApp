@@ -90,8 +90,10 @@ Same "604-page Madani Hafs", different files, different line maps.
 - Since DB v74, `quran_ayat.page_number` = the drawn edition, from
   `kMadaniPageStarts` (`lib/data/madani_page_starts.dart`). `QuranData.Page` is
   no longer read anywhere. `test/madani_page_starts_test.dart` guards it.
-- Line level: see the audit report for the per-line comparison against the
-  1421H edition.
+- Line level (`VERIFIED`): the drawn layout is the **1441H** edition line by
+  line (8,820/8,820 lines checked against quran.com mushaf=19; one open word —
+  p. 92 «مَا», 4:91 — recorded `UNKNOWN` in the audit). The 1421H edition has
+  the same page boundaries but some different line breaks.
 
 ## 8. The "page ends on an ayah" invariant
 
