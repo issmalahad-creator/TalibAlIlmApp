@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../data/madani_page_starts.dart';
 import '../utils/arabic_normalize.dart';
 import 'turath_annotations_migration.dart';
 
@@ -35,7 +36,7 @@ class DatabaseHelper {
 
   /// The schema version `openDatabase` opens at — also written into every
   /// backup so a file from a newer app is refused instead of half-restored.
-  static const schemaVersion = 73;
+  static const schemaVersion = 74;
 
   Future<Database> get database {
     return _dbFuture ??= _init();
@@ -130,6 +131,7 @@ class DatabaseHelper {
         await _createV71Tables(db);
         await _createV72Tables(db);
         await _createV73Tables(db);
+        await _createV74Tables(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createV2Tables(db);
@@ -215,6 +217,7 @@ class DatabaseHelper {
         if (oldVersion < 71) await _createV71Tables(db);
         if (oldVersion < 72) await _createV72Tables(db);
         if (oldVersion < 73) await _createV73Tables(db);
+        if (oldVersion < 74) await _createV74Tables(db);
       },
     );
 
@@ -2688,6 +2691,55 @@ class DatabaseHelper {
       )
     ''');
     await db.execute('CREATE INDEX idx_med_doses_course ON med_doses(course_id, scheduled_at)');
+  }
+
+  /// Page numbers follow the muṣḥaf the reader draws. `quran_ayat.page_number`
+  /// was imported from Tanzil's `QuranData.Page` — the King Fahd **1405H**
+  /// edition — while the reader draws the **1421H** edition; 36 pages differ
+  /// (5:71–95, 6:125–137, 55, 68–70, 74, 79–102). Re-derives every ayah's page
+  /// from `kMadaniPageStarts` and rebuilds the per-page memorization units in
+  /// place: unit ids are page numbers, so hifz progress stays on "page N" —
+  /// now the page as printed and drawn. No-op on a fresh install (the import
+  /// fills `quran_ayat` later, already with the right pages).
+  Future<void> _createV74Tables(Database db) async {
+    await realignPageNumbers(db);
+  }
+
+  static Future<void> realignPageNumbers(DatabaseExecutor db) async {
+    final rows = await db.query('quran_ayat', columns: ['surah', 'ayah', 'juz_number'], orderBy: 'surah, ayah');
+    if (rows.isEmpty) return;
+    final batch = db.batch();
+    final first = <int, (int, int)>{};
+    final last = <int, (int, int)>{};
+    final juz = <int, int?>{};
+    var page = 1;
+    for (final r in rows) {
+      final s = r['surah'] as int;
+      final a = r['ayah'] as int;
+      while (page < kMadaniPageStarts.length) {
+        final (ns, na) = kMadaniPageStarts[page]; // start of page + 1
+        if (s > ns || (s == ns && a >= na)) {
+          page++;
+        } else {
+          break;
+        }
+      }
+      batch.update('quran_ayat', {'page_number': page}, where: 'surah = ? AND ayah = ?', whereArgs: [s, a]);
+      first.putIfAbsent(page, () => (s, a));
+      last[page] = (s, a);
+      juz.putIfAbsent(page, () => r['juz_number'] as int?);
+    }
+    for (final p in first.keys) {
+      final (ss, sa) = first[p]!;
+      final (es, ea) = last[p]!;
+      batch.update(
+        'memorization_units',
+        {'surah_start': ss, 'ayah_start': sa, 'surah_end': es, 'ayah_end': ea, 'juz_number': juz[p]},
+        where: 'id = ?',
+        whereArgs: [p],
+      );
+    }
+    await batch.commit(noResult: true);
   }
 
   static const adhkarMorningEveningTitle = 'أذكار الصباح والمساء';

@@ -74,10 +74,10 @@ class MemorizationRepository {
   static const _establishedRotationDays = 30;
   static const _needsReviewFallbackStation = 2;
 
-  /// The memorization unit holding (surah, ayah). Units are numbered by the
-  /// legacy `quran_ayat.page_number` pages, which don't line up with the
-  /// MushafDatabase pages the reader shows — so the reader resolves a page
-  /// to its unit through the page's first ayah, never by page number.
+  /// The memorization unit holding (surah, ayah). Units are numbered by
+  /// `quran_ayat.page_number`, which since DB v74 follows the 1421H edition
+  /// the reader draws (before that it was Tanzil's 1405H pages, 36 off).
+  /// Resolving through the ayah stays the safe path either way.
   Future<int?> unitForAyah(int surah, int ayah) async {
     final db = await DatabaseHelper.instance.database;
     final key = surah * 1000 + ayah;

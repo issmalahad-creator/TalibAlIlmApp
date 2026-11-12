@@ -247,3 +247,30 @@ later we don't restart from zero. Format per entry:
   (`initialPage == null` → `mushaf_last_page`); any page coming from
   `quran_ayat`/search goes through `pageForReference(surah, ayah)` (E‑2).
 - **Source:** reader R1/R3.
+
+## E‑16 · Two King Fahd editions mixed: drawn 1421H pages, counted 1405H pages (2026‑11‑12)
+
+- **Mistake:** the reader draws MushafDatabase V1.01, which is the **1421H**
+  edition, while `quran_ayat.page_number` (and so the hifz units, search
+  results, «انتقل إلى» by surah/juz, quizzes, khatma ranges) came from
+  Tanzil's `QuranData.Page`, which is the **1405H** edition. Both are
+  genuine «604 pages, 15 lines» King Fahd prints, and 568 of the 604 pages
+  are identical, so spot-checks passed for a year. **36 pages differ** by
+  one to seven ayat: 120–123, 144–145, 531–534, 564–565, 567–570, 575–576,
+  583–600. Ismail noticed one of them on his phone.
+- **Correct understanding:** "the Madani 604-page mushaf" is three editions
+  (1405H / 1421H / 1439–1441H), not one. Page boundaries are identical between
+  1421H and 1441H, and differ from 1405H on exactly those 36 pages (`VERIFIED`
+  2026‑11‑12 against quran.com's per-edition page lookup: mushaf=1 and 19 →
+  0/604 differences from what we draw; mushaf=2 and 11 → 0/604 from Tanzil).
+- **Cause:** `QURAN_LAYOUT.md` §7 recorded the full diff as `UNKNOWN` and it
+  was never run; an older comment even worked around the mismatch ("resolve
+  the unit through the first ayah, never by page number") instead of fixing it.
+- **New engineering rule:** page numbers have **one** source in the app —
+  `kMadaniPageStarts` (`lib/data/madani_page_starts.dart`, generated from the
+  layout we draw by `tool/gen_madani_page_starts.py`). Never read
+  `QuranData.Page`. Any new page-derived feature reads `quran_ayat.page_number`
+  (realigned in DB v74) or `mushaf_words.page` — they now agree on all 6236
+  ayat. An `UNKNOWN` about Quran data that a feature already depends on is a
+  bug report, not a note.
+- **Source:** `docs/quran/reports/PAGE_BOUNDARY_AUDIT.md`.

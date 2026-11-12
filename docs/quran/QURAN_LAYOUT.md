@@ -81,18 +81,17 @@ Same "604-page Madani Hafs", different files, different line maps.
   (MushafDatabase 382.68×547.09; quranpedia 345×550; QUL layouts have their
   own). Cross-use requires an explicit transform.
 
-## 7. Tanzil page scheme vs MushafDatabase page scheme  (`INFERENCE` + `UNKNOWN`)
+## 7. Tanzil page scheme vs MushafDatabase page scheme  (`VERIFIED` 2026‑11‑12)
 
-- `quran_ayat.page_number` = Tanzil's `Page` boundary array (used for
-  `memorization_units`, the ḥifẓ page unit).
-- `mushaf_pages` / `mushaf_words.page` = MushafDatabase V1.01's page numbers.
-- `INFERENCE`: both are "standard Madani 604" and align at the **page
-  level** for the vast majority of pages (spot-checks pass).
-- `UNKNOWN`: a full 6236-row cross-check has **not** been done. Before any
-  feature that assumes "Tanzil page N ⇔ MushafDatabase page N have the same
-  ayat", run that diff and record the result here.
-- They will **not** align at line level (MushafDatabase has line data; Tanzil
-  has none).
+- They are **two different King Fahd editions**: Tanzil's `QuranData.Page` =
+  **1405H**; MushafDatabase V1.01 (what we draw) = **1421H** (page boundaries
+  also identical to the 1441H edition). 36 of 604 pages differ — full list in
+  `reports/PAGE_BOUNDARY_AUDIT.md`, history in `ERRATA.md` E‑16.
+- Since DB v74, `quran_ayat.page_number` = the drawn edition, from
+  `kMadaniPageStarts` (`lib/data/madani_page_starts.dart`). `QuranData.Page` is
+  no longer read anywhere. `test/madani_page_starts_test.dart` guards it.
+- Line level: see the audit report for the per-line comparison against the
+  1421H edition.
 
 ## 8. The "page ends on an ayah" invariant
 

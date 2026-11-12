@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import 'package:sqflite/sqflite.dart';
 
+import '../data/madani_page_starts.dart';
 import '../data/practical_lessons_seed.dart';
 import '../db/database_helper.dart';
 import '../utils/arabic_normalize.dart';
@@ -550,9 +551,11 @@ class QuranImportService {
   Future<_Boundaries> _parseBoundaries() async {
     final raw = await rootBundle.loadString('assets/quran/quran-data.js');
     final juzBlock = _extractBlock(raw, 'QuranData.Juz');
-    final pageBlock = _extractBlock(raw, 'QuranData.Page');
     final hizbBlock = _extractBlock(raw, 'QuranData.HizbQaurter');
-    return _Boundaries(_extractPairs(juzBlock), _extractPairs(pageBlock), _extractPairs(hizbBlock));
+    // Pages come from the 1421H edition the reader draws, NOT Tanzil's
+    // `QuranData.Page` (the 1405H edition — 36 pages differ). See
+    // lib/data/madani_page_starts.dart.
+    return _Boundaries(_extractPairs(juzBlock), kMadaniPageStarts, _extractPairs(hizbBlock));
   }
 
   String _extractBlock(String raw, String varName) {

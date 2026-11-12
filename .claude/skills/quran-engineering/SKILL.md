@@ -67,7 +67,8 @@ or mushaf **data**. Those change only from `VERIFIED`/authoritative data.
     eyeball rasm. Know which of the 3 normalizers you mean (`kNormVersion` =
     Turath anchor; `kMushafLayoutVersion` = layout asset; `normalizeArabic
     ForSearch` = search index).
-12. **App scope is fixed:** Hafs ʿan ʿĀṣim, Kufi count, **6236** ayat, 114
+12. **Page numbers have one source:** `kMadaniPageStarts` / `quran_ayat.page_number` (v74+) = the 1421H edition we draw. Tanzil's `QuranData.Page` is the 1405H edition — never use it (`ERRATA` E‑16).
+13. **App scope is fixed:** Hafs ʿan ʿĀṣim, Kufi count, **6236** ayat, 114
     surahs, 604 Madani pages. Another riwāya = a separate dataset, not a
     toggle.
 
@@ -132,9 +133,7 @@ CC BY 4.0 = bundle (+ offset remap) · MushafDatabase Sadaqa-e-Jaria = bundle
 
 ## Current open questions (keep in sync with the KB)
 
-- Do Tanzil `page_number` and MushafDatabase `page` place every one of the
-  6236 ayat on the same page? (Page-level spot-checks pass; full diff not
-  run.) — `QURAN_LAYOUT.md` §7.
+- ~~Do Tanzil and MushafDatabase pages agree?~~ **Answered 2026‑11‑12 (E‑16):** no — two editions (1405H vs 1421H), 36 pages differ. Page numbers now come only from `kMadaniPageStarts` (DB v74). Never read `QuranData.Page`.
 - **VT-3:** run the Tanzil <-> MushafDatabase word-alignment tool once ->
   `QURAN_WORD_ALIGNMENT_REPORT.md` + `assets/quran_learning/mapping/*.json`.
   Never modify the text to make numbers match. Blocks on-page rendering of
