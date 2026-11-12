@@ -7,6 +7,7 @@ import '../screens/akhlaq/akhlaq_home_screen.dart';
 import '../screens/application_screen.dart';
 import '../screens/arabic_curriculum_screen.dart';
 import '../screens/audio_library_screen.dart';
+import '../screens/backup_screen.dart';
 import '../screens/certificates_screen.dart';
 import '../screens/companion_chat_screen.dart';
 import '../screens/completion_goals_screen.dart';
@@ -128,6 +129,7 @@ final appFeatures = <AppFeature>[
   AppFeature('companion_chat', AppFeatureGroup.community, Icons.forum_outlined, const ['الرفيق', 'محادثة الرفيق', 'companion', 'chat'], (_) => const CompanionChatScreen()),
   // ---- الإعدادات
   AppFeature('profile', AppFeatureGroup.settings, Icons.person_outline_rounded, const ['ملفي الشخصي', 'الملف الشخصي', 'الاعدادات', 'اللغة', 'profile', 'settings', 'language'], (_) => const ProfileScreen()),
+  AppFeature('backup', AppFeatureGroup.settings, Icons.cloud_upload_outlined, const ['النسخة الاحتياطية', 'نسخة احتياطية', 'نسخ احتياطي', 'استعادة بياناتي', 'نقل بياناتي', 'backup', 'restore'], (_) => const BackupScreen()),
   AppFeature('notification_settings', AppFeatureGroup.settings, Icons.notifications_outlined, const ['اعدادات التنبيهات', 'التنبيهات', 'الاشعارات', 'notifications', 'notification settings'], (_) => const NotificationSettingsScreen()),
   AppFeature('downloads', AppFeatureGroup.settings, Icons.download_for_offline_outlined, const ['التنزيلات', 'التحميلات', 'المساحة', 'downloads', 'storage'], (_) => const DownloadsScreen()),
   AppFeature('support', AppFeatureGroup.settings, Icons.favorite_border_rounded, const ['الدعم', 'تواصل معنا', 'support', 'contact'], (_) => const SupportScreen()),

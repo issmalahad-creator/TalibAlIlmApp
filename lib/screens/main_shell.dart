@@ -4,6 +4,7 @@ import '../l10n/basic_translations.dart';
 import '../services/content_badge_service.dart';
 import '../services/language_preference_service.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/side_menu_tab.dart';
 import 'activities_screen.dart';
 import 'book_screen.dart';
 import 'goals_screen.dart';
@@ -47,7 +48,17 @@ class _MainShellState extends State<MainShell> {
       drawer: const AppDrawer(),
       // A wide edge strip: on a phone the default 20 px is easy to miss.
       drawerEdgeDragWidth: 28,
-      body: IndexedStack(index: _index, children: _tabs),
+      body: Stack(
+        children: [
+          IndexedStack(index: _index, children: _tabs),
+          // Always-visible way into every section (see SideMenuTab).
+          PositionedDirectional(
+            start: 0,
+            top: MediaQuery.sizeOf(context).height * 0.42,
+            child: SideMenuTab(onOpen: () => mainShellScaffoldKey.currentState?.openDrawer()),
+          ),
+        ],
+      ),
       // 2026-08-17: was 4 hardcoded Arabic labels — the single most
       // persistent, always-visible piece of chrome in the app, and the
       // first thing Ismail's language-coverage audit flagged. Now reacts

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'backup_screen.dart';
 import '../l10n/basic_translations.dart';
 import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
@@ -389,6 +390,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     label: basicText('notifications_title', _lang),
                     color: NavColors.cyan,
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationSettingsScreen())),
+                  ),
+                  NavTileData(
+                    icon: Icons.cloud_upload_outlined,
+                    label: basicText('backup_title', _lang),
+                    color: NavColors.green,
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BackupScreen())),
                   ),
                   NavTileData(
                     icon: Icons.download_for_offline_outlined,

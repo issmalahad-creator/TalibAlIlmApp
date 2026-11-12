@@ -33,6 +33,10 @@ class DatabaseHelper {
   @visibleForTesting
   static String databaseName = 'talib_alilm.db';
 
+  /// The schema version `openDatabase` opens at — also written into every
+  /// backup so a file from a newer app is refused instead of half-restored.
+  static const schemaVersion = 73;
+
   Future<Database> get database {
     return _dbFuture ??= _init();
   }
@@ -42,7 +46,7 @@ class DatabaseHelper {
     final path = join(dbPath, databaseName);
     Future<Database> open() => openDatabase(
       path,
-      version: 73,
+      version: schemaVersion,
       // 2026-08-18: مُعطَّل بشكل دائم — مؤكَّد بالاختبار الحي، لا افتراض.
       // (100_IDEAS #69) سبَّب تعليق الصفحة الرئيسية بالتحميل فورًا عند
       // تفعيله على جهاز إسماعيل الفعلي؛ تعطيله وحده (دون أي تغيير آخر) هو
