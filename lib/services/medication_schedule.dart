@@ -163,3 +163,12 @@ String medDayLabel(DateTime d, String lang) {
 }
 
 String medTimeOf(DateTime d) => medHhmm(d.hour * 60 + d.minute);
+
+/// «بعد ساعتين و15 دقيقة» / «حان وقتها».
+String medCountdown(DateTime at, String lang) {
+  final diff = at.difference(DateTime.now());
+  if (diff.inMinutes <= 0) return basicText('med_due_now', lang);
+  final h = diff.inHours;
+  final m = diff.inMinutes % 60;
+  return basicText('med_in_hm', lang).replaceAll('{h}', '$h').replaceAll('{m}', '$m');
+}

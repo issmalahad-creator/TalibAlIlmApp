@@ -7,6 +7,8 @@ import '../screens/akhlaq/akhlaq_home_screen.dart';
 import '../screens/application_screen.dart';
 import '../screens/arabic_curriculum_screen.dart';
 import '../screens/audio_library_screen.dart';
+import '../screens/book_screen.dart';
+import '../screens/home_screen.dart';
 import '../screens/backup_screen.dart';
 import '../screens/certificates_screen.dart';
 import '../screens/companion_chat_screen.dart';
@@ -118,6 +120,8 @@ final appFeatures = <AppFeature>[
   AppFeature('new_muslim', AppFeatureGroup.knowledge, Icons.waving_hand_outlined, const ['دليل المسلم الجديد', 'المسلم الجديد', 'new muslim'], (_) => const NewMuslimGuideScreen()),
   AppFeature('certificates', AppFeatureGroup.knowledge, Icons.workspace_premium_outlined, const ['الشهادات', 'شهاداتي', 'certificates'], (_) => const CertificatesScreen()),
   // ---- حياتي وخطتي
+  AppFeature('home', AppFeatureGroup.life, Icons.dashboard_outlined, const ['الرئيسية', 'لوحة اليوم', 'الصفحة الرئيسية', 'home', 'dashboard'], (_) => const HomeScreen()),
+  AppFeature('book', AppFeatureGroup.knowledge, Icons.newspaper_outlined, const ['الكتاب', 'محتوى الكتاب', 'الجديد', 'book', 'new content'], (_) => const BookScreen()),
   AppFeature('life_plan', AppFeatureGroup.life, Icons.eco_outlined, const ['محرك الحياة', 'خطة الحياة', 'يومي', 'life engine', 'life plan'], (_) => const LifePlanScreen()),
   AppFeature('daily_tasks', AppFeatureGroup.life, Icons.task_alt_rounded, const ['المهام', 'مهامي', 'مهام اليوم', 'tasks', 'my tasks'], (_) => const DailyTasksScreen()),
   AppFeature('activities', AppFeatureGroup.life, Icons.checklist_rounded, const ['الانشطة', 'انشطتي', 'activities'], (_) => const ActivitiesScreen()),

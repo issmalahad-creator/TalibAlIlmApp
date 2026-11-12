@@ -6,6 +6,7 @@ import '../services/drawer_prefs.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/arabic_normalize.dart';
+import 'today_card.dart';
 
 /// The side menu: every feature of the app (`appFeatures`) in collapsible
 /// sections, with a search box on top. Opened from the shell's «المزيد»
@@ -136,6 +137,10 @@ class _AppDrawerState extends State<AppDrawer> {
                   : ListView(
                       padding: const EdgeInsets.only(bottom: 16),
                       children: [
+                        TodayCard(onOpen: (builder) {
+                          Navigator.pop(context);
+                          Navigator.push(context, MaterialPageRoute(builder: builder));
+                        }),
                         _shortcutHeader(Icons.push_pin_outlined, basicText('drawer_pinned', lang)),
                         if (_pinned.isEmpty)
                           Padding(

@@ -20,7 +20,10 @@ import 'tahfeez_session_prefs.dart';
 /// nothing downloaded, since `UrlSource` streams directly from whichever
 /// provider `QuranAudioProviderRegistry` resolves to.
 class QuranAudioEngine {
-  final _player = AudioPlayer();
+  /// Created on the first play, not when the reader opens: the muṣḥaf is the
+  /// app's start screen, and most openings never play audio.
+  AudioPlayer? _p;
+  AudioPlayer get _player => _p ??= AudioPlayer();
   final _downloadService = QuranAudioDownloadService();
   final _sessionPrefs = TahfeezSessionPrefs();
   final _stateController = StreamController<TahfeezPlaybackState>.broadcast();
@@ -44,7 +47,7 @@ class QuranAudioEngine {
 
   void stop() {
     _cancelled = true;
-    _player.stop();
+    _p?.stop();
     loading.value = false;
     final s = _stopped;
     if (s != null && !s.isCompleted) s.complete();
@@ -53,8 +56,8 @@ class QuranAudioEngine {
   /// Real mid-playback pause/resume (unlike the caller-side `_audioPaused`
   /// flag pattern used before this, which only blocked the *next* ayah from
   /// starting and never actually silenced audio already playing).
-  Future<void> pause() => _player.pause();
-  Future<void> resume() => _player.resume();
+  Future<void> pause() async => _p?.pause();
+  Future<void> resume() async => _p?.resume();
 
   Future<Source> _sourceFor(String reciterId, int surah, int ayah) async {
     final local = await _downloadService.localFileIfExists(reciterId, surah, ayah);
@@ -223,6 +226,6 @@ class QuranAudioEngine {
 
   void dispose() {
     _stateController.close();
-    _player.dispose();
+    _p?.dispose();
   }
 }

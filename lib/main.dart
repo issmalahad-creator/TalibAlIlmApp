@@ -20,6 +20,7 @@ import 'screens/personal_library_screen.dart';
 import 'screens/prayer_times_screen.dart';
 import 'screens/quran_browse_screen.dart';
 import 'screens/startup_gate.dart';
+import 'services/start_screen_preference_service.dart';
 import 'services/boot/boot_scheduler.dart';
 import 'services/book_content_service.dart';
 import 'services/calendar_preference_service.dart';
@@ -106,6 +107,7 @@ Future<void> main() async {
   initHijriLocale();
   await CalendarPreferenceService.load();
   await TextScalePreferenceService.load();
+  await StartScreenPreferenceService.load();
   // Was never actually called before 2026-08-17 — the saved language
   // preference silently never took effect on relaunch. See
   // `LanguagePreferenceService`'s doc comment for the full bug list.

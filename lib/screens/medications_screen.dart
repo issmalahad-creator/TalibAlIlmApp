@@ -160,15 +160,6 @@ class _Section extends StatelessWidget {
       );
 }
 
-/// «بعد ساعتين و15 دقيقة» / «حان وقتها».
-String medCountdown(DateTime at, String lang) {
-  final diff = at.difference(DateTime.now());
-  if (diff.inMinutes <= 0) return basicText('med_due_now', lang);
-  final h = diff.inHours;
-  final m = diff.inMinutes % 60;
-  return basicText('med_in_hm', lang).replaceAll('{h}', '$h').replaceAll('{m}', '$m');
-}
-
 class _NextDoseCard extends StatelessWidget {
   final MedCourse course;
   final MedDose dose;

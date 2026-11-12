@@ -35,7 +35,7 @@ import '../widgets/time_accountability_dashboard.dart';
 import '../widgets/worship_coach_card.dart';
 import 'akhlaq/akhlaq_home_screen.dart';
 import 'life_plan_screen.dart';
-import 'main_shell.dart' show mainShellScaffoldKey;
+import 'main_shell.dart' show openSideMenu;
 import 'medications_screen.dart';
 import 'worship_coach_screen.dart';
 import 'add_task_screen.dart';
@@ -609,7 +609,7 @@ class _GreetingHeader extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          onPressed: () => mainShellScaffoldKey.currentState?.openDrawer(),
+          onPressed: () => openSideMenu(context),
           icon: const Icon(Icons.menu_rounded, color: AppColors.primaryDark),
           tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
         ),

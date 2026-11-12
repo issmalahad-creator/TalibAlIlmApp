@@ -44,6 +44,7 @@ import 'page_recitation_screen.dart';
 import 'quran_notebook_home_screen.dart';
 import 'hifz_schedule_screen.dart';
 import 'recitation_mistakes_screen.dart';
+import '../widgets/side_menu_tab.dart';
 import 'tahfeez_session_setup_screen.dart';
 import 'quran_learning/knowledge_surface.dart';
 import 'quran_learning/sources_screen.dart';
@@ -72,7 +73,13 @@ class MushafSemanticReaderScreen extends StatefulWidget {
   /// first tap on the page.
   final ({int surah, int ayah})? focusAyah;
 
-  const MushafSemanticReaderScreen({super.key, this.initialPage, this.focusAyah});
+  /// The app's start screen (`MainShell`, «المصحف هو البيت»): the back arrow
+  /// becomes «كل الأقسام» ([onOpenSections] opens the side menu), the side
+  /// tab shows while the bars do, and the boot queue is told Home is up.
+  final bool asHome;
+  final VoidCallback? onOpenSections;
+
+  const MushafSemanticReaderScreen({super.key, this.initialPage, this.focusAyah, this.asHome = false, this.onOpenSections});
 
   @override
   State<MushafSemanticReaderScreen> createState() =>
@@ -208,6 +215,11 @@ class _MushafSemanticReaderScreenState
   @override
   void initState() {
     super.initState();
+    // As the start screen, this is Home: release the after-Home boot tasks
+    // (notification scheduling…) once the first frame is up.
+    if (widget.asHome) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => BootScheduler.instance.markHomeReady());
+    }
     _current = (widget.initialPage ?? 1).clamp(1, _pageCount);
     _controller = PageController(initialPage: _current - 1);
     // The layout may still be seeding on a first launch — jump it to the
@@ -2053,10 +2065,17 @@ class _MushafSemanticReaderScreenState
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Row(
                       children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: onBg),
-                          onPressed: () => Navigator.of(context).maybePop(),
-                        ),
+                        if (widget.asHome)
+                          IconButton(
+                            tooltip: basicText('drawer_title', lang),
+                            icon: Icon(Icons.apps_rounded, color: onBg),
+                            onPressed: widget.onOpenSections,
+                          )
+                        else
+                          IconButton(
+                            icon: Icon(Icons.arrow_forward_ios_rounded, size: 18, color: onBg),
+                            onPressed: () => Navigator.of(context).maybePop(),
+                          ),
                         // The juzʼ / surah title opens «انتقل إلى».
                         Expanded(
                           child: InkWell(
@@ -2130,6 +2149,14 @@ class _MushafSemanticReaderScreenState
                     ),
                   ),
                 ),
+              ),
+            // The visible way into every section — only while the bars are
+            // shown, so nothing sits over the text while reading.
+            if (widget.asHome && _chromeVisible)
+              PositionedDirectional(
+                start: 0,
+                top: MediaQuery.sizeOf(context).height * 0.42,
+                child: SideMenuTab(onOpen: widget.onOpenSections ?? () {}),
               ),
             if (_chromeVisible && (_tajweedMode || _audioBar))
               Positioned(

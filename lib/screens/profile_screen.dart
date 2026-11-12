@@ -10,6 +10,7 @@ import '../models/student_profile.dart';
 import '../repositories/profile_repository.dart';
 import '../services/calendar_preference_service.dart';
 import '../services/language_preference_service.dart';
+import '../services/start_screen_preference_service.dart';
 import '../services/text_scale_preference_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/feedback/talib_action_button.dart';
@@ -179,6 +180,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: _save,
                   icon: Icons.save,
                   label: basicText('save', _lang),
+                ),
+                const SizedBox(height: 12),
+                // «شاشة البداية»: the muṣḥaf (default) or the dashboard Home.
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: StartScreenPreferenceService.notifier,
+                    builder: (context, start, _) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(basicText('start_screen_title', _lang), style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        SegmentedButton<String>(
+                          segments: [
+                            ButtonSegment(value: StartScreenPreferenceService.mushaf, icon: const Icon(Icons.auto_stories_outlined), label: Text(basicText('start_screen_mushaf', _lang))),
+                            ButtonSegment(value: StartScreenPreferenceService.home, icon: const Icon(Icons.dashboard_outlined), label: Text(basicText('start_screen_home', _lang))),
+                          ],
+                          selected: {start},
+                          onSelectionChanged: (v) => StartScreenPreferenceService.set(v.first),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(basicText('start_screen_hint', _lang), style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Container(

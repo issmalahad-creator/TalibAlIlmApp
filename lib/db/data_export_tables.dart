@@ -165,7 +165,7 @@ const Set<String> kLegacyUnusedTables = {};
 const Set<String> kBackupPrefKeys = {
   'app_ui_language', 'app_text_scale', 'use_gregorian_calendar',
   'has_seen_onboarding', 'student_name', 'hidden_home_cards', 'hidden_book_ids',
-  'drawer_pinned', 'drawer_recent',
+  'drawer_pinned', 'drawer_recent', 'start_screen',
   // mushaf / reading
   'mushaf_view_vertical', 'mushaf_vertical_zoom', 'mushaf_paper_tone', 'mushaf_tajweed_mode',
   'mushaf_auto_speed', 'mushaf_repeat_ayah', 'mushaf_last_page', 'mushaf_bookmarks_v1',
