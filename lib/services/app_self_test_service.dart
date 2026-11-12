@@ -19,10 +19,9 @@ class SelfTestResult {
 /// "اختبار شامل" (Ismail's 2026-08-20 request) — a real, on-device smoke
 /// test suite Ismail runs on his own phone, since this dev environment has
 /// no direct access to a real device's actual runtime state. Every check is
-/// wrapped so one failure never stops the rest; results feed
-/// `ClaudeDiagnosticsService` for analysis, or get copied raw to a future
-/// Claude Code session. Deliberately a flat list of independent checks, not
-/// a test framework — this runs inside the shipped app itself, not `flutter
+/// wrapped so one failure never stops the rest; the report is copied from
+/// `DiagnosticsTestScreen` into a Claude Code session. Deliberately a flat
+/// list of independent checks, not a test framework — this runs inside the shipped app itself, not `flutter
 /// test`, so it has to stay simple and dependency-free.
 class AppSelfTestService {
   Future<List<SelfTestResult>> runAll() async {

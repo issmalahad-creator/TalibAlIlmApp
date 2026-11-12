@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../services/app_self_test_service.dart';
-import '../services/claude_diagnostics_service.dart';
 import '../theme/app_theme.dart';
 
 /// "اختبار شامل" (Ismail's 2026-08-20 request) — hidden dev/diagnostics
-/// screen. Runs `AppSelfTestService`'s real on-device checks, optionally
-/// asks Claude to analyze the results (see `ClaudeDiagnosticsService`'s own
-/// doc comment for why that's safe only in this dev-only, single-user
-/// context), and lets Ismail copy the full report to paste into a future
-/// Claude Code session — the practical bridge for a dev environment that
-/// has no direct access to Ismail's real device. Reachable only from
+/// screen. Runs `AppSelfTestService`'s real on-device checks and lets Ismail
+/// copy the full report to paste into a Claude Code session — the practical
+/// bridge for a dev environment with no direct access to his real device.
+/// (The in-app «تحليل بواسطة Claude» button and its API key were removed on
+/// 2026-11-12: Ismail — «لا يحتاج كلاود في التطبيق».) Reachable only from
 /// `CompanionDebugScreen`'s app bar (already a low-visibility dev tool),
 /// not from any student-facing navigation.
 class DiagnosticsTestScreen extends StatefulWidget {
@@ -23,19 +21,13 @@ class DiagnosticsTestScreen extends StatefulWidget {
 
 class _DiagnosticsTestScreenState extends State<DiagnosticsTestScreen> {
   final _selfTest = AppSelfTestService();
-  final _claude = ClaudeDiagnosticsService();
   List<SelfTestResult> _results = [];
   bool _running = false;
-  String? _aiAnalysis;
-  bool _analyzing = false;
-  String? _aiError;
 
   Future<void> _runTests() async {
     setState(() {
       _running = true;
       _results = [];
-      _aiAnalysis = null;
-      _aiError = null;
     });
     final results = await _selfTest.runAll();
     if (!mounted) return;
@@ -58,23 +50,6 @@ class _DiagnosticsTestScreenState extends State<DiagnosticsTestScreen> {
     await Clipboard.setData(ClipboardData(text: _reportText));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('نُسخ التقرير')));
-  }
-
-  Future<void> _analyzeWithClaude() async {
-    setState(() {
-      _analyzing = true;
-      _aiError = null;
-    });
-    try {
-      final analysis = await _claude.analyzeReport(_reportText);
-      if (!mounted) return;
-      setState(() => _aiAnalysis = analysis);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _aiError = '$e');
-    } finally {
-      if (mounted) setState(() => _analyzing = false);
-    }
   }
 
   @override
@@ -106,33 +81,7 @@ class _DiagnosticsTestScreenState extends State<DiagnosticsTestScreen> {
                   ),
                 )),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(onPressed: _copyReport, icon: const Icon(Icons.copy_rounded), label: const Text('نسخ التقرير')),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: _analyzing ? null : _analyzeWithClaude,
-                    icon: _analyzing ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.auto_awesome_outlined),
-                    label: Text(_analyzing ? 'جارٍ التحليل...' : 'تحليل بواسطة Claude'),
-                  ),
-                ),
-              ],
-            ),
-            if (_aiError != null) ...[
-              const SizedBox(height: 12),
-              Text(_aiError!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.right),
-            ],
-            if (_aiAnalysis != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.divider)),
-                child: Text(_aiAnalysis!, textAlign: TextAlign.right, style: const TextStyle(height: 1.6)),
-              ),
-            ],
+            OutlinedButton.icon(onPressed: _copyReport, icon: const Icon(Icons.copy_rounded), label: const Text('نسخ التقرير')),
           ],
         ],
       ),
