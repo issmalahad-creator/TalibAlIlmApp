@@ -1,7 +1,8 @@
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 
+import '../l10n/basic_translations.dart';
 import '../services/calendar_preference_service.dart';
+import '../services/language_preference_service.dart';
 import 'hijri_date.dart';
 
 /// Renders a stored Hijri date string ("1447-01-15") for display, honoring
@@ -17,11 +18,8 @@ String formatDateForDisplay(String hijriDate) {
   if (year == null || month == null || day == null) return hijriDate;
 
   if (!CalendarPreferenceService.useGregorian) {
-    final h = HijriCalendar()
-      ..hYear = year
-      ..hMonth = month
-      ..hDay = day;
-    return '$day ${h.getLongMonthName()} $year هـ';
+    final lang = LanguagePreferenceService.currentLanguage;
+    return '$day ${hijriMonthName(month, lang)} $year ${basicText('hijri_era_suffix', lang)}';
   }
 
   final gregorian = gregorianFromHijriDateTime(hijriDate, null);

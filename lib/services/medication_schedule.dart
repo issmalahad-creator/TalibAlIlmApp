@@ -8,12 +8,14 @@ import '../l10n/basic_translations.dart';
 import '../models/medication.dart';
 
 /// Notification id band: `base + i` for the i-th upcoming dose. Android caps
-/// an app at ~500 pending alarms, so only the next [kMedReminderMax] doses
-/// within [kMedReminderHorizon] are queued; every app open and every change
-/// re-plans the window, so a long course keeps rolling forward.
+/// an app at ~500 pending alarms, so the next [kMedReminderMax] doses within
+/// [kMedReminderHorizon] are queued — the whole of almost any course (300
+/// doses = 75 days every 6 h, 100 days every 8 h), so the alarms keep coming
+/// even if the app is not opened. Every app open and every change re-plans
+/// the window, so a longer course keeps rolling forward with no background job.
 const int kMedReminderIdBase = 20000;
 const int kMedReminderMax = 300;
-const Duration kMedReminderHorizon = Duration(days: 10);
+const Duration kMedReminderHorizon = Duration(days: 120);
 
 /// How many doses a course has — what the person checks against the
 /// prescription («21 جرعة»).

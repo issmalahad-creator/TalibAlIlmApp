@@ -10,6 +10,8 @@ import '../services/language_preference_service.dart';
 import '../services/spaced_repetition_engine.dart';
 import '../theme/app_theme.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/feedback/empty_state.dart';
+import 'hadith_screen.dart';
 
 /// This screen's strings — `basicText` in the current app language.
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
@@ -95,11 +97,11 @@ class _HadithQuizScreenState extends State<HadithQuizScreen> {
   Widget _buildBody() {
     final hadith = _hadith;
     if (hadith == null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(_t('qz_hadith_need'), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
-        ),
+      return EmptyState(
+        icon: Icons.format_quote_rounded,
+        message: _t('qz_hadith_need'),
+        actionLabel: _t('empty_open_hadith'),
+        onAction: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HadithScreen())),
       );
     }
 

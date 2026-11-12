@@ -5,6 +5,8 @@ import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback/empty_state.dart';
+import 'turath_library_screen.dart';
 import 'turath_reader_screen.dart';
 
 /// "فوائدي" (spec item 14: "دفتر الفوائد") — standalone learning takeaways
@@ -92,7 +94,7 @@ class _TurathBenefitsScreenState extends State<TurathBenefitsScreen> {
         body: _benefits == null
             ? const Center(child: CircularProgressIndicator())
             : _benefits!.isEmpty
-                ? Center(child: Text(basicText('turath_no_benefits_empty', lang), style: const TextStyle(color: AppColors.textMuted)))
+                ? EmptyState(icon: Icons.lightbulb_outline_rounded, message: basicText('turath_no_benefits_empty', lang), actionLabel: basicText('empty_open_turath', lang), onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathLibraryScreen())))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _benefits!.length,

@@ -1403,6 +1403,7 @@ class _MushafSemanticReaderScreenState
                     _keepAwake,
                     (v) async {
                       await ScreenAwake.setEnabled(v);
+                      if (!mounted) return;
                       setState(() => _keepAwake = v);
                       setSheet(() {});
                     },

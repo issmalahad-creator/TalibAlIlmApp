@@ -1,5 +1,8 @@
 import 'package:hijri/hijri_calendar.dart';
 
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
 void initHijriLocale() {
   HijriCalendar.setLocal('ar');
 }
@@ -45,17 +48,18 @@ DateTime gregorianFromHijriDateTime(String hijriDate, String? time) {
   return DateTime(gregorian.year, gregorian.month, gregorian.day, hour, minute);
 }
 
-/// Arabic label for a month key, e.g. "1447-01" -> "محرم 1447".
-String hijriMonthLabel(String monthKey) {
+/// The Hijri month's name in the app language (`hijri_month_<n>`).
+String hijriMonthName(int month, [String? lang]) =>
+    basicText('hijri_month_${month.clamp(1, 12)}', lang ?? LanguagePreferenceService.currentLanguage);
+
+/// Label for a month key in the app language, e.g. "1447-01" -> "محرم 1447"
+/// / "Muharram 1447". (Was always Arabic: tour 2026-10-29, A5.)
+String hijriMonthLabel(String monthKey, [String? lang]) {
   final parts = monthKey.split('-');
   if (parts.length != 2) return monthKey;
   final year = int.tryParse(parts[0]) ?? 0;
   final month = int.tryParse(parts[1]) ?? 1;
-  final h = HijriCalendar()
-    ..hYear = year
-    ..hMonth = month
-    ..hDay = 1;
-  return '${h.getLongMonthName()} $year';
+  return '${hijriMonthName(month, lang)} $year';
 }
 
 /// Gregorian DateTime for 09:00 local time, [daysBefore] days before the end

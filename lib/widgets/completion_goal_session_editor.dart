@@ -23,6 +23,24 @@ String _prayerLabel(String key) {
   return t == 'prayer_$key' ? (kPrayerAnchorLabels[key] ?? key) : t;
 }
 
+/// A session's label for display: the default labels the patterns create
+/// (stored in Arabic) shown in the app language; a label the person typed
+/// stays exactly as typed.
+String sessionDisplayLabel(String label) {
+  const defaults = {
+    'بعد الاستيقاظ': 'session_after_waking',
+    'الفجر': 'prayer_fajr',
+    'الشروق': 'prayer_sunrise',
+    'الظهر': 'prayer_dhuhr',
+    'العصر': 'prayer_asr',
+    'المغرب': 'prayer_maghrib',
+    'العشاء': 'prayer_isha',
+    'قبل النوم': 'session_before_sleep',
+  };
+  final key = defaults[label.trim()];
+  return key == null ? label : basicText(key, LanguagePreferenceService.currentLanguage);
+}
+
 String _twoDigits(int n) => n.toString().padLeft(2, '0');
 
 /// §2.3 field 7أ — the wizard's "توزيع الورد على الصلوات" editor. Owns its
@@ -163,7 +181,7 @@ class _CompletionGoalSessionEditorState extends State<CompletionGoalSessionEdito
             child: Row(
               children: [
                 Expanded(
-                  child: Text('${_sessions[i].label} — ${_anchorSummary(_sessions[i], lang)}',
+                  child: Text('${sessionDisplayLabel(_sessions[i].label)} — ${_anchorSummary(_sessions[i], lang)}',
                       style: const TextStyle(fontSize: 12.5)),
                 ),
                 Text('${_sessions[i].units}', style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
@@ -227,7 +245,7 @@ class _PatternCard extends StatelessWidget {
             Text(title, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800)),
             const SizedBox(height: 6),
             for (final s in sessions)
-              Text('${s.label}: ${s.units}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+              Text('${sessionDisplayLabel(s.label)}: ${s.units}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           ],
         ),
       ),

@@ -8,6 +8,7 @@ import '../utils/month.dart';
 import '../widgets/category_pill.dart';
 import 'add_activity_screen.dart';
 import '../widgets/loading_view.dart';
+import '../widgets/feedback/empty_state.dart';
 
 class ActivitiesScreen extends StatefulWidget {
   const ActivitiesScreen({super.key});
@@ -51,7 +52,15 @@ class _ActivitiesScreenState extends State<ActivitiesScreen> {
       body: _loading
           ? AppLoadingView(icon: Icons.hourglass_empty_rounded, message: basicText('loading_progress', lang))
           : _entries.isEmpty
-              ? Center(child: Text(basicText('no_activities_yet', lang), style: const TextStyle(color: AppColors.textMuted)))
+              ? EmptyState(
+                  icon: Icons.checklist_rounded,
+                  message: basicText('no_activities_yet', lang),
+                  actionLabel: basicText('add_activity_title', lang),
+                  onAction: () async {
+                    final added = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddActivityScreen()));
+                    if (added == true) _load();
+                  },
+                )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 90),
                   itemCount: _entries.length,

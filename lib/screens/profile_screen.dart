@@ -212,13 +212,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
+                // Material, not a decorated Container: the switch row's press
+                // ripple must show (tour 2026-10-29, A3).
+                Material(
+                  color: AppColors.surface,
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.divider),
+                    side: const BorderSide(color: AppColors.divider),
                   ),
+                  child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                   child: SwitchListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(basicText('gregorian_toggle_title', _lang), style: const TextStyle(fontSize: 13.5)),
@@ -228,6 +231,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       await CalendarPreferenceService.setUseGregorian(v);
                       setState(() => _useGregorian = v);
                     },
+                  ),
                   ),
                 ),
                 const SizedBox(height: 12),

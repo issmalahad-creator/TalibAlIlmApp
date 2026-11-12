@@ -16,6 +16,8 @@ import 'wasitiyyah_quiz_screen.dart';
 import '../repositories/usul_tree_repository.dart';
 import '../services/usul/usul_rebuild.dart';
 import 'usul/usul_rebuild_screen.dart';
+import '../widgets/feedback/empty_state.dart';
+import 'hifz_schedule_screen.dart';
 
 /// "مراجعتك اليوم" — Ismail's 2026-08-16 "الدماغ الذي يربط" request, Batch 1
 /// item 17 ("نظام المراجعة الشاملة"). A single cross-pillar due-list, not a
@@ -164,18 +166,12 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.self_improvement, size: 48, color: AppColors.textMuted),
-            const SizedBox(height: 12),
-            Text(basicText('nothing_to_review_message', LanguagePreferenceService.currentLanguage), textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
-          ],
-        ),
-      ),
+    final lang = LanguagePreferenceService.currentLanguage;
+    return EmptyState(
+      icon: Icons.self_improvement,
+      message: basicText('nothing_to_review_message', lang),
+      actionLabel: basicText('empty_open_hifz_plan', lang),
+      onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HifzScheduleScreen())),
     );
   }
 }

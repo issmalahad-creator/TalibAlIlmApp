@@ -8,6 +8,8 @@ import '../models/ayah_study_entry.dart';
 import '../repositories/ayah_study_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback/empty_state.dart';
+import 'mushaf_semantic_reader_screen.dart';
 import 'ayah_notebook_screen.dart';
 
 /// "دفتر القرآن" — the cross-ayah view over every `ayah_study_entries` row
@@ -205,12 +207,11 @@ class _QuranNotebookHomeScreenState extends State<QuranNotebookHomeScreen> {
     );
   }
 
-  Widget _empty(String lang) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(basicText('quran_notebook_empty', lang),
-              textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
-        ),
+  Widget _empty(String lang) => EmptyState(
+        icon: Icons.edit_note_rounded,
+        message: basicText('quran_notebook_empty', lang),
+        actionLabel: basicText('empty_open_mushaf', lang),
+        onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MushafSemanticReaderScreen())),
       );
 
   Widget _entryCard(AyahStudyEntry e, String lang) {

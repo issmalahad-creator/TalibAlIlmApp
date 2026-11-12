@@ -7,6 +7,7 @@ import '../utils/month.dart';
 import '../widgets/loading_view.dart';
 import '../widgets/premium_modal.dart';
 import '../utils/digits.dart';
+import '../widgets/feedback/empty_state.dart';
 
 class GoalsScreen extends StatefulWidget {
   const GoalsScreen({super.key});
@@ -143,7 +144,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   ),
                 )
               : _goals.isEmpty
-              ? Center(child: Text(basicText('no_goals_yet', _lang)))
+              ? EmptyState(icon: Icons.flag_outlined, message: basicText('no_goals_yet', _lang), actionLabel: basicText('empty_add_goal', _lang), onAction: () => _goalDialog())
               : ListView.builder(
                   itemCount: _goals.length,
                   itemBuilder: (context, i) {

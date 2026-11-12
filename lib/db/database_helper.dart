@@ -59,166 +59,8 @@ class DatabaseHelper {
       //   await db.execute('PRAGMA journal_mode = WAL');
       //   await db.execute('PRAGMA synchronous = NORMAL');
       // },
-      onCreate: (db, version) async {
-        await _createV1Tables(db);
-        await _createV2Tables(db);
-        await _createV3Tables(db);
-        await _createV4Tables(db);
-        await _createV5Tables(db);
-        await _createV6Tables(db);
-        await _createV7Tables(db);
-        await _createV8Tables(db);
-        await _createV9Tables(db);
-        await _createV10Tables(db);
-        await _createV11Tables(db);
-        await _createV12Tables(db);
-        await _createV13Tables(db);
-        await _createV14Tables(db);
-        await _createV15Tables(db);
-        await _createV16Tables(db);
-        await _createV17Tables(db);
-        await _createV18Tables(db);
-        await _createV19Tables(db);
-        await _createV20Tables(db);
-        await _createV21Tables(db);
-        await _createV22Tables(db);
-        await _createV23Tables(db);
-        await _createV25Tables(db);
-        await _createV26Tables(db);
-        await _createV28Tables(db);
-        await _createV29Tables(db);
-        await _createV30Tables(db);
-        await _createV31Tables(db);
-        await _createV32Tables(db);
-        await _createV33Tables(db);
-        await _createV34Tables(db);
-        await _createV35Tables(db);
-        await _createV36Tables(db);
-        await _createV37Tables(db);
-        await _createV38Tables(db);
-        await _createV39Tables(db);
-        await _createV40Tables(db);
-        await _createV41Tables(db);
-        await _createV42Tables(db);
-        await _createV43Tables(db);
-        await _createV44Tables(db);
-        await _createV45Tables(db);
-        await _createV46Tables(db);
-        await _createV47Tables(db);
-        await _createV48Tables(db);
-        await _createV49Tables(db);
-        await _createV50Tables(db);
-        await _createV51Tables(db);
-        await _createV52Tables(db);
-        await _createV53Tables(db);
-        await _createV54Tables(db);
-        await _createV55Tables(db);
-        await _createV56Tables(db);
-        await _createV57Tables(db);
-        await _createV58Tables(db);
-        await _createV59Tables(db);
-        await _createV60Tables(db);
-        await _createV61Tables(db);
-        await _createV62Tables(db);
-        await _createV63Tables(db);
-        await _createV64Tables(db);
-        await _createV65Tables(db);
-        await _createV66Tables(db);
-        await _createV67Tables(db);
-        await _createV68Tables(db);
-        await _createV69Tables(db);
-        await _createV70Tables(db);
-        await _createV71Tables(db);
-        await _createV72Tables(db);
-        await _createV73Tables(db);
-        await _createV74Tables(db);
-      },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) await _createV2Tables(db);
-        if (oldVersion < 3) await _createV3Tables(db);
-        if (oldVersion < 4) await _createV4Tables(db);
-        if (oldVersion < 5) await _createV5Tables(db);
-        if (oldVersion < 6) await _createV6Tables(db);
-        if (oldVersion < 7) await _createV7Tables(db);
-        if (oldVersion < 8) await _createV8Tables(db);
-        if (oldVersion < 9) await _createV9Tables(db);
-        if (oldVersion < 10) await _createV10Tables(db);
-        if (oldVersion < 11) await _createV11Tables(db);
-        if (oldVersion < 12) await _createV12Tables(db);
-        if (oldVersion < 13) await _createV13Tables(db);
-        if (oldVersion < 14) await _createV14Tables(db);
-        if (oldVersion < 15) await _createV15Tables(db);
-        if (oldVersion < 16) await _createV16Tables(db);
-        if (oldVersion < 17) await _createV17Tables(db);
-        if (oldVersion < 18) await _createV18Tables(db);
-        if (oldVersion < 19) await _createV19Tables(db);
-        if (oldVersion < 20) await _createV20Tables(db);
-        if (oldVersion < 21) await _createV21Tables(db);
-        if (oldVersion < 22) await _createV22Tables(db);
-        if (oldVersion < 23) await _createV23Tables(db);
-        if (oldVersion < 24) await _fixQuranNormalizedTextV24(db);
-        if (oldVersion < 25) await _createV25Tables(db);
-        if (oldVersion < 26) await _createV26Tables(db);
-        if (oldVersion < 27) await _fixQuranNormalizedTextV27(db);
-        if (oldVersion < 28) await _createV28Tables(db);
-        if (oldVersion < 29) await _createV29Tables(db);
-        if (oldVersion < 30) await _createV30Tables(db);
-        if (oldVersion < 31) await _createV31Tables(db);
-        if (oldVersion < 32) await _createV32Tables(db);
-        if (oldVersion < 33) await _createV33Tables(db);
-        if (oldVersion < 34) await _createV34Tables(db);
-        if (oldVersion < 35) await _createV35Tables(db);
-        if (oldVersion < 36) await _createV36Tables(db);
-        if (oldVersion < 37) await _createV37Tables(db);
-        if (oldVersion < 38) await _createV38Tables(db);
-        if (oldVersion < 39) {
-          await _createV39Tables(db);
-          await _backfillHizbNumbersV39(db);
-        }
-        if (oldVersion < 40) await _createV40Tables(db);
-        if (oldVersion < 41) await _createV41Tables(db);
-        if (oldVersion < 42) await _createV42Tables(db);
-        if (oldVersion < 43) await _createV43Tables(db);
-        if (oldVersion < 44) await _createV44Tables(db);
-        if (oldVersion < 45) await _createV45Tables(db);
-        if (oldVersion < 46) await _createV46Tables(db);
-        if (oldVersion < 47) await _createV47Tables(db);
-        if (oldVersion < 48) await _createV48Tables(db);
-        if (oldVersion < 49) {
-          await _createV49Tables(db);
-          // Copying legacy notes/quotes into the new table is best-effort:
-          // the old rows are untouched, so a hiccup here must not fail the
-          // whole upgrade (and brick every DB-backed screen).
-          try {
-            await migrateLegacyToAnnotations(db);
-          } catch (_) {/* legacy copy can be retried later */}
-        }
-        if (oldVersion < 50) await _createV50Tables(db);
-        if (oldVersion < 51) await _createV51Tables(db);
-        if (oldVersion < 52) await _createV52Tables(db);
-        if (oldVersion < 53) await _createV53Tables(db);
-        if (oldVersion < 54) await _createV54Tables(db);
-        if (oldVersion < 55) await _createV55Tables(db);
-        if (oldVersion < 56) await _createV56Tables(db);
-        if (oldVersion < 57) await _createV57Tables(db);
-        if (oldVersion < 58) await _createV58Tables(db);
-        if (oldVersion < 59) await _createV59Tables(db);
-        if (oldVersion < 60) await _createV60Tables(db);
-        if (oldVersion < 61) await _createV61Tables(db);
-        if (oldVersion < 62) await _createV62Tables(db);
-        if (oldVersion < 63) await _createV63Tables(db);
-        if (oldVersion < 64) await _createV64Tables(db);
-        if (oldVersion < 65) await _createV65Tables(db);
-        if (oldVersion < 66) await _createV66Tables(db);
-        if (oldVersion < 67) await _createV67Tables(db);
-        if (oldVersion < 68) await _createV68Tables(db);
-        if (oldVersion < 69) await _createV69Tables(db);
-        if (oldVersion < 70) await _createV70Tables(db);
-        if (oldVersion < 71) await _createV71Tables(db);
-        if (oldVersion < 72) await _createV72Tables(db);
-        if (oldVersion < 73) await _createV73Tables(db);
-        if (oldVersion < 74) await _createV74Tables(db);
-      },
+      onCreate: (db, version) => _onCreate(db),
+      onUpgrade: _onUpgrade,
     );
 
     // Real, live-reproduced failure mode (2026-09-18 — an emulator
@@ -260,6 +102,182 @@ class DatabaseHelper {
     throw StateError('DatabaseHelper._init: migration recovery did not converge after 100 attempts — '
         'this is no longer the known stale-version-marker case and needs real investigation, not another silent retry.');
   }
+
+  /// Fresh-install schema build (was the `onCreate` closure). Named so
+  /// `test/db_migration_test.dart` can prove it builds the same schema as
+  /// v1 + every upgrade step (revived from stabilization/m2, 2026-11-12).
+  Future<void> _onCreate(Database db) async {
+    await _createV1Tables(db);
+    await _createV2Tables(db);
+    await _createV3Tables(db);
+    await _createV4Tables(db);
+    await _createV5Tables(db);
+    await _createV6Tables(db);
+    await _createV7Tables(db);
+    await _createV8Tables(db);
+    await _createV9Tables(db);
+    await _createV10Tables(db);
+    await _createV11Tables(db);
+    await _createV12Tables(db);
+    await _createV13Tables(db);
+    await _createV14Tables(db);
+    await _createV15Tables(db);
+    await _createV16Tables(db);
+    await _createV17Tables(db);
+    await _createV18Tables(db);
+    await _createV19Tables(db);
+    await _createV20Tables(db);
+    await _createV21Tables(db);
+    await _createV22Tables(db);
+    await _createV23Tables(db);
+    await _createV25Tables(db);
+    await _createV26Tables(db);
+    await _createV28Tables(db);
+    await _createV29Tables(db);
+    await _createV30Tables(db);
+    await _createV31Tables(db);
+    await _createV32Tables(db);
+    await _createV33Tables(db);
+    await _createV34Tables(db);
+    await _createV35Tables(db);
+    await _createV36Tables(db);
+    await _createV37Tables(db);
+    await _createV38Tables(db);
+    await _createV39Tables(db);
+    await _createV40Tables(db);
+    await _createV41Tables(db);
+    await _createV42Tables(db);
+    await _createV43Tables(db);
+    await _createV44Tables(db);
+    await _createV45Tables(db);
+    await _createV46Tables(db);
+    await _createV47Tables(db);
+    await _createV48Tables(db);
+    await _createV49Tables(db);
+    await _createV50Tables(db);
+    await _createV51Tables(db);
+    await _createV52Tables(db);
+    await _createV53Tables(db);
+    await _createV54Tables(db);
+    await _createV55Tables(db);
+    await _createV56Tables(db);
+    await _createV57Tables(db);
+    await _createV58Tables(db);
+    await _createV59Tables(db);
+    await _createV60Tables(db);
+    await _createV61Tables(db);
+    await _createV62Tables(db);
+    await _createV63Tables(db);
+    await _createV64Tables(db);
+    await _createV65Tables(db);
+    await _createV66Tables(db);
+    await _createV67Tables(db);
+    await _createV68Tables(db);
+    await _createV69Tables(db);
+    await _createV70Tables(db);
+    await _createV71Tables(db);
+    await _createV72Tables(db);
+    await _createV73Tables(db);
+    await _createV74Tables(db);
+  }
+
+  /// Every migration step strictly greater than [oldVersion], in order (was
+  /// the `onUpgrade` closure).
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) await _createV2Tables(db);
+    if (oldVersion < 3) await _createV3Tables(db);
+    if (oldVersion < 4) await _createV4Tables(db);
+    if (oldVersion < 5) await _createV5Tables(db);
+    if (oldVersion < 6) await _createV6Tables(db);
+    if (oldVersion < 7) await _createV7Tables(db);
+    if (oldVersion < 8) await _createV8Tables(db);
+    if (oldVersion < 9) await _createV9Tables(db);
+    if (oldVersion < 10) await _createV10Tables(db);
+    if (oldVersion < 11) await _createV11Tables(db);
+    if (oldVersion < 12) await _createV12Tables(db);
+    if (oldVersion < 13) await _createV13Tables(db);
+    if (oldVersion < 14) await _createV14Tables(db);
+    if (oldVersion < 15) await _createV15Tables(db);
+    if (oldVersion < 16) await _createV16Tables(db);
+    if (oldVersion < 17) await _createV17Tables(db);
+    if (oldVersion < 18) await _createV18Tables(db);
+    if (oldVersion < 19) await _createV19Tables(db);
+    if (oldVersion < 20) await _createV20Tables(db);
+    if (oldVersion < 21) await _createV21Tables(db);
+    if (oldVersion < 22) await _createV22Tables(db);
+    if (oldVersion < 23) await _createV23Tables(db);
+    if (oldVersion < 24) await _fixQuranNormalizedTextV24(db);
+    if (oldVersion < 25) await _createV25Tables(db);
+    if (oldVersion < 26) await _createV26Tables(db);
+    if (oldVersion < 27) await _fixQuranNormalizedTextV27(db);
+    if (oldVersion < 28) await _createV28Tables(db);
+    if (oldVersion < 29) await _createV29Tables(db);
+    if (oldVersion < 30) await _createV30Tables(db);
+    if (oldVersion < 31) await _createV31Tables(db);
+    if (oldVersion < 32) await _createV32Tables(db);
+    if (oldVersion < 33) await _createV33Tables(db);
+    if (oldVersion < 34) await _createV34Tables(db);
+    if (oldVersion < 35) await _createV35Tables(db);
+    if (oldVersion < 36) await _createV36Tables(db);
+    if (oldVersion < 37) await _createV37Tables(db);
+    if (oldVersion < 38) await _createV38Tables(db);
+    if (oldVersion < 39) {
+      await _createV39Tables(db);
+      await _backfillHizbNumbersV39(db);
+    }
+    if (oldVersion < 40) await _createV40Tables(db);
+    if (oldVersion < 41) await _createV41Tables(db);
+    if (oldVersion < 42) await _createV42Tables(db);
+    if (oldVersion < 43) await _createV43Tables(db);
+    if (oldVersion < 44) await _createV44Tables(db);
+    if (oldVersion < 45) await _createV45Tables(db);
+    if (oldVersion < 46) await _createV46Tables(db);
+    if (oldVersion < 47) await _createV47Tables(db);
+    if (oldVersion < 48) await _createV48Tables(db);
+    if (oldVersion < 49) {
+      await _createV49Tables(db);
+      // Copying legacy notes/quotes into the new table is best-effort:
+      // the old rows are untouched, so a hiccup here must not fail the
+      // whole upgrade (and brick every DB-backed screen).
+      try {
+        await migrateLegacyToAnnotations(db);
+      } catch (_) {/* legacy copy can be retried later */}
+    }
+    if (oldVersion < 50) await _createV50Tables(db);
+    if (oldVersion < 51) await _createV51Tables(db);
+    if (oldVersion < 52) await _createV52Tables(db);
+    if (oldVersion < 53) await _createV53Tables(db);
+    if (oldVersion < 54) await _createV54Tables(db);
+    if (oldVersion < 55) await _createV55Tables(db);
+    if (oldVersion < 56) await _createV56Tables(db);
+    if (oldVersion < 57) await _createV57Tables(db);
+    if (oldVersion < 58) await _createV58Tables(db);
+    if (oldVersion < 59) await _createV59Tables(db);
+    if (oldVersion < 60) await _createV60Tables(db);
+    if (oldVersion < 61) await _createV61Tables(db);
+    if (oldVersion < 62) await _createV62Tables(db);
+    if (oldVersion < 63) await _createV63Tables(db);
+    if (oldVersion < 64) await _createV64Tables(db);
+    if (oldVersion < 65) await _createV65Tables(db);
+    if (oldVersion < 66) await _createV66Tables(db);
+    if (oldVersion < 67) await _createV67Tables(db);
+    if (oldVersion < 68) await _createV68Tables(db);
+    if (oldVersion < 69) await _createV69Tables(db);
+    if (oldVersion < 70) await _createV70Tables(db);
+    if (oldVersion < 71) await _createV71Tables(db);
+    if (oldVersion < 72) await _createV72Tables(db);
+    if (oldVersion < 73) await _createV73Tables(db);
+    if (oldVersion < 74) await _createV74Tables(db);
+  }
+
+  @visibleForTesting
+  Future<void> onCreateForTest(Database db) => _onCreate(db);
+
+  @visibleForTesting
+  Future<void> createV1ForTest(Database db) => _createV1Tables(db);
+
+  @visibleForTesting
+  Future<void> onUpgradeForTest(Database db, int from, int to) => _onUpgrade(db, from, to);
 
   Future<void> _createV1Tables(Database db) async {
     await db.execute('''

@@ -6,6 +6,8 @@ import '../models/turath_models.dart';
 import '../repositories/turath_repository.dart';
 import '../services/language_preference_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/feedback/empty_state.dart';
+import 'turath_library_screen.dart';
 import 'turath_reader_screen.dart';
 
 /// "اقتباساتي" (spec item 10/13) — every saved quote, each carrying its
@@ -51,7 +53,7 @@ class _TurathQuotesScreenState extends State<TurathQuotesScreen> {
         body: _quotes == null
             ? const Center(child: CircularProgressIndicator())
             : _quotes!.isEmpty
-                ? Center(child: Text(basicText('turath_no_quotes_empty', lang), style: const TextStyle(color: AppColors.textMuted)))
+                ? EmptyState(icon: Icons.format_quote_rounded, message: basicText('turath_no_quotes_empty', lang), actionLabel: basicText('empty_open_turath', lang), onAction: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathLibraryScreen())))
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _quotes!.length,

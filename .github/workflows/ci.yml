@@ -1,0 +1,53 @@
+# The gate: flutter analyze + the whole test suite on every push (revived
+# from stabilization/m6-ci, 2026-11-12). apk.yml builds the APKs in parallel;
+# this one says whether the code is sound. It would have caught the
+# 2026-10-30 build break (a config field removed that another file read)
+# before it reached an APK. The live turath.io tests run here on purpose —
+# if the API is down, that is worth seeing.
+name: ci
+
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+
+      - name: Stand in the gitignored config
+        run: cp lib/config/app_config.example.dart lib/config/app_config.dart
+
+      - name: Fetch the TTS voice (bundled asset the analyzer checks for)
+        run: |
+          pip install onnx
+          mkdir -p "$HOME/bin" && ln -sf "$(command -v python)" "$HOME/bin/py"
+          export PATH="$HOME/bin:$PATH"
+          sh tool/fetch_tts_voice.sh
+
+      - run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
