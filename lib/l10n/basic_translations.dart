@@ -5505,6 +5505,54 @@ const Map<String, Map<String, String>> basicTranslations = {
   },
   // 2026-08-22: curriculum_map_screen.dart. Level/item titles+details come
   // from curriculum_levels.dart / curriculum_repository.dart (content).
+  // 2026-11-13: the map's live status lines (curriculum_repository.dart) —
+  // were Arabic in every language.
+  'cur_n_of_m': {
+    'ar': '{done} من {total}', 'en': '{done} of {total}', 'am': '{done} ከ {total}', 'fr': '{done} sur {total}', 'sw': '{done} kati ya {total}',
+    'ur': '{total} میں سے {done}', 'tr': '{total} içinde {done}', 'id': '{done} dari {total}', 'bn': '{total}-এর মধ্যে {done}', 'ha': '{done} cikin {total}',
+    'so': '{done} ka mid ah {total}', 'fa': '{done} از {total}', 'ms': '{done} daripada {total}',
+  },
+  'cur_not_started': {
+    'ar': 'لم يبدأ بعد', 'en': 'Not started yet', 'am': 'ገና አልተጀመረም', 'fr': 'Pas encore commencé', 'sw': 'Bado haijaanza',
+    'ur': 'ابھی شروع نہیں ہوا', 'tr': 'Henüz başlanmadı', 'id': 'Belum dimulai', 'bn': 'এখনও শুরু হয়নি', 'ha': 'Ba a fara ba tukuna',
+    'so': 'Weli lama bilaabin', 'fa': 'هنوز شروع نشده', 'ms': 'Belum dimulakan',
+  },
+  'cur_days_done': {
+    'ar': '{n} يوم إتمام', 'en': '{n} days completed', 'am': '{n} ቀናት ተጠናቅቀዋል', 'fr': '{n} jours accomplis', 'sw': 'siku {n} zimekamilika',
+    'ur': '{n} دن مکمل', 'tr': '{n} gün tamamlandı', 'id': '{n} hari selesai', 'bn': '{n} দিন সম্পন্ন', 'ha': 'kwanaki {n} an kammala',
+    'so': '{n} maalmood la dhammeeyay', 'fa': '{n} روز تکمیل‌شده', 'ms': '{n} hari selesai',
+  },
+  'cur_applications': {
+    'ar': '{n} تطبيقًا مسجّلًا', 'en': '{n} applications logged', 'am': '{n} ተግባራት ተመዝግበዋል', 'fr': '{n} applications notées', 'sw': 'matendo {n} yamerekodiwa',
+    'ur': '{n} عملی اقدامات درج', 'tr': '{n} uygulama kaydedildi', 'id': '{n} pengamalan tercatat', 'bn': '{n}টি প্রয়োগ লিপিবদ্ধ', 'ha': 'ayyuka {n} an rubuta',
+    'so': '{n} ficil oo la diiwaangeliyay', 'fa': '{n} عمل ثبت‌شده', 'ms': '{n} amalan direkodkan',
+  },
+  'cur_benefits': {
+    'ar': '{n} فائدة مسجّلة', 'en': '{n} benefits noted', 'am': '{n} ጥቅሞች ተመዝግበዋል', 'fr': '{n} enseignements notés', 'sw': 'faida {n} zimeandikwa',
+    'ur': '{n} فوائد درج', 'tr': '{n} fayda kaydedildi', 'id': '{n} faedah tercatat', 'bn': '{n}টি উপকারিতা লিপিবদ্ধ', 'ha': 'fa\'idodi {n} an rubuta',
+    'so': '{n} faa\'iido oo la qoray', 'fa': '{n} فایده ثبت‌شده', 'ms': '{n} faedah direkodkan',
+  },
+  'cur_advise_first': {
+    'ar': 'يُنصح بإكمال «{title}» أولًا', 'en': 'Recommended: finish “{title}” first', 'am': 'መጀመሪያ «{title}»ን ማጠናቀቅ ይመከራል', 'fr': 'Conseillé : terminer « {title} » d’abord', 'sw': 'Inashauriwa kumaliza «{title}» kwanza',
+    'ur': 'پہلے «{title}» مکمل کرنا بہتر ہے', 'tr': 'Önce «{title}» tamamlanması önerilir', 'id': 'Disarankan menyelesaikan «{title}» dahulu', 'bn': 'আগে «{title}» শেষ করা ভালো', 'ha': 'Ana ba da shawarar a gama «{title}» da farko',
+    'so': 'Waxaa lagu talinayaa in marka hore la dhammeeyo «{title}»', 'fa': 'توصیه می‌شود ابتدا «{title}» را کامل کنید', 'ms': 'Disarankan menamatkan «{title}» dahulu',
+  },
+  // 2026-11-13: «الكتاب» tab when the book feed is not set up in this build.
+  'book_feed_off_title': {
+    'ar': 'كتب الشهر غير مفعّلة في هذه النسخة', 'en': 'Books of the month are not enabled in this version', 'am': 'የወሩ መጻሕፍት በዚህ ስሪት አልነቁም', 'fr': 'Les livres du mois ne sont pas activés dans cette version', 'sw': 'Vitabu vya mwezi havijawezeshwa katika toleo hili',
+    'ur': 'اس ورژن میں مہینے کی کتابیں فعال نہیں', 'tr': 'Ayın kitapları bu sürümde etkin değil', 'id': 'Buku bulan ini belum diaktifkan di versi ini', 'bn': 'এই সংস্করণে মাসের বই চালু নেই', 'ha': 'Littattafan wata ba su kunna ba a wannan sigar',
+    'so': 'Buugaagta bisha laguma dhaqaajin noocan', 'fa': 'کتاب‌های ماه در این نسخه فعال نیستند', 'ms': 'Buku bulan ini belum diaktifkan dalam versi ini',
+  },
+  'book_feed_off_body': {
+    'ar': 'تجد آلاف الكتب في مكتبة التراث، ويمكنك إضافة كتبك أنت في «مكتبتي» بالأسفل.', 'en': 'Thousands of books are in the Turath library, and you can add your own books in “My library” below.', 'am': 'በቅርስ ቤተ መጻሕፍት በሺዎች የሚቆጠሩ መጻሕፍት አሉ፤ የራስዎን መጻሕፍት ከታች «ቤተ መጻሕፍቴ» ውስጥ ማከል ይችላሉ።', 'fr': 'Des milliers de livres vous attendent dans la bibliothèque Turath, et vous pouvez ajouter vos propres livres dans « Ma bibliothèque » ci-dessous.', 'sw': 'Maelfu ya vitabu yako kwenye maktaba ya Turath, na unaweza kuongeza vitabu vyako katika «Maktaba yangu» hapa chini.',
+    'ur': 'تراث لائبریری میں ہزاروں کتابیں ہیں، اور آپ نیچے «میری لائبریری» میں اپنی کتابیں شامل کر سکتے ہیں۔', 'tr': 'Turath kütüphanesinde binlerce kitap var; kendi kitaplarınızı aşağıdaki «Kütüphanem» bölümüne ekleyebilirsiniz.', 'id': 'Ribuan buku ada di perpustakaan Turath, dan Anda bisa menambahkan buku sendiri di «Perpustakaanku» di bawah.', 'bn': 'তুরাস লাইব্রেরিতে হাজারো বই আছে, আর নিচে «আমার লাইব্রেরি»-তে নিজের বই যোগ করতে পারেন।', 'ha': 'Akwai dubban littattafai a ɗakin karatun Turath, kuma kana iya ƙara littattafanka a «Ɗakin karatuna» a ƙasa.',
+    'so': 'Kumanaan buug ayaa ku jira maktabadda Turath, waxaadna ku dari kartaa buugaagtaada «Maktabaddayda» hoose.', 'fa': 'هزاران کتاب در کتابخانهٔ تراث هست، و می‌توانید کتاب‌های خود را در «کتابخانهٔ من» در پایین اضافه کنید.', 'ms': 'Ribuan buku ada dalam perpustakaan Turath, dan anda boleh menambah buku sendiri dalam «Perpustakaan saya» di bawah.',
+  },
+  'book_open_turath': {
+    'ar': 'افتح مكتبة التراث', 'en': 'Open the Turath library', 'am': 'የቅርስ ቤተ መጻሕፍትን ክፈት', 'fr': 'Ouvrir la bibliothèque Turath', 'sw': 'Fungua maktaba ya Turath',
+    'ur': 'تراث لائبریری کھولیں', 'tr': 'Turath kütüphanesini aç', 'id': 'Buka perpustakaan Turath', 'bn': 'তুরাস লাইব্রেরি খুলুন', 'ha': 'Buɗe ɗakin karatun Turath',
+    'so': 'Fur maktabadda Turath', 'fa': 'کتابخانهٔ تراث را باز کنید', 'ms': 'Buka perpustakaan Turath',
+  },
   'curriculum_map_title': {
     'ar': 'خريطتي التعليمية', 'en': 'My Learning Map', 'am': 'የትምህርት ካርታዬ', 'fr': "Ma carte d'apprentissage", 'sw': 'Ramani Yangu ya Kujifunza',
     'ur': 'میرا تعلیمی نقشہ', 'tr': 'Öğrenme Haritam', 'id': 'Peta Belajar Saya', 'bn': 'আমার শেখার মানচিত্র', 'ha': 'Taswirar Karatuna',

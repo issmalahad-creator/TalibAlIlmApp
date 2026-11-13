@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import '../l10n/basic_translations.dart';
@@ -21,7 +22,10 @@ class CompanionChatScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(basicText('companion_chat_title', lang)),
+        // Developer tools (keyword-match debug view, self-test) — debug
+        // builds only; never shown to people using the app.
         actions: [
+          if (kDebugMode) ...[
           IconButton(
             tooltip: basicText('companion_debug_tooltip', lang),
             icon: const Icon(Icons.bug_report_outlined),
@@ -32,6 +36,7 @@ class CompanionChatScreen extends StatelessWidget {
             icon: const Icon(Icons.health_and_safety_outlined),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DiagnosticsTestScreen())),
           ),
+          ],
         ],
       ),
       body: const CompanionChatBody(),

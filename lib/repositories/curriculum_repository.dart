@@ -3,6 +3,11 @@ import 'package:sqflite/sqflite.dart';
 import '../data/curriculum_levels.dart';
 import '../data/new_muslim_guide.dart';
 import '../db/database_helper.dart';
+import '../l10n/basic_translations.dart';
+import '../services/language_preference_service.dart';
+
+/// The map's status lines in the app language.
+String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
 
 enum CurriculumItemState { comingSoon, notStarted, inProgress, completed, ongoing }
 
@@ -66,7 +71,7 @@ class CurriculumRepository {
         if (prereqStatus == null) continue;
         final satisfied = prereqStatus.state == CurriculumItemState.completed || prereqStatus.state == CurriculumItemState.ongoing;
         if (!satisfied) {
-          advisory = 'يُنصح بإكمال "${prereqStatus.titleAr}" أولًا';
+          advisory = _t('cur_advise_first').replaceAll('{title}', prereqStatus.titleAr);
           break;
         }
       }
@@ -96,7 +101,7 @@ class CurriculumRepository {
               "WHERE u.juz_number = 30 AND (p.status = 'established' OR (p.station IS NOT NULL AND p.station >= 6))",
         );
       case 'adhkar':
-        return _openEnded(db, item, 'SELECT COUNT(DISTINCT completed_date) FROM adhkar_completion', suffix: 'يوم إتمام');
+        return _openEnded(db, item, 'SELECT COUNT(DISTINCT completed_date) FROM adhkar_completion', suffixKey: 'cur_days_done');
       case 'arbain':
         return _fraction(
           db,
@@ -114,7 +119,7 @@ class CurriculumRepository {
               "WHERE (p.status = 'established' OR (p.station IS NOT NULL AND p.station >= 6))",
         );
       case 'application':
-        return _openEnded(db, item, 'SELECT COUNT(*) FROM application_log', suffix: 'تطبيقًا مسجّلًا');
+        return _openEnded(db, item, 'SELECT COUNT(*) FROM application_log', suffixKey: 'cur_applications');
       case 'wasitiyyah':
         return _fraction(
           db,
@@ -130,7 +135,7 @@ class CurriculumRepository {
           db,
           item,
           "SELECT COUNT(*) FROM audio_reflection_log WHERE series_id = 'ajlan_tafsir_baqarah'",
-          suffix: 'فائدة مسجّلة',
+          suffixKey: 'cur_benefits',
         );
       case 'zad_almaad':
         return _fraction(
@@ -173,7 +178,7 @@ class CurriculumRepository {
       contentType: item.contentType,
       titleAr: item.titleAr,
       state: state,
-      detailAr: '$done من $total',
+      detailAr: _t('cur_n_of_m').replaceAll('{done}', '$done').replaceAll('{total}', '$total'),
       progressFraction: (done / total).clamp(0, 1),
     );
   }
@@ -182,14 +187,14 @@ class CurriculumRepository {
     Database db,
     CurriculumItemDef item,
     String countSql, {
-    required String suffix,
+    required String suffixKey,
   }) async {
     final count = Sqflite.firstIntValue(await db.rawQuery(countSql)) ?? 0;
     return CurriculumItemStatus(
       contentType: item.contentType,
       titleAr: item.titleAr,
       state: count == 0 ? CurriculumItemState.notStarted : CurriculumItemState.ongoing,
-      detailAr: count == 0 ? 'لم يبدأ بعد' : '$count $suffix',
+      detailAr: count == 0 ? _t('cur_not_started') : _t(suffixKey).replaceAll('{n}', '$count'),
     );
   }
 
@@ -197,6 +202,6 @@ class CurriculumRepository {
         contentType: item.contentType,
         titleAr: item.titleAr,
         state: CurriculumItemState.comingSoon,
-        detailAr: 'قريبًا',
+        detailAr: _t('tag_coming_soon_label'),
       );
 }

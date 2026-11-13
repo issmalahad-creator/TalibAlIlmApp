@@ -20,6 +20,7 @@ import 'content_history_screen.dart';
 import 'personal_library_screen.dart';
 import 'quiz_screen.dart';
 import 'reading_stats_screen.dart';
+import 'turath_library_screen.dart';
 import '../widgets/loading_view.dart';
 import '../utils/open_link.dart';
 
@@ -271,9 +272,51 @@ class _BookScreenState extends State<BookScreen> {
     );
   }
 
+  /// This build has no book feed (every downloadable APK): say so plainly
+  /// and point to the books that do work, instead of an empty list.
+  Widget _feedOffCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.local_library_outlined, color: AppColors.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(basicText('book_feed_off_title', _lang),
+                    style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(basicText('book_feed_off_body', _lang),
+              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted, height: 1.6)),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TurathLibraryScreen())),
+              icon: const Icon(Icons.menu_book_rounded, size: 18),
+              label: Text(basicText('book_open_turath', _lang)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _bookListSection() {
     final visible = _visibleBooks;
     final hidden = _hiddenBooks;
+    if (visible.isEmpty && hidden.isEmpty && !BookContentService.configured) return _feedOffCard();
     if (visible.isEmpty && hidden.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
