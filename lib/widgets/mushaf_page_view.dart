@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../models/mushaf_layout.dart';
 import 'mushaf/line_spread.dart';
+import 'mushaf/surah_header_frame.dart';
 import 'mushaf/mushaf_page_cache.dart';
 import 'mushaf/screen_transform.dart';
 
@@ -100,6 +103,10 @@ class MushafPageView extends StatelessWidget {
   /// 1–2 (their own decorated layout) keep the uniform fit. Opt-in.
   final bool spreadLines;
 
+  /// Draw the ornate frame behind each surah-title line (pages 3–604;
+  /// pages 1–2 carry their own decoration in the art).
+  final bool surahFrames;
+
   const MushafPageView({
     super.key,
     required this.layout,
@@ -115,6 +122,7 @@ class MushafPageView extends StatelessWidget {
     this.onBackgroundTap,
     this.coverFit = false,
     this.spreadLines = false,
+    this.surahFrames = true,
   });
 
   @override
@@ -212,6 +220,32 @@ class MushafPageView extends StatelessWidget {
           if (w != null) onWordLongPress!.call(w);
         }
 
+        // the surah-title lines' bands, for the ornate frame under the art
+        final frames = <SurahHeaderFrame>[];
+        if (surahFrames && r != null && r.w > 0 && layout.page > 2) {
+          final pitch = r.h / 15;
+          for (final li in layout.lines) {
+            if (li.type != 'surah-name') continue;
+            final band = toScreen(MushafBox(r.x, r.y + (li.line - 1) * pitch, r.w, pitch));
+            MushafMarker? head;
+            for (final m in layout.markers) {
+              if (m.kind == MushafMarkerKind.surahHeader && m.line == li.line && m.box != null) head = m;
+            }
+            final title = head == null ? null : toScreen(head.box!);
+            // The title glyphs stand taller than a text line (the data has
+            // no box for them): give the frame up to 1.45 lines, within the
+            // line's own slot on the page, centred on the line.
+            final slotH = spread?.slotH ?? band.height * 1.3;
+            final h = math.min(band.height * 1.75, slotH * 0.97);
+            // the title's ascenders (alif, lām) reach higher than its tails
+            // go low — lift the frame a little so they sit inside
+            final frame = Rect.fromCenter(
+                center: band.center.translate(0, -band.height * 0.04), width: band.width, height: h);
+            frames.add(SurahHeaderFrame(frame, title));
+          }
+        }
+        final night = artInk != null && artInk!.computeLuminance() > 0.4;
+
         final sel = selectedAyah;
         final ayahBoxes = sel == null
             ? const <MushafBox>[]
@@ -227,6 +261,14 @@ class MushafPageView extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.hardEdge,
               children: [
+                if (frames.isNotEmpty)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: CustomPaint(
+                        painter: SurahHeaderFramePainter(frames: frames, night: night),
+                      ),
+                    ),
+                  ),
                 if (spread != null)
                   Positioned.fill(
                     child: _SpreadArt(
