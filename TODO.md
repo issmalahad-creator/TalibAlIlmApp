@@ -102,7 +102,7 @@ Last updated: 2026-09-27. **Work top to bottom, one unchecked item at a time.** 
 الخطة الصوتية الحالية: `docs/audio-reader/TODO.md` + `D:\_wt\piper-recording-studio\build_religious_prompts.py`
 الـSkill الإلزامي: [`.claude/skills/tts-audio-pipeline/SKILL.md`](.claude/skills/tts-audio-pipeline/SKILL.md)
 
-- [ ] **VOICE-0 — فحص التسجيلات:** مطابقة الصوت والنص، كشف الصمت/clipping/الملفات الناقصة، وتقرير quality report دون حذف أصلي.
+- [ ] **VOICE-0 — فحص التسجيلات** (الجولة الأولى ✅ 2026-11-13: 189 تسجيلًا، 34.2 دقيقة، #2 مقطوع — `docs/audio-reader/MY_VOICE_PLAN_2026-11-13.md`): مطابقة الصوت والنص، كشف الصمت/clipping/الملفات الناقصة، وتقرير quality report دون حذف أصلي.
 - [ ] **VOICE-1 — Dataset:** تحويل `webm` إلى WAV، توحيد الصوت، train/validation split، وفصل القرآن عن الكلام الديني الطبيعي.
 - [ ] **VOICE-2 — أول تدريب:** fine-tune على `ar_JO-kareem-medium` مع checkpoints واستكمال التدريب، لا تدريب من الصفر.
 - [ ] **VOICE-3 — فحص وتصدير:** توليد عينات، تصدير ONNX، تصحيح metadata، واختبار 50-100 توليد متتالٍ.
