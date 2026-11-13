@@ -39,6 +39,9 @@ class MainShell extends StatelessWidget {
       builder: (context, start, _) => Scaffold(
         key: mainShellScaffoldKey,
         drawer: const AppDrawer(),
+        // never shrink the muṣḥaf home under the keyboard (see the reader);
+        // the tabbed home has its own Scaffold, which still resizes.
+        resizeToAvoidBottomInset: false,
         // A wide edge strip: on a phone the default 20 px is easy to miss.
         drawerEdgeDragWidth: 28,
         body: start == StartScreenPreferenceService.home

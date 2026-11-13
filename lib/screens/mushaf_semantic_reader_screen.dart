@@ -44,7 +44,6 @@ import 'page_recitation_screen.dart';
 import 'quran_notebook_home_screen.dart';
 import 'hifz_schedule_screen.dart';
 import 'recitation_mistakes_screen.dart';
-import '../widgets/side_menu_tab.dart';
 import 'tahfeez_session_setup_screen.dart';
 import 'quran_learning/knowledge_surface.dart';
 import 'quran_learning/sources_screen.dart';
@@ -1817,7 +1816,7 @@ class _MushafSemanticReaderScreenState
     final page = await Navigator.push<int>(
       context,
       MaterialPageRoute(
-        builder: (_) => MushafIndexScreen(lang: lang, night: _night),
+        builder: (_) => MushafIndexScreen(lang: lang, night: _night, currentPage: _current),
       ),
     );
     if (page != null) _jumpToPage(page);
@@ -2029,6 +2028,12 @@ class _MushafSemanticReaderScreenState
       builder: (context, lang, _) => Scaffold(
         backgroundColor: bg,
         extendBodyBehindAppBar: true,
+        // The keyboard (the go-to field, search) must never shrink the
+        // muṣḥaf: in the vertical view a page's height IS the screen height,
+        // so a shrink re-scales every offset and a typed «٣٢٣» landed on an
+        // earlier page once the keyboard closed (Ismail 2026-11-13). Sheets
+        // pad themselves by viewInsets.
+        resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
             // The muṣḥaf always renders at full screen size — the toolbar
@@ -2151,14 +2156,9 @@ class _MushafSemanticReaderScreenState
                   ),
                 ),
               ),
-            // The visible way into every section — only while the bars are
-            // shown, so nothing sits over the text while reading.
-            if (widget.asHome && _chromeVisible)
-              PositionedDirectional(
-                start: 0,
-                top: MediaQuery.sizeOf(context).height * 0.42,
-                child: SideMenuTab(onOpen: widget.onOpenSections ?? () {}),
-              ),
+            // No side tab over the page (Ismail 2026-11-13 crossed it out:
+            // it covered the words) — the ☰ «كل الأقسام» button in the top
+            // bar is the way into every section.
             if (_chromeVisible && (_tajweedMode || _audioBar))
               Positioned(
                 left: 0,
@@ -2413,7 +2413,18 @@ class _MushafSemanticReaderScreenState
     return LayoutBuilder(
       builder: (context, c) {
         final safeTop = MediaQuery.paddingOf(context).top;
-        _vPageH = c.maxHeight - safeTop;
+        final newPageH = c.maxHeight - safeTop;
+        if (_vPageH > 0 && newPageH != _vPageH && !_pinching) {
+          // the screen itself changed height (rotation, split screen, a
+          // system bar) — keep the reader on the same page, not the same pixel
+          final keep = _current;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final vc = _vScroll;
+            if (!mounted || vc == null || !vc.hasClients || _vExtent <= 0) return;
+            vc.jumpTo(((keep - 1) * _vExtent).clamp(0.0, vc.position.maxScrollExtent));
+          });
+        }
+        _vPageH = newPageH;
         final pageW = c.maxWidth * _zoom;
         final pageH = _vPageH * _zoom;
         _vExtent = pageH + _pageGap;

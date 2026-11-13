@@ -33,10 +33,18 @@ void main() {
       return t == null ? null : appFeatures[targets.indexOf(t)].id;
     }
 
+    test('the old surah browser and search are not in the menu', () {
+      final ids = appFeatures.map((f) => f.id);
+      expect(ids, isNot(contains('quran_index')));
+      expect(ids, isNot(contains('quran_search')));
+    });
+
     test('names reach their screens', () {
       expect(open('علاجاتي'), 'medications');
       expect(open('منبه الأدوية'), 'medications');
-      expect(open('البحث في القرآن'), 'quran_search');
+      // the index and search live inside the muṣḥaf (2026-11-13)
+      expect(open('البحث في القرآن'), 'mushaf');
+      expect(open('فهرس السور'), 'mushaf');
       expect(open('القرآن'), 'mushaf');
       expect(open('جدول الحفظ'), 'hifz_schedule');
       expect(open('القبله'), 'qibla');

@@ -6,15 +6,21 @@ import '../data/quran_surahs.dart';
 import '../l10n/basic_translations.dart';
 import '../repositories/mushaf_layout_repository.dart';
 import '../widgets/mushaf/mushaf_chrome_style.dart';
+import '../widgets/mushaf/revelation_icon.dart';
 import 'mushaf_search_screen.dart';
 
 /// «الفهرس» — the reader's full-screen index: سورة | أجزاء | أرباع, each row
-/// with its start page in the edition we draw. Surahs carry 🕋 / 🕌 for
-/// Meccan / Medinan. Pops with the page to open (or null).
+/// with its start page in the edition we draw. The surah list (2026-11-13,
+/// Ismail's reference): number strip · the name in the muṣḥaf's script ·
+/// «آياتها» · a drawn Kaʿba / green dome · page strip; the surah you are
+/// reading is marked and scrolled into view. Pops with the page to open.
 class MushafIndexScreen extends StatefulWidget {
   final String lang;
   final bool night;
-  const MushafIndexScreen({super.key, required this.lang, this.night = false});
+
+  /// The page open in the reader — its surah is highlighted (0 = none).
+  final int currentPage;
+  const MushafIndexScreen({super.key, required this.lang, this.night = false, this.currentPage = 0});
 
   @override
   State<MushafIndexScreen> createState() => _MushafIndexScreenState();
@@ -26,6 +32,25 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
   Map<int, int> _surahPages = const {};
   Map<int, int> _juzPages = const {};
   List<(int, int)> _quarters = const [];
+
+  static const _surahRowH = 74.0;
+
+  /// The surah at the top of the reader's page (1-based), or 0.
+  int get _currentSurah {
+    final p = widget.currentPage;
+    if (p < 1 || p > kMadaniPageStarts.length) return 0;
+    return kMadaniPageStarts[p - 1].$1;
+  }
+
+  late final _surahScroll = ScrollController(
+    initialScrollOffset: _currentSurah > 3 ? (_currentSurah - 3) * _surahRowH : 0,
+  );
+
+  @override
+  void dispose() {
+    _surahScroll.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -162,20 +187,79 @@ class _MushafIndexScreenState extends State<MushafIndexScreen> {
   }
 
   Widget _surahList(String lang, bool night) => ListView.builder(
+        controller: _surahScroll,
+        itemExtent: _surahRowH,
         itemCount: quranSurahs.length,
-        itemBuilder: (_, i) {
-          final s = quranSurahs[i];
-          final type = basicText(kSurahMeccan[i] ? 'surah_meccan' : 'surah_medinan', lang);
-          return _row(
-            title: '${s.number} – ${basicText('surah_word', lang)} ${s.name}',
-            subtitle: '$type – ${basicText('surah_ayat_count', lang)} ${s.ayahCount}',
-            badge: kSurahMeccan[i] ? '🕋' : '🕌',
-            page: _surahPages[s.number],
-            night: night,
-            lang: lang,
-          );
-        },
+        itemBuilder: (_, i) => _surahRow(i, lang, night),
       );
+
+  Widget _surahRow(int i, String lang, bool night) {
+    final s = quranSurahs[i];
+    final page = _surahPages[s.number];
+    final meccan = kSurahMeccan[i];
+    final fg = MushafChrome.fg(night);
+    final here = s.number == _currentSurah;
+    final strip = night ? Colors.black.withValues(alpha: 0.35) : MushafChrome.tan;
+    final stripFg = night ? MushafChrome.gold : MushafChrome.brownDark;
+    final numStyle = TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: stripFg);
+    final rowBg = here
+        ? MushafChrome.gold.withValues(alpha: night ? 0.22 : 0.16)
+        : (night ? Colors.transparent : MushafChrome.paper);
+    return Material(
+      color: rowBg,
+      child: InkWell(
+        onTap: page == null ? null : () => Navigator.pop(context, page),
+        child: DecoratedBox(
+          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: MushafChrome.line(night)))),
+          child: Row(children: [
+            // surah number
+            Container(
+              width: 46,
+              color: strip,
+              alignment: Alignment.center,
+              child: Text(mushafDigits(s.number, lang), style: numStyle),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(s.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      // AmiriQuran's tall ascent: a tight line box + a
+                      // fixed strut, or the name sits on the line below it
+                      strutStyle: const StrutStyle(fontSize: 20, height: 1.2, forceStrutHeight: true),
+                      style: TextStyle(fontFamily: 'AmiriQuran', fontSize: 20, height: 1.2, color: fg)),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${basicText(meccan ? 'surah_meccan' : 'surah_medinan', lang)} · '
+                    '${basicText('surah_ayat_count', lang)} ${mushafDigits(s.ayahCount, lang)}',
+                    style: TextStyle(fontSize: 12, color: fg.withValues(alpha: 0.62)),
+                  ),
+                ],
+              ),
+            ),
+            if (here)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 8),
+                child: Icon(Icons.bookmark_rounded, size: 18, color: MushafChrome.gold),
+              ),
+            RevelationIcon(meccan: meccan, size: 32),
+            const SizedBox(width: 12),
+            // start page
+            Container(
+              width: 54,
+              color: strip,
+              alignment: Alignment.center,
+              child: Text(page == null ? '' : mushafDigits(page, lang), style: numStyle),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
 
   Widget _juzList(String lang, bool night) => ListView.builder(
         itemCount: 30,

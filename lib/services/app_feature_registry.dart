@@ -36,11 +36,9 @@ import '../screens/personal_library_screen.dart';
 import '../screens/prayer_times_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/qibla_screen.dart';
-import '../screens/quran_browse_screen.dart';
 import '../screens/quran_learning/sources_screen.dart';
 import '../screens/quran_learning/topic_index_screen.dart';
 import '../screens/quran_notebook_home_screen.dart';
-import '../screens/quran_search_screen.dart';
 import '../screens/reading_stats_screen.dart';
 import '../screens/recitation_mistakes_screen.dart';
 import '../screens/review_screen.dart';
@@ -78,9 +76,10 @@ class AppFeature {
 
 final appFeatures = <AppFeature>[
   // ---- القرآن
-  AppFeature('mushaf', AppFeatureGroup.quran, Icons.auto_stories_rounded, const ['المصحف', 'القران', 'اقرا القران', 'quran', 'mushaf'], (_) => const MushafSemanticReaderScreen()),
-  AppFeature('quran_index', AppFeatureGroup.quran, Icons.format_list_numbered_rtl_rounded, const ['فهرس السور', 'تصفح القران', 'السور', 'surah list', 'quran index'], (_) => const QuranBrowseScreen()),
-  AppFeature('quran_search', AppFeatureGroup.quran, Icons.manage_search_rounded, const ['البحث في القران', 'ابحث في القران', 'بحث القران', 'search quran', 'quran search'], (_) => const QuranSearchScreen()),
+  AppFeature('mushaf', AppFeatureGroup.quran, Icons.auto_stories_rounded, const ['المصحف', 'القران', 'اقرا القران', 'quran', 'mushaf',
+      // the index and search live inside the muṣḥaf now (Ismail 2026-11-13)
+      'فهرس السور', 'فهرس القران', 'السور', 'surah list', 'quran index',
+      'البحث في القران', 'ابحث في القران', 'بحث القران', 'search quran', 'quran search'], (_) => const MushafSemanticReaderScreen()),
   AppFeature('hifz', AppFeatureGroup.quran, Icons.psychology_alt_outlined, const ['الحفظ', 'حفظ القران', 'حفظي', 'خريطتي', 'hifz', 'memorization'], (_) => const HifzScreen()),
   AppFeature('hifz_schedule', AppFeatureGroup.quran, Icons.calendar_month_outlined, const ['جدول الحفظ', 'خطة الحفظ', 'hifz schedule', 'memorization plan'], (_) => const HifzScheduleScreen()),
   AppFeature('review', AppFeatureGroup.quran, Icons.replay_circle_filled_outlined, const ['مراجعة الحفظ', 'المراجعه', 'review hifz', 'review'], (_) => const ReviewScreen()),
