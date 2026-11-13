@@ -42,6 +42,7 @@ dependencies:
   path_provider: ^2.1.4
   http: ^1.2.2
   crypto: ^3.0.3 # content packs: sha256 of downloaded files (already transitive)
+  ffi: ^2.1.0 # diacritizer → the onnxruntime C API sherpa_onnx already ships (already transitive)
   connectivity_plus: ^6.1.0
   shared_preferences: ^2.3.3
   intl: ^0.20.1
@@ -202,6 +203,8 @@ flutter:
     - assets/tts/packs/
     - assets/tts/ar_JO-kareem-medium.onnx.json
     - assets/tts/tokens.txt
+    # Diacritizer config (ichkil v0.3.0, MIT, 3 KB) — the 22 MB model is in packs/.
+    - assets/tts/tashkeel/
     - assets/tts/espeak-ng-data/ar_dict
     - assets/tts/espeak-ng-data/intonations
     - assets/tts/espeak-ng-data/phondata

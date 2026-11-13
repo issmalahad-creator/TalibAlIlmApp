@@ -80,3 +80,6 @@ assert any(p.key == 'sample_rate' for p in m.metadata_props)
 fi
 
 echo "done: $DEST"
+
+# The diacritizer the voice reads through (MIT, pinned + sha256).
+sh tool/fetch_tashkeel_model.sh

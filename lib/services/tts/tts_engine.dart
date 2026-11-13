@@ -27,6 +27,7 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 
+import 'arabic_diacritizer.dart';
 import 'tts_voice_registry.dart';
 
 class TtsEngine {
@@ -125,10 +126,20 @@ class TtsEngine {
     final voice = TtsVoiceRegistry.byId(voiceId);
     final voiceDir = await _ensureVoiceExtracted(voice);
 
+    final tashkeel = await _ensureTashkeelReady();
+
     final sendPort = await _ensureWorkerStarted();
     final replyPort = ReceivePort();
     sendPort.send(
-      _SynthesizeRequest(text: text, voiceId: voiceId, voiceDir: voiceDir, speed: speed, replyPort: replyPort.sendPort),
+      _SynthesizeRequest(
+        text: text,
+        voiceId: voiceId,
+        voiceDir: voiceDir,
+        speed: speed,
+        replyPort: replyPort.sendPort,
+        tashkeelModelPath: tashkeel?.$1,
+        tashkeelConfig: tashkeel?.$2,
+      ),
     );
 
     Object? result;
@@ -183,8 +194,14 @@ class _SynthesizeRequest {
     required this.voiceDir,
     required this.speed,
     required this.replyPort,
+    this.tashkeelModelPath,
+    this.tashkeelConfig,
   });
   final String text;
+  /// The diacritizer model on disk + its config, or null (not in this
+  /// build / not downloaded) — then the text is read as it is.
+  final String? tashkeelModelPath;
+  final String? tashkeelConfig;
   final String voiceId;
   final String voiceDir;
   final double speed;
@@ -207,6 +224,10 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
 
   var bindingsInitialized = false;
   final loadedVoices = <String, sherpa.OfflineTts>{};
+  // The diacritizer lives in this isolate (FFI handles can't cross isolates),
+  // loaded once on the first request that offers a model.
+  ArabicDiacritizer? diacritizer;
+  var diacritizerTried = false;
   final generationsSinceLoad = <String, int>{};
   // **السبب الجذري الحقيقي وُجِد فعليًا (2026-09-18)، لا تخمين بعد الآن**:
   // بحث مباشر في GitHub (k2-fsa/sherpa-onnx #943، #1081) يؤكّد أن استدعاء
@@ -278,8 +299,29 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
         generationsSinceLoad[message.voiceId] = 0;
       }
 
+      var text = message.text;
+      final modelPath = message.tashkeelModelPath;
+      if (!diacritizerTried && modelPath != null && message.tashkeelConfig != null) {
+        diacritizerTried = true;
+        try {
+          diacritizer = ArabicDiacritizer.load(model: File(modelPath).readAsBytesSync(), configJson: message.tashkeelConfig!);
+          debugPrint('[TTS] التشكيل الآلي جاهز: ${diacritizer != null}');
+        } catch (e) {
+          debugPrint('[TTS] تعذّر تحميل التشكيل الآلي، القراءة بلا تشكيل: $e');
+        }
+      }
+      if (diacritizer != null) {
+        try {
+          final sw = Stopwatch()..start();
+          text = diacritizer.diacritize(text);
+          debugPrint('[TTS] تشكيل ${message.text.length} حرفًا في ${sw.elapsedMilliseconds}ms');
+        } catch (e) {
+          debugPrint('[TTS] فشل التشكيل لهذه الفقرة، تُقرأ كما هي: $e');
+        }
+      }
+
       debugPrint('[TTS] استدعاء generate()...');
-      final audio = tts.generate(text: message.text, speed: message.speed);
+      final audio = tts.generate(text: text, speed: message.speed);
       debugPrint('[TTS] generate() انتهى: samples=${audio.samples.length} sampleRate=${audio.sampleRate}');
       final trimmed = _trimSilence(audio.samples, sampleRate: audio.sampleRate);
       final wav = _encodeWav(trimmed, audio.sampleRate);
@@ -321,6 +363,39 @@ void _ttsIsolateEntry(_TtsIsolateStart start) async {
 Future<Directory> ttsVoiceDir(TtsVoiceOption voice) async {
   final supportDir = await getApplicationSupportDirectory();
   return Directory(p.join(supportDir.path, 'tts_voices', voice.voiceId.replaceAll(':', '_')));
+}
+
+/// The diacritizer model (`arabic_diacritizer.dart`): bundled in the full
+/// build under assets/tts/packs/ (extracted once), a `tashkeel.ichkil`
+/// content pack in lite. Never throws — null means "read without it".
+const kTashkeelModelAsset = 'assets/tts/packs/tashkeel-ichkil-v0.3.0.onnx';
+const kTashkeelConfigAsset = 'assets/tts/tashkeel/ichkil_config.json';
+
+Future<File> tashkeelModelFile() async {
+  final supportDir = await getApplicationSupportDirectory();
+  return File(p.join(supportDir.path, 'tts_tashkeel', 'ichkil-v0.3.0.onnx'));
+}
+
+(String, String)? _tashkeelReady;
+
+Future<(String, String)?> _ensureTashkeelReady() async {
+  if (_tashkeelReady != null) return _tashkeelReady;
+  try {
+    final file = await tashkeelModelFile();
+    if (!await file.exists() && await ttsAssetBundled(kTashkeelModelAsset)) {
+      final data = await rootBundle.load(kTashkeelModelAsset);
+      await file.parent.create(recursive: true);
+      final tmp = File('${file.path}.part');
+      await tmp.writeAsBytes(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes), flush: true);
+      await tmp.rename(file.path);
+    }
+    if (!await file.exists()) return null;
+    final config = await rootBundle.loadString(kTashkeelConfigAsset);
+    return _tashkeelReady = (file.path, config);
+  } catch (e) {
+    debugPrint('[TTS] التشكيل الآلي غير متاح: $e');
+    return null;
+  }
 }
 
 Set<String>? _bundledAssets;

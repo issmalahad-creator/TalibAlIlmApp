@@ -110,6 +110,13 @@ def candidates() -> list[dict]:
                 "title": {"ar": "صوت القارئ كريم", "en": "Kareem reading voice"},
                 "summary": {"ar": "صوت عربي يقرأ لك الكتب في «سماع الكتب» بلا إنترنت (ترخيص MIT)",
                             "en": "An Arabic voice that reads your books aloud offline (MIT licence)"}})
+    # The diacritizer the reading voice reads through (2026-11-13) - ichkil
+    # v0.3.0, MIT, huggingface.co/ichkil/ichkil @ ff8783f (tool/fetch_tashkeel_model.sh).
+    out.append({"id": "tashkeel.ichkil", "kind": "voice", "src": ROOT / "assets/tts/packs/tashkeel-ichkil-v0.3.0.onnx",
+                "ext": "onnx", "installer": "tashkeel_model",
+                "title": {"ar": "التشكيل الآلي للقراءة الصوتية", "en": "Diacritization for the reading voice"},
+                "summary": {"ar": "يضع الحركات على نص الكتاب قبل أن يقرأه الصوت، فيقرأ أصحّ (ترخيص MIT)",
+                            "en": "Adds vowel marks to book text before the voice reads it, so it reads correctly (MIT licence)"}})
     titles = tafsir_titles()
     for path, key, lang in tafsir_editions():
         if key in CORE_TAFSIR:

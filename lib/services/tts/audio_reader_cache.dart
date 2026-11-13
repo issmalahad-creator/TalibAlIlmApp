@@ -12,9 +12,20 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 class AudioReaderCache {
+  /// v2 (2026-11-13): paragraphs are diacritized before the voice reads them
+  /// (`arabic_diacritizer.dart`), so audio made before that is dropped once.
+  static bool _legacyCleared = false;
+
   Future<Directory> _rootDir() async {
     final supportDir = await getApplicationSupportDirectory();
-    return Directory(p.join(supportDir.path, 'audio_reader_cache'));
+    if (!_legacyCleared) {
+      _legacyCleared = true;
+      final legacy = Directory(p.join(supportDir.path, 'audio_reader_cache'));
+      try {
+        if (await legacy.exists()) await legacy.delete(recursive: true);
+      } catch (_) {}
+    }
+    return Directory(p.join(supportDir.path, 'audio_reader_cache_v2'));
   }
 
   Future<File> _fileFor({

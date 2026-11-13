@@ -2,7 +2,7 @@ import 'dart:io';
 
 import '../../repositories/quran_corpus_sync.dart';
 import '../quran_import_service.dart';
-import '../tts/tts_engine.dart' show ttsAssetBundled, ttsVoiceDir;
+import '../tts/tts_engine.dart' show kTashkeelModelAsset, tashkeelModelFile, ttsAssetBundled, ttsVoiceDir;
 import '../tts/tts_voice_registry.dart';
 import 'content_pack_engine.dart';
 import 'pack_manifest.dart';
@@ -90,9 +90,37 @@ class VoiceModelInstaller implements PackInstaller {
   }
 }
 
+/// `tashkeel.ichkil` (2026-11-13): the diacritizer the reading voice reads
+/// through — bundled in full, a 22 MB download in lite. Placed where
+/// `TtsEngine` looks for it; until then the voice reads without it.
+class TashkeelModelInstaller implements PackInstaller {
+  @override
+  Future<bool> isBundled(PackInfo pack) => ttsAssetBundled(kTashkeelModelAsset);
+
+  @override
+  Future<void> install(PackInfo pack, List<File> files) async {
+    final target = await tashkeelModelFile();
+    await target.parent.create(recursive: true);
+    if (await target.exists()) await target.delete();
+    try {
+      await files.single.rename(target.path);
+    } on FileSystemException {
+      await files.single.copy(target.path);
+      await files.single.delete();
+    }
+  }
+
+  @override
+  Future<void> uninstall(PackInfo pack) async {
+    final target = await tashkeelModelFile();
+    if (await target.exists()) await target.delete();
+  }
+}
+
 void registerPackInstallers([ContentPackEngine? engine]) {
   (engine ?? ContentPackEngine.instance)
     ..registerInstaller('corpus_table', CorpusTableInstaller())
     ..registerInstaller('legacy_tafsir', LegacyTafsirInstaller())
-    ..registerInstaller('voice_model', VoiceModelInstaller());
+    ..registerInstaller('voice_model', VoiceModelInstaller())
+    ..registerInstaller('tashkeel_model', TashkeelModelInstaller());
 }
