@@ -121,7 +121,11 @@ def main():
 
     takes = []
     for lang in INCLUDE_LANGS:
-        for webm in sorted((studio / 'output' / lang).glob('*/*.webm')):
+        d = studio / 'output' / lang
+        # the studio's original take: .webm (before 2026-11-13; its .wav is a
+        # derived copy) or a lossless .wav with no .webm (since then)
+        originals = list(d.glob('*/*.webm')) + [w for w in d.glob('*/*.wav') if not w.with_suffix('.webm').exists()]
+        for webm in sorted(originals):
             if EXCLUDE_GROUP.search(webm.parent.name):
                 continue
             txt = webm.with_suffix('.txt')
