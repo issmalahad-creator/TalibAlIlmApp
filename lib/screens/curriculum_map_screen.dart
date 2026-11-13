@@ -16,6 +16,7 @@ import 'madarij_screen.dart';
 import 'new_muslim_guide_screen.dart';
 import 'quran_browse_screen.dart';
 import 'wasitiyyah_screen.dart';
+import 'qaida/qaida_home_screen.dart';
 import 'zad_almaad_screen.dart';
 import '../widgets/loading_view.dart';
 
@@ -87,6 +88,9 @@ class _CurriculumMapScreenState extends State<CurriculumMapScreen> {
         break;
       case 'ajlan_tafsir':
         screen = const AudioLibraryScreen();
+        break;
+      case 'qaida':
+        screen = const QaidaHomeScreen();
         break;
       case 'zad_almaad':
         screen = const ZadAlMaadScreen();

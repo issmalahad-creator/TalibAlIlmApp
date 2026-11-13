@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../data/curriculum_levels.dart';
 import '../data/new_muslim_guide.dart';
+import '../models/qaida.dart';
 import '../db/database_helper.dart';
 import '../l10n/basic_translations.dart';
 import '../services/language_preference_service.dart';
@@ -91,7 +92,12 @@ class CurriculumRepository {
   Future<CurriculumItemStatus> _statusFor(Database db, CurriculumItemDef item) async {
     switch (item.contentType) {
       case 'qaida':
-        return _comingSoon(item);
+        return _fraction(
+          db,
+          item,
+          totalSql: 'SELECT ${kQaidaLessonIds.length}',
+          doneSql: "SELECT COUNT(*) FROM arabic_curriculum_progress WHERE lesson_key IN (${kQaidaLessonIds.map((id) => "'${qaidaProgressKey(id)}'").join(',')})",
+        );
       case 'juz_amma':
         return _fraction(
           db,

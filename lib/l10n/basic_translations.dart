@@ -5505,6 +5505,157 @@ const Map<String, Map<String, String>> basicTranslations = {
   },
   // 2026-08-22: curriculum_map_screen.dart. Level/item titles+details come
   // from curriculum_levels.dart / curriculum_repository.dart (content).
+  // 2026-11-13: القاعدة النورانية (lib/screens/qaida/).
+  'feat_qaida': {
+    'ar': 'القاعدة النورانية', 'en': 'Noorani Qaida', 'am': 'ኑራኒ ቃዒዳ', 'fr': 'Qaida Nourania', 'sw': 'Qaida Nuraniyya',
+    'ur': 'نورانی قاعدہ', 'tr': 'Nurani Kaide', 'id': 'Qaidah Nuraniyah', 'bn': 'নূরানী কায়দা', 'ha': 'Qa\'idar Nuraniyya',
+    'so': 'Qaacidada Nuuraaniyada', 'fa': 'قاعدهٔ نورانیه', 'ms': 'Qaedah Nuraniyah',
+  },
+  'qaida_sub': {
+    'ar': 'تعلّم قراءة القرآن خطوة خطوة: من الحرف المفرد إلى الشدّة، في تسعة دروس.', 'en': 'Learn to read the Quran step by step: from the single letter to the shadda, in nine lessons.', 'am': 'ቁርኣንን ደረጃ በደረጃ ማንበብ ይማሩ፦ ከነጠላ ፊደል እስከ ሸዳ፣ በዘጠኝ ትምህርቶች።', 'fr': 'Apprenez à lire le Coran pas à pas : de la lettre isolée à la chadda, en neuf leçons.', 'sw': 'Jifunze kusoma Qur\'ani hatua kwa hatua: kutoka herufi moja hadi shadda, katika masomo tisa.',
+    'ur': 'قرآن پڑھنا قدم بہ قدم سیکھیں: اکیلے حرف سے تشدید تک، نو اسباق میں۔', 'tr': 'Kur\'an okumayı adım adım öğrenin: tek harften şeddeye, dokuz derste.', 'id': 'Belajar membaca Al-Qur\'an langkah demi langkah: dari huruf tunggal hingga syaddah, dalam sembilan pelajaran.', 'bn': 'ধাপে ধাপে কুরআন পড়া শিখুন: একক অক্ষর থেকে তাশদীদ পর্যন্ত, নয়টি পাঠে।', 'ha': 'Koyi karatun Alƙur\'ani mataki-mataki: daga harafi guda zuwa shadda, cikin darussa tara.',
+    'so': 'Baro akhriska Quraanka tallaabo tallaabo: laga bilaabo xarafka keliya ilaa shaddada, sagaal cashar.', 'fa': 'خواندن قرآن را گام‌به‌گام بیاموزید: از حرف تنها تا تشدید، در نُه درس.', 'ms': 'Belajar membaca al-Quran langkah demi langkah: dari huruf tunggal hingga syaddah, dalam sembilan pelajaran.',
+  },
+  'qaida_items_n': {
+    'ar': '{n} خانة', 'en': '{n} items', 'am': '{n} ንጥሎች', 'fr': '{n} éléments', 'sw': 'vipengele {n}',
+    'ur': '{n} خانے', 'tr': '{n} öğe', 'id': '{n} butir', 'bn': '{n}টি ঘর', 'ha': 'abubuwa {n}',
+    'so': '{n} shay', 'fa': '{n} خانه', 'ms': '{n} item',
+  },
+  'qaida_lesson_n': {
+    'ar': 'الدرس {n}', 'en': 'Lesson {n}', 'am': 'ትምህርት {n}', 'fr': 'Leçon {n}', 'sw': 'Somo {n}',
+    'ur': 'سبق {n}', 'tr': 'Ders {n}', 'id': 'Pelajaran {n}', 'bn': 'পাঠ {n}', 'ha': 'Darasi {n}',
+    'so': 'Casharka {n}', 'fa': 'درس {n}', 'ms': 'Pelajaran {n}',
+  },
+  'qaida_play_all': {
+    'ar': 'استمع للدرس', 'en': 'Listen to the lesson', 'am': 'ትምህርቱን አዳምጥ', 'fr': 'Écouter la leçon', 'sw': 'Sikiliza somo',
+    'ur': 'سبق سنیں', 'tr': 'Dersi dinle', 'id': 'Dengarkan pelajaran', 'bn': 'পাঠটি শুনুন', 'ha': 'Saurari darasin',
+    'so': 'Dhageyso casharka', 'fa': 'گوش دادن به درس', 'ms': 'Dengar pelajaran',
+  },
+  'qaida_stop': {
+    'ar': 'إيقاف', 'en': 'Stop', 'am': 'አቁም', 'fr': 'Arrêter', 'sw': 'Simamisha',
+    'ur': 'روکیں', 'tr': 'Durdur', 'id': 'Berhenti', 'bn': 'থামান', 'ha': 'Tsaya',
+    'so': 'Jooji', 'fa': 'توقف', 'ms': 'Henti',
+  },
+  'qaida_mark_done': {
+    'ar': 'أتممت الدرس', 'en': 'I finished this lesson', 'am': 'ትምህርቱን ጨረስኩ', 'fr': 'J’ai terminé cette leçon', 'sw': 'Nimemaliza somo hili',
+    'ur': 'میں نے سبق مکمل کر لیا', 'tr': 'Bu dersi bitirdim', 'id': 'Saya selesai pelajaran ini', 'bn': 'পাঠটি শেষ করেছি', 'ha': 'Na gama wannan darasi',
+    'so': 'Waan dhammeeyay casharkan', 'fa': 'این درس را تمام کردم', 'ms': 'Saya selesai pelajaran ini',
+  },
+  'qaida_next': {
+    'ar': 'الدرس التالي', 'en': 'Next lesson', 'am': 'ቀጣይ ትምህርት', 'fr': 'Leçon suivante', 'sw': 'Somo linalofuata',
+    'ur': 'اگلا سبق', 'tr': 'Sonraki ders', 'id': 'Pelajaran berikutnya', 'bn': 'পরের পাঠ', 'ha': 'Darasi na gaba',
+    'so': 'Casharka xiga', 'fa': 'درس بعدی', 'ms': 'Pelajaran seterusnya',
+  },
+  'qaida_all_done': {
+    'ar': 'أتممت القاعدة، بارك الله فيك', 'en': 'You finished the Qaida — may Allah bless you', 'am': 'ቃዒዳውን ጨረሱ፤ አላህ ይባርክዎ', 'fr': 'Vous avez terminé la Qaida — qu’Allah vous bénisse', 'sw': 'Umemaliza Qaida — Allah akubariki',
+    'ur': 'آپ نے قاعدہ مکمل کر لیا، اللہ برکت دے', 'tr': 'Kaideyi bitirdiniz, Allah mübarek kılsın', 'id': 'Anda telah menyelesaikan Qaidah, semoga Allah memberkahi', 'bn': 'কায়দা শেষ করেছেন, আল্লাহ বরকত দিন', 'ha': 'Ka gama Qa\'ida, Allah ya yi maka albarka',
+    'so': 'Waad dhammeysay Qaacidada, Alle ha ku barakeeyo', 'fa': 'قاعده را تمام کردید، خدا برکت دهد', 'ms': 'Anda telah menamatkan Qaedah, semoga Allah memberkati',
+  },
+  'qaida_tap_hint': {
+    'ar': 'اضغط أي خانة لتسمعها، ثم ردّدها.', 'en': 'Tap any cell to hear it, then repeat it.', 'am': 'ማንኛውንም ሳጥን ነክተው ያዳምጡ፣ ከዚያ ይድገሙት።', 'fr': 'Touchez une case pour l’écouter, puis répétez.', 'sw': 'Gusa kisanduku chochote kusikia, kisha rudia.',
+    'ur': 'کسی بھی خانے کو دبا کر سنیں، پھر دہرائیں۔', 'tr': 'Dinlemek için bir kutuya dokunun, sonra tekrarlayın.', 'id': 'Ketuk kotak mana pun untuk mendengarnya, lalu ulangi.', 'bn': 'যেকোনো ঘরে চাপ দিয়ে শুনুন, তারপর পুনরাবৃত্তি করুন।', 'ha': 'Taɓa kowane akwati don ka ji shi, sannan ka maimaita.',
+    'so': 'Taabo sanduuq kasta si aad u maqasho, kadibna ku celi.', 'fa': 'روی هر خانه بزنید تا بشنوید، سپس تکرار کنید.', 'ms': 'Ketik mana-mana petak untuk mendengarnya, kemudian ulang.',
+  },
+  'qaida_no_audio': {
+    'ar': 'أصوات هذا الدرس لم تُسجَّل بعد. اقرأه الآن مع معلّم أو مع من تثق بقراءته.', 'en': 'This lesson’s sounds are not recorded yet. For now, read it with a teacher or someone whose recitation you trust.', 'am': 'የዚህ ትምህርት ድምጾች ገና አልተቀዱም። ለአሁን ከመምህር ወይም ንባቡን ከሚያምኑት ሰው ጋር ያንብቡት።', 'fr': 'Les sons de cette leçon ne sont pas encore enregistrés. Pour l’instant, lisez-la avec un enseignant ou une personne dont vous êtes sûr de la lecture.', 'sw': 'Sauti za somo hili bado hazijarekodiwa. Kwa sasa, lisome na mwalimu au mtu unayeamini usomaji wake.',
+    'ur': 'اس سبق کی آوازیں ابھی ریکارڈ نہیں ہوئیں۔ فی الحال کسی استاد یا قابلِ اعتماد قاری کے ساتھ پڑھیں۔', 'tr': 'Bu dersin sesleri henüz kaydedilmedi. Şimdilik bir hocayla veya okuyuşuna güvendiğiniz biriyle okuyun.', 'id': 'Suara pelajaran ini belum direkam. Untuk sementara, bacalah bersama guru atau orang yang bacaannya Anda percayai.', 'bn': 'এই পাঠের শব্দগুলো এখনও রেকর্ড হয়নি। আপাতত শিক্ষক বা নির্ভরযোগ্য কারো সাথে পড়ুন।', 'ha': 'Ba a nadi sautin wannan darasin ba tukuna. Yanzu, karanta shi tare da malami ko wanda ka amince da karatunsa.',
+    'so': 'Codadka casharkan weli lama duubin. Hadda, la akhri macallin ama qof aad ku kalsoon tahay akhriskiisa.', 'fa': 'صداهای این درس هنوز ضبط نشده‌اند. فعلاً آن را با معلم یا کسی که به قرائتش اطمینان دارید بخوانید.', 'ms': 'Bunyi pelajaran ini belum dirakam. Buat masa ini, bacalah bersama guru atau orang yang anda percayai bacaannya.',
+  },
+  'qaida_audio_partial': {
+    'ar': 'سُجِّل {n} من {total} صوتًا في هذا الدرس.', 'en': '{n} of {total} sounds in this lesson are recorded.', 'am': 'በዚህ ትምህርት ከ{total} ድምጾች {n} ተቀድተዋል።', 'fr': '{n} sons sur {total} sont enregistrés dans cette leçon.', 'sw': 'Sauti {n} kati ya {total} zimerekodiwa katika somo hili.',
+    'ur': 'اس سبق کی {total} میں سے {n} آوازیں ریکارڈ ہیں۔', 'tr': 'Bu derste {total} sesten {n} tanesi kaydedildi.', 'id': '{n} dari {total} suara dalam pelajaran ini sudah direkam.', 'bn': 'এই পাঠের {total}টির মধ্যে {n}টি শব্দ রেকর্ড হয়েছে।', 'ha': 'An nadi sauti {n} cikin {total} a wannan darasi.',
+    'so': '{n} ka mid ah {total} cod ayaa casharkan laga duubay.', 'fa': '{n} از {total} صدای این درس ضبط شده است.', 'ms': '{n} daripada {total} bunyi dalam pelajaran ini telah dirakam.',
+  },
+  'qaida_q01_title': {
+    'ar': 'الحروف المفردة', 'en': 'Single letters', 'am': 'ነጠላ ፊደላት', 'fr': 'Les lettres isolées', 'sw': 'Herufi moja moja',
+    'ur': 'مفرد حروف', 'tr': 'Tek harfler', 'id': 'Huruf tunggal', 'bn': 'একক অক্ষর', 'ha': 'Haruffa guda-guda',
+    'so': 'Xarfaha keliya', 'fa': 'حروف مفرد', 'ms': 'Huruf tunggal',
+  },
+  'qaida_q02_title': {
+    'ar': 'أشكال الحروف', 'en': 'Letter shapes', 'am': 'የፊደላት ቅርጾች', 'fr': 'Les formes des lettres', 'sw': 'Maumbo ya herufi',
+    'ur': 'حروف کی شکلیں', 'tr': 'Harflerin şekilleri', 'id': 'Bentuk huruf', 'bn': 'অক্ষরের রূপ', 'ha': 'Siffofin haruffa',
+    'so': 'Qaababka xarfaha', 'fa': 'شکل‌های حروف', 'ms': 'Bentuk huruf',
+  },
+  'qaida_q03_title': {
+    'ar': 'الحروف المقطّعة', 'en': 'The disjointed letters', 'am': 'የተቆራረጡ ፊደላት', 'fr': 'Les lettres isolées du Coran', 'sw': 'Herufi zilizotengana',
+    'ur': 'حروفِ مقطعات', 'tr': 'Hurûf-ı mukattaa', 'id': 'Huruf muqatha\'ah', 'bn': 'হুরুফে মুকাত্তাআত', 'ha': 'Haruffan muqadda\'a',
+    'so': 'Xarfaha kala go\'an', 'fa': 'حروف مقطعه', 'ms': 'Huruf muqatta\'ah',
+  },
+  'qaida_q04_title': {
+    'ar': 'الحركات', 'en': 'Short vowels', 'am': 'አጫጭር አናባቢዎች', 'fr': 'Les voyelles brèves', 'sw': 'Irabu fupi',
+    'ur': 'حرکات', 'tr': 'Harekeler', 'id': 'Harakat', 'bn': 'হরকত', 'ha': 'Wasula gajeru',
+    'so': 'Shaqallada gaagaaban', 'fa': 'حرکات', 'ms': 'Baris',
+  },
+  'qaida_q05_title': {
+    'ar': 'التنوين', 'en': 'Tanween', 'am': 'ታንዊን', 'fr': 'Le tanwîn', 'sw': 'Tanwin',
+    'ur': 'تنوین', 'tr': 'Tenvin', 'id': 'Tanwin', 'bn': 'তানভীন', 'ha': 'Tanwin',
+    'so': 'Tanwiinta', 'fa': 'تنوین', 'ms': 'Tanwin',
+  },
+  'qaida_q06_title': {
+    'ar': 'حروف المدّ', 'en': 'Long vowels (madd)', 'am': 'ረጅም አናባቢዎች (መድ)', 'fr': 'Les voyelles longues (madd)', 'sw': 'Irabu ndefu (madd)',
+    'ur': 'حروفِ مد', 'tr': 'Med harfleri', 'id': 'Huruf mad', 'bn': 'মদের অক্ষর', 'ha': 'Haruffan madda',
+    'so': 'Xarfaha madda', 'fa': 'حروف مد', 'ms': 'Huruf mad',
+  },
+  'qaida_q07_title': {
+    'ar': 'حرفا اللين', 'en': 'The soft letters (leen)', 'am': 'ለስላሳ ፊደላት (ሊን)', 'fr': 'Les lettres douces (lîn)', 'sw': 'Herufi laini (lin)',
+    'ur': 'حروفِ لین', 'tr': 'Lîn harfleri', 'id': 'Huruf lin', 'bn': 'লীনের অক্ষর', 'ha': 'Haruffan lin',
+    'so': 'Xarfaha jilicsan (liin)', 'fa': 'حروف لین', 'ms': 'Huruf lin',
+  },
+  'qaida_q08_title': {
+    'ar': 'السكون', 'en': 'Sukoon', 'am': 'ሱኩን', 'fr': 'Le soukoun', 'sw': 'Sukun',
+    'ur': 'سکون', 'tr': 'Sükûn', 'id': 'Sukun', 'bn': 'সাকিন', 'ha': 'Sukun',
+    'so': 'Sukuunta', 'fa': 'سکون', 'ms': 'Sukun',
+  },
+  'qaida_q09_title': {
+    'ar': 'الشدّة', 'en': 'Shadda', 'am': 'ሸዳ', 'fr': 'La chadda', 'sw': 'Shadda',
+    'ur': 'تشدید', 'tr': 'Şedde', 'id': 'Syaddah', 'bn': 'তাশদীদ', 'ha': 'Shadda',
+    'so': 'Shaddada', 'fa': 'تشدید', 'ms': 'Sabdu',
+  },
+  'qaida_q01_note': {
+    'ar': 'اقرأ كلّ حرف باسمه: ألِف، باء، تاء… استمع ثم ردّد، وانتبه لمخرج كل حرف.', 'en': 'Read each letter by its name: alif, ba, ta… Listen, then repeat, minding where each letter comes from in the mouth.', 'am': 'እያንዳንዱን ፊደል በስሙ ያንብቡ፦ አሊፍ፣ ባእ፣ ታእ… ያዳምጡ፣ ከዚያ ይድገሙ፤ የእያንዳንዱን ፊደል መውጫ ይጠንቀቁ።', 'fr': 'Lisez chaque lettre par son nom : alif, bâ, tâ… Écoutez, puis répétez, en soignant le point d’articulation de chaque lettre.', 'sw': 'Soma kila herufi kwa jina lake: alif, ba, ta… Sikiliza, kisha rudia, ukizingatia mahali kila herufi inapotokea.',
+    'ur': 'ہر حرف کو اس کے نام سے پڑھیں: الف، با، تا… سنیں پھر دہرائیں، اور ہر حرف کے مخرج کا خیال رکھیں۔', 'tr': 'Her harfi adıyla okuyun: elif, be, te… Dinleyin, sonra tekrarlayın; her harfin mahrecine dikkat edin.', 'id': 'Bacalah setiap huruf dengan namanya: alif, ba, ta… Dengarkan, lalu ulangi, perhatikan makhraj setiap huruf.', 'bn': 'প্রতিটি অক্ষর তার নামে পড়ুন: আলিফ, বা, তা… শুনুন, তারপর পুনরাবৃত্তি করুন; প্রতিটি অক্ষরের মাখরাজে খেয়াল রাখুন।', 'ha': 'Karanta kowane harafi da sunansa: alif, ba, ta… Saurara, sannan ka maimaita, ka kula da makhrajin kowane harafi.',
+    'so': 'Xaraf kasta ku akhri magaciisa: alif, ba, ta… Dhageyso, kadib ku celi, una fiirso meesha xaraf kasta ka soo baxo.', 'fa': 'هر حرف را با نامش بخوانید: الف، با، تا… گوش دهید و تکرار کنید و به مخرج هر حرف دقت کنید.', 'ms': 'Baca setiap huruf dengan namanya: alif, ba, ta… Dengar, kemudian ulang, perhatikan makhraj setiap huruf.',
+  },
+  'qaida_q02_note': {
+    'ar': 'يتغيّر شكل الحرف في أول الكلمة ووسطها وآخرها، واسمه لا يتغيّر. ستة حروف لا تتصل بما بعدها: ا د ذ ر ز و.', 'en': 'A letter changes shape at the start, middle and end of a word; its name stays the same. Six letters never join the letter after them: ا د ذ ر ز و.', 'am': 'ፊደል በቃሉ መጀመሪያ፣ መሀል እና መጨረሻ ቅርጹን ይቀይራል፤ ስሙ ግን አይቀየርም። ስድስት ፊደላት ከኋላቸው ካለው ጋር አይገናኙም፦ ا د ذ ر ز و።', 'fr': 'Une lettre change de forme au début, au milieu et à la fin d’un mot ; son nom ne change pas. Six lettres ne se lient jamais à la suivante : ا د ذ ر ز و.', 'sw': 'Herufi hubadilika umbo mwanzoni, katikati na mwishoni mwa neno; jina lake halibadiliki. Herufi sita haziungani na inayofuata: ا د ذ ر ز و.',
+    'ur': 'حرف لفظ کے شروع، درمیان اور آخر میں شکل بدلتا ہے، نام نہیں بدلتا۔ چھ حروف بعد والے سے نہیں ملتے: ا د ذ ر ز و۔', 'tr': 'Harf kelimenin başında, ortasında ve sonunda şekil değiştirir; adı değişmez. Altı harf kendinden sonrakine bitişmez: ا د ذ ر ز و.', 'id': 'Huruf berubah bentuk di awal, tengah, dan akhir kata; namanya tetap. Enam huruf tidak bersambung dengan huruf sesudahnya: ا د ذ ر ز و.', 'bn': 'শব্দের শুরু, মাঝ ও শেষে অক্ষরের রূপ বদলায়, নাম বদলায় না। ছয়টি অক্ষর পরের অক্ষরের সাথে যুক্ত হয় না: ا د ذ ر ز و।', 'ha': 'Harafi yana canza siffa a farko, tsakiya da ƙarshen kalma; sunansa ba ya canzawa. Haruffa shida ba sa haɗuwa da na bayansu: ا د ذ ر ز و.',
+    'so': 'Xarafku qaab ayuu beddelaa bilowga, dhexda iyo dhammaadka erayga; magaciisu ma beddelmo. Lix xaraf kuma xidhmaan kan ka dambeeya: ا د ذ ر ز و.', 'fa': 'حرف در آغاز، میان و پایان کلمه شکلش عوض می‌شود و نامش نه. شش حرف به حرف بعد نمی‌چسبند: ا د ذ ر ز و.', 'ms': 'Huruf berubah bentuk di awal, tengah dan akhir perkataan; namanya kekal. Enam huruf tidak bersambung dengan huruf selepasnya: ا د ذ ر ز و.',
+  },
+  'qaida_q03_note': {
+    'ar': 'حروف في أوائل بعض السور تُقرأ بأسمائها: «الٓمٓ» تُقرأ «ألِف لام ميم». نُقلت كما هي من المصحف، وتحت كلٍّ موضعها.', 'en': 'Letters at the start of some surahs are read by their names: «الٓمٓ» is read “alif lām mīm”. They are copied exactly from the mushaf, with their place under each.', 'am': 'በአንዳንድ ሱራዎች መጀመሪያ ያሉ ፊደላት በስማቸው ይነበባሉ፦ «الٓمٓ» «አሊፍ ላም ሚም» ተብሎ ይነበባል። ከሙስሐፉ እንዳሉ ተወስደዋል፣ ቦታቸውም ከስራቸው ተጽፏል።', 'fr': 'Les lettres au début de certaines sourates se lisent par leur nom : « الٓمٓ » se lit « alif lâm mîm ». Elles sont reprises telles quelles du mushaf, avec leur emplacement.', 'sw': 'Herufi zilizo mwanzoni mwa baadhi ya sura husomwa kwa majina yake: «الٓمٓ» husomwa “alif lam mim”. Zimenakiliwa kama zilivyo kutoka msahafu, na mahali pake chini yake.',
+    'ur': 'کچھ سورتوں کے شروع کے حروف ان کے ناموں سے پڑھے جاتے ہیں: «الٓمٓ» کو «الف لام میم» پڑھا جاتا ہے۔ یہ مصحف سے ہوبہو لیے گئے ہیں، نیچے ان کا مقام ہے۔', 'tr': 'Bazı surelerin başındaki harfler adlarıyla okunur: «الٓمٓ» “elif lâm mîm” okunur. Mushaftan aynen alınmıştır, altlarında yerleri yazılıdır.', 'id': 'Huruf di awal beberapa surah dibaca dengan namanya: «الٓمٓ» dibaca “alif lām mīm”. Disalin persis dari mushaf, dengan letaknya di bawahnya.', 'bn': 'কিছু সূরার শুরুর অক্ষরগুলো নাম ধরে পড়া হয়: «الٓمٓ» পড়া হয় “আলিফ লাম মীম”। মুসহাফ থেকে হুবহু নেওয়া, নিচে অবস্থান লেখা।', 'ha': 'Haruffa a farkon wasu surori ana karanta su da sunayensu: «الٓمٓ» ana karanta “alif lam mim”. An ɗauko su daidai daga mushafi, tare da wurinsu a ƙasa.',
+    'so': 'Xarfaha ku jira bilowga suuradaha qaarkood magacooda ayaa lagu akhriyaa: «الٓمٓ» waxaa loo akhriyaa “alif laam miim”. Sidooda ayaa laga soo qaaday mushafka, meeshoodana hoos ayay ku qoran tahay.', 'fa': 'حروف آغاز برخی سوره‌ها با نامشان خوانده می‌شوند: «الٓمٓ» خوانده می‌شود «الف لام میم». عیناً از مصحف آمده‌اند و جایشان زیر هر یک است.', 'ms': 'Huruf di awal sebahagian surah dibaca dengan namanya: «الٓمٓ» dibaca “alif lām mīm”. Disalin tepat daripada mushaf, dengan tempatnya di bawah.',
+  },
+  'qaida_q04_note': {
+    'ar': 'الفتحة «ـَ» والكسرة «ـِ» والضمة «ـُ» أصوات قصيرة: اقرأ بَ بِ بُ بلا مدّ.', 'en': 'Fatha «ـَ», kasra «ـِ» and damma «ـُ» are short sounds: read بَ بِ بُ without stretching them.', 'am': 'ፈትሐ «ـَ»፣ ከስራ «ـِ» እና ዶማ «ـُ» አጫጭር ድምጾች ናቸው፦ بَ بِ بُ ሳይረዝሙ ያንብቡ።', 'fr': 'La fatha «ـَ», la kasra «ـِ» et la damma «ـُ» sont des sons brefs : lisez بَ بِ بُ sans les allonger.', 'sw': 'Fatha «ـَ», kasra «ـِ» na dhamma «ـُ» ni sauti fupi: soma بَ بِ بُ bila kuvuta.',
+    'ur': 'زبر «ـَ»، زیر «ـِ» اور پیش «ـُ» چھوٹی آوازیں ہیں: بَ بِ بُ کو کھینچے بغیر پڑھیں۔', 'tr': 'Üstün «ـَ», esre «ـِ» ve ötre «ـُ» kısa seslerdir: بَ بِ بُ uzatmadan okuyun.', 'id': 'Fathah «ـَ», kasrah «ـِ», dan dhammah «ـُ» adalah bunyi pendek: baca بَ بِ بُ tanpa dipanjangkan.', 'bn': 'যবর «ـَ», যের «ـِ» ও পেশ «ـُ» ছোট শব্দ: بَ بِ بُ না টেনে পড়ুন।', 'ha': 'Fataha «ـَ», kasara «ـِ» da damma «ـُ» sautuka ne gajeru: karanta بَ بِ بُ ba tare da ja ba.',
+    'so': 'Fatxada «ـَ», kasrada «ـِ» iyo dammada «ـُ» waa codad gaagaaban: akhri بَ بِ بُ adigoon jiidin.', 'fa': 'فتحه «ـَ»، کسره «ـِ» و ضمه «ـُ» صداهای کوتاه‌اند: بَ بِ بُ را بی‌کشش بخوانید.', 'ms': 'Baris atas «ـَ», bawah «ـِ» dan depan «ـُ» ialah bunyi pendek: baca بَ بِ بُ tanpa dipanjangkan.',
+  },
+  'qaida_q05_note': {
+    'ar': 'التنوين نون ساكنة تُنطق ولا تُكتب: بً تُقرأ «بَنْ»، وبٍ «بِنْ»، وبٌ «بُنْ».', 'en': 'Tanween is a silent nūn that is pronounced but not written: بً is read “ban”, بٍ “bin”, بٌ “bun”.', 'am': 'ታንዊን የሚነበብ ግን የማይጻፍ ሳኪን ኑን ነው፦ بً «በን»፣ بٍ «ቢን»፣ بٌ «ቡን» ይነበባሉ።', 'fr': 'Le tanwîn est un noûn sans voyelle prononcé mais non écrit : بً se lit « ban », بٍ « bin », بٌ « boun ».', 'sw': 'Tanwin ni nun yenye sukun inayotamkwa bila kuandikwa: بً husomwa “ban”, بٍ “bin”, بٌ “bun”.',
+    'ur': 'تنوین ایک ساکن نون ہے جو پڑھا جاتا ہے لکھا نہیں جاتا: بً «بَن»، بٍ «بِن»، بٌ «بُن»۔', 'tr': 'Tenvin, okunan ama yazılmayan sakin bir nûndur: بً “ben”, بٍ “bin”, بٌ “bün” okunur.', 'id': 'Tanwin adalah nun mati yang dibaca tetapi tidak ditulis: بً dibaca “ban”, بٍ “bin”, بٌ “bun”.', 'bn': 'তানভীন হলো সাকিন নূন যা উচ্চারিত হয় কিন্তু লেখা হয় না: بً “বান”, بٍ “বিন”, بٌ “বুন”।', 'ha': 'Tanwin nun ce mai sukun da ake furtawa amma ba a rubutawa: بً ana karanta “ban”, بٍ “bin”, بٌ “bun”.',
+    'so': 'Tanwiintu waa nuun sukuun ah oo la dhawaaqo laakiin aan la qorin: بً waxaa loo akhriyaa “ban”, بٍ “bin”, بٌ “bun”.', 'fa': 'تنوین نونِ ساکنی است که خوانده می‌شود و نوشته نمی‌شود: بً «بَن»، بٍ «بِن»، بٌ «بُن».', 'ms': 'Tanwin ialah nun mati yang dibunyikan tetapi tidak ditulis: بً dibaca “ban”, بٍ “bin”, بٌ “bun”.',
+  },
+  'qaida_q06_note': {
+    'ar': 'الألف بعد الفتحة، والياء الساكنة بعد الكسرة، والواو الساكنة بعد الضمة تمدّ الصوت بمقدار حركتين: بَا بِي بُو.', 'en': 'Alif after fatha, silent yā’ after kasra and silent wāw after damma stretch the sound for two counts: بَا بِي بُو.', 'am': 'ከፈትሐ በኋላ አሊፍ፣ ከከስራ በኋላ ሳኪን ያእ፣ ከዶማ በኋላ ሳኪን ዋው ድምጹን ለሁለት ቆጠራ ያረዝማሉ፦ بَا بِي بُو።', 'fr': 'L’alif après la fatha, le yâ’ sans voyelle après la kasra et le wâw sans voyelle après la damma allongent le son de deux temps : بَا بِي بُو.', 'sw': 'Alif baada ya fatha, ya yenye sukun baada ya kasra, na waw yenye sukun baada ya dhamma huvuta sauti kwa hesabu mbili: بَا بِي بُو.',
+    'ur': 'زبر کے بعد الف، زیر کے بعد ساکن یا اور پیش کے بعد ساکن واؤ آواز کو دو حرکت کھینچتے ہیں: بَا بِي بُو۔', 'tr': 'Üstünden sonra elif, esreden sonra sakin ye, ötreden sonra sakin vav sesi iki hareke uzatır: بَا بِي بُو.', 'id': 'Alif setelah fathah, ya mati setelah kasrah, dan wau mati setelah dhammah memanjangkan bunyi dua harakat: بَا بِي بُو.', 'bn': 'যবরের পর আলিফ, যেরের পর সাকিন ইয়া ও পেশের পর সাকিন ওয়াও শব্দকে দুই হরকত টানে: بَا بِي بُو।', 'ha': 'Alif bayan fataha, ya mai sukun bayan kasara, da waw mai sukun bayan damma suna jan sauti har motsi biyu: بَا بِي بُو.',
+    'so': 'Alifka fatxada ka dib, yaa\'da sukuunta leh kasrada ka dib, iyo waawta sukuunta leh dammada ka dib codka ayay laba xarakadood u jiidaan: بَا بِي بُو.', 'fa': 'الف پس از فتحه، یای ساکن پس از کسره و واو ساکن پس از ضمه صدا را دو حرکت می‌کشند: بَا بِي بُو.', 'ms': 'Alif selepas baris atas, ya mati selepas baris bawah dan wau mati selepas baris depan memanjangkan bunyi dua harakat: بَا بِي بُو.',
+  },
+  'qaida_q07_note': {
+    'ar': 'الواو والياء الساكنتان بعد فتحة تُنطقان بلين وسهولة، من غير مدّ طويل: بَيْ بَوْ.', 'en': 'Silent wāw and yā’ after a fatha are pronounced softly and easily, without a long stretch: بَيْ بَوْ.', 'am': 'ከፈትሐ በኋላ ያሉ ሳኪን ዋው እና ያእ ያለ ረጅም መድ በለስላሳነት ይነበባሉ፦ بَيْ بَوْ።', 'fr': 'Le wâw et le yâ’ sans voyelle après une fatha se prononcent doucement, sans allongement : بَيْ بَوْ.', 'sw': 'Waw na ya zenye sukun baada ya fatha hutamkwa kwa ulaini, bila kuvuta sana: بَيْ بَوْ.',
+    'ur': 'زبر کے بعد ساکن واؤ اور یا نرمی سے پڑھے جاتے ہیں، لمبا کھینچے بغیر: بَيْ بَوْ۔', 'tr': 'Üstünden sonra sakin vav ve ye yumuşakça, uzatmadan okunur: بَيْ بَوْ.', 'id': 'Wau dan ya mati setelah fathah dibaca lembut dan ringan, tanpa panjang: بَيْ بَوْ.', 'bn': 'যবরের পর সাকিন ওয়াও ও ইয়া নরমভাবে, লম্বা না টেনে পড়া হয়: بَيْ بَوْ।', 'ha': 'Waw da ya masu sukun bayan fataha ana furta su a hankali, ba tare da dogon ja ba: بَيْ بَوْ.',
+    'so': 'Waawta iyo yaa\'da sukuunta leh ee fatxada ka dambeeya si jilicsan ayaa loo dhawaaqaa, jiid dheer la\'aan: بَيْ بَوْ.', 'fa': 'واو و یای ساکن پس از فتحه نرم و آسان خوانده می‌شوند، بی‌کشش بلند: بَيْ بَوْ.', 'ms': 'Wau dan ya mati selepas baris atas dibaca lembut, tanpa dipanjangkan: بَيْ بَوْ.',
+  },
+  'qaida_q08_note': {
+    'ar': 'السكون «ـْ» يعني أن الحرف بلا حركة، فيُنطق متصلًا بالحرف الذي قبله: أَبْ.', 'en': 'Sukoon «ـْ» means the letter has no vowel, so it is joined in sound to the letter before it: أَبْ.', 'am': 'ሱኩን «ـْ» ፊደሉ አናባቢ የለውም ማለት ነው፤ ስለዚህ ከፊቱ ካለው ፊደል ጋር ተያይዞ ይነበባል፦ أَبْ።', 'fr': 'Le soukoun «ـْ» signifie que la lettre n’a pas de voyelle : elle se prononce attachée à la lettre précédente : أَبْ.', 'sw': 'Sukun «ـْ» maana yake herufi haina irabu, hivyo hutamkwa ikiungana na herufi iliyotangulia: أَبْ.',
+    'ur': 'سکون «ـْ» کا مطلب ہے حرف پر حرکت نہیں، اس لیے وہ پچھلے حرف سے ملا کر پڑھا جاتا ہے: أَبْ۔', 'tr': 'Sükûn «ـْ» harfin harekesiz olduğunu gösterir; önceki harfle birleşik okunur: أَبْ.', 'id': 'Sukun «ـْ» berarti huruf tidak berharakat, sehingga dibaca bersambung dengan huruf sebelumnya: أَبْ.', 'bn': 'সাকিন «ـْ» মানে অক্ষরে হরকত নেই, তাই আগের অক্ষরের সাথে মিলিয়ে পড়া হয়: أَبْ।', 'ha': 'Sukun «ـْ» na nufin harafin ba shi da wasali, don haka ana furta shi tare da harafin da ke gabansa: أَبْ.',
+    'so': 'Sukuunta «ـْ» waxay ka dhigan tahay in xarafku shaqal lahayn, sidaas darteed waxaa lagu akhriyaa isagoo ku xidhan xarafka ka horreeya: أَبْ.', 'fa': 'سکون «ـْ» یعنی حرف حرکت ندارد، پس به حرف پیش از خود چسبیده خوانده می‌شود: أَبْ.', 'ms': 'Sukun «ـْ» bermaksud huruf tiada baris, jadi dibaca bersambung dengan huruf sebelumnya: أَبْ.',
+  },
+  'qaida_q09_note': {
+    'ar': 'الشدّة «ـّ» حرفان من جنس واحد: الأول ساكن والثاني متحرّك، فـأَبَّ تُقرأ «أَبْ + بَ».', 'en': 'Shadda «ـّ» is two of the same letter: the first silent, the second voweled, so أَبَّ is read “ab + ba”.', 'am': 'ሸዳ «ـّ» አንድ ዓይነት ሁለት ፊደላት ናቸው፦ የመጀመሪያው ሳኪን፣ ሁለተኛው አናባቢ ያለው፤ ስለዚህ أَبَّ «አብ + ባ» ተብሎ ይነበባል።', 'fr': 'La chadda «ـّ» représente deux fois la même lettre : la première sans voyelle, la seconde vocalisée ; أَبَّ se lit « ab + ba ».', 'sw': 'Shadda «ـّ» ni herufi mbili za aina moja: ya kwanza ina sukun, ya pili ina irabu, hivyo أَبَّ husomwa “ab + ba”.',
+    'ur': 'تشدید «ـّ» ایک ہی طرح کے دو حرف ہیں: پہلا ساکن، دوسرا متحرک؛ اس لیے أَبَّ «اَب + بَ» پڑھا جاتا ہے۔', 'tr': 'Şedde «ـّ» aynı türden iki harftir: ilki sakin, ikincisi harekeli; أَبَّ “eb + be” okunur.', 'id': 'Syaddah «ـّ» adalah dua huruf sejenis: yang pertama mati, yang kedua berharakat, jadi أَبَّ dibaca “ab + ba”.', 'bn': 'তাশদীদ «ـّ» একই রকম দুটি অক্ষর: প্রথমটি সাকিন, দ্বিতীয়টি হরকতযুক্ত; তাই أَبَّ পড়া হয় “আব + বা”।', 'ha': 'Shadda «ـّ» haruffa biyu ne iri ɗaya: na farko mai sukun, na biyu mai wasali, don haka أَبَّ ana karanta “ab + ba”.',
+    'so': 'Shaddada «ـّ» waa laba xaraf oo isku mid ah: kan hore sukuun, kan labaad shaqal leh, sidaas darteed أَبَّ waxaa loo akhriyaa “ab + ba”.', 'fa': 'تشدید «ـّ» دو حرفِ هم‌جنس است: اولی ساکن و دومی متحرک؛ پس أَبَّ خوانده می‌شود «اَب + بَ».', 'ms': 'Sabdu «ـّ» ialah dua huruf yang sama: yang pertama mati, yang kedua berbaris, jadi أَبَّ dibaca “ab + ba”.',
+  },
   // 2026-11-13: the map's live status lines (curriculum_repository.dart) —
   // were Arabic in every language.
   'cur_n_of_m': {
