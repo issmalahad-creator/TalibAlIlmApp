@@ -1,6 +1,6 @@
 {
  "schema": 1,
- "generated": "2026-09-29",
+ "generated": "2026-11-13",
  "base": "https://github.com/issmalahad-creator/TalibAlIlmApp/releases/download/packs-v1/",
  "packs": [
   {
@@ -147,6 +147,27 @@
    "summary": {
     "ar": "صوت عربي يقرأ لك الكتب في «سماع الكتب» بلا إنترنت (ترخيص MIT)",
     "en": "An Arabic voice that reads your books aloud offline (MIT licence)"
+   }
+  },
+  {
+   "id": "tashkeel.ichkil",
+   "kind": "voice",
+   "version": 1,
+   "title": {
+    "ar": "التشكيل الآلي للقراءة الصوتية",
+    "en": "Diacritization for the reading voice"
+   },
+   "files": [
+    {
+     "name": "tashkeel.ichkil.v1.onnx",
+     "bytes": 22284311,
+     "sha256": "9779e1aca89cebc77a9b92037b7d700c422cdf6c3774d4883f4652f641f3f705"
+    }
+   ],
+   "installer": "tashkeel_model",
+   "summary": {
+    "ar": "يضع الحركات على نص الكتاب قبل أن يقرأه الصوت، فيقرأ أصحّ (ترخيص MIT)",
+    "en": "Adds vowel marks to book text before the voice reads it, so it reads correctly (MIT licence)"
    }
   },
   {
