@@ -52,4 +52,40 @@ void main() {
     expect(miyah.firstWhere((m) => m.text.endsWith('لم يكره.')).ruling, ['لا يُكره']);
     expect(miyah.firstWhere((m) => m.text.contains('بغير ممازج')).ruling, ['يُكره']);
   });
+
+  group('every kitab of Zad\'s worship (ش7)', () {
+    final index = (jsonDecode(File(FiqhTree.indexAsset).readAsStringSync()) as Map<String, dynamic>)['trees'] as List;
+    final trees = {
+      for (final t in index.cast<Map<String, dynamic>>())
+        t['id'] as String: FiqhTree.fromJson(jsonDecode(File(t['asset'] as String).readAsStringSync()) as Map<String, dynamic>),
+    };
+
+    test('six kitabs in book order', () {
+      expect(trees.keys.toList(), ['zad.taharah', 'zad.salah', 'zad.janaiz', 'zad.zakah', 'zad.siyam', 'zad.hajj']);
+    });
+
+    test('every chapter has rulings, an al-Rawd page and Bulugh evidence; no hadith twice in a kitab', () {
+      for (final t in trees.values) {
+        for (final c in t.chapters) {
+          expect(c.masail, isNotEmpty, reason: '${t.id} ${c.title}');
+          expect(c.sharhPage, greaterThan(0), reason: '${t.id} ${c.title}');
+          expect(t.evidenceFor(c), isNotEmpty, reason: '${t.id} ${c.title} ← ${c.evidenceChapter}');
+        }
+        final ids = [for (final l in t.hadithByChapter.values) for (final h in l) h.label];
+        expect(ids.toSet().length, ids.length, reason: t.id);
+        for (final m in [for (final c in t.chapters) ...c.masail]) {
+          expect(RegExp(r'[٠-٩"<⦗]').hasMatch(m.text), isFalse, reason: m.id);
+          expect(RegExp(r'[.:؛؟!]$').hasMatch(m.text), isTrue, reason: '${m.id} split across pages?');
+        }
+      }
+    });
+
+    test('a chapter title shared by two kitabs resolves inside its own kitab («باب المواقيت»)', () {
+      final salah = trees['zad.salah']!;
+      final nums = [for (final l in salah.hadithByChapter.values) for (final h in l) h.n];
+      expect(nums.every((n) => n >= 151 && n <= 531), isTrue, reason: 'Salah hadith outside كتاب الصلاة: $nums');
+      final hajjMiqat = trees['zad.hajj']!.chapters.firstWhere((c) => c.title == 'باب المواقيت');
+      expect(trees['zad.hajj']!.evidenceFor(hajjMiqat).first.n, greaterThan(700));
+    });
+  });
 }

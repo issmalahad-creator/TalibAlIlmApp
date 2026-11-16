@@ -27,11 +27,18 @@ class FiqhMasala {
 
 /// A hadith of Bulugh al-Maram: Ibn Hajr's words (hadith + his own takhrij).
 class BulughHadith {
-  const BulughHadith({required this.n, required this.text});
+  const BulughHadith({required this.n, required this.text, this.sub});
   final int n;
   final String text;
 
-  factory BulughHadith.fromJson(Map<String, dynamic> j) => BulughHadith(n: j['n'] as int, text: j['text'] as String);
+  /// The edition's added hadith under the same number: «٢٠٣ (أ)».
+  final String? sub;
+
+  /// «203» or «203 أ».
+  String get label => sub == null ? '$n' : '$n $sub';
+
+  factory BulughHadith.fromJson(Map<String, dynamic> j) =>
+      BulughHadith(n: j['n'] as int, text: j['text'] as String, sub: j['sub'] as String?);
 }
 
 class FiqhChapter {
@@ -80,6 +87,22 @@ class FiqhTree {
   int get turathRawdId => (sources['rawd']?['turath_id'] as num).toInt();
 
   static const zadTaharah = 'assets/knowledge_trees/zad_taharah.json';
+  static const indexAsset = 'assets/knowledge_trees/index.json';
+
+  /// The trees that exist (one per kitab of Zad's worship), in book order.
+  static Future<List<FiqhTreeEntry>> index({AssetBundle? bundle}) async {
+    final raw = await (bundle ?? rootBundle).loadString(indexAsset);
+    return [
+      for (final t in ((jsonDecode(raw) as Map<String, dynamic>)['trees'] as List).cast<Map<String, dynamic>>())
+        FiqhTreeEntry(
+          id: t['id'] as String,
+          title: t['title'] as String,
+          asset: t['asset'] as String,
+          masail: (t['masail'] as num).toInt(),
+          hadith: (t['hadith'] as num).toInt(),
+        ),
+    ];
+  }
 
   static Future<FiqhTree> load({String asset = zadTaharah, AssetBundle? bundle}) async {
     final raw = await (bundle ?? rootBundle).loadString(asset);
@@ -109,4 +132,14 @@ class FiqhTree {
             ),
         ],
       );
+}
+
+/// One row of assets/knowledge_trees/index.json.
+class FiqhTreeEntry {
+  const FiqhTreeEntry({required this.id, required this.title, required this.asset, required this.masail, required this.hadith});
+  final String id;
+  final String title;
+  final String asset;
+  final int masail;
+  final int hadith;
 }

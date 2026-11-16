@@ -1,0 +1,53 @@
+{
+ "version": 1,
+ "trees": [
+  {
+   "id": "zad.taharah",
+   "title": "كتاب الطهارة",
+   "asset": "assets/knowledge_trees/zad_taharah.json",
+   "chapters": 11,
+   "masail": 79,
+   "hadith": 150
+  },
+  {
+   "id": "zad.salah",
+   "title": "كتاب الصلاة",
+   "asset": "assets/knowledge_trees/zad_salah.json",
+   "chapters": 12,
+   "masail": 133,
+   "hadith": 324
+  },
+  {
+   "id": "zad.janaiz",
+   "title": "كتاب الجنائز",
+   "asset": "assets/knowledge_trees/zad_janaiz.json",
+   "chapters": 1,
+   "masail": 24,
+   "hadith": 65
+  },
+  {
+   "id": "zad.zakah",
+   "title": "كتاب الزكاة",
+   "asset": "assets/knowledge_trees/zad_zakah.json",
+   "chapters": 8,
+   "masail": 41,
+   "hadith": 39
+  },
+  {
+   "id": "zad.siyam",
+   "title": "كتاب الصيام",
+   "asset": "assets/knowledge_trees/zad_siyam.json",
+   "chapters": 5,
+   "masail": 27,
+   "hadith": 57
+  },
+  {
+   "id": "zad.hajj",
+   "title": "كتاب المناسك",
+   "asset": "assets/knowledge_trees/zad_hajj.json",
+   "chapters": 11,
+   "masail": 49,
+   "hadith": 83
+  }
+ ]
+}

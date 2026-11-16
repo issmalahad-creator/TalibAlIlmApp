@@ -65,16 +65,37 @@ class _FiqhTreeScreenState extends State<FiqhTreeScreen> {
   FiqhTree? _tree;
   _FiqhNode? _root;
   Object? _error;
+  List<FiqhTreeEntry> _kitabs = const [];
+  late String _asset = widget.asset;
 
   @override
   void initState() {
     super.initState();
+    _loadIndex();
+    _load();
+  }
+
+  Future<void> _loadIndex() async {
+    try {
+      final kitabs = await FiqhTree.index();
+      if (mounted) setState(() => _kitabs = kitabs);
+    } catch (_) {
+      // one tree still works without the index
+    }
+  }
+
+  void _pick(FiqhTreeEntry k) {
+    if (k.asset == _asset) return;
+    setState(() {
+      _asset = k.asset;
+      _root = null;
+    });
     _load();
   }
 
   Future<void> _load() async {
     try {
-      final tree = await FiqhTree.load(asset: widget.asset);
+      final tree = await FiqhTree.load(asset: _asset);
       final root = _FiqhNode(id: tree.id, title: tree.title, depth: 0);
       for (final c in tree.chapters) {
         final ch = _FiqhNode(id: c.id, title: c.title, depth: 1, parentId: root.id, chapter: c);
@@ -126,6 +147,31 @@ class _FiqhTreeScreenState extends State<FiqhTreeScreen> {
               ? AppLoadingView(icon: Icons.account_tree_outlined, message: basicText('loading_lesson', lang))
               : Column(
                   children: [
+                    if (_kitabs.length > 1)
+                      SizedBox(
+                        height: 46,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          children: [
+                            for (final k in _kitabs)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                child: ChoiceChip(
+                                  label: Text(k.title.replaceFirst('كتاب ', '')),
+                                  selected: k.asset == _asset,
+                                  onSelected: (_) => _pick(k),
+                                  selectedColor: KnowledgeTreePalette.ink,
+                                  labelStyle: TextStyle(
+                                    color: k.asset == _asset ? Colors.white : KnowledgeTreePalette.ink,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  showCheckmark: false,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                       child: Text(_t('ft_sources_line'),
@@ -133,6 +179,7 @@ class _FiqhTreeScreenState extends State<FiqhTreeScreen> {
                     ),
                     Expanded(
                       child: KnowledgeTree3D(
+                        key: ValueKey(_root!.id),
                         root: _root!,
                         look: _look,
                         onTap: _open,
@@ -352,7 +399,7 @@ class _HadithTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               alignment: Alignment.center,
-              child: Text('${h.n}',
+              child: Text(h.label,
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: KnowledgeTreePalette.ink)),
             ),
             Expanded(
