@@ -52,6 +52,7 @@ import '../screens/understanding_screen.dart';
 import '../screens/wasitiyyah_screen.dart';
 import '../screens/wird_screen.dart';
 import '../screens/worship_coach_screen.dart';
+import '../screens/knowledge/fiqh_tree_screen.dart';
 import '../screens/qaida/qaida_home_screen.dart';
 import '../screens/zad_almaad_screen.dart';
 
@@ -113,6 +114,7 @@ final appFeatures = <AppFeature>[
   AppFeature('curriculum_map', AppFeatureGroup.knowledge, Icons.map_rounded, const ['خريطة المنهج', 'المنهج', 'curriculum', 'curriculum map'], (_) => const CurriculumMapScreen()),
   AppFeature('arabic', AppFeatureGroup.knowledge, Icons.translate_rounded, const ['العربية', 'تعلم العربية', 'النحو', 'arabic', 'learn arabic'], (_) => const ArabicCurriculumScreen()),
   AppFeature('qaida', AppFeatureGroup.knowledge, Icons.abc_rounded, const ['القاعدة النورانية', 'النورانية', 'القاعدة', 'تعلم القراءة', 'qaida', 'noorani', 'learn to read'], (_) => const QaidaHomeScreen()),
+  AppFeature('fiqh_tree', AppFeatureGroup.knowledge, Icons.account_tree_rounded, const ['شجرة الفقه', 'زاد المستقنع', 'بلوغ المرام', 'الروض المربع', 'التشجير', 'fiqh tree', 'zad'], (_) => const FiqhTreeScreen()),
   AppFeature('wasitiyyah', AppFeatureGroup.knowledge, Icons.shield_moon_outlined, const ['العقيدة الواسطية', 'الواسطية', 'العقيدة', 'aqeedah', 'wasitiyyah'], (_) => const WasitiyyahScreen()),
   AppFeature('zad_almaad', AppFeatureGroup.knowledge, Icons.history_edu_outlined, const ['زاد المعاد', 'السيرة', 'zad al maad', 'seerah'], (_) => const ZadAlMaadScreen()),
   AppFeature('madarij', AppFeatureGroup.knowledge, Icons.stairs_outlined, const ['مدارج السالكين', 'مدارج', 'madarij'], (_) => const MadarijScreen()),

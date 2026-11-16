@@ -5505,6 +5505,52 @@ const Map<String, Map<String, String>> basicTranslations = {
   },
   // 2026-08-22: curriculum_map_screen.dart. Level/item titles+details come
   // from curriculum_levels.dart / curriculum_repository.dart (content).
+  // 2026-11-16: شجرة الفقه (lib/screens/knowledge/fiqh_tree_screen.dart).
+  'feat_fiqh_tree': {
+    'ar': 'شجرة الفقه: زاد المستقنع', 'en': 'Fiqh tree: Zad al-Mustaqni‘', 'am': 'የፊቅህ ዛፍ፦ ዛድ አል-ሙስተቅኒዕ', 'fr': 'Arbre du fiqh : Zâd al-Mustaqni‘', 'sw': 'Mti wa fiqhi: Zad al-Mustaqni‘',
+    'ur': 'فقہ کا درخت: زاد المستقنع', 'tr': 'Fıkıh ağacı: Zâdü’l-Müstakni‘', 'id': 'Pohon fikih: Zad al-Mustaqni‘', 'bn': 'ফিকহের বৃক্ষ: যাদুল মুস্তাকনি', 'ha': 'Bishiyar fiƙihu: Zad al-Mustaqni‘',
+    'so': 'Geedka fiqhiga: Zad al-Mustaqni‘', 'fa': 'درخت فقه: زاد المستقنع', 'ms': 'Pohon fiqh: Zad al-Mustaqni‘',
+  },
+  'ft_sources_line': {
+    'ar': 'المتن: زاد المستقنع للحجاوي · الشرح: الروض المربع للبهوتي · الأدلة: بلوغ المرام لابن حجر', 'en': 'Text: Zad al-Mustaqni‘ (al-Hajjawi) · Explanation: al-Rawd al-Murbi‘ (al-Buhuti) · Evidence: Bulugh al-Maram (Ibn Hajar)', 'am': 'ጽሑፍ፦ ዛድ አል-ሙስተቅኒዕ (አል-ሐጃዊ) · ማብራሪያ፦ አር-ረውድ አል-ሙርቢዕ (አል-ቡሁቲ) · ማስረጃ፦ ቡሉግ አል-መራም (ኢብኑ ሐጀር)', 'fr': 'Texte : Zâd al-Mustaqni‘ (al-Hajjâwî) · Explication : al-Rawd al-Murbi‘ (al-Buhûtî) · Preuves : Bulûgh al-Marâm (Ibn Hajar)', 'sw': 'Matini: Zad al-Mustaqni‘ (al-Hajjawi) · Ufafanuzi: al-Rawd al-Murbi‘ (al-Buhuti) · Dalili: Bulugh al-Maram (Ibn Hajar)',
+    'ur': 'متن: زاد المستقنع (حجاوی) · شرح: الروض المربع (بہوتی) · دلائل: بلوغ المرام (ابن حجر)', 'tr': 'Metin: Zâdü’l-Müstakni‘ (Haccâvî) · Şerh: er-Ravdu’l-Murbi‘ (Buhûtî) · Deliller: Bulûğu’l-Merâm (İbn Hacer)', 'id': 'Matan: Zad al-Mustaqni‘ (al-Hajjawi) · Syarah: al-Raudh al-Murbi‘ (al-Buhuti) · Dalil: Bulughul Maram (Ibnu Hajar)', 'bn': 'মূল পাঠ: যাদুল মুস্তাকনি (হাজ্জাওয়ি) · ব্যাখ্যা: আর-রওদুল মুরবি (বুহুতি) · দলিল: বুলুগুল মারাম (ইবনে হাজার)', 'ha': 'Matani: Zad al-Mustaqni‘ (al-Hajjawi) · Sharhi: al-Rawd al-Murbi‘ (al-Buhuti) · Dalili: Bulugh al-Maram (Ibn Hajar)',
+    'so': 'Matnka: Zad al-Mustaqni‘ (al-Hajjawi) · Sharaxa: al-Rawd al-Murbi‘ (al-Buhuti) · Caddaynta: Bulugh al-Maram (Ibn Xajar)', 'fa': 'متن: زاد المستقنع (حجاوی) · شرح: الروض المربع (بهوتی) · ادله: بلوغ المرام (ابن حجر)', 'ms': 'Matan: Zad al-Mustaqni‘ (al-Hajjawi) · Syarah: al-Rawd al-Murbi‘ (al-Buhuti) · Dalil: Bulugh al-Maram (Ibnu Hajar)',
+  },
+  'ft_matn': {
+    'ar': 'المتن', 'en': 'Text', 'am': 'ጽሑፍ', 'fr': 'Texte', 'sw': 'Matini',
+    'ur': 'متن', 'tr': 'Metin', 'id': 'Matan', 'bn': 'মূল পাঠ', 'ha': 'Matani',
+    'so': 'Matnka', 'fa': 'متن', 'ms': 'Matan',
+  },
+  'ft_sharh': {
+    'ar': 'الشرح', 'en': 'Explanation', 'am': 'ማብራሪያ', 'fr': 'Explication', 'sw': 'Ufafanuzi',
+    'ur': 'شرح', 'tr': 'Şerh', 'id': 'Syarah', 'bn': 'ব্যাখ্যা', 'ha': 'Sharhi',
+    'so': 'Sharaxa', 'fa': 'شرح', 'ms': 'Syarah',
+  },
+  'ft_evidence': {
+    'ar': 'الأدلة', 'en': 'Evidence', 'am': 'ማስረጃዎች', 'fr': 'Preuves', 'sw': 'Dalili',
+    'ur': 'دلائل', 'tr': 'Deliller', 'id': 'Dalil', 'bn': 'দলিল', 'ha': 'Dalilai',
+    'so': 'Caddaymo', 'fa': 'ادله', 'ms': 'Dalil',
+  },
+  'ft_evidence_chapter_note': {
+    'ar': 'أحاديث هذا الباب كلها كما جمعها ابن حجر، لا دليل هذه المسألة وحدها.', 'en': 'All the hadith of this chapter as Ibn Hajar gathered them, not the evidence of this ruling alone.', 'am': 'የዚህ ምዕራፍ ሐዲሶች በሙሉ ኢብኑ ሐጀር እንደሰበሰባቸው፣ የዚህ ብይን ብቻ ማስረጃ አይደሉም።', 'fr': 'Tous les hadiths de ce chapitre tels qu’Ibn Hajar les a réunis, pas la preuve de ce seul point.', 'sw': 'Hadithi zote za mlango huu kama alivyozikusanya Ibn Hajar, si dalili ya hukumu hii peke yake.',
+    'ur': 'اس باب کی تمام احادیث جیسے ابن حجر نے جمع کیں، صرف اس مسئلے کی دلیل نہیں۔', 'tr': 'Bu bâbın bütün hadisleri, İbn Hacer’in topladığı şekliyle; yalnız bu meselenin delili değil.', 'id': 'Semua hadis bab ini sebagaimana dihimpun Ibnu Hajar, bukan dalil masalah ini saja.', 'bn': 'এই অধ্যায়ের সব হাদিস, ইবনে হাজার যেভাবে সংকলন করেছেন; শুধু এই মাসআলার দলিল নয়।', 'ha': 'Duk hadisan wannan babi kamar yadda Ibn Hajar ya tattara su, ba dalilin wannan hukunci kaɗai ba.',
+    'so': 'Dhammaan xadiisyada cutubkan sida Ibn Xajar u ururiyay, ma aha caddaynta xukunkan oo keliya.', 'fa': 'همهٔ احادیث این باب چنان‌که ابن حجر گرد آورده، نه فقط دلیل همین مسئله.', 'ms': 'Semua hadis bab ini sebagaimana dihimpun Ibnu Hajar, bukan dalil masalah ini sahaja.',
+  },
+  'ft_read_sharh': {
+    'ar': 'اقرأ الشرح كاملًا', 'en': 'Read the full explanation', 'am': 'ሙሉ ማብራሪያውን ያንብቡ', 'fr': 'Lire toute l’explication', 'sw': 'Soma ufafanuzi wote',
+    'ur': 'پوری شرح پڑھیں', 'tr': 'Şerhin tamamını oku', 'id': 'Baca syarah selengkapnya', 'bn': 'পুরো ব্যাখ্যা পড়ুন', 'ha': 'Karanta sharhin gaba ɗaya',
+    'so': 'Akhri sharaxa oo dhan', 'fa': 'خواندن کامل شرح', 'ms': 'Baca syarah sepenuhnya',
+  },
+  'ft_show_all': {
+    'ar': 'عرض الكل ({n})', 'en': 'Show all ({n})', 'am': 'ሁሉንም አሳይ ({n})', 'fr': 'Tout afficher ({n})', 'sw': 'Onyesha zote ({n})',
+    'ur': 'سب دکھائیں ({n})', 'tr': 'Tümünü göster ({n})', 'id': 'Tampilkan semua ({n})', 'bn': 'সব দেখুন ({n})', 'ha': 'Nuna duka ({n})',
+    'so': 'Tus dhammaan ({n})', 'fa': 'نمایش همه ({n})', 'ms': 'Tunjuk semua ({n})',
+  },
+  'ft_load_error': {
+    'ar': 'تعذّر فتح الشجرة.', 'en': 'The tree could not be opened.', 'am': 'ዛፉን መክፈት አልተቻለም።', 'fr': 'Impossible d’ouvrir l’arbre.', 'sw': 'Mti haukuweza kufunguliwa.',
+    'ur': 'درخت نہیں کھل سکا۔', 'tr': 'Ağaç açılamadı.', 'id': 'Pohon tidak dapat dibuka.', 'bn': 'বৃক্ষটি খোলা যায়নি।', 'ha': 'Ba a iya buɗe bishiyar ba.',
+    'so': 'Geedka lama furi karin.', 'fa': 'درخت باز نشد.', 'ms': 'Pohon tidak dapat dibuka.',
+  },
   // 2026-11-13: القاعدة النورانية (lib/screens/qaida/).
   'feat_qaida': {
     'ar': 'القاعدة النورانية', 'en': 'Noorani Qaida', 'am': 'ኑራኒ ቃዒዳ', 'fr': 'Qaida Nourania', 'sw': 'Qaida Nuraniyya',

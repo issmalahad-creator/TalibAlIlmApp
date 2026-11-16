@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../db/database_helper.dart';
+import '../models/knowledge_tree_node.dart';
 import '../models/quran_learning.dart';
 import '../services/boot/boot_scheduler.dart';
 import '../services/packs/content_pack_engine.dart';
@@ -8,7 +9,7 @@ import '../services/usul/usul_answers.dart';
 import 'quran_corpus_repository.dart';
 
 /// One node of the usul-tafsir tree as the screen draws it.
-class UsulTreeNode {
+class UsulTreeNode implements KnowledgeTreeNode {
   UsulTreeNode({
     required this.id,
     required this.title,
@@ -23,10 +24,14 @@ class UsulTreeNode {
     this.answerKey,
   });
 
+  @override
   final String id;
+  @override
   final String title;
+  @override
   final int depth;
   final int ord;
+  @override
   final String? parentId;
 
   /// The science's own word for the edge from the parent (أقسامه، أنواعه، مراتبه…).
@@ -43,6 +48,7 @@ class UsulTreeNode {
   /// Which per-ayah answer (U2) feeds this node; null = curated only (U5).
   final String? answerKey;
 
+  @override
   final List<UsulTreeNode> children = [];
 }
 

@@ -206,7 +206,13 @@ def main():
         lines = []
         for pg in range(start, end):
             for kind, val in zad_lines(get('page', book_id=ZAD, pg=pg)['text'], titles):
-                if kind == 'text':
+                if kind != 'text':
+                    continue
+                # a ruling the print split across two pages («…أو رفع بقليله / حدث…»):
+                # a line that doesn't end in a stop continues on the next line
+                if lines and not re.search(r'[.:؛؟!]$', lines[-1]):
+                    lines[-1] = lines[-1] + ' ' + val
+                else:
                     lines.append(val)
         if btitle not in bulugh_cache:
             bp, be = bul_ch[btitle]
