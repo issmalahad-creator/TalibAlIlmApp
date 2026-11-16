@@ -180,6 +180,9 @@ flutter:
     # ~2.4 MB for all 405 once recorded; tool/qaida/import_recording.py).
     # Bundled in both flavors — read only when the Qaida screen opens.
     - assets/qaida/
+    # Connected fiqh trees (docs/KNOWLEDGE_TREE_ZAD_PLAN.md): Zad + Bulugh + al-Rawd,
+    # built by tool/knowledge/build_zad_tree.py (~95 KB per kitab, authors' words only).
+    - assets/knowledge_trees/
     - assets/qaida/audio/
     # Quran Learning Layer (phase 79-ql) — seeded knowledge for the Prototype
     # slice (al-Fatiha + al-Ikhlas): ṣarf (Quranic Arabic Corpus), naḥw
