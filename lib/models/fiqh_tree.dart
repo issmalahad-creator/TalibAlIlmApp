@@ -10,7 +10,14 @@ import 'package:flutter/services.dart';
 
 /// One ruling of the matn, exactly as al-Hajjawi wrote it.
 class FiqhMasala {
-  const FiqhMasala({required this.id, required this.text, required this.ruling});
+  const FiqhMasala({
+    required this.id,
+    required this.text,
+    required this.ruling,
+    this.sharh,
+    this.ayat = const [],
+    this.hadith = const [],
+  });
   final String id;
   final String text;
 
@@ -18,10 +25,40 @@ class FiqhMasala {
   /// shown as highlights — never a ruling the matn didn't state.
   final List<String> ruling;
 
+  /// al-Rawd's explanation of exactly this ruling: its text from where it
+  /// quotes this ruling's matn to where it quotes the next one's.
+  final String? sharh;
+
+  /// Ayat al-Rawd cites in that explanation, each checked against the mushaf.
+  final List<(int, int)> ayat;
+
+  /// Hadith al-Rawd cites there that are in Bulugh al-Maram (matched by text).
+  final List<BulughHadith> hadith;
+
   factory FiqhMasala.fromJson(Map<String, dynamic> j) => FiqhMasala(
         id: j['id'] as String,
         text: j['text'] as String,
         ruling: [for (final r in (j['ruling'] as List? ?? const [])) r as String],
+        sharh: j['sharh'] as String?,
+        ayat: [for (final a in (j['ayat'] as List? ?? const [])) ((a as List)[0] as int, a[1] as int)],
+        hadith: [for (final h in (j['hadith'] as List? ?? const [])) BulughHadith.fromJson(h as Map<String, dynamic>)],
+      );
+}
+
+/// A larger commentary on the same chapter, opened in the Turath reader
+/// (modern works: linked, never copied).
+class FiqhCommentaryLink {
+  const FiqhCommentaryLink({required this.turathId, required this.title, required this.author, required this.page});
+  final int turathId;
+  final String title;
+  final String author;
+  final int page;
+
+  factory FiqhCommentaryLink.fromJson(Map<String, dynamic> j) => FiqhCommentaryLink(
+        turathId: (j['turath_id'] as num).toInt(),
+        title: j['title'] as String,
+        author: j['author'] as String,
+        page: (j['page'] as num).toInt(),
       );
 }
 
@@ -37,8 +74,12 @@ class BulughHadith {
   /// «203» or «203 أ».
   String get label => sub == null ? '$n' : '$n $sub';
 
-  factory BulughHadith.fromJson(Map<String, dynamic> j) =>
-      BulughHadith(n: j['n'] as int, text: j['text'] as String, sub: j['sub'] as String?);
+  factory BulughHadith.fromJson(Map<String, dynamic> j) {
+    // a ruling's hadith carries {label: «203 أ»}; a chapter's carries {sub}
+    final label = j['label'] as String?;
+    final sub = j['sub'] as String? ?? (label != null && label.contains(' ') ? label.split(' ').last : null);
+    return BulughHadith(n: j['n'] as int, text: j['text'] as String, sub: sub);
+  }
 }
 
 class FiqhChapter {
@@ -50,6 +91,8 @@ class FiqhChapter {
     required this.sharhChapter,
     required this.sharhPage,
     required this.evidenceChapter,
+    this.ayat = const [],
+    this.more = const [],
   });
 
   final String id;
@@ -64,6 +107,12 @@ class FiqhChapter {
 
   /// The Bulugh al-Maram chapter that gathers this chapter's evidence.
   final String evidenceChapter;
+
+  /// Every ayah al-Rawd cites in this chapter (checked against the mushaf).
+  final List<(int, int)> ayat;
+
+  /// Larger commentaries at this chapter (الشرح الممتع، حاشية ابن قاسم).
+  final List<FiqhCommentaryLink> more;
 }
 
 class FiqhTree {
@@ -129,6 +178,8 @@ class FiqhTree {
               sharhChapter: (c['sharh'] as Map)['chapter'] as String,
               sharhPage: ((c['sharh'] as Map)['page'] as num).toInt(),
               evidenceChapter: (c['evidence'] as Map)['chapter'] as String,
+              ayat: [for (final a in (c['ayat'] as List? ?? const [])) ((a as List)[0] as int, a[1] as int)],
+              more: [for (final m in (c['more'] as List? ?? const [])) FiqhCommentaryLink.fromJson(m as Map<String, dynamic>)],
             ),
         ],
       );
@@ -142,4 +193,41 @@ class FiqhTreeEntry {
   final String asset;
   final int masail;
   final int hadith;
+}
+
+/// ش4: an ayah → the fiqh chapters whose explanation (al-Rawd) cites it.
+class AyahFiqhLink {
+  const AyahFiqhLink({required this.asset, required this.kitab, required this.chapterId, required this.title, required this.masail});
+  final String asset;
+  final String kitab;
+  final String chapterId;
+  final String title;
+
+  /// The rulings whose own explanation cites the ayah (may be empty: cited
+  /// in the chapter's opening).
+  final List<String> masail;
+
+  static const linksAsset = 'assets/knowledge_trees/ayah_links.json';
+  static Map<String, List<AyahFiqhLink>>? _cache;
+
+  static Future<List<AyahFiqhLink>> forAyah(int surah, int ayah, {AssetBundle? bundle}) async {
+    if (_cache == null) {
+      final raw = await (bundle ?? rootBundle).loadString(linksAsset);
+      final ayat = (jsonDecode(raw) as Map<String, dynamic>)['ayat'] as Map<String, dynamic>;
+      _cache = {
+        for (final e in ayat.entries)
+          e.key: [
+            for (final r in (e.value as List).cast<Map<String, dynamic>>())
+              AyahFiqhLink(
+                asset: r['asset'] as String,
+                kitab: r['kitab'] as String,
+                chapterId: r['chapter'] as String,
+                title: r['title'] as String,
+                masail: [for (final m in (r['masail'] as List? ?? const [])) m as String],
+              ),
+          ],
+      };
+    }
+    return _cache!['$surah:$ayah'] ?? const [];
+  }
 }

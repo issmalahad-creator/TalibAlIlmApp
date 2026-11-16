@@ -88,4 +88,54 @@ void main() {
       expect(trees['zad.hajj']!.evidenceFor(hajjMiqat).first.n, greaterThan(700));
     });
   });
+
+  group("per ruling: al-Rawd's own explanation and evidence (ش4)", () {
+    final index = (jsonDecode(File(FiqhTree.indexAsset).readAsStringSync()) as Map<String, dynamic>)['trees'] as List;
+    final trees = [
+      for (final t in index.cast<Map<String, dynamic>>())
+        FiqhTree.fromJson(jsonDecode(File(t['asset'] as String).readAsStringSync()) as Map<String, dynamic>),
+    ];
+    final all = [for (final t in trees) for (final c in t.chapters) ...c.masail];
+    String bare(String t) => t.replaceAll(RegExp('[ً-ْٰ]'), '').replaceAll(RegExp('[أإآٱ]'), 'ا');
+
+    test('almost every ruling has its own al-Rawd passage, and it starts at that ruling', () {
+      final withSharh = all.where((m) => m.sharh != null).toList();
+      expect(withSharh.length / all.length, greaterThan(0.95));
+      var starts = 0;
+      for (final m in withSharh) {
+        final head = bare(m.sharh!.substring(0, m.sharh!.length.clamp(0, 220)));
+        final first = bare(m.text).split(' ').take(4);
+        if (first.any((w) => w.length > 2 && head.contains(w))) starts++;
+      }
+      expect(starts / withSharh.length, greaterThan(0.97), reason: 'passages must begin where their ruling is quoted');
+    });
+
+    test("a ruling's ayat are real ayat; its hadith carry Bulugh numbers and text", () {
+      for (final m in all) {
+        for (final (s, a) in m.ayat) {
+          expect(s, inInclusiveRange(1, 114), reason: m.id);
+          expect(a, greaterThan(0), reason: m.id);
+        }
+        for (final h in m.hadith) {
+          expect(h.n, greaterThan(0));
+          expect(h.text.length, greaterThan(20), reason: '${m.id} ${h.label}');
+        }
+      }
+      expect(all.where((m) => m.hadith.isNotEmpty).length, greaterThan(40));
+    });
+
+    test("the plan's acceptance check: al-Ma'ida 6 (wudu) opens «باب فروض الوضوء»", () {
+      final links = ((jsonDecode(File(AyahFiqhLink.linksAsset).readAsStringSync()) as Map)['ayat'] as Map)['5:6'] as List;
+      expect(links.map((l) => (l as Map)['chapter']), contains('zad.taharah.wudu'));
+    });
+
+    test("every chapter links al-Sharh al-Mumti' and Ibn Qasim's Hashiya at a page", () {
+      for (final t in trees) {
+        for (final c in t.chapters) {
+          expect(c.more.map((l) => l.turathId).toSet(), {10649, 12216}, reason: c.id);
+          expect(c.more.every((l) => l.page > 0), isTrue, reason: c.id);
+        }
+      }
+    });
+  });
 }

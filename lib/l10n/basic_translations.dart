@@ -5551,6 +5551,46 @@ const Map<String, Map<String, String>> basicTranslations = {
     'ur': 'درخت نہیں کھل سکا۔', 'tr': 'Ağaç açılamadı.', 'id': 'Pohon tidak dapat dibuka.', 'bn': 'বৃক্ষটি খোলা যায়নি।', 'ha': 'Ba a iya buɗe bishiyar ba.',
     'so': 'Geedka lama furi karin.', 'fa': 'درخت باز نشد.', 'ms': 'Pohon tidak dapat dibuka.',
   },
+  'ft_read_more': {
+    'ar': 'اقرأ الشرح كله', 'en': 'Read the whole explanation', 'am': 'ሙሉውን ማብራሪያ ያንብቡ', 'fr': 'Lire toute l’explication', 'sw': 'Soma maelezo yote',
+    'ur': 'پوری تشریح پڑھیں', 'tr': 'Açıklamanın tamamını oku', 'id': 'Baca seluruh penjelasan', 'bn': 'পুরো ব্যাখ্যা পড়ুন', 'ha': 'Karanta bayanin duka',
+    'so': 'Akhri sharaxa oo dhan', 'fa': 'خواندن تمام شرح', 'ms': 'Baca seluruh penjelasan',
+  },
+  'ft_from_quran': {
+    'ar': 'من القرآن', 'en': 'From the Quran', 'am': 'ከቁርኣን', 'fr': 'Du Coran', 'sw': 'Kutoka Qur’ani',
+    'ur': 'قرآن سے', 'tr': 'Kur’an’dan', 'id': 'Dari Al-Qur’an', 'bn': 'কুরআন থেকে', 'ha': 'Daga Alƙur’ani',
+    'so': 'Quraanka', 'fa': 'از قرآن', 'ms': 'Daripada al-Quran',
+  },
+  'ft_cited_by_rawd': {
+    'ar': 'ما استشهد به الروض المربع، بعد مطابقته بالمصحف', 'en': 'Cited by al-Rawd al-Murbi‘, checked against the mushaf', 'am': 'አር-ረውድ አል-ሙርቢዕ የጠቀሰው፣ ከሙስሐፉ ጋር ተረጋግጦ', 'fr': 'Cité par al-Rawd al-Murbi‘, vérifié sur le mushaf', 'sw': 'Imenukuliwa na al-Rawd al-Murbi‘, imehakikiwa na msahafu',
+    'ur': 'جسے الروض المربع نے بطور دلیل ذکر کیا، مصحف سے ملا کر', 'tr': 'er-Ravdu’l-Murbi‘in delil getirdiği, mushafla karşılaştırılmış', 'id': 'Dikutip al-Raudh al-Murbi‘, dicocokkan dengan mushaf', 'bn': 'আর-রওদুল মুরবি যা দলিল হিসেবে এনেছে, মুসহাফের সাথে মিলিয়ে', 'ha': 'Abin da al-Rawd al-Murbi‘ ya kawo a matsayin dalili, an tabbatar da mushafi',
+    'so': 'Waxa al-Rawd al-Murbi‘ ku caddeeyay, la barbardhigay mushafka', 'fa': 'آنچه الروض المربع بدان استدلال کرده، پس از تطبیق با مصحف', 'ms': 'Dipetik oleh al-Rawd al-Murbi‘, disemak dengan mushaf',
+  },
+  'ft_from_sunnah': {
+    'ar': 'من السنة', 'en': 'From the Sunnah', 'am': 'ከሱንና', 'fr': 'De la Sunna', 'sw': 'Kutoka Sunna',
+    'ur': 'سنت سے', 'tr': 'Sünnetten', 'id': 'Dari Sunnah', 'bn': 'সুন্নাহ থেকে', 'ha': 'Daga Sunna',
+    'so': 'Sunnada', 'fa': 'از سنت', 'ms': 'Daripada Sunnah',
+  },
+  'ft_sunnah_note': {
+    'ar': 'أحاديث استشهد بها الروض لهذه المسألة نفسها، وهذا موضعها في بلوغ المرام.', 'en': 'Hadith al-Rawd cites for this very ruling, and where they are in Bulugh al-Maram.', 'am': 'አር-ረውድ ለዚሁ ብይን የጠቀሳቸው ሐዲሶች፣ እና በቡሉግ አል-መራም ያሉበት ቦታ።', 'fr': 'Les hadiths qu’al-Rawd cite pour ce point précis, et leur place dans Bulûgh al-Marâm.', 'sw': 'Hadithi alizozinukuu al-Rawd kwa hukumu hii hasa, na zilipo katika Bulugh al-Maram.',
+    'ur': 'وہ احادیث جو الروض نے اسی مسئلے کے لیے ذکر کیں، اور بلوغ المرام میں ان کا مقام۔', 'tr': 'er-Ravd’ın tam bu mesele için getirdiği hadisler ve Bulûğu’l-Merâm’daki yerleri.', 'id': 'Hadis yang dikutip al-Raudh untuk masalah ini, dan letaknya dalam Bulughul Maram.', 'bn': 'আর-রওদ ঠিক এই মাসআলার জন্য যেসব হাদিস এনেছে, এবং বুলুগুল মারামে সেগুলোর স্থান।', 'ha': 'Hadisan da al-Rawd ya kawo don wannan hukunci, da wurinsu a Bulugh al-Maram.',
+    'so': 'Xadiisyada al-Rawd u soo qaatay xukunkan, iyo meeshooda Bulugh al-Maram.', 'fa': 'احادیثی که الروض برای همین مسئله آورده، و جای آن‌ها در بلوغ المرام.', 'ms': 'Hadis yang dipetik al-Rawd untuk hukum ini, dan tempatnya dalam Bulugh al-Maram.',
+  },
+  'ft_more_shuruh': {
+    'ar': 'شروح أوسع', 'en': 'Fuller commentaries', 'am': 'ሰፊ ማብራሪያዎች', 'fr': 'Commentaires plus amples', 'sw': 'Maelezo mapana zaidi',
+    'ur': 'مفصل شروحات', 'tr': 'Daha geniş şerhler', 'id': 'Syarah yang lebih luas', 'bn': 'বিস্তারিত ব্যাখ্যাগ্রন্থ', 'ha': 'Sharhohi masu faɗi',
+    'so': 'Sharaxyo ballaaran', 'fa': 'شرح‌های مفصل‌تر', 'ms': 'Syarah yang lebih luas',
+  },
+  'ft_open_at_chapter': {
+    'ar': 'تُفتح عند هذا الباب في مكتبة تراث', 'en': 'Opens at this chapter in the Turath library', 'am': 'በቱራስ ቤተ መጻሕፍት በዚህ ምዕራፍ ይከፈታል', 'fr': 'S’ouvre à ce chapitre dans la bibliothèque Turath', 'sw': 'Hufunguka kwenye mlango huu katika maktaba ya Turath',
+    'ur': 'تراث لائبریری میں اسی باب پر کھلتی ہے', 'tr': 'Turath kütüphanesinde bu bâbda açılır', 'id': 'Terbuka pada bab ini di perpustakaan Turath', 'bn': 'তুরাস লাইব্রেরিতে এই অধ্যায়ে খোলে', 'ha': 'Yana buɗewa a wannan babi a ɗakin karatun Turath',
+    'so': 'Waxay ka furmaysaa cutubkan maktabadda Turath', 'fa': 'در کتابخانهٔ تراث در همین باب باز می‌شود', 'ms': 'Dibuka pada bab ini dalam perpustakaan Turath',
+  },
+  'ft_cited_in': {
+    'ar': 'في الفقه: استُدلّ بها في', 'en': 'In fiqh: cited as evidence in', 'am': 'በፊቅህ፦ እንደ ማስረጃ የተጠቀሰበት', 'fr': 'En fiqh : citée comme preuve dans', 'sw': 'Katika fiqhi: imetumika kama dalili katika',
+    'ur': 'فقہ میں: اس سے استدلال کیا گیا', 'tr': 'Fıkıhta: delil olarak getirildiği yer', 'id': 'Dalam fikih: dijadikan dalil dalam', 'bn': 'ফিকহে: দলিল হিসেবে এসেছে', 'ha': 'A fiƙihu: an kafa hujja da ita a',
+    'so': 'Fiqhiga: caddayn ahaan loogu soo qaatay', 'fa': 'در فقه: بدان استدلال شده در', 'ms': 'Dalam fiqh: dijadikan dalil dalam',
+  },
   // 2026-11-13: القاعدة النورانية (lib/screens/qaida/).
   'feat_qaida': {
     'ar': 'القاعدة النورانية', 'en': 'Noorani Qaida', 'am': 'ኑራኒ ቃዒዳ', 'fr': 'Qaida Nourania', 'sw': 'Qaida Nuraniyya',

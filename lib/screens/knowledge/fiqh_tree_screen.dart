@@ -7,7 +7,7 @@ import '../../services/language_preference_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/knowledge_tree_3d.dart';
 import '../../widgets/loading_view.dart';
-import '../turath_reader_screen.dart';
+import 'fiqh_chain_sheet.dart';
 
 String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguage);
 
@@ -17,8 +17,12 @@ String _t(String key) => basicText(key, LanguagePreferenceService.currentLanguag
 /// «السلسلة»: the matn, al-Rawd's explanation, and the chapter's evidence
 /// from Bulugh al-Maram — quick cards, the full texts one tap further.
 class FiqhTreeScreen extends StatefulWidget {
-  const FiqhTreeScreen({super.key, this.asset = FiqhTree.zadTaharah});
+  const FiqhTreeScreen({super.key, this.asset = FiqhTree.zadTaharah, this.openChapterId, this.openMasalaId});
   final String asset;
+
+  /// From the mushaf (ش4): open the chain of this chapter / ruling at once.
+  final String? openChapterId;
+  final String? openMasalaId;
 
   @override
   State<FiqhTreeScreen> createState() => _FiqhTreeScreenState();
@@ -109,6 +113,12 @@ class _FiqhTreeScreenState extends State<FiqhTreeScreen> {
         _tree = tree;
         _root = root;
       });
+      final cid = widget.openChapterId;
+      if (cid != null && _asset == widget.asset) {
+        final ch = root.children.where((n) => n.id == cid).firstOrNull;
+        final target = ch?.children.where((n) => n.id == widget.openMasalaId).firstOrNull ?? ch;
+        if (target != null) WidgetsBinding.instance.addPostFrameCallback((_) => _open(target));
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
@@ -193,219 +203,3 @@ class _FiqhTreeScreenState extends State<FiqhTreeScreen> {
   }
 }
 
-/// «السلسلة»: stacked quick cards for one chapter or one ruling.
-class FiqhChainSheet extends StatefulWidget {
-  const FiqhChainSheet({super.key, required this.tree, required this.chapter, this.masala});
-  final FiqhTree tree;
-  final FiqhChapter chapter;
-  final FiqhMasala? masala;
-
-  @override
-  State<FiqhChainSheet> createState() => _FiqhChainSheetState();
-}
-
-class _FiqhChainSheetState extends State<FiqhChainSheet> {
-  bool _allHadith = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = widget.chapter;
-    final m = widget.masala;
-    final hadith = widget.tree.evidenceFor(c);
-    final shown = _allHadith ? hadith : hadith.take(3).toList();
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.62,
-      minChildSize: 0.35,
-      maxChildSize: 0.94,
-      builder: (context, scroll) => Container(
-        decoration: const BoxDecoration(
-          color: KnowledgeTreePalette.page,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-          border: Border(top: BorderSide(color: KnowledgeTreePalette.gold, width: 2)),
-        ),
-        child: ListView(
-          controller: scroll,
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(c.title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: KnowledgeTreePalette.ink)),
-            const SizedBox(height: 12),
-            if (m != null)
-              _Card(
-                label: _t('ft_matn'),
-                attribution: widget.tree.sources['zad']?['title'] as String? ?? '',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(m.text, style: const TextStyle(fontSize: 16, height: 1.9, color: AppColors.textDark)),
-                    if (m.ruling.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Wrap(spacing: 6, runSpacing: 6, children: [for (final r in m.ruling) _RulingChip(r)]),
-                    ],
-                  ],
-                ),
-              ),
-            _Card(
-              label: _t('ft_sharh'),
-              attribution: '${widget.tree.sources['rawd']?['title'] ?? ''} · ${c.sharhChapter}',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(c.sharhExcerpt, style: const TextStyle(fontSize: 14.5, height: 1.9, color: AppColors.textDark)),
-                  Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: TextButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => TurathReaderScreen(
-                            bookId: widget.tree.turathRawdId,
-                            bookName: widget.tree.sources['rawd']?['title'] as String? ?? '',
-                            pageNumber: c.sharhPage,
-                          ),
-                        ),
-                      ),
-                      icon: const Icon(Icons.menu_book_rounded, size: 18),
-                      label: Text(_t('ft_read_sharh')),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            _Card(
-              label: _t('ft_evidence'),
-              attribution: '${widget.tree.sources['bulugh']?['title'] ?? ''} · ${c.evidenceChapter}',
-              note: m == null ? null : _t('ft_evidence_chapter_note'),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final h in shown) _HadithTile(h),
-                  if (hadith.length > shown.length)
-                    TextButton(
-                      onPressed: () => setState(() => _allHadith = true),
-                      child: Text(_t('ft_show_all').replaceAll('{n}', '${hadith.length}')),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.label, required this.attribution, required this.child, this.note});
-  final String label;
-  final String attribution;
-  final String? note;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
-          boxShadow: [BoxShadow(color: KnowledgeTreePalette.ink.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: KnowledgeTreePalette.ink,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(attribution,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
-                ),
-              ],
-            ),
-            if (note != null) ...[
-              const SizedBox(height: 6),
-              Text(note!, style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.5)),
-            ],
-            const SizedBox(height: 8),
-            child,
-          ],
-        ),
-      );
-}
-
-class _RulingChip extends StatelessWidget {
-  const _RulingChip(this.word);
-  final String word;
-
-  @override
-  Widget build(BuildContext context) {
-    final (icon, color) = rulingStyle([word])!;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
-          Text(word, style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: color)),
-        ],
-      ),
-    );
-  }
-}
-
-class _HadithTile extends StatelessWidget {
-  const _HadithTile(this.h);
-  final BulughHadith h;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 34,
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              margin: const EdgeInsetsDirectional.only(end: 8, top: 4),
-              decoration: BoxDecoration(
-                color: KnowledgeTreePalette.gold.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              alignment: Alignment.center,
-              child: Text(h.label,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: KnowledgeTreePalette.ink)),
-            ),
-            Expanded(
-              child: Text(h.text, style: const TextStyle(fontSize: 15, height: 1.9, color: AppColors.textDark)),
-            ),
-          ],
-        ),
-      );
-}

@@ -13,6 +13,7 @@ import '../../theme/depth.dart';
 import '../../theme/tajweed_palette.dart';
 import '../ayah_notebook_screen.dart';
 import '../ayah_study_screen.dart';
+import '../knowledge/fiqh_chain_sheet.dart';
 import '../tajweed_tier_screen.dart';
 import 'corpus_panels.dart';
 import 'irab_view_screen.dart';
@@ -734,6 +735,8 @@ class _AyahSurfaceState extends State<_AyahSurface> {
                   _asbabBadge(lang),
                   const SizedBox(height: 10),
                 ],
+                // ش4: the fiqh chapters whose explanation cites this ayah
+                FiqhAyahLinks(surah: surah, ayah: ayah),
                 _learnQ(r, lang),
                 const SizedBox(height: 12),
                 _segbar(lang),
